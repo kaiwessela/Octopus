@@ -100,7 +100,7 @@ if(!isset($qs_page)){
 
 	} else {
 		# redirect to the regular posts list page because /p is not intended to be used as a regular page
-		http_status_code(308);
+		http_response_code(308);
 		header('Location: /posts');
 		exit;
 

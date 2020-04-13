@@ -37,11 +37,11 @@ class Post {
 	}
 
 	public static function load($data) {
-		$obj = new Page();
-		
-		$obj->id = $data['page_id'];
-		$obj->longid = $data['page_longid'];
-		$obj->title = $data['page_title'];
+		$obj = new self();
+
+		$obj->id = $data['post_id'];
+		$obj->longid = $data['post_longid'];
+		$obj->title = $data['post_title'];
 
 		return $obj;
 	}

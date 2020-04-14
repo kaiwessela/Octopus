@@ -1,5 +1,3 @@
 <?php
-class ObjectNotFoundException extends Exception {
-	
-}
+class ObjectNotFoundException extends Exception {}
 ?>

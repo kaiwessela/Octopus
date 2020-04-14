@@ -15,6 +15,11 @@ class Image {
 	const SIZE_LARGE = 3;
 
 
+	public static function new() {
+		$obj = new self();
+		return $obj;
+	}
+
 	public static function pull_by_id($id) {
 		global $pdo;
 
@@ -102,6 +107,69 @@ class Image {
 		} else {
 			throw new ObjectNotFoundException();
 		}
+	}
+
+	private function upload_image($data) {
+		if(!isset($imagedata) || imagecreatefromstring($imagedata) == false){
+			throw new InvalidArgumentException();
+			return false;
+		}
+
+
+	}
+
+	private static function resize_image($imagedata, $size) {
+		$dimensions = [
+			1 => ['x' => 300, 'y' => 200],
+			2 => ['x' => 600, 'y' => 400],
+			3 => ['x' => 900, 'y' => 600]
+		];
+
+		if(!isset($dimensions[$size])){
+			throw new InvalidArgumentException();
+			return;
+		}
+
+		$image_original = imagecreatefromstring($imagedata);
+
+		if($image_original == false){
+			throw new InvalidArgumentException();
+			return;
+		}
+
+		$orig_sizes = getimagesizefromstring($imagedata);
+		$orig_ratio = $orig_sizes[0] / $orig_sizes[1];
+		$orig_x = $orig_sizes[0];
+
+		if($orig_ratio <= 1.5){
+			$new_x = $dimensions[$size]['x'];
+		} else {
+			$new_x = round($dimensions[$size]['y'] * $orig_ratio);
+		}
+
+		if($orig_x < $dimensions[$size]['x'] + 20 || $orig_y < $dimensions[$size]['y'] + 20){
+			return false;
+		}
+
+		$image_new = imagescale($image_original, $new_x);
+
+		ob_start();
+
+		if($this->extension == self::EXTENSION_PNG){
+			imagepng($image_new);
+		} else if($this->extension == self::EXTENSION_JPG){
+			imagejpeg($image_new);
+		} else if($this->extension == self::EXTENSION_GIF){
+			imagegif($image_new);
+		}
+
+		$imagedata = ob_get_contents();
+		ob_end_clean();
+
+		imagedestroy($image_new);
+		imagedestroy($image_original);
+
+		return $imagedata;
 	}
 }
 ?>

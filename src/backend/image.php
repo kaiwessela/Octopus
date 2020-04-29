@@ -5,18 +5,16 @@ class Image {
 	public $extension;		# String(1-4)[filename extension]
 	public $description;	# String(1-256)
 
+	private $imagefiles;
+
 	const EXTENSION_PNG = 'png';
 	const EXTENSION_JPG = 'jpg';
 	const EXTENSION_GIF = 'gif';
 
-	const SIZE_ORIGINAL = 0;
-	const SIZE_SMALL = 1;
-	const SIZE_MIDDLE = 2;
-	const SIZE_LARGE = 3;
-
 
 	public static function new() {
 		$obj = new self();
+		$obj->id = generate_id();
 		return $obj;
 	}
 
@@ -28,9 +26,9 @@ class Image {
 
 		$s = $pdo->prepare($query);
 		$s->execute($values);
-			return self::load($s->fetch());
-		if($s->rowCount() == 1){
 
+		if($s->rowCount() == 1){
+			return self::load($s->fetch());
 		} else {
 			throw new ObjectNotFoundException();
 		}
@@ -58,118 +56,83 @@ class Image {
 		$obj->longid = $data['image_longid'];
 		$obj->extension = $data['image_extension'];
 		$obj->description = $data['image_description'];
+		return $obj;
 	}
 
-	public function get_available_sizes() {
+	public function insert($data) {
 		global $pdo;
 
-		$query = 'SELECT imagefile_id, imagefile_size FROM imagefiles WHERE imagefile_image_id = :id';
-		$values = ['id' => $this->id];
+		if(isset($data['longid'])){
+			if(preg_match('/^[a-z0-9-]{1,128}$/', $data['longid'])){
+				$found = true;
+				try {
+					$test_image = self::pull_by_longid($data['longid']);
+				} catch(ObjectNotFoundException $e){
+					$found = false;
+				}
 
-		$s = $pdo->prepare($query);
-		$s->execute($values);
-
-		$filelist = [];
-		while($r = $s->fetch()){
-			$filelist[$r['imagefile_size']] = $r['imagefile_id'];
-		}
-
-		return $filelist;
-	}
-
-	public function get_imagefile($id) {
-		global $pdo;
-
-		$query = 'SELECT * FROM imagefiles WHERE imagefile_id = :id && imagefile_image_id = :image';
-		$values = ['id' => $id, 'image' => $this->id];
-
-		$s = $pdo->prepare($query);
-		$s->execute($values);
-
-		if($s->rowCount() == 1){
-			return $s->fetch()['imagefile_data'];
+				if($found){
+					return false;
+				} else {
+					$this->longid = $data['longid'];
+				}
+			} else {
+				return false;
+			}
 		} else {
-			throw new ObjectNotFoundException();
-		}
-	}
-
-	public function get_original_file() {
-		global $pdo;
-
-		$query = 'SELECT * FROM imagefiles WHERE imagefile_id = :id && imagefile_size = :size';
-		$values = ['id' => $id, 'size' => self::SIZE_ORIGINAL];
-
-		$s = $pdo->prepare($query);
-		$s->execute($values);
-
-		if($s->rowCount() == 1){
-			return $s->fetch()['imagefile_data'];
-		} else {
-			throw new ObjectNotFoundException();
-		}
-	}
-
-	private function upload_image($data) {
-		if(!isset($imagedata) || imagecreatefromstring($imagedata) == false){
-			throw new InvalidArgumentException();
 			return false;
 		}
 
+		$orig = Imagefile::new($this->id);
+		if($orig->import($data['imagefile']) == false){
+			return false;
+		}
 
-	}
+		$this->extension = $orig->detect_extension();
 
-	private static function resize_image($imagedata, $size) {
-		$dimensions = [
-			1 => ['x' => 300, 'y' => 200],
-			2 => ['x' => 600, 'y' => 400],
-			3 => ['x' => 900, 'y' => 600]
+		$this->imagefiles[Imagefile::SIZE_SMALL] = $orig->resize(Imagefile::SIZE_SMALL);
+		$this->imagefiles[Imagefile::SIZE_MIDDLE] = $orig->resize(Imagefile::SIZE_MIDDLE);
+		$this->imagefiles[Imagefile::SIZE_LARGE] = $orig->resize(Imagefile::SIZE_LARGE);
+		$this->imagefiles[Imagefile::SIZE_ORIGINAL] = $orig;
+
+		foreach($this->imagefiles as $file){
+			$file->insert();
+		}
+
+		if(isset($data['description'])){
+			$this->description = $data['description'];
+		}
+
+		$query = 'INSERT INTO images (image_id, image_longid, image_extension, image_description)
+			VALUES (:id, :longid, :extension, :description)';
+
+		$values = [
+			'id' => $this->id,
+			'longid' => $this->longid,
+			'extension' => $this->extension,
+			'description' => $this->description ?? ''
 		];
 
-		if(!isset($dimensions[$size])){
-			throw new InvalidArgumentException();
+		$s = $pdo->prepare($query);
+		$s->execute($values);
+	}
+
+	public function update($data) {
+		if($data['id'] !== $this->id || $data['longid'] !== $this->longid){
+			throw '';
+		}
+
+		if($data['description'] == $this->description){
 			return;
 		}
 
-		$image_original = imagecreatefromstring($imagedata);
+		$this->description = $data['description'] ?? '';
 
-		if($image_original == false){
-			throw new InvalidArgumentException();
-			return;
-		}
+		$query = 'UPDATE images SET image_description = :description WHERE image_id = :id';
+		$values = ['description' => $this->description, 'id' => $this->id];
 
-		$orig_sizes = getimagesizefromstring($imagedata);
-		$orig_ratio = $orig_sizes[0] / $orig_sizes[1];
-		$orig_x = $orig_sizes[0];
-
-		if($orig_ratio <= 1.5){
-			$new_x = $dimensions[$size]['x'];
-		} else {
-			$new_x = round($dimensions[$size]['y'] * $orig_ratio);
-		}
-
-		if($orig_x < $dimensions[$size]['x'] + 20 || $orig_y < $dimensions[$size]['y'] + 20){
-			return false;
-		}
-
-		$image_new = imagescale($image_original, $new_x);
-
-		ob_start();
-
-		if($this->extension == self::EXTENSION_PNG){
-			imagepng($image_new);
-		} else if($this->extension == self::EXTENSION_JPG){
-			imagejpeg($image_new);
-		} else if($this->extension == self::EXTENSION_GIF){
-			imagegif($image_new);
-		}
-
-		$imagedata = ob_get_contents();
-		ob_end_clean();
-
-		imagedestroy($image_new);
-		imagedestroy($image_original);
-
-		return $imagedata;
+		$s = $pdo->prepare($query);
+		$s->execute($values);
 	}
 }
 ?>

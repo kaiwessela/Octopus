@@ -96,7 +96,7 @@ class Imagefile {
 			'id' => $this->id,
 			'image_id' => $this->image_id,
 			'size' => $this->size,
-			'data' => $this->export()
+			'data' => $this->data
 		];
 
 		$s = $pdo->prepare($query);
@@ -136,9 +136,9 @@ class Imagefile {
 		}
 
 		if($ratio <= 1.5){
-			$new_width = $dimensions[$size]['x'];
+			$new_width = self::DIMENSIONS[$size]['x'];
 		} else {
-			$new_width = round($dimensions[$size]['y'] * $ratio);
+			$new_width = round(self::DIMENSIONS[$size]['y'] * $ratio);
 		}
 
 		$extension = $this->detect_extension();
@@ -165,11 +165,11 @@ class Imagefile {
 
 	public function import_image($data) { // base64 string or filename ($_FILES['']['tmp_name'])
 		if($this->size !== self::SIZE_ORIGINAL){
-			return false;
+			throw new ImageFileImportException('import only possible for original size');
 		}
 
 		if(!isset($data) || !is_string($data)){
-			return false;
+			throw new InvalidArgumentException();
 		}
 
 		if(preg_match('/data:.+;base64,/', $data)){
@@ -178,9 +178,18 @@ class Imagefile {
 			$this->data = file_get_contents($data);
 		}
 
-		if($this->data == false){
-			return false;
+		$image = imagecreatefromstring($this->data);
+		if($image == false){
+			$this->data = null;
+			throw new ImageFileImportException('invalid image data');
 		} else {
+			imagedestroy($image);
+
+			if($this->detect_extension() == false){
+				$this->data = null;
+				throw new ImageFileImportException('invalid extension');
+			}
+
 			return true;
 		}
 	}
@@ -194,6 +203,8 @@ class Imagefile {
 			return Image::EXTENSION_JPG;
 		} else if($type == IMAGETYPE_GIF){
 			return Image::EXTENSION_GIF;
+		} else {
+			return false;
 		}
 	}
 }

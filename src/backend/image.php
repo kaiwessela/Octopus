@@ -50,6 +50,25 @@ class Image {
 		}
 	}
 
+	public static function pull_all() {
+		global $pdo;
+
+		$query = 'SELECT * FROM images';
+
+		$s = $pdo->prepare($query);
+		$s->execute(array());
+
+		if($s->rowCount() > 0){
+			$res = [];
+			while($r = $s->fetch()){
+				$res[] = self::load($r);
+			}
+			return $res;
+		} else {
+			throw new ObjectNotFoundException();
+		}
+	}
+
 	public static function load($data) {
 		$obj = new self();
 		$obj->id = $data['image_id'];
@@ -72,20 +91,29 @@ class Image {
 				}
 
 				if($found){
-					return false;
+					throw new ObjectInsertException('longid already exists');
 				} else {
 					$this->longid = $data['longid'];
 				}
 			} else {
-				return false;
+				throw new ObjectInsertException('invalid longid');
 			}
 		} else {
-			return false;
+			throw new ObjectInsertException('no longid provided');
 		}
 
 		$orig = Imagefile::new($this->id);
-		if($orig->import($data['imagefile']) == false){
-			return false;
+
+		if(isset($data['imagefile'])){
+			$import = $data['imagefile'];
+		} else if(isset($_FILES['imagefile'])){
+			$import = $_FILES['imagefile']['tmp_name'];
+		}
+
+		try {
+			$orig->import_image($import);
+		} catch(Exception $e){
+			throw new ObjectInsertException('imagefile error: ' . $e->getMessage());
 		}
 
 		$this->extension = $orig->detect_extension();
@@ -94,10 +122,6 @@ class Image {
 		$this->imagefiles[Imagefile::SIZE_MIDDLE] = $orig->resize(Imagefile::SIZE_MIDDLE);
 		$this->imagefiles[Imagefile::SIZE_LARGE] = $orig->resize(Imagefile::SIZE_LARGE);
 		$this->imagefiles[Imagefile::SIZE_ORIGINAL] = $orig;
-
-		foreach($this->imagefiles as $file){
-			$file->insert();
-		}
 
 		if(isset($data['description'])){
 			$this->description = $data['description'];
@@ -115,11 +139,17 @@ class Image {
 
 		$s = $pdo->prepare($query);
 		$s->execute($values);
+
+		foreach($this->imagefiles as $file){
+			if($file != false){
+				$file->insert();
+			}
+		}
 	}
 
 	public function update($data) {
 		if($data['id'] !== $this->id || $data['longid'] !== $this->longid){
-			throw '';
+			throw new ObjectUpdateException('id or longid wrong');
 		}
 
 		if($data['description'] == $this->description){
@@ -133,6 +163,16 @@ class Image {
 
 		$s = $pdo->prepare($query);
 		$s->execute($values);
+	}
+
+	public function delete() {
+		global $pdo;
+
+		$query = 'DELETE FROM images WHERE image_id = :id';
+		$values = ['id' => $this->id];
+
+		$s = $pdo->prepare($query);
+		return $s->execute($values);
 	}
 }
 ?>

@@ -1,0 +1,2 @@
+RewriteEngine on
+RewriteRule ^([a-z_]+)$ index.php?page=$1 [QSA]

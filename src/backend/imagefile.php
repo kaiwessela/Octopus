@@ -11,7 +11,7 @@ class Imagefile {
 	const SIZE_LARGE = 3;
 
 	const DIMENSIONS = [
-		1 => ['x' => 200, 'y' => 200],
+		1 => ['x' => 300, 'y' => 200],
 		2 => ['x' => 600, 'y' => 400],
 		3 => ['x' => 900, 'y' => 600]
 	];

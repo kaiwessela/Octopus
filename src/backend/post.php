@@ -12,6 +12,12 @@ class Post {
 	public $content;	# String
 
 
+	public static function new() {
+		$obj = new self();
+		$obj->id = generate_id();
+		return $obj;
+	}
+
 	public static function pull_by_id($id) {
 		global $pdo;
 
@@ -74,7 +80,7 @@ class Post {
 		$obj->teaser = $data['post_teaser'];
 		$obj->author = $data['post_author'];
 		$obj->timestamp = $data['post_timestamp'];
-		$obj->image = Image::pull_by_id($data['post_image_id']);
+		$obj->image = Image::load($data['post_image_id']);
 		$obj->content = $data['post_content'];
 
 		return $obj;
@@ -93,15 +99,15 @@ class Post {
 				}
 
 				if($found){
-					return false;
+					throw new ObjectInsertException('longid already exists');
 				} else {
 					$this->longid = $data['longid'];
 				}
 			} else {
-				return false;
+				throw new ObjectInsertException('invalid longid');
 			}
 		} else {
-			return false;
+			throw new ObjectInsertException('missing longid');
 		}
 
 		if(isset($data['overline'])){
@@ -115,7 +121,7 @@ class Post {
 				$this->headline = $data['headline'];
 			}
 		} else {
-			return false;
+			throw new ObjectInsertException('missing headline');
 		}
 
 		if(isset($data['subline'])){
@@ -131,7 +137,7 @@ class Post {
 				$this->author = $data['author'];
 			}
 		} else {
-			return false;
+			throw new ObjectInsertException('missing author');
 		}
 
 		$this->timestamp = time();
@@ -158,14 +164,18 @@ class Post {
 		];
 
 		$s = $pdo->prepare($query);
-		$s->execute($values);
+		if($s->execute($values) == true){
+			return true;
+		} else {
+			throw new ObjectInsertException('database error');
+		}
 	}
 
 	public function update($data) {
 		global $pdo;
 
-		if($data['id'] !== $this->id || $data['longid'] !== $this->longid){
-			return false;
+		if($data['id'] != $this->id || $data['longid'] != $this->longid){
+			throw new ObjectUpdateException('id and longid are wrong');
 		}
 
 		if(isset($data['overline'])){
@@ -215,6 +225,16 @@ class Post {
 
 		$s = $pdo->prepare($query);
 		$s->execute($values);
+	}
+
+	public function delete() {
+		global $pdo;
+
+		$query = 'DELETE FROM posts WHERE post_id = :id';
+		$values = ['id' => $this->id];
+
+		$s = $pdo->prepare($query);
+		return $s->execute($values);
 	}
 }
 ?>

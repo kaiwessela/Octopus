@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+error_reporting(0);
+
 # define constants
 define('ROOT', $_SERVER['DOCUMENT_ROOT'] . '/');
 define('BACKEND_PATH', ROOT . 'backend/');
@@ -9,8 +11,10 @@ define('COMPONENT_PATH', ROOT . 'components/');
 define('CONFIG_PATH', ROOT . 'config/');
 
 require_once CONFIG_PATH . 'config.php';
+require_once BACKEND_PATH . 'functions.php';
 require_once BACKEND_PATH . 'exceptions.php';
 require_once BACKEND_PATH . 'image.php';
+require_once BACKEND_PATH . 'imagefile.php';
 
 # establish database connection
 $pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD);
@@ -29,7 +33,7 @@ if(!isset($qs_image) || strpos($qs_image, '.') === 0){
 }
 
 # split the request string into image longid and filename extension
-$req_image = explode($qs_image, '.');
+$req_image = explode('.', $qs_image);
 $longid = $req_image[0];
 $extension = $req_image[1] ?? null;
 
@@ -46,36 +50,36 @@ try {
 # this is basically only done for cosmetic reasons. I do not want this script to deliver an image
 # if the request string is not completely correct, even if the longid is. Doing this could cause
 # confusion, caching issues etc. It would not be a big problem, but it is nicer this way
-if(!$image->extension == $extension){
+if($image->extension != $extension){
 	http_response_code(308);
-	header('Location: ?image=' . $image->longid . '.' . $image->extension);
+	header('Location: ./' . $image->longid . '.' . $image->extension);
 	exit;
 }
 
 # get a list of all available image sizes
-$available_sizes = $image->get_available_sizes();
+$available_sizes = Imagefile::pull_all_sizes($image->id, true);
 
 # set the original size as default / fallback
-$use_size = Image::SIZE_ORIGINAL;
+$use_file = $available_sizes[Imagefile::SIZE_ORIGINAL];
 
 # check if a special size is requested and try to fulfill that request
-if($qs_size == 'small' || $qs_size == Image::SIZE_SMALL){
-	if(isset($available_sizes[Image::SIZE_SMALL])){
-		$use_size = Image::SIZE_SMALL;
+if($qs_size == 'small' || $qs_size == Imagefile::SIZE_SMALL){
+	if(isset($available_sizes[Imagefile::SIZE_SMALL])){
+		$use_file = $available_sizes[Imagefile::SIZE_SMALL];
 	}
-} else if($qs_size == 'middle' || $qs_size == Image::SIZE_MIDDLE){
-	if(isset($available_sizes[Image::SIZE_MIDDLE])){
-		$use_size = Image::SIZE_MIDDLE;
+} else if($qs_size == 'middle' || $qs_size == Imagefile::SIZE_MIDDLE){
+	if(isset($available_sizes[Imagefile::SIZE_MIDDLE])){
+		$use_file = $available_sizes[Imagefile::SIZE_MIDDLE];
 	}
-} else if($qs_size == 'large' || $qs_size == Image::SIZE_LARGE){
-	if(isset($available_sizes[Image::SIZE_LARGE])){
-		$use_size = Image::SIZE_LARGE;
+} else if($qs_size == 'large' || $qs_size == Imagefile::SIZE_LARGE){
+	if(isset($available_sizes[Imagefile::SIZE_LARGE])){
+		$use_file = $available_sizes[Imagefile::SIZE_LARGE];
 	}
 }
 
 # get the image file with the requested and available size
 try {
-	$data = $image->get_imagefile($available_sizes[$use_size]);
+	$file = Imagefile::pull_by_id($use_file->id);
 } catch(ObjectNotFoundException $e){
 	http_response_code(500);
 	echo 'ERROR (500 Internal Server Error): Database Error';
@@ -91,5 +95,5 @@ if($image->extension == Image::EXTENSION_PNG){
 	header('Content-Type: image/gif');
 }
 
-echo $data;
+echo $file->data;
 ?>

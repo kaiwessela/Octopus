@@ -15,6 +15,7 @@ class Imagefile {
 		2 => ['x' => 600, 'y' => 400],
 		3 => ['x' => 900, 'y' => 600]
 	];
+	// IDEA more sizes
 
 
 	public static function new($image_id) {
@@ -26,6 +27,8 @@ class Imagefile {
 	}
 
 	public static function pull_by_id($id) {
+		global $pdo;
+
 		$query = 'SELECT * FROM images LEFT JOIN imagefiles ON image_id = imagefile_image_id WHERE imagefile_id = :id';
 		$values = ['id' => $id];
 
@@ -40,6 +43,8 @@ class Imagefile {
 	}
 
 	public static function pull_original_size($image_id) {
+		global $pdo;
+
 		$query = 'SELECT * FROM images LEFT JOIN imagefiles ON image_id = imagefile_image_id
 			WHERE image_id = :id AND imagefile_size = 0';
 
@@ -61,7 +66,7 @@ class Imagefile {
 		if($no_data == false){
 			$query = 'SELECT * FROM imagefiles WHERE imagefile_image_id = :image_id';
 		} else {
-			$query = 'SELECT imagefile_id, imagefile_size, imagefile_image_id WHERE imagefile_image_id = :image_id';
+			$query = 'SELECT imagefile_id, imagefile_size, imagefile_image_id FROM imagefiles WHERE imagefile_image_id = :image_id';
 		}
 
 		$values = ['image_id' => $image_id];
@@ -78,12 +83,16 @@ class Imagefile {
 		return $res;
 	}
 
-	public static function load($data, $image = null) {
+	public static function load($data) {
 		$obj = new self();
 		$obj->id = $data['imagefile_id'];
 		$obj->image_id = $data['imagefile_image_id'];
 		$obj->size = $data['imagefile_size'];
-		$obj->data = $data['imagefile_data'];
+
+		if(isset($data['imagefile_data'])){
+			$obj->data = $data['imagefile_data'];
+		}
+
 		return $obj;
 	}
 
@@ -141,16 +150,18 @@ class Imagefile {
 			$new_width = round(self::DIMENSIONS[$size]['y'] * $ratio);
 		}
 
+		$new_image = imagescale($image, $new_width);
+
 		$extension = $this->detect_extension();
 
 		ob_start();
 
 		if($extension == Image::EXTENSION_PNG){
-			imagepng($image);
+			imagepng($new_image);
 		} else if($extension == Image::EXTENSION_JPG){
-			imagejpeg($this->image);
+			imagejpeg($new_image);
 		} else if($extension == Image::EXTENSION_GIF){
-			imagegif($this->image);
+			imagegif($new_image);
 		}
 
 		$data = ob_get_contents();
@@ -159,6 +170,9 @@ class Imagefile {
 		$obj = Imagefile::new($this->image_id);
 		$obj->size = $size;
 		$obj->data = $data;
+
+		imagedestroy($image);
+		imagedestroy($new_image);
 
 		return $obj;
 	}

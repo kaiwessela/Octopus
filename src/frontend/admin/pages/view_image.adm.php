@@ -13,7 +13,7 @@ if($obj != false){
 	$post = $obj;
 
 	?>
-	<img src="../resources/images/dynamic/<?php echo $obj->id . '.' $obj->extension; ?>" alt="Bild">
+	<img src="../resources/images/dynamic/<?php echo $obj->longid . '.' . $obj->extension; ?>" alt="Bild">
 	<p><?php echo $obj->description; ?></p>
 	<!-- IDEA show sizes list -->
 	<?php

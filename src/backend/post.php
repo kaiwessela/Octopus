@@ -159,9 +159,12 @@ class Post {
 			'teaser' => $this->teaser,
 			'author' => $this->author,
 			'timestamp' => $this->timestamp,
-			'image_id' => $this->image->id,
 			'content' => $this->content
 		];
+
+		if(isset($this->image)){
+			$values['image_id'] = $this->image->id;
+		}
 
 		$s = $pdo->prepare($query);
 		if($s->execute($values) == true){

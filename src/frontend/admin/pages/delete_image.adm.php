@@ -1,6 +1,14 @@
+<h1>Bild löschen</h1>
+
 <?php
 if(!isset($_GET['id'])){
-	echo 'Kein Objekt angegeben';
+	?>
+
+	<span class="message error">
+		Keine Bild-ID angegeben.
+	</span>
+
+	<?php
 } else if(isset($_GET['action']) && $_GET['action'] == 'submit'){
 	try {
 		$obj = Image::pull_by_id($_GET['id']);
@@ -9,14 +17,22 @@ if(!isset($_GET['id'])){
 	}
 
 	if($obj == false){
-		echo 'Objekt nicht gefunden';
+		?>
+
+		<span class="message error">
+			Bild nicht vorhanden.
+		</span>
+
+		<?php
 	} else {
-		try {
-			$obj->delete();
-			echo 'Erfolgreich gelöscht';
-		} catch(ObjectUpdateException $e){
-			echo $e->getMessage();
-		}
+		$obj->delete();
+		?>
+
+		<span class="message success">
+			Bild erfolgreich gelöscht.
+		</span>
+
+		<?php
 	}
 
 } else {
@@ -27,15 +43,25 @@ if(!isset($_GET['id'])){
 	}
 
 	if($obj == false){
-		echo 'Objekt nicht gefunden';
+		?>
+
+		<span class="message error">
+			Bild nicht vorhanden.
+		</span>
+
+		<?php
 	} else {
 		?>
-		<h1>Bild löschen</h1>
+
+		<p>Bild <span class="code"><?php echo $obj->longid; ?></span> löschen?</p>
 		<form action="delete_image?id=<?php echo $obj->id; ?>&action=submit" method="post">
 			<input type="hidden" id="id" name="id" value="<?php echo $obj->id; ?>">
 			<input type="submit" value="Löschen">
 		</form>
+
 		<?php
 	}
 }
 ?>
+
+<a href="all_images">Zurück zu allen Posts</a>

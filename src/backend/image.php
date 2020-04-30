@@ -148,6 +148,8 @@ class Image {
 	}
 
 	public function update($data) {
+		global $pdo;
+		
 		if($data['id'] !== $this->id || $data['longid'] !== $this->longid){
 			throw new ObjectUpdateException('id or longid wrong');
 		}

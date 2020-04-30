@@ -1,4 +1,5 @@
 <?php
+// IDEA save files in filesystem, not in database
 class Imagefile {
 	public $id;
 	public $image_id;
@@ -186,10 +187,10 @@ class Imagefile {
 			throw new InvalidArgumentException();
 		}
 
-		if(preg_match('/data:.+;base64,/', $data)){
-			$this->data = base64_decode(preg_replace('/data:.+;base64,/', '', $data));
-		} else if(is_uploaded_file($data)){
+		if(is_uploaded_file($data)){
 			$this->data = file_get_contents($data);
+		} else if(preg_match('/data:.+;base64,/', $data)){
+			$this->data = base64_decode(preg_replace('/data:.+;base64,/', '', $data));
 		}
 
 		$image = imagecreatefromstring($this->data);

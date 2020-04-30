@@ -1,0 +1,278 @@
+@font-face {
+	font-family: 'Open Sans';
+	font-weight: 300;
+	font-style: normal;
+	src: url('../fonts/Open_Sans/light.woff2');
+}
+
+@font-face {
+	font-family: 'Open Sans';
+	font-weight: 400;
+	font-style: normal;
+	src: url('../fonts/Open_Sans/regular.woff2');
+}
+
+@font-face {
+	font-family: 'Open Sans';
+	font-weight: 600;
+	font-style: normal;
+	src: url('../fonts/Open_Sans/semibold.woff2');
+}
+
+@font-face {
+	font-family: 'Open Sans';
+	font-weight: 700;
+	font-style: normal;
+	src: url('../fonts/Open_Sans/bold.woff2');
+}
+
+@font-face {
+	font-family: 'Open Sans';
+	font-weight: 800;
+	font-style: normal;
+	src: url('../fonts/Open_Sans/extrabold.woff2');
+}
+
+@font-face {
+	font-family: 'EB Garamond';
+	font-weight: 400;
+	font-style: normal;
+	src: url('../fonts/EB_Garamond/regular.woff2');
+}
+
+@font-face {
+	font-family: 'EB Garamond';
+	font-weight: 600;
+	font-style: normal;
+	src: url('../fonts/EB_Garamond/semibold.woff2');
+}
+
+@font-face {
+	font-family: 'EB Garamond';
+	font-weight: 700;
+	font-style: normal;
+	src: url('../fonts/EB_Garamond/bold.woff2');
+}
+
+@font-face {
+	font-family: 'Fira Mono';
+	src: url('../fonts/Fira_Mono/regular.woff2');
+}
+
+html {
+	font-family: 'Open Sans';
+	font-size: 100%;
+}
+
+body {
+	display: grid;
+	grid-template-rows: auto 1fr;
+	margin: 0;
+	padding: 0;
+}
+
+a,
+a:visited {
+	color: #1da1f2;
+	text-decoration: underline;
+}
+
+a:hover,
+a:focus {
+	text-decoration: none;
+}
+
+a:active {
+	color: #000000;
+	background-color: #ffff00;
+}
+
+a.button,
+a.button:visited {
+	display: inline-block;
+	padding: 0.5rem;
+	margin: 0.25rem 0;
+	color: #ffffff;
+	text-decoration: none;
+	background-color: #1da1f2;
+	border: 3px solid #1da1f2;
+	border-radius: 0.25rem;
+}
+
+a.button:hover,
+a.button:focus {
+	background-color: #ffffff;
+	color: #1da1f2;
+}
+
+a.button:active {
+	color: #000000;
+	background-color: #ffff00;
+	border-color: #000000;
+}
+
+header {
+	grid-row: 1 / 2;
+	background-color: #26262b;
+	color: #ffffff;
+	display: flex;
+	flex-direction: row;
+}
+
+header a:link,
+header a:visited {
+	display: block;
+	padding: 1em 1em 1.2em;
+	color: inherit;
+	text-decoration: none;
+}
+
+header a:hover,
+header a:focus {
+	background-color: #00000044;
+}
+
+span.code {
+	background-color: #00000022;
+	padding: 0.25rem;
+	margin: 0 0.25rem;
+	font-family: 'Fira Mono';
+}
+
+main {
+	grid-row: 2 / 3;
+	padding: 0 1rem 2rem;
+}
+
+table {
+	border-collapse: collapse;
+	margin: 1rem 0;
+}
+
+table tr th {
+	font-weight: 700;
+	border: 1px solid #00000044;
+	padding: 0.5em;
+}
+
+table tr td {
+	border: 1px solid #00000044;
+	padding: 0.5em;
+}
+
+span.message {
+	display: block;
+	width: 60rem;
+	color: #ffffff;
+	font-size: 1rem;
+	padding: 1rem 1rem 1rem 0.5rem;
+	border-radius: 0.5rem;
+	margin: 1rem 0;
+}
+
+span.message::before {
+	padding: 0.5rem;
+	background-color: #00000033;
+	border-radius: 0.25rem;
+	margin: 0 0.25rem 0 0;
+	font-weight: 600;
+}
+
+span.message.success {
+	background-color: #43b581;
+}
+
+span.message.success::before {
+	content: 'Info';
+}
+
+span.message.warning {
+	background-color: #faa61a;
+}
+
+span.message.warning::before {
+	content: 'Warnung';
+}
+
+span.message.error {
+	background-color: #f04747;
+}
+
+span.message.error::before {
+	content: 'Fehler';
+}
+
+form {
+	width: 60rem;
+}
+
+label {
+	display: block;
+	margin: 0.5rem 0 0;
+}
+
+input,
+textarea {
+	width: calc(100% - 2 * 0.5rem);
+	font-size: 1rem;
+	padding: 0.5rem;
+	margin: 0 0 0.5rem;
+	outline: none;
+	border: 3px solid #00000044;
+	border-radius: 0.25rem;
+}
+
+input:focus,
+textarea:focus {
+	border-color: #1da1f2;
+}
+
+input[type=submit] {
+	width: 20rem;
+	font-family: 'Open Sans';
+	font-size: 1rem;
+	background-color: #1da1f2;
+	border-color: #1da1f2;
+	color: #ffffff;
+	margin: 0.5rem 0;
+}
+
+input[type=submit]:hover,
+input[type=submit]:focus {
+	background-color: #ffffff;
+	color: #1da1f2;
+}
+
+input[type=submit]:active {
+	background-color: #ffff00;
+	color: #000000;
+	border-color: #000000;
+}
+
+input#longid {
+	font-family: 'Fira Mono';
+}
+
+input#overline,
+input#subline {
+	font-family: 'Open Sans';
+	font-weight: 600;
+}
+
+input#headline {
+	font-family: 'EB Garamond';
+	font-weight: 600;
+	font-size: 2rem;
+}
+
+textarea#teaser {
+	font-family: 'EB Garamond';
+	font-weight: 600;
+	resize: vertical;
+}
+
+textarea#content {
+	font-family: 'EB Garamond';
+	resize: vertical;
+	height: 10rem;
+}

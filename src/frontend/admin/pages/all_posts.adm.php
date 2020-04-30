@@ -34,7 +34,7 @@ if($objs != false){
 			?>
 			<tr>
 				<td><?php echo $obj->headline; ?></td>
-				<td><?php echo $obj->longid; ?></td>
+				<td><span class="code"><?php echo $obj->longid; ?></span></td>
 				<td>
 					<a href="view_post?id=<?php echo $obj->id; ?>">Ansehen</a>
 					<a href="edit_post?id=<?php echo $obj->id; ?>">Bearbeiten</a>

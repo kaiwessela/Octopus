@@ -33,8 +33,8 @@ if($objs != false){
 		foreach($objs as $obj){
 			?>
 			<tr>
-				<td><?php echo $obj->longid; ?></td>
-				<td><?php echo $obj->extension; ?></td>
+				<td><span class="code"><?php echo $obj->longid; ?></span></td>
+				<td><span class="code"><?php echo $obj->extension; ?></span></td>
 				<td>
 					<a href="view_image?id=<?php echo $obj->id; ?>">Ansehen</a>
 					<a href="edit_image?id=<?php echo $obj->id; ?>">Bearbeiten</a>

@@ -70,6 +70,7 @@ if(!isset($_GET['id'])){
 	} else {
 		?>
 
+		<p>Bild-URL: <span class="code"><?php echo $obj->longid; ?></span></p>
 		<form action="edit_image?id=<?php echo $obj->id; ?>&action=submit" method="post">
 			<input type="hidden" id="id" name="id" value="<?php echo $obj->id; ?>">
 			<input type="hidden" id="longid" name="longid" value="<?php echo $obj->longid; ?>">

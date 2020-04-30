@@ -132,13 +132,6 @@ header a:focus {
 	background-color: #00000044;
 }
 
-span.code {
-	background-color: #00000022;
-	padding: 0.25rem;
-	margin: 0 0.25rem;
-	font-family: 'Fira Mono';
-}
-
 main {
 	grid-row: 2 / 3;
 	padding: 0 1rem 2rem;
@@ -152,12 +145,12 @@ table {
 table tr th {
 	font-weight: 700;
 	border: 1px solid #00000044;
-	padding: 0.5em;
+	padding: 0.5rem;
 }
 
 table tr td {
 	border: 1px solid #00000044;
-	padding: 0.5em;
+	padding: 0.5rem;
 }
 
 span.message {
@@ -275,4 +268,42 @@ textarea#content {
 	font-family: 'EB Garamond';
 	resize: vertical;
 	height: 10rem;
+}
+
+span.code {
+	background-color: #00000022;
+	padding: 0.25rem;
+	margin: 0 0.25rem;
+	font-family: 'Fira Mono';
+}
+
+img {
+	max-width: 30rem;
+	max-height: 20rem;
+}
+
+article .overline,
+article .subline {
+	font-family: 'Open Sans';
+	font-weight: 600;
+}
+
+article .headline {
+	font-family: 'EB Garamond';
+	font-weight: 600;
+	font-size: 2rem;
+}
+
+article .teaser {
+	font-family: 'EB Garamond';
+	font-weight: 600;
+}
+
+article .author {
+	font-family: 'Open Sans';
+	font-weight: 600;
+}
+
+article .content {
+	font-family: 'EB Garamond';
 }

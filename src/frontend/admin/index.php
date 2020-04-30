@@ -16,6 +16,7 @@ require_once BACKEND_PATH . 'exceptions.php';
 require_once BACKEND_PATH . 'post.php';
 require_once BACKEND_PATH . 'image.php';
 require_once BACKEND_PATH . 'imagefile.php';
+require_once '../functions.php'; // IDEA to frontend path
 
 # establish database connection
 $pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD);

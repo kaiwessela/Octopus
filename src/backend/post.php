@@ -1,7 +1,5 @@
 <?php
-class Post {
-	public $id; 		# String(8)[base16]
-	public $longid; 	# String(1-128)[a-z0-9-]
+class Post extends ContentObject {
 	public $overline;	# String(0-64)
 	public $headline; 	# String(1-256)
 	public $subline;	# String(0-256)
@@ -12,12 +10,6 @@ class Post {
 	public $content;	# String
 
 
-	public static function new() {
-		$obj = new self();
-		$obj->id = generate_id();
-		return $obj;
-	}
-
 	public static function pull_by_id($id) {
 		global $pdo;
 
@@ -25,12 +17,13 @@ class Post {
 		$values = ['id' => $id];
 
 		$s = $pdo->prepare($query);
-		$s->execute($values);
 
-		if($s->rowCount() == 1){
-			return self::load($s->fetch());
+		if(!$s->execute($values)){
+			throw new DatabaseException($s);
+		} else if($s->rowCount() != 1){
+			throw new EmptyResultException($query, $values);
 		} else {
-			throw new ObjectNotFoundException();
+			return self::load($s->fetch());
 		}
 	}
 
@@ -41,12 +34,13 @@ class Post {
 		$values = ['longid' => $longid];
 
 		$s = $pdo->prepare($query);
-		$s->execute($values);
 
-		if($s->rowCount() == 1){
-			return self::load($s->fetch());
+		if(!$s->execute($values)){
+			throw new DatabaseException($s);
+		} if($s->rowCount() != 1){
+			throw new EmptyResultException($query, $values);
 		} else {
-			throw new ObjectNotFoundException();
+			return self::load($s->fetch());
 		}
 	}
 
@@ -56,16 +50,17 @@ class Post {
 		$query = 'SELECT * FROM posts';
 
 		$s = $pdo->prepare($query);
-		$s->execute(array());
 
-		if($s->rowCount() > 0){
+		if(!$s->execute([]){
+			throw new DatabaseException($s);
+		} else if($s->rowCount() == 0){
+			throw new EmptyResultException($query);
+		} else {
 			$res = [];
 			while($r = $s->fetch()){
 				$res[] = self::load($r);
 			}
 			return $res;
-		} else {
-			throw new ObjectNotFoundException();
 		}
 	}
 
@@ -80,7 +75,11 @@ class Post {
 		$obj->teaser = $data['post_teaser'];
 		$obj->author = $data['post_author'];
 		$obj->timestamp = $data['post_timestamp'];
-		$obj->image = Image::load($data['post_image_id']);
+
+		if(isset($data['post_image_id'])){
+			$obj->image = Image::load($data['post_image_id']);
+		}
+
 		$obj->content = $data['post_content'];
 
 		return $obj;
@@ -89,62 +88,17 @@ class Post {
 	public function insert($data) {
 		global $pdo;
 
-		if(isset($data['longid'])){
-			if(preg_match('/^[a-z0-9-]{1,128}$/', $data['longid'])){
-				$found = true;
-				try {
-					$test_image = self::pull_by_longid($data['longid']);
-				} catch(ObjectNotFoundException $e){
-					$found = false;
-				}
-
-				if($found){
-					throw new ObjectInsertException('longid already exists');
-				} else {
-					$this->longid = $data['longid'];
-				}
-			} else {
-				throw new ObjectInsertException('invalid longid');
-			}
-		} else {
-			throw new ObjectInsertException('missing longid');
-		}
-
-		if(isset($data['overline'])){
-			if(preg_match('/^.{0,64}$/', $data['overline'])){
-				$this->overline = $data['overline'];
-			}
-		}
-
-		if(isset($data['headline'])){
-			if(preg_match('/^.{1,256}$/', $data['headline'])){
-				$this->headline = $data['headline'];
-			}
-		} else {
-			throw new ObjectInsertException('missing headline');
-		}
-
-		if(isset($data['subline'])){
-			if(preg_match('/^.{0,256}$/', $data['subline'])){
-				$this->subline = $data['subline'];
-			}
-		}
-
-		$this->teaser = $data['teaser'] ?? '';
-
-		if(isset($data['author'])){
-			if(preg_match('/^.{1,128}$/', $data['author'])){
-				$this->author = $data['author'];
-			}
-		} else {
-			throw new ObjectInsertException('missing author');
-		}
+		$this->import_longid($data['longid']);
+		$this->import_overline($data['overline']);
+		$this->import_headline($data['headline']);
+		$this->import_subline($data['subline']);
+		$this->import_teaser($data['teaser']);
+		$this->import_author($data['author']);
+		$this->import_content($data['content']);
 
 		$this->timestamp = time();
 
-		// image routine (id or upload)
-
-		$this->content = $data['content'] ?? '';
+		// TODO image routine (id or upload)
 
 		$query = 'INSERT INTO posts (post_id, post_longid, post_overline, post_headline, post_subline, post_teaser,
 			post_author, post_timestamp, post_image_id, post_content) VALUES (:id, :longid, :overline, :headline,
@@ -167,49 +121,23 @@ class Post {
 		}
 
 		$s = $pdo->prepare($query);
-		if($s->execute($values) == true){
-			return true;
-		} else {
-			throw new ObjectInsertException('database error');
+		if(!$s->execute($values)){
+			throw new DatabaseException($s);
 		}
 	}
 
 	public function update($data) {
 		global $pdo;
 
-		if($data['id'] != $this->id || $data['longid'] != $this->longid){
-			throw new ObjectUpdateException('id and longid are wrong');
-		}
+		$this->import_check_id_and_longid($data['id'], $data['longid']);
+		$this->import_overline($data['overline']);
+		$this->import_headline($data['headline']);
+		$this->import_subline($data['subline']);
+		$this->import_teaser($data['teaser']);
+		$this->import_author($data['author']);
+		$this->import_content($data['content']);
 
-		if(isset($data['overline'])){
-			if(preg_match('/^.{0,64}$/', $data['overline'])){
-				$this->overline = $data['overline'];
-			}
-		}
-
-		if(isset($data['headline'])){
-			if(preg_match('/^.{1,256}$/', $data['headline'])){
-				$this->headline = $data['headline'];
-			}
-		}
-
-		if(isset($data['subline'])){
-			if(preg_match('/^.{0,256}$/', $data['subline'])){
-				$this->subline = $data['subline'];
-			}
-		}
-
-		$this->teaser = $data['teaser'] ?? '';
-
-		if(isset($data['author'])){
-			if(preg_match('/^.{1,128}$/', $data['author'])){
-				$this->author = $data['author'];
-			}
-		}
-
-		// image routine (id or upload)
-
-		$this->content = $data['content'] ?? '';
+		// TODO image routine (id or upload)
 
 		$query = 'UPDATE posts SET post_overline = :overline, post_headline = :headline, post_subline = :subline,
 			post_teaser = :teaser, post_author = :author, post_image_id = :image_id, post_content = :content
@@ -227,7 +155,9 @@ class Post {
 		];
 
 		$s = $pdo->prepare($query);
-		$s->execute($values);
+		if(!$s->execute($values)){
+			throw new DatabaseException($s);
+		}
 	}
 
 	public function delete() {
@@ -237,7 +167,57 @@ class Post {
 		$values = ['id' => $this->id];
 
 		$s = $pdo->prepare($query);
-		return $s->execute($values);
+		if(!$s->execute($values)){
+			throw new DatabaseException($s);
+		}
+	}
+
+	private function import_overline($overline) {
+		if(!isset($overline)){
+			$this->overline = null;
+		} else if(!preg_match('/^.{0,64}$/', $overline)){
+			throw new InvalidInputException('overline', '.{0,64}', $overline);
+		} else {
+			$this->overline = $overline;
+		}
+	}
+
+	private function import_headline($headline) {
+		if(!isset($headline)){
+			throw new InvalidInputException('headline', '.{1,256}');
+		} else if(!preg_match('/^.{1,256}$/', $headline)){
+			throw new InvalidInputException('headline', '.{1,256}', $headline);
+		} else {
+			$this->headline = $headline;
+		}
+	}
+
+	private function import_subline($subline) {
+		if(!isset($subline)){
+			$this->subline = null;
+		} else if(!preg_match('/^.{0,256}$/', $subline)){
+			throw new InvalidInputException('subline', '.{0,256}', $subline);
+		} else {
+			$this->subline = $subline;
+		}
+	}
+
+	private function import_teaser($teaser) {
+		$this->teaser = $teaser;
+	}
+
+	private function import_author($author) {
+		if(!isset($author)){
+			throw new InvalidInputException('author', '.{1,128}');
+		} else if(!preg_match('/^.{1,128}$/', $author)){
+			throw new InvalidInputException('author', '.{1,128}', $author);
+		} else {
+			$this->author = $author;
+		}
+	}
+
+	private function import_content($content) {
+		$this->content = $content;
 	}
 }
 ?>

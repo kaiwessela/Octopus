@@ -13,6 +13,7 @@ define('CONFIG_PATH', ROOT . 'config/');
 require_once CONFIG_PATH . 'config.php';
 require_once BACKEND_PATH . 'functions.php';
 require_once BACKEND_PATH . 'exceptions.php';
+require_once BACKEND_PATH . 'contentobject.php';
 require_once BACKEND_PATH . 'post.php';
 require_once BACKEND_PATH . 'image.php';
 require_once BACKEND_PATH . 'imagefile.php';

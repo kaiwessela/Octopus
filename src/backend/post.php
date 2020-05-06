@@ -51,7 +51,7 @@ class Post extends ContentObject {
 
 		$s = $pdo->prepare($query);
 
-		if(!$s->execute([]){
+		if(!$s->execute([])){
 			throw new DatabaseException($s);
 		} else if($s->rowCount() == 0){
 			throw new EmptyResultException($query);
@@ -149,10 +149,15 @@ class Post extends ContentObject {
 			'subline' => $this->subline,
 			'teaser' => $this->teaser,
 			'author' => $this->author,
-			'image_id' => $this->image->id,
 			'content' => $this->content,
 			'id' => $this->id
 		];
+
+		if(isset($this->image)){
+			$values['image_id'] = $this->image->id;
+		} else {
+			$values['image_id'] = null;
+		}
 
 		$s = $pdo->prepare($query);
 		if(!$s->execute($values)){

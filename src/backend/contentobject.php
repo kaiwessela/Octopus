@@ -2,7 +2,7 @@
 class ContentObject {
 	public $id; 		# String(8)[base16]
 	public $longid; 	# String(1-128)[a-z0-9-]
-	
+
 
 	public static function new() {
 		$obj = new self();
@@ -10,13 +10,13 @@ class ContentObject {
 		return $obj;
 	}
 
-	private function import_check_id_and_longid($id, $longid) {
+	protected function import_check_id_and_longid($id, $longid) {
 		if($id != $this->id || $longid != $this->longid){
 			throw new InvalidInputException('id/longid', 'original id and longid', $data['id'] . ' ' . $data['longid']);
 		}
 	}
 
-	private function import_longid($longid) {
+	protected function import_longid($longid) {
 		if(!isset($longid)){
 			throw new InvalidInputException('longid', '[a-z0-9-]{1,128}');
 		}

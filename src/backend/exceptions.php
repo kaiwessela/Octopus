@@ -1,9 +1,4 @@
 <?php
-class ObjectNotFoundException extends Exception {}
-class ObjectInsertException extends Exception {}
-class ObjectUpdateException extends Exception {}
-class ImageFileImportException extends Exception {}
-
 class InvalidInputException extends Exception {
 	public $subject;	# name of the property / variable
 	public $required;	# required value (i.e. '/^[a-z0-9]{1,32}$/')

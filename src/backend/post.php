@@ -13,7 +13,7 @@ class Post extends ContentObject {
 	public static function pull_by_id($id) {
 		global $pdo;
 
-		$query = 'SELECT * FROM posts WHERE post_id = :id';
+		$query = 'SELECT * FROM posts LEFT JOIN images ON image_id = post_image_id WHERE post_id = :id';
 		$values = ['id' => $id];
 
 		$s = $pdo->prepare($query);
@@ -30,7 +30,7 @@ class Post extends ContentObject {
 	public static function pull_by_longid($longid) {
 		global $pdo;
 
-		$query = 'SELECT * FROM posts WHERE post_longid = :longid';
+		$query = 'SELECT * FROM posts LEFT JOIN images ON image_id = post_image_id WHERE post_longid = :longid';
 		$values = ['longid' => $longid];
 
 		$s = $pdo->prepare($query);
@@ -76,8 +76,8 @@ class Post extends ContentObject {
 		$obj->author = $data['post_author'];
 		$obj->timestamp = $data['post_timestamp'];
 
-		if(isset($data['post_image_id'])){
-			$obj->image = Image::load($data['post_image_id']);
+		if(isset($data['image_id'])){
+			$obj->image = Image::load($data);
 		}
 
 		$obj->content = $data['post_content'];

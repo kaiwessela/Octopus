@@ -155,6 +155,7 @@ article.full-post p.teaser {
 	font-family: var(--font-primary);
 	font-weight: 500;
 	font-style: italic;
+	margin: 1.25em 0;
 }
 
 article.full-post p.author {
@@ -163,10 +164,13 @@ article.full-post p.author {
 	font-weight: 600;
 }
 
-article.full-post p.content {
+article.full-post > p {
 	font-family: var(--font-primary);
+	font-size: 1rem;
 }
 
-article.full-post p.content:first-of-type::first-letter {
-	font-size: 2rem;
+article.full-post > p:first-of-type::first-letter {
+	font-size: 3em;
+	float: left;
+	margin: 0.1em 0.2em 0 0;
 }

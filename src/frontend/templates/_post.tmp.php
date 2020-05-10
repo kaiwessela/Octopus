@@ -34,8 +34,8 @@
 					}
 					?>
 				</header>
-				<p class="content">
-					<?php echo $post->content; ?>
+				<p>
+					<?php echo $post->content; // TODO parsedown ?>
 				</p>
 			</article>
 		</main>

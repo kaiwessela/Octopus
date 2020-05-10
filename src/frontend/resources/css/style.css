@@ -127,7 +127,12 @@ article.full-post {
 	padding: 1rem;
 }
 
-article.full-post h1 {
+article.full-post header {
+	width: 80%;
+	margin: 0 auto;
+}
+
+article.full-post header h1 {
 	font-family: var(--font-primary);
 	font-size: 2.5rem;
 	font-weight: 700;
@@ -135,14 +140,14 @@ article.full-post h1 {
 	text-align: center;
 }
 
-article.full-post p.overline {
+article.full-post header p.overline {
 	font-family: var(--font-secondary);
 	font-weight: 600;
 	margin: 0.5em 0;
 	text-align: center;
 }
 
-article.full-post p.subline {
+article.full-post header p.subline {
 	font-family: var(--font-primary);
 	font-size: 1.5rem;
 	font-weight: 600;
@@ -151,22 +156,30 @@ article.full-post p.subline {
 	text-align: center;
 }
 
-article.full-post p.teaser {
+article.full-post header p.teaser {
 	font-family: var(--font-primary);
 	font-weight: 500;
 	font-style: italic;
 	margin: 1.25em 0;
 }
 
-article.full-post p.author {
+article.full-post header p.author {
 	font-family: var(--font-secondary);
 	font-size: 1rem;
 	font-weight: 600;
 }
 
+article.full-post img {
+	width: 100%;
+	margin: 1rem 0 2rem;
+	border-radius: 0.5rem;
+}
+
 article.full-post > p {
 	font-family: var(--font-primary);
 	font-size: 1rem;
+	width: 80%;
+	margin: 0 auto;
 }
 
 article.full-post > p:first-of-type::first-letter {

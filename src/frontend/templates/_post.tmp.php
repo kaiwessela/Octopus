@@ -23,17 +23,22 @@
 							<?php echo to_date($post->timestamp); ?>
 						</time>
 					</p>
-					<!-- IDEA use picture element -->
-					<?php
-					if(isset($post->image)){
-						?>
-						<img src="/resources/images/dynamic/
-							<?php echo $post->image->longid . '.' . $post->image->extension;?>?size=large"
-							alt="<?php echo $post->image->description; ?>">
-						<?php
-					}
-					?>
 				</header>
+
+<?php
+if(isset($post->image)){
+	$image_url = '/resources/images/dynamic/' . $post->image->longid . '.' . $post->image->extension . '?size=large';
+	$image_alt = $post->image->description;
+
+	?>
+				<picture>
+					<!-- IDEA add different sources -->
+					<img src="<?php echo $image_url; ?>" alt="<?php echo $image_alt; ?>">
+				</picture>
+	<?php
+}
+?>
+
 				<p>
 					<?php echo $post->content; // TODO parsedown ?>
 				</p>

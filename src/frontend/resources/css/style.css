@@ -1,0 +1,172 @@
+@font-face {
+	font-family: 'EB Garamond';
+	font-weight: 400;
+	font-style: normal;
+	src: url('../fonts/EB_Garamond/regular.woff2');
+}
+
+@font-face {
+	font-family: 'EB Garamond';
+	font-weight: 500;
+	font-style: italic;
+	src: url('../fonts/EB_Garamond/medium-italic.woff2');
+}
+
+@font-face {
+	font-family: 'EB Garamond';
+	font-weight: 600;
+	font-style: normal;
+	src: url('../fonts/EB_Garamond/semibold.woff2');
+}
+
+@font-face {
+	font-family: 'EB Garamond';
+	font-weight: 600;
+	font-style: italic;
+	src: url('../fonts/EB_Garamond/semibold-italic.woff2');
+}
+
+@font-face {
+	font-family: 'EB Garamond';
+	font-weight: 700;
+	font-style: normal;
+	src: url('../fonts/EB_Garamond/bold.woff2');
+}
+
+@font-face {
+	font-family: 'Open Sans';
+	font-weight: 400;
+	font-style: normal;
+	src: url('../fonts/Open_Sans/regular.woff2');
+}
+
+@font-face {
+	font-family: 'Open Sans';
+	font-weight: 600;
+	font-style: normal;
+	src: url('../fonts/Open_Sans/semibold.woff2');
+}
+
+:root {
+	--font-primary: 'EB Garamond';
+	--font-secondary: 'Open Sans';
+}
+
+html {
+	font-family: var(--font-primary);
+	font-size: 100%;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+}
+
+body > header {
+	--header-height: 4rem;
+	height: var(--header-height);
+	width: 100%;
+	background-color: #000000;
+}
+
+body > header > nav {
+
+}
+
+body > header > nav ul {
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+	display: flex;
+	height: var(--header-height);
+}
+
+body > header > nav a {
+	text-decoration: none;
+	font-family: var(--font-secondary);
+	font-size: 1.1rem;
+	color: #ffffff;
+}
+
+body > header > nav a li {
+	position: relative;
+	height: calc(var(--header-height) / 2 - 0.1rem);
+	margin: calc(var(--header-height) / 4) 1rem;
+	padding-top: 0.1rem;
+}
+
+body > header > nav a li::after {
+	content: '';
+	position: absolute;
+	display: block;
+	margin-top: 0.25rem;
+	height: 2px;
+	width: 0;
+	background-color: #ffffff;
+	transition-duration: 0.25s;
+	transition-timing-function: ease;
+}
+
+body > header > nav a:hover li::after,
+body > header > nav a:focus li::after {
+	width: 100%;
+}
+
+body > main {
+	background-color: #e3e3e3; /* TEMP */
+}
+
+body > footer {
+
+}
+
+article.full-post {
+	width: 60vw; /* TEMP */
+	background-color: #ffffff; /* TEMP */
+	margin: 0 auto;
+	padding: 1rem;
+}
+
+article.full-post h1 {
+	font-family: var(--font-primary);
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin: 0.2em 0;
+	text-align: center;
+}
+
+article.full-post p.overline {
+	font-family: var(--font-secondary);
+	font-weight: 600;
+	margin: 0.5em 0;
+	text-align: center;
+}
+
+article.full-post p.subline {
+	font-family: var(--font-primary);
+	font-size: 1.5rem;
+	font-weight: 600;
+	font-style: italic;
+	margin: 0.25em 0;
+	text-align: center;
+}
+
+article.full-post p.teaser {
+	font-family: var(--font-primary);
+	font-weight: 500;
+	font-style: italic;
+}
+
+article.full-post p.author {
+	font-family: var(--font-secondary);
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+article.full-post p.content {
+	font-family: var(--font-primary);
+}
+
+article.full-post p.content:first-of-type::first-letter {
+	font-size: 2rem;
+}

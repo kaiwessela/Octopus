@@ -1,35 +1,44 @@
 <!DOCTYPE html>
 <html lang="de">
 	<head>
-		<meta charset="utf-8">
-		<base href="home.local">
-		<link rel="stylesheet" type="text/css" href="resources/css/style.css">
+		<?php include COMPONENT_PATH . 'head.comp.php'; ?>
 		<title><?php echo $post->headline; ?> – Kai Wessela</title>
 	</head>
 	<body>
-		<header>
-
-		</header>
+		<?php include COMPONENT_PATH . 'header.comp.php'; ?>
 		<main>
-			<article>
-				<span class="overline"><?php echo $post->overline; ?></span>
-				<h1 class="headline"><?php echo $post->headline; ?></h1>
-				<p class="subline"><?php echo $post->subline; ?></p>
-				<p class="teaser">
-					<?php echo $post->teaser; ?>
-				</p>
-				<span>Von <?php echo $post->author; ?> &middot; <?php echo to_date($post->timestamp); ?></span>
-				<!-- IDEA use picture element -->
-				<img src="/resources/images/dynamic/
-					<?php echo $post->image->longid . '.' . $post->image->extension;?>?size=large"
-					alt="<?php echo $post->image->description; ?>">
-				<p>
+			<article class="full-post">
+				<header>
+					<p class="overline"><?php echo $post->overline; ?></p>
+					<h1 class="headline"><?php echo $post->headline; ?></h1>
+					<p class="subline"><?php echo $post->subline; ?></p>
+					<!-- IDEA rename to summary? -->
+					<p class="teaser">
+						<?php echo $post->teaser; ?>
+					</p>
+					<p class="author"><!-- TEMP rename this class and change structure -->
+						<!-- IDEA use address element? -->
+						Von <?php echo $post->author; ?> &middot;
+						<time datetime="<?php echo to_html_time($post->timestamp); ?>">
+							<?php echo to_date($post->timestamp); ?>
+						</time>
+					</p>
+					<!-- IDEA use picture element -->
+					<?php
+					if(isset($post->image)){
+						?>
+						<img src="/resources/images/dynamic/
+							<?php echo $post->image->longid . '.' . $post->image->extension;?>?size=large"
+							alt="<?php echo $post->image->description; ?>">
+						<?php
+					}
+					?>
+				</header>
+				<p class="content">
 					<?php echo $post->content; ?>
 				</p>
 			</article>
 		</main>
-		<footer>
-
-		</footer>
+		<?php include COMPONENT_PATH . 'footer.comp.php'; ?>
 	</body>
 </html>

@@ -33,4 +33,9 @@ function to_date_and_time_with_day($timestamp) {
 function to_date_and_time_with_day_sentence($timestamp) {
 	return strftime('%A, den %e. %B %Y um %k.%M Uhr');
 }
+
+# 2020-01-09T07:45
+function to_html_time($timestamp) {
+	return strtotime('Y-m-d\TH:i');
+}
 ?>

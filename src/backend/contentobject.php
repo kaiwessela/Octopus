@@ -4,12 +4,6 @@ class ContentObject {
 	public $longid; 	# String(1-128)[a-z0-9-]
 
 
-	public static function new() {
-		$obj = new self();
-		$obj->id = generate_id();
-		return $obj;
-	}
-
 	protected function import_check_id_and_longid($id, $longid) {
 		if($id != $this->id || $longid != $this->longid){
 			throw new InvalidInputException('id/longid', 'original id and longid', $data['id'] . ' ' . $data['longid']);
@@ -26,13 +20,19 @@ class ContentObject {
 		}
 
 		try {
-			$test = self::pull_by_longid($longid);
+			$test = $this->pull_by_longid($longid);
 		} catch(Exception $e){
 			if($e instanceof DatabaseException){
 				throw $e;
 			}
 
+			$not_found = true;
+		}
+
+		if($not_found){
 			$this->longid = $longid;
+		} else {
+			throw new Exception('longid already exists'); // TODO to special exception
 		}
 	}
 }

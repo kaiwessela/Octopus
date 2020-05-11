@@ -1,4 +1,6 @@
 <?php
+// DEPRECATED
+
 # ADMIN BACKEND ENDPOINT
 
 session_start();

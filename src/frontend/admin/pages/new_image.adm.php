@@ -40,7 +40,7 @@ if(isset($_GET['action']) && $_GET['action'] == 'submit'){
 		<input type="text" id="description" name="description">
 
 		<label for="imagefile">Datei</label>
-		<input type="file" id="imagefile" name="imagefile" required>
+		<input type="file" id="imagedata" name="imagedata" required>
 
 		<input type="submit" value="Speichern">
 	</form>

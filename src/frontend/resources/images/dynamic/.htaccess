@@ -1,2 +1,0 @@
-RewriteEngine on
-RewriteRule ^([a-z0-9-\.]+)$ index.php?image=$1 [QSA]

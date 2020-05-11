@@ -18,4 +18,4 @@ cp -r src/backend/. build/backend
 cp -r src/config/. build/config
 
 # set permissions for image upload folder
-chmod 0755 build/resources/images/dynamic
+chmod 0777 build/resources/images/dynamic

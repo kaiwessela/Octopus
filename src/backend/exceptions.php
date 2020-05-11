@@ -84,4 +84,10 @@ class DatabaseException extends Exception {
 		return $this->error_info;
 	}
 }
+
+class ImageManagerException extends Exception {
+	function __construct($message) {
+		parent::__construct('ImageManager >> ERROR: ' . $message);
+	}
+}
 ?>

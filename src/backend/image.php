@@ -1,14 +1,19 @@
 <?php
-class Image extends ContentObject{
+class Image extends ContentObject {
 	public $extension;		# String(1-4)[filename extension]
 	public $description;	# String(1-256)
-
-	private $imagefiles;
+	public $sizes;
 
 	const EXTENSION_PNG = 'png';
 	const EXTENSION_JPG = 'jpg';
 	const EXTENSION_GIF = 'gif';
 
+
+	public static function new() {
+		$obj = new self();
+		$obj->id = generate_id();
+		return $obj;
+	}
 
 	public static function pull_by_id($id) {
 		global $pdo;
@@ -69,56 +74,33 @@ class Image extends ContentObject{
 		$obj->longid = $data['image_longid'];
 		$obj->extension = $data['image_extension'];
 		$obj->description = $data['image_description'];
+		$obj->sizes = explode(' ', $data['image_sizes']);
 
 		return $obj;
 	}
 
 	public function insert($data) {
 		global $pdo;
+		global $imagemanager;
 
 		$this->import_longid($data['longid']);
 		$this->import_description($data['description']);
 
-		// DEPRECATED from here
-		$orig = Imagefile::new($this->id);
+		$imagemanager->receive_upload($this);
 
-		if(isset($data['imagefile'])){
-			$import = $data['imagefile'];
-		} else if(isset($_FILES['imagefile'])){
-			$import = $_FILES['imagefile']['tmp_name'];
-		}
-
-		try {
-			$orig->import_image($import);
-		} catch(Exception $e){
-			throw new ObjectInsertException('imagefile error: ' . $e->getMessage());
-		}
-
-		$this->extension = $orig->detect_extension();
-
-		$this->imagefiles[Imagefile::SIZE_SMALL] = $orig->resize(Imagefile::SIZE_SMALL);
-		$this->imagefiles[Imagefile::SIZE_MIDDLE] = $orig->resize(Imagefile::SIZE_MIDDLE);
-		$this->imagefiles[Imagefile::SIZE_LARGE] = $orig->resize(Imagefile::SIZE_LARGE);
-		$this->imagefiles[Imagefile::SIZE_ORIGINAL] = $orig;
-
-		$query = 'INSERT INTO images (image_id, image_longid, image_extension, image_description)
-			VALUES (:id, :longid, :extension, :description)';
+		$query = 'INSERT INTO images (image_id, image_longid, image_extension, image_description, image_sizes)
+			VALUES (:id, :longid, :extension, :description, :sizes)';
 
 		$values = [
 			'id' => $this->id,
 			'longid' => $this->longid,
 			'extension' => $this->extension,
-			'description' => $this->description ?? ''
+			'description' => $this->description ?? '',
+			'sizes' => implode(' ', $this->sizes)
 		];
 
 		$s = $pdo->prepare($query);
 		$s->execute($values);
-
-		foreach($this->imagefiles as $file){
-			if($file != false){
-				$file->insert();
-			}
-		}
 	}
 
 	public function update($data) {
@@ -136,6 +118,9 @@ class Image extends ContentObject{
 
 	public function delete() {
 		global $pdo;
+		global $imagemanager;
+
+		$imagemanager->delete_images($this);
 
 		$query = 'DELETE FROM images WHERE image_id = :id';
 		$values = ['id' => $this->id];

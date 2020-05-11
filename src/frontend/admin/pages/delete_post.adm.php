@@ -12,7 +12,7 @@ if(!isset($_GET['id'])){
 } else if(isset($_GET['action']) && $_GET['action'] == 'submit'){
 	try {
 		$obj = Post::pull_by_id($_GET['id']);
-	} catch(ObjectNotFoundException $e){
+	} catch(EmptyResultException $e){
 		$obj = false;
 	}
 
@@ -38,7 +38,7 @@ if(!isset($_GET['id'])){
 } else {
 	try {
 		$obj = Post::pull_by_id($_GET['id']);
-	} catch(ObjectNotFoundException $e){
+	} catch(EmptyResultException $e){
 		$obj = false;
 	}
 

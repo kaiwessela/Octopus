@@ -10,6 +10,12 @@ class Post extends ContentObject {
 	public $content;	# String
 
 
+	public static function new() {
+		$obj = new self();
+		$obj->id = generate_id();
+		return $obj;
+	}
+	
 	public static function pull_by_id($id) {
 		global $pdo;
 

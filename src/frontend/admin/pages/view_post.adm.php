@@ -4,7 +4,7 @@
 if(isset($_GET['id'])){
 	try {
 		$obj = Post::pull_by_id($_GET['id']);
-	} catch(ObjectNotFoundException $e){
+	} catch(EmptyResultException $e){
 		$obj = false;
 	}
 } else {

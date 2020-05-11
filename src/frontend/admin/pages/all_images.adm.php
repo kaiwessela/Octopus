@@ -1,7 +1,7 @@
 <?php
 try {
 	$objs = Image::pull_all();
-} catch(ObjectNotFoundException $e){
+} catch(EmptyResultException $e){
 	$objs = false;
 }
 ?>

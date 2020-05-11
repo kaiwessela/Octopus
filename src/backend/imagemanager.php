@@ -149,8 +149,6 @@ class ImageManager {
 		if(!file_put_contents($path, $data)){
 			throw new ImageManagerException('Unable to write file. Check your server configuration and permissions.');
 		}
-
-		chmod($path, 0777); // FIXME probably wrong
 	}
 
 	private function read_data_from_json() {

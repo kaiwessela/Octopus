@@ -1,4 +1,5 @@
 <?php
+// BUG: permissions of the uploaded files
 class ImageManager {
 	private $dir;
 

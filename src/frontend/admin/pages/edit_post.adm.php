@@ -28,7 +28,7 @@ if(!isset($_GET['id'])){
 		$error = false;
 		try {
 			$obj->update($_POST);
-		} catch(EmptyResultException $e){
+		} catch(Exception $e){
 			$error = true;
 		}
 

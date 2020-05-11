@@ -118,6 +118,9 @@ class Image extends ContentObject {
 
 	public function delete() {
 		global $pdo;
+		global $imagemanager;
+
+		$imagemanager->delete_images($this);
 
 		$query = 'DELETE FROM images WHERE image_id = :id';
 		$values = ['id' => $this->id];

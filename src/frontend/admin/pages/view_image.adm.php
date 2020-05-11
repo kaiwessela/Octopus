@@ -32,14 +32,14 @@ if($obj == false){
 	<p><?php echo $obj->description; ?></p>
 
 	<h2>Verfügbare Größen:</h2>
-	<p>
 
 	<?php
-	// TODO
-	?>
-
-	</p>
-
-	<?php
+	foreach($obj->sizes as $size){
+		?>
+		<a href="../resources/images/dynamic/<?php echo $obj->longid . '/' . $size . '.' . $obj->extension; ?>">
+			<?php echo $size; ?>
+		</a><br>
+		<?php
+	}
 }
 ?>

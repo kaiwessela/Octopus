@@ -2,7 +2,6 @@
 class ImageManager {
 	private $dir;
 
-	// ratio = width/height – <0,5; 0,5-2; >2
 	const DIMENSIONS = [
 		'original' 		=> null,
 		'extrasmall' 	=> [	200, 	300, 	400		],
@@ -23,7 +22,13 @@ class ImageManager {
 
 
 	function __construct($dir) {
-		$this->dir = $dir; // TODO validation
+		if(!is_dir($dir)){
+			throw new InvalidArgumentException('Directory is not a valid directory: ' . $dir);
+		} else if(!is_writable($dir)){
+			throw new InvalidArgumentException('Directory is not writable: ' . $dir);
+		} else {
+			$this->dir = $dir;
+		}
 	}
 
 	# TODO better exception
@@ -31,7 +36,7 @@ class ImageManager {
 	public function receive_upload(&$image) {
 		# check if $image is a valid Image object
 		if(!isset($image) || !$image instanceof Image){
-			throw new InvalidArgumentException();
+			throw new InvalidArgumentException('Valid Image required in ImageManager::receive_upload().');
 		}
 
 		# check different sources; form post -> form-data, ajax -> json
@@ -41,37 +46,49 @@ class ImageManager {
 		} else if(preg_match('/^multipart\/form-data;.+$/', $_SERVER['CONTENT_TYPE'])){
 			$data = $this->read_data_from_formdata();
 		} else {
-			throw new Exception('invalid content type: ' . $_SERVER['CONTENT_TYPE']);
+			throw new ImageManagerException('Invalid Content-Type; application/json or multipart/form-data allowed.');
 		}
 
+		# determine imagetype of the image
 		$type = getimagesizefromstring($data)[2];
+
+		# try to create an image from data
 		$orig_image = imagecreatefromstring($data);
 
+		# check if the image is valid -> data is a valid image
 		if(!$orig_image){
-			throw new Exception('invalid image data');
+			throw new ImageManagerException('Received Invalid or No image data from POST input.');
 		}
 
+		# check if image type is valid and write it into the Image object (as extension)
 		$this->check_and_set_type($image, $type);
 
+		# make a directory for the image files
 		mkdir($this->dir . '/' . $image->longid);
 
-		$sizes['original'] = $data;
+		# list of all available sizes
+		$sizes = ['original'];
+
 		foreach(self::DIMENSIONS as $target_size => $value){
 			if($target_size == 'original'){
 				$this->write_image($image, $data, 'original');
 				continue;
 			}
 
+			# resize image
 			$resized_data = $this->resize_image($image, $orig_image, $target_size);
 
 			if($resized_data == false){
+				# resized image would be bigger than the original one so do not use it
 				continue;
 			}
 
+			# add size to the list and write image file
+			$sizes[] = $target_size;
 			$this->write_image($image, $resized_data, $target_size);
 		}
 
-		$image->sizes = array_keys($sizes);
+		$image->sizes = $sizes;
 
 		imagedestroy($orig_image);
 	}
@@ -84,7 +101,7 @@ class ImageManager {
 		} else if($type == IMAGETYPE_GIF){
 			$image->extension = Image::EXTENSION_GIF;
 		} else {
-			throw new Exception('invalid image type');
+			throw new ImageManagerException('Invalid image type. PNG, JPG and GIF allowed.');
 		}
 	}
 
@@ -125,14 +142,14 @@ class ImageManager {
 		return $data;
 	}
 
-	private function write_image(&$image, $data, $size) { // TODO validation
+	private function write_image(&$image, $data, $size) {
 		$path = $this->dir . '/' . $image->longid . '/' . $size . '.' . $image->extension;
-		file_put_contents($path, $data);
+
+		if(!file_put_contents($path, $data)){
+			throw new ImageManagerException('Unable to write file. Check your server configuration and permissions.');
+		}
+
 		chmod($path, 0777); // FIXME probably wrong
-	}
-
-	public function delete_image($image, $size = null) {
-
 	}
 
 	private function read_data_from_json() {
@@ -151,6 +168,14 @@ class ImageManager {
 		$valid = ($image != false);
 		imagedestroy($image);
 		return $valid;
+	}
+
+	public function delete_images($image) {
+		foreach($image->sizes as $size){
+			unlink($this->dir . '/' . $image->longid . '/' . $size . '.' . $image->extension);
+		}
+
+		rmdir($this->dir . '/' . $image->longid);
 	}
 }
 ?>

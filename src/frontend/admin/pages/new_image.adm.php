@@ -7,7 +7,7 @@ if(isset($_GET['action']) && $_GET['action'] == 'submit'){
 	$error = false;
 	try {
 		$obj->insert($_POST);
-	} catch(EmptyResultException $e){
+	} catch(Exception $e){
 		$error = true;
 	}
 

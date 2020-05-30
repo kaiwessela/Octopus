@@ -64,4 +64,4 @@ if(!isset($_GET['id'])){
 }
 ?>
 
-<a href="all_images">Zurück zu allen Posts</a>
+<a href="all_posts">Zurück zu allen Posts</a>

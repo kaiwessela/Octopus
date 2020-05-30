@@ -19,6 +19,7 @@ class Image extends ContentObject {
 		global $pdo;
 
 		$query = 'SELECT * FROM images WHERE image_id = :id';
+
 		$values = ['id' => $id];
 
 		$s = $pdo->prepare($query);
@@ -88,8 +89,21 @@ class Image extends ContentObject {
 
 		$imagemanager->receive_upload($this);
 
-		$query = 'INSERT INTO images (image_id, image_longid, image_extension, image_description, image_sizes)
-			VALUES (:id, :longid, :extension, :description, :sizes)';
+		$query = <<<SQL
+INSERT INTO images (
+ image_id,
+ image_longid,
+ image_extension,
+ image_description,
+ image_sizes
+) VALUES (
+ :id,
+ :longid,
+ :extension,
+ :description,
+ :sizes
+)
+SQL;
 
 		$values = [
 			'id' => $this->id,

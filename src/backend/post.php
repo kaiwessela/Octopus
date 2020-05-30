@@ -15,7 +15,7 @@ class Post extends ContentObject {
 		$obj->id = generate_id();
 		return $obj;
 	}
-	
+
 	public static function pull_by_id($id) {
 		global $pdo;
 
@@ -106,9 +106,31 @@ class Post extends ContentObject {
 
 		// TODO image routine (id or upload)
 
-		$query = 'INSERT INTO posts (post_id, post_longid, post_overline, post_headline, post_subline, post_teaser,
-			post_author, post_timestamp, post_image_id, post_content) VALUES (:id, :longid, :overline, :headline,
-			:subline, :teaser, :author, :timestamp, :image_id, :content)';
+		$query = <<<SQL
+INSERT INTO posts (
+ post_id,
+ post_longid,
+ post_overline,
+ post_headline,
+ post_subline,
+ post_teaser,
+ post_author,
+ post_timestamp,
+ post_image_id,
+ post_content
+) VALUES (
+ :id,
+ :longid,
+ :overline,
+ :headline,
+ :subline,
+ :teaser,
+ :author,
+ :timestamp,
+ :image_id,
+ :content
+)
+SQL;
 
 		$values = [
 			'id' => $this->id,
@@ -124,6 +146,8 @@ class Post extends ContentObject {
 
 		if(isset($this->image)){
 			$values['image_id'] = $this->image->id;
+		} else {
+			$values['image_id'] = '';
 		}
 
 		$s = $pdo->prepare($query);
@@ -145,9 +169,17 @@ class Post extends ContentObject {
 
 		// TODO image routine (id or upload)
 
-		$query = 'UPDATE posts SET post_overline = :overline, post_headline = :headline, post_subline = :subline,
-			post_teaser = :teaser, post_author = :author, post_image_id = :image_id, post_content = :content
-			WHERE post_id = :id';
+		$query = <<<SQL
+UPDATE posts SET
+ post_overline = :overline,
+ post_headline = :headline,
+ post_subline = :subline,
+ post_teaser = :teaser,
+ post_author = :author,
+ post_image_id = :image_id,
+ post_content = :content
+WHERE post_id = :id
+SQL;
 
 		$values = [
 			'overline' => $this->overline,

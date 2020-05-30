@@ -1,8 +1,36 @@
 @font-face {
-	font-family: 'Open Sans';
-	font-weight: 300;
+	font-family: 'EB Garamond';
+	font-weight: 400;
 	font-style: normal;
-	src: url('../fonts/Open_Sans/light.woff2');
+	src: url('../fonts/EB_Garamond/regular.woff2');
+}
+
+@font-face {
+	font-family: 'EB Garamond';
+	font-weight: 500;
+	font-style: italic;
+	src: url('../fonts/EB_Garamond/medium-italic.woff2');
+}
+
+@font-face {
+	font-family: 'EB Garamond';
+	font-weight: 600;
+	font-style: normal;
+	src: url('../fonts/EB_Garamond/semibold.woff2');
+}
+
+@font-face {
+	font-family: 'EB Garamond';
+	font-weight: 600;
+	font-style: italic;
+	src: url('../fonts/EB_Garamond/semibold-italic.woff2');
+}
+
+@font-face {
+	font-family: 'EB Garamond';
+	font-weight: 700;
+	font-style: normal;
+	src: url('../fonts/EB_Garamond/bold.woff2');
 }
 
 @font-face {
@@ -17,41 +45,6 @@
 	font-weight: 600;
 	font-style: normal;
 	src: url('../fonts/Open_Sans/semibold.woff2');
-}
-
-@font-face {
-	font-family: 'Open Sans';
-	font-weight: 700;
-	font-style: normal;
-	src: url('../fonts/Open_Sans/bold.woff2');
-}
-
-@font-face {
-	font-family: 'Open Sans';
-	font-weight: 800;
-	font-style: normal;
-	src: url('../fonts/Open_Sans/extrabold.woff2');
-}
-
-@font-face {
-	font-family: 'EB Garamond';
-	font-weight: 400;
-	font-style: normal;
-	src: url('../fonts/EB_Garamond/regular.woff2');
-}
-
-@font-face {
-	font-family: 'EB Garamond';
-	font-weight: 600;
-	font-style: normal;
-	src: url('../fonts/EB_Garamond/semibold.woff2');
-}
-
-@font-face {
-	font-family: 'EB Garamond';
-	font-weight: 700;
-	font-style: normal;
-	src: url('../fonts/EB_Garamond/bold.woff2');
 }
 
 @font-face {
@@ -246,21 +239,28 @@ input#longid {
 	font-family: 'Fira Mono';
 }
 
-input#overline,
-input#subline {
+input#overline {
 	font-family: 'Open Sans';
 	font-weight: 600;
 }
 
+input#subline {
+	font-family: 'EB Garamond';
+	font-size: 1.5rem;
+	font-weight: 600;
+	font-style: italic;
+}
+
 input#headline {
 	font-family: 'EB Garamond';
-	font-weight: 600;
-	font-size: 2rem;
+	font-weight: 700;
+	font-size: 2.5rem;
 }
 
 textarea#teaser {
 	font-family: 'EB Garamond';
-	font-weight: 600;
+	font-weight: 500;
+	font-style: italic;
 	resize: vertical;
 }
 

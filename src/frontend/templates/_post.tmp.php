@@ -27,7 +27,8 @@
 
 <?php
 if(isset($post->image)){
-	$image_url = '/resources/images/dynamic/' . $post->image->longid . '.' . $post->image->extension . '?size=large';
+	$image_path = '/resources/images/dynamic/' . $post->image->longid . '/';
+	$ext = $post->image->extension;
 	$image_alt = $post->image->description;
 
 	?>

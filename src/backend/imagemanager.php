@@ -14,11 +14,11 @@ class ImageManager {
 
 	const JPG_QUALITY = [
 		'original' 		=> 100,
-		'extrasmall'	=> 50,
-		'small' 		=> 65,
-		'middle'		=> 75,
-		'large' 		=> 80,
-		'extralarge' 	=> 90
+		'extrasmall'	=> 75,
+		'small' 		=> 70,
+		'middle'		=> 70,
+		'large' 		=> 75,
+		'extralarge' 	=> 80
 	];
 
 

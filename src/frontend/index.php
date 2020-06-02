@@ -43,12 +43,15 @@ _posts.tmp.php
 
 session_start();
 
+setlocale(LC_ALL, 'de_DE.utf-8');
+
 # define constants
 define('ROOT', $_SERVER['DOCUMENT_ROOT'] . '/');
 define('BACKEND_PATH', ROOT . 'backend/');
 define('TEMPLATE_PATH', ROOT . 'templates/');
 define('COMPONENT_PATH', ROOT . 'components/');
 define('CONFIG_PATH', ROOT . 'config/');
+define('LIBS_PATH', ROOT . 'libs/');
 
 require_once CONFIG_PATH . 'config.php';
 require_once BACKEND_PATH . 'functions.php';
@@ -58,8 +61,13 @@ require_once BACKEND_PATH . 'post.php';
 require_once BACKEND_PATH . 'image.php';
 require_once 'functions.php';
 
+require_once LIBS_PATH . 'parsedown/Parsedown.php';
+
 # establish database connection
 $pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD);
+
+# create a parsedown instance
+$parsedown = new Parsedown();
 
 # read query string
 $qs_page = $_GET['page'] ?? null;

@@ -16,3 +16,6 @@ cp -r src/backend/. build/backend
 
 # copy config files
 cp -r src/config/. build/config
+
+# copy libs
+cp -r libs/. build/libs

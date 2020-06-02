@@ -9,16 +9,24 @@
 		<main>
 			<article class="full-post">
 				<header>
+<?php
+if(isset($post->overline)){
+	?>
 					<p class="overline"><?php echo $post->overline; ?></p>
+	<?php
+}
+?>
 					<h1 class="headline"><?php echo $post->headline; ?></h1>
+<?php
+if(isset($post->subline)){
+	?>
 					<p class="subline"><?php echo $post->subline; ?></p>
-					<!-- IDEA rename to summary? -->
-					<p class="teaser">
-						<?php echo $post->teaser; ?>
-					</p>
-					<p class="author"><!-- TEMP rename this class and change structure -->
+	<?php
+}
+?>
+					<p class="author-and-date">
 						<!-- IDEA use address element? -->
-						Von <?php echo $post->author; ?> &middot;
+						Von <?php echo $post->author; ?>, <wbr>veröffentlicht am
 						<time datetime="<?php echo to_html_time($post->timestamp); ?>">
 							<?php echo to_date($post->timestamp); ?>
 						</time>
@@ -40,9 +48,7 @@ if(isset($post->image)){
 }
 ?>
 
-				<p>
-					<?php echo $post->content; // TODO parsedown ?>
-				</p>
+				<?php echo $parsedown->text($post->content); ?>
 			</article>
 		</main>
 		<?php include COMPONENT_PATH . 'footer.comp.php'; ?>

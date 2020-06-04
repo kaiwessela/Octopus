@@ -2,7 +2,7 @@
 <html lang="de">
 	<head>
 		<?php include COMPONENT_PATH . 'head.comp.php'; ?>
-		<title><?php echo $post->headline; ?> – Kai Wessela</title>
+		<title><?php echo $post->headline; ?> – Kai Florian Wessela</title>
 	</head>
 	<body>
 		<?php include COMPONENT_PATH . 'header.comp.php'; ?>
@@ -10,15 +10,15 @@
 			<article class="full-post">
 				<header>
 <?php
-if(isset($post->overline)){
+if(!empty($post->overline)){
 	?>
-					<p class="overline"><?php echo $post->overline; ?></p>
+					<p class="overline"><?php echo $post->overline; ?></p><!-- NOTE: is p semantically correct? -->
 	<?php
 }
 ?>
 					<h1 class="headline"><?php echo $post->headline; ?></h1>
 <?php
-if(isset($post->subline)){
+if(!empty($post->subline)){
 	?>
 					<p class="subline"><?php echo $post->subline; ?></p>
 	<?php

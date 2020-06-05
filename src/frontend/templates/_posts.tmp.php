@@ -1,6 +1,3 @@
-<?php
-$posts = Post::pull_all();
-?>
 <!DOCTYPE html>
 <html lang="de">
 	<head>
@@ -16,22 +13,11 @@ $posts = Post::pull_all();
 			</section>
 
 <?php
+$posts = Post::pull_all();
 foreach($posts as $post){
-	?>
-			<article class="preview-post">
-				<a href="/posts/<?php echo $post->longid; ?>">
-					<p class="overline"><?php echo $post->overline; ?></p>
-					<h3><?php echo $post->headline; ?></h3>
-					<p class="subline"><?php echo $post->subline; ?></p>
-				</a>
-				<p class="teaser">
-					<time datetime="<?php echo to_html_time($post->timestamp); ?>">
-						<?php echo to_date($post->timestamp); ?>&nbsp;–&nbsp;
-					</time>
-					<?php echo $post->teaser; ?>&nbsp;…
-				</p>
-			</article>
-	<?php
+
+			include COMPONENT_PATH . 'preview-post.comp.php';
+
 }
 ?>
 

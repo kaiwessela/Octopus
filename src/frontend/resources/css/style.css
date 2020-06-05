@@ -126,12 +126,15 @@
 :root {
 	--font-primary: 'Open Sans';
 	--font-secondary: 'Catamaran';
-	--color-white: #ffffff;
-	--color-black: #000000;
-	--color-blue: #73d8ed;
-	--color-pink: #ff9ded;
-	--default-gradient: linear-gradient(45deg, var(--color-blue), var(--color-pink));
-	--default-gradient-hi-co: linear-gradient(45deg, #9cadbd, #d483c5);
+	--color-bg-main: #ffffff;
+	--color-bg-auxiliary: #dddddd;
+	--color-bg-blendover: #00000011;
+	--color-text: #000000;
+	--color-text-inverted: #ffffff;
+	--color-text-fade-1: #444444;
+	--color-text-fade-2: #666666;
+	--default-gradient: linear-gradient(45deg, #73d8ed, #ff9ded);
+	--default-shadow: 0 0 0.75rem 0.75rem #00000011;
 	--main-content-width: 50vw;
 }
 
@@ -156,29 +159,26 @@ a, a:link, a:hover, a:visited, a:focus, a:active {
 
 body > header {
 	--header-height: 4rem;
-	height: var(--header-height);
+	--color: var(--color-text-inverted);
 	position: absolute;
 	width: 100%;
-	background-color: #00000011;
-	color: var(--color-white);
-}
-
-body > header > nav {
-
+	height: var(--header-height);
+	color: var(--color);
+	background-color: var(--color-bg-blendover);
 }
 
 body > header > nav ul {
+	display: flex;
+	height: var(--header-height);
 	margin: 0;
 	padding: 0;
 	list-style-type: none;
-	display: flex;
-	height: var(--header-height);
 }
 
 body > header > nav a {
-	text-decoration: none;
 	font-family: var(--font-secondary);
 	font-size: 1.1rem;
+	text-decoration: none;
 }
 
 body > header > nav a li {
@@ -192,10 +192,10 @@ body > header > nav a li::after {
 	content: '';
 	position: relative;
 	display: block;
-	margin: 0.2rem auto 0;
-	height: 2px;
 	width: 0;
-	background-color: #ffffff;
+	height: 2px;
+	margin: 0.2rem auto 0;
+	background-color: var(--color);
 	transition-duration: 0.25s;
 	transition-timing-function: ease;
 }
@@ -206,54 +206,54 @@ body > header > nav a:focus li::after {
 }
 
 body > main {
-	/*min-height: 100vh; WARNING: causes too big grids or boxes if there is not enough content to fill the page */
 	display: grid;
 	grid-template-columns: [grid-start] 1fr [content-start] var(--main-content-width) [content-end] 1fr [grid-end];
+	min-height: 100vh; /* WARNING: causes too big grids or boxes if there is not enough content to fill the page */
 }
 
 body > footer {
 	padding: 1rem; /* TEMP */
-	background-color: #e3e3e3;
+	background-color: var(--color-bg-auxiliary);
 }
 
 main > section {
-	grid-column: grid-start / grid-end;
 	display: grid;
 	grid-template-columns: [grid-start] 1fr [content-start] var(--main-content-width) [content-end] 1fr [grid-end];
+	grid-column: grid-start / grid-end;
 	padding: 0.5rem 0;
 }
 
 main > section:first-of-type {
 	padding-top: 6rem;
+	color: var(--color-text-inverted);
 	background-image: var(--default-gradient);
-	color: var(--color-white);
 }
 
 main > section p,
 article.full-post > p {
 	grid-column: content-start / content-end;
+	margin: 0.4em 0;
 	font-family: var(--font-primary);
 	font-size: 1.25rem;
-	margin: 0.4em 0;
 	hyphens: auto;
 }
 
 main > section h1 {
 	grid-column: content-start / content-end;
+	margin: 0.2em 0;
+	line-height: 0.95em;
 	font-family: var(--font-secondary);
 	font-size: 4rem;
-	line-height: 0.95em;
-	margin: 0.2em 0;
 }
 
 main > section h2 {
-	font-family: var(--font-secondary);
 	grid-column: content-start / content-end;
+	font-family: var(--font-secondary);
 }
 
 main p a,
 main span a {
-	background-image: var(--default-gradient-hi-co);
+	background-image: var(--default-gradient);
 	background-size: 100% 0.1em;
 	background-position: 0 95%;
 	background-repeat: no-repeat;
@@ -269,23 +269,14 @@ main span a:focus {
 	background-position: 0 60%;
 }
 
+/* FULL POST */
 article.full-post {
-	grid-column: grid-start / grid-end;
 	display: grid;
 	grid-template-columns: [grid-start] 1fr [content-start] var(--main-content-width) [content-end] 1fr [grid-end];
-/*
-     1fr          50vw          1fr
-1          2               3          4
-+----------+---------------+----------+1
-| header                              |
-+----------+---------------+----------+2
-|          | content       |          |
-                  ...
-*/
+	grid-column: grid-start / grid-end;
 }
 
 article.full-post header {
-	grid-column: grid-start / grid-end;
 	display: grid;
 	grid-template-columns: 10vw 7.5vw 1fr [content-start] var(--main-content-width) [content-end] 1fr 7.5vw 10vw;
 	grid-template-rows: 6rem auto auto auto auto;
@@ -295,47 +286,48 @@ article.full-post header {
 		'. headline headline headline        headline headline .'
 		'. .        subline  subline         subline  .        .'
 		'. .        .        author-and-date .        .        .';
+	grid-column: grid-start / grid-end;
+	color: var(--color-text-inverted);
 	background-image: var(--default-gradient);
-	color: var(--color-white);
 }
 
 article.full-post header .overline {
 	grid-area: overline;
-	width: min-content;
+	width: max-content;
+	margin: 0;
+	padding: 0 0.8rem;
 	font-family: var(--font-secondary);
 	font-size: 2rem;
 	font-weight: 600;
-	margin: 0;
-	padding: 0 0.8rem;
-	background-color: var(--color-white);
 	color: #000000;
+	background-color: #ffffff;
 	mix-blend-mode: screen;
 }
 
 article.full-post header h1 {
 	grid-area: headline;
+	margin: 0.225em 0 0.1em;
+	line-height: 0.95em;
 	font-family: var(--font-secondary);
 	font-size: 6rem;
 	font-weight: 700;
-	line-height: 0.95em;
-	margin: 0.225em 0 0.1em;
 }
 
 article.full-post header .subline {
 	grid-area: subline;
-	font-family: var(--font-secondary);
+	margin: 0;
+	font-family: var(--font-primary);
 	font-size: 1.7rem;
 	font-weight: 600;
 	font-style: italic;
-	margin: 0;
 }
 
 article.full-post header .author-and-date {
 	grid-area: author-and-date;
+	margin: 1.5em 0 1em;
 	font-family: var(--font-primary);
 	font-size: 1rem;
 	font-weight: 600;
-	margin: 1.5em 0 1em;
 }
 
 article.full-post > p:first-of-type {
@@ -351,22 +343,77 @@ article.full-post > p:first-of-type::first-letter {
 	float: left;
 	margin: 0.12em 0.1em 0 0;
 }
+/* --- FULL POST */
 
-/* --------------- */
-
+/* PREVIEW POST */
 article.preview-post {
 	grid-column: content-start / content-end;
-	font-family: var(--font-primary);
-	font-size: 1rem;
 	height: auto;
 	margin: 1rem 0;
-	box-shadow: 0 0 0.75rem 0.75rem #00000011;
 	padding: 0.75rem;
+	font-family: var(--font-primary);
+	font-size: 1rem;
 	border-radius: 0.5rem;
+	box-shadow: var(--default-shadow);
 }
 
-article.preview-post:last-of-type {
-	border: none;
+article.preview-post a {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+article.preview-post img {
+	width: 20rem;
+	height: 12rem;
+	object-fit: cover;
+	float: right;
+	border-radius: 0.25rem;
+}
+
+article.preview-post .overline {
+	margin: 0;
+	font-family: var(--font-secondary);
+	font-weight: 600;
+	font-size: 1.1em;
+	color: var(--color-text-fade-2);
+}
+
+article.preview-post a h3 {
+	display: inline;
+	line-height: 1.2em;
+	font-family: var(--font-secondary);
+	font-weight: 700;
+	font-size: 2.5em;
+	hyphens: auto;
+	background-image: var(--default-gradient);
+	background-size: 100% 0.1em;
+	background-position: 0 1.2em;
+	background-repeat: no-repeat;
+	transition: background 0.25s ease;
+}
+
+article.preview-post a:hover h3,
+article.preview-post a:focus h3 {
+	background-size: 100% 0.6em;
+	background-position: 0 0.55em;
+}
+
+article.preview-post .subline {
+	margin: 0.2em 0 0;
+	font-family: var(--font-primary);
+	font-weight: 600;
+	font-size: 1.4em;
+	font-style: italic;
+	color: var(--color-text-fade-1);
+}
+
+article.preview-post .teaser {
+	margin: 0.5em 0;
+}
+
+article.preview-post time {
+	color: var(--color-text-fade-2);
 }
 
 article.preview-post:first-of-type {
@@ -376,54 +423,4 @@ article.preview-post:first-of-type {
 article.preview-post:last-of-type {
 	margin-bottom: 2rem;
 }
-
-article.preview-post .overline {
-	font-family: var(--font-secondary);
-	font-weight: 600;
-	font-size: 1.1em;
-	margin: 0;
-	color: #777777;
-}
-
-article.preview-post > a {
-	display: block;
-}
-
-article.preview-post h3 {
-	display: inline-block;
-	font-family: var(--font-secondary);
-	font-weight: 700;
-	font-size: 2.5em;
-	line-height: 0.95em;
-	margin: 0.225em 0 0.1em;
-	background-image: var(--default-gradient);
-	background-size: 100% 0.1em;
-	background-position: 0 0.85em;
-	background-repeat: no-repeat;
-	transition: background 0.25s ease;
-}
-
-article.preview-post a:hover h3,
-article.preview-post a:focus h3 {
-	background-size: 100% 0.6em;
-	background-position: 0 0.2em;
-}
-
-article.preview-post .subline {
-	font-family: var(--font-secondary);
-	font-weight: 600;
-	font-size: 1.5em;
-	font-style: italic;
-	margin: 0;
-	color: #444444;
-}
-
-article.preview-post > .teaser {
-
-}
-
-article.preview-post time {
-	color: #666666;
-}
-
-/* -------- */
+/* --- PREVIEW POST */

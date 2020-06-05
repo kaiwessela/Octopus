@@ -53,7 +53,7 @@ class Post extends ContentObject {
 	public static function pull_all() {
 		global $pdo;
 
-		$query = 'SELECT * FROM posts';
+		$query = 'SELECT * FROM posts LEFT JOIN images ON image_id = post_image_id';
 
 		$s = $pdo->prepare($query);
 

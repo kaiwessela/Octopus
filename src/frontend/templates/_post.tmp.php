@@ -42,7 +42,7 @@ if(isset($post->image)){
 	?>
 				<picture>
 					<!-- IDEA add different sources -->
-					<!--<img src="<?php echo $image_path . 'original.' . $ext; ?>" alt="<?php echo $image_alt; ?>">-->
+					<img src="<?php echo $image_path . 'original.' . $ext; ?>" alt="<?php echo $image_alt; ?>">
 				</picture>
 	<?php
 }

@@ -135,7 +135,8 @@
 	--color-text-fade-2: #666666;
 	--default-gradient: linear-gradient(45deg, #73d8ed, #ff9ded);
 	--default-shadow: 0 0 0.75rem 0.75rem #00000011;
-	--main-content-width: 50vw;
+	--main-content-width: 55rem;
+	--article-content-width: 45rem;
 }
 
 ::selection {
@@ -148,6 +149,7 @@ html {
 }
 
 body {
+	min-height: 100vh;
 	margin: 0;
 	padding: 0;
 }
@@ -158,18 +160,23 @@ a, a:link, a:hover, a:visited, a:focus, a:active {
 }
 
 body > header {
-	--header-height: 4rem;
 	--color: var(--color-text-inverted);
 	position: absolute;
+	display: flex;
+	align-items: center;
 	width: 100%;
-	height: var(--header-height);
+	height: 4rem;
 	color: var(--color);
 	background-color: var(--color-bg-blendover);
 }
 
+body > header > * {
+	margin: 0 1rem;
+}
+
 body > header > nav ul {
 	display: flex;
-	height: var(--header-height);
+	align-items: center;
 	margin: 0;
 	padding: 0;
 	list-style-type: none;
@@ -182,9 +189,7 @@ body > header > nav a {
 }
 
 body > header > nav a li {
-	position: relative;
-	height: calc(var(--header-height) / 2 - 0.1rem);
-	margin: calc(var(--header-height) / 4) 1rem;
+	margin: 0 1rem;
 	padding-top: 0.1rem;
 }
 
@@ -208,12 +213,6 @@ body > header > nav a:focus li::after {
 body > main {
 	display: grid;
 	grid-template-columns: [grid-start] 1fr [content-start] var(--main-content-width) [content-end] 1fr [grid-end];
-	min-height: 100vh; /* WARNING: causes too big grids or boxes if there is not enough content to fill the page */
-}
-
-body > footer {
-	padding: 1rem; /* TEMP */
-	background-color: var(--color-bg-auxiliary);
 }
 
 main > section {
@@ -224,7 +223,7 @@ main > section {
 }
 
 main > section:first-of-type {
-	padding-top: 6rem;
+	padding-top: 6.5rem;
 	color: var(--color-text-inverted);
 	background-image: var(--default-gradient);
 }
@@ -272,14 +271,15 @@ main span a:focus {
 /* FULL POST */
 article.full-post {
 	display: grid;
-	grid-template-columns: [grid-start] 1fr [content-start] var(--main-content-width) [content-end] 1fr [grid-end];
+	grid-template-columns: [grid-start] 1fr [content-start] var(--article-content-width) [content-end] 1fr [grid-end];
 	grid-column: grid-start / grid-end;
+	padding: 0 0 3rem;
 }
 
 article.full-post header {
 	display: grid;
-	grid-template-columns: 10vw 7.5vw 1fr [content-start] var(--main-content-width) [content-end] 1fr 7.5vw 10vw;
-	grid-template-rows: 6rem auto auto auto auto;
+	grid-template-columns: 1fr 7.5vw 7.5vw [content-start] var(--article-content-width) [content-end] 7.5vw 7.5vw 1fr;
+	grid-template-rows: 6.5rem auto auto auto auto;
 	grid-template-areas:
 		'. .        .        .               .        .        .'
 		'. overline overline overline        overline overline .'
@@ -289,6 +289,20 @@ article.full-post header {
 	grid-column: grid-start / grid-end;
 	color: var(--color-text-inverted);
 	background-image: var(--default-gradient);
+}
+
+article.full-post picture {
+	grid-column: content-start / content-end;
+}
+
+article.full-post img {
+	width: calc(100% + 4rem);
+	height: 25rem;
+	margin: 2rem -2rem 0;
+	object-fit: cover;
+	object-position: center center;
+	border-radius: 0.5rem;
+	box-shadow: var(--default-shadow);
 }
 
 article.full-post header .overline {
@@ -330,18 +344,14 @@ article.full-post header .author-and-date {
 	font-weight: 600;
 }
 
-article.full-post > p:first-of-type {
-	margin-top: 2rem;
-}
-
-article.full-post > p:last-of-type {
-	margin-bottom: 2rem;
-}
-
 article.full-post > p:first-of-type::first-letter {
 	font-size: 3em;
 	float: left;
 	margin: 0.12em 0.1em 0 0;
+}
+
+article.full-post > p:first-of-type {
+	margin: 2rem 0 0;
 }
 /* --- FULL POST */
 
@@ -354,7 +364,7 @@ article.preview-post {
 	font-family: var(--font-primary);
 	font-size: 1rem;
 	border-radius: 0.5rem;
-	box-shadow: var(--default-shadow);
+	box-shadow: var(--default-shadow); /* TODO maybe delete */
 }
 
 article.preview-post a {
@@ -367,6 +377,7 @@ article.preview-post img {
 	width: 20rem;
 	height: 12rem;
 	object-fit: cover;
+	object-position: center center;
 	float: right;
 	border-radius: 0.25rem;
 }
@@ -424,3 +435,21 @@ article.preview-post:last-of-type {
 	margin-bottom: 2rem;
 }
 /* --- PREVIEW POST */
+
+body > footer {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	padding: 2rem 0;
+	background-color: var(--color-bg-auxiliary);
+}
+
+footer div > a {
+	display: block;
+}
+
+/* CUSTOMIZED */
+header .logo {
+	font-family: var(--font-secondary);
+	font-weight: 800;
+	font-size: 2rem;
+}

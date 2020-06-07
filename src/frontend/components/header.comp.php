@@ -1,5 +1,5 @@
 <header>
-	<span class="logo">Kai Florian Wessela.</span>
+	<span class="logo">Kai Florian Wessela</span>
 	<nav>
 		<ul>
 			<a href="/"><li>Startseite</li></a>

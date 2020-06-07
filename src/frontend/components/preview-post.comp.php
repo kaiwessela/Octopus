@@ -1,4 +1,4 @@
-<article class="preview-post">
+<article class="preview">
 	<a href="/posts/<?php echo $post->longid; ?>">
 
 <?php

@@ -7,7 +7,7 @@
 	<body>
 		<?php include COMPONENT_PATH . 'header.comp.php'; ?>
 		<main>
-			<article class="full-post">
+			<article>
 				<header>
 <?php
 if(!empty($post->overline)){

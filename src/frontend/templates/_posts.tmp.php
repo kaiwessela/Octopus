@@ -7,10 +7,10 @@
 	<body>
 		<?php include COMPONENT_PATH . 'header.comp.php'; ?>
 		<main>
-			<section>
+			<div>
 				<h1>Alle Artikel</h1>
-				<p><b>Seite 1 von x</b> – Angezeigt werden Artikel 1 bis 10 von insgesamt 500 Artikeln</p>
-			</section>
+			</div>
+			<p><b>Seite 1 von x</b> – Angezeigt werden Artikel 1 bis 10 von insgesamt 500 Artikeln</p>
 
 <?php
 $posts = Post::pull_all();

@@ -1,21 +1,27 @@
 <footer>
-	<div>
-		<!-- logo -->
+	<div class="content">
+		<div>
+			<h2>Navigation</h2>
+			<ul class="link-list">
+				<li><a href="/">Startseite</a></li>
+				<li><a href="/posts">Alle Blogartikel</a></li>
+			</ul>
+		</div>
+		<div>
+			<h2>Kontakt</h2>
+			<ul class="link-list">
+				<li><a href="https://twitter.com/kaiwessela">Twitter (@kaiwessela)</a></li>
+				<li><a href="">Mastodon</a></li>
+				<li><a href="https://github.com">GitHub</a></li>
+				<li><a href="mailto:hi@kaiwessela.de">E-Mail (PGP)</a></li>
+				<li><a href="">Impressum</a></li>
+				<li><a href="">Datenschutzerklärung</a></li>
+			</ul>
+			<p>Website erstellt mit kaiwessela/blog, <br>selbstverständlich open source</p>
+			<p>Alle Inhalte unter Creative Commons, <br>sofern nicht anders angegeben</p>
+		</div>
 	</div>
-	<div>
-		<h2>Navigation</h2>
-		<a href="/">Startseite</a>
-		<a href="/posts">Alle Blogartikel</a>
-	</div>
-	<div>
-		<h2>Kontakt</h2>
-		<a href="https://twitter.com/kaiwessela">Twitter (@kaiwessela)</a>
-		<a href="">Mastodon</a>
-		<a href="https://github.com">GitHub</a>
-		<a href="mailto:hi@kaiwessela.de">E-Mail (PGP)</a>
-		<a href="">Impressum</a>
-		<a href="">Datenschutzerklärung</a>
-		<p>Website erstellt mit kaiwessela/blog, selbstverständlich open source</p>
-		<p>Alle Inhalte unter Creative Commons, sofern nicht anders angegeben</p>
+	<div class="logo">
+		Kai Florian Wessela
 	</div>
 </footer>

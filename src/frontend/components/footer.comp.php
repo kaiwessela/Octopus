@@ -1,7 +1,4 @@
 <footer>
-	<div class="logo">
-		Kai Florian Wessela
-	</div>
 	<div class="content">
 		<div>
 			<h2>Navigation</h2>
@@ -19,5 +16,8 @@
 			<p>Website erstellt mit kaiwessela/blog, <br>selbstverständlich open source</p>
 			<p>Alle Inhalte unter Creative Commons, <br>sofern nicht anders angegeben</p>
 		</div>
+	</div>
+	<div class="logo">
+		Kai Florian Wessela
 	</div>
 </footer>

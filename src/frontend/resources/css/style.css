@@ -220,7 +220,7 @@ div > a:focus {
 body > header {
 	grid-template-rows: [solid-start expand-start] 4rem [solid-end expand-end];
 	color: #ffffff;
-	padding: 0.5rem 0 0;
+	padding: 0.25rem 0 0;
 	background-color: #333333;
 	background-image: var(--default-gradient);
 	background-size: 100% 0.25rem;
@@ -242,7 +242,9 @@ body > header .logo {
 
 body > header nav {
 	grid-column: center / sym-end;
+	grid-row: expand-start / expand-end;
 	align-self: center;
+	overflow: hidden;
 }
 
 body > header nav ul {
@@ -269,14 +271,70 @@ body > header nav ul a {
 	transition: background 0.25s ease;
 }
 
-body > header nav ul a:hover {
+body > header nav ul a:hover,
+body > header.open nav ul a {
 	background-size: 100% 0.15em;
 }
 
+body > header nav ul a:last-of-type {
+	margin-right: 0;
+}
+
+body > header .opener {
+	display: none;
+	position: absolute;
+	height: 2rem;
+	width: 2rem;
+	top: 1.25rem;
+	right: 1rem;
+}
+
+body > header .opener button {
+	background: none;
+	border: none;
+	outline: none;
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	width: 100%;
+}
+
+body > header .opener button > span {
+	display: block;
+	width: 100%;
+	height: 0.15rem;
+	margin: 0.3rem 0;
+	background-color: #ffffff;
+	transition: margin 0.25s 0.25s ease, transform 0.25s ease, background 0.25s 0.25s ease;
+	transform-origin: center center;
+}
+
+body > header.open .opener button > span {
+	margin: -0.15rem 0;
+	transition: margin 0.25s ease, transform 0.25s 0.25s ease, background 0.25s ease;
+}
+
+body > header.open .opener button > .top {
+	transform: rotate(45deg);
+}
+
+body > header.open .opener button > .middle {
+	background-color: transparent;
+}
+
+body > header.open .opener button > .bottom {
+	transform: rotate(-45deg);
+}
+
 body > footer {
+	grid-template-rows: auto;
 	background: var(--default-blend-gradient), no-repeat center bottom / 100% 0.25rem var(--default-gradient);
 	margin: 4rem 0 0;
 	padding: 4rem 0;
+}
+
+body > footer > * {
+	grid-row: 1 / 2;
 }
 
 body > footer .content {
@@ -289,9 +347,14 @@ body > footer .content > div {
 	margin: 0 2rem;
 }
 
+body > footer h2 {
+	font-size: 1.1rem;
+}
+
 article:not(.preview) p {
 	grid-column: text-start / text-end;
 	font-size: 1.3rem;
+	hyphens: auto;
 }
 
 article:not(.preview) > header {
@@ -411,4 +474,120 @@ article.preview img {
 
 article.preview .teaser time {
 	color: #444444;
+}
+
+@media (max-width: 78rem) {
+	body {
+		grid-template-columns: [grid-start] 1fr [sym-start large-start] 6rem [content-start] 3rem [text-start] 18rem [center] 18rem [text-end] 3rem [content-end] 6rem [large-end sym-end] 1fr [grid-end];
+	}
+}
+
+@media (max-width: 58rem) {
+	body {
+		grid-template-columns: [grid-start] 1rem [sym-start large-start content-start text-start] 1fr [center] 1fr [text-end content-end large-end sym-end] 1rem [grid-end];
+	}
+
+	body > header {
+		grid-template-rows: [solid-start] 4rem [solid-end expand-start] auto [expand-end];
+		overflow-y: hidden;
+	}
+
+	body > header > * {
+		grid-column: sym-start / sym-end !important;
+	}
+
+	body > header nav {
+		align-self: start;
+		height: 0;
+	}
+
+	body > header .opener {
+		display: block;
+	}
+
+	body > header.open nav {
+		height: auto;
+		border-top: 1px solid #ffffff22;
+	}
+
+	body > header nav ul {
+		flex-direction: column;
+		justify-content: center;
+		margin: 2rem 0;
+	}
+
+	body > header nav ul a {
+		margin: 0.25rem 0;
+	}
+
+	body > * .logo {
+		font-size: 1.5rem;
+	}
+
+	h1 {
+		font-size: 2rem;
+	}
+
+	main > div:first-child,
+	main > section:first-child {
+		margin-bottom: 1rem;
+		padding: 2rem 0;
+	}
+
+	article:not(.preview) header {
+		margin-bottom: 1rem;
+		padding-top: 2rem;
+	}
+
+	article:not(.preview) p {
+		font-size: 1.2rem;
+	}
+
+	article.preview .overline {
+		font-size: 1rem;
+	}
+
+	article.preview h3 {
+		font-size: 1.5rem;
+	}
+
+	article.preview .subline {
+		font-size: 1.1rem;
+	}
+
+	article.preview:first-of-type {
+		margin-top: 1rem;
+	}
+
+	article.preview:last-of-type {
+		margin-bottom: 1rem;
+	}
+
+	body > footer {
+		margin-top: 2rem;
+		padding-top: 0;
+		padding-bottom: 1rem;
+	}
+
+	body > footer > * {
+		grid-column: sym-start / sym-end !important;
+		grid-row: auto !important;
+		margin: 1rem 0;
+	}
+
+	body > footer .content {
+		flex-direction: column;
+	}
+
+	body > footer .content > div {
+		margin: 0;
+	}
+}
+
+@media (max-width: 30rem) {
+	article.preview img {
+		width: 100%;
+		height: auto;
+		float: none;
+	}
 }

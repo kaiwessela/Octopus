@@ -16,7 +16,7 @@ if(!empty($post->overline)){
 	<?php
 }
 ?>
-					<h1 class="headline"><?php echo $post->headline; ?></h1>
+					<h1 class="headline"><span><?php echo $post->headline; ?></span></h1>
 <?php
 if(!empty($post->subline)){
 	?>

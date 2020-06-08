@@ -140,7 +140,7 @@
 }
 
 ::selection {
-	background-color: #00000022;
+	background-color: #00000044;
 }
 
 html {
@@ -344,14 +344,15 @@ body > footer .content {
 }
 
 body > footer .content > div {
-	margin: 0 2rem;
+	width: 16rem;
+	margin: 0 1rem;
 }
 
 body > footer h2 {
 	font-size: 1.1rem;
 }
 
-article:not(.preview) p {
+article:not(.preview) > p {
 	grid-column: text-start / text-end;
 	font-size: 1.3rem;
 	hyphens: auto;
@@ -387,18 +388,18 @@ article .overline {
 	font-weight: 600;
 	width: max-content;
 	margin: 0.25em 0;
-	padding: 0 0.25em;
-	color: #ffffffdd; /* IDEA: maybe black? */
-	background-image: var(--default-gradient);
+	color: #000000;
 }
 
 article h1 {
-	display: inline;
-	width: max-content;
-	margin: 0;
+	display: block;
+	margin: 0.1em 0;
+}
+
+article h1 span {
 	background-image: var(--default-gradient);
-	background-size: 100% 0.075em;
-	background-position: center 1.1em;
+	background-size: 100% 0.1em;
+	background-position: center 1.2em;
 	background-repeat: no-repeat;
 }
 
@@ -412,7 +413,6 @@ article .subline {
 article.preview {
 	grid-column: content-start / content-end;
 	margin: 1rem -0.5rem;
-	padding: 0.5rem;
 	box-shadow: var(--default-shadow);
 	border-radius: 0.5rem;
 }
@@ -429,6 +429,7 @@ article.preview a {
 	display: block;
 	color: #000000;
 	text-decoration: none;
+	padding: 0.5rem;
 }
 
 article.preview .overline {
@@ -442,18 +443,20 @@ article.preview .overline {
 article.preview h3 {
 	font-weight: 700;
 	font-size: 2.2rem;
+	margin: 0.1em 0;
+}
+
+article.preview h3 span {
 	display: inline;
-	width: max-content;
-	margin: 0;
 	background-image: var(--default-gradient);
-	background-size: 100% 0.15em;
+	background-size: 100% 0.1em;
 	background-position: center 1.2em;
 	background-repeat: no-repeat;
 	transition: background 0.25s ease;
 }
 
-article.preview a:hover h3,
-article.preview a:focus h3 {
+article.preview a:hover h3 span,
+article.preview a:focus h3 span {
 	background-size: 100% 0.7em;
 	background-position: center 0.45em;
 }
@@ -580,6 +583,7 @@ article.preview .teaser time {
 	}
 
 	body > footer .content > div {
+		width: auto;
 		margin: 0;
 	}
 }

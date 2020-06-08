@@ -16,7 +16,7 @@ $image_alt = $post->image->description;
 ?>
 
 		<p class="overline"><?php echo $post->overline; ?></p>
-		<h3><?php echo $post->headline; ?></h3>
+		<h3><span><?php echo $post->headline; ?></span></h3>
 		<p class="subline"><?php echo $post->subline; ?></p>
 		<p class="teaser">
 			<time datetime="<?php echo to_html_time($post->timestamp); ?>">

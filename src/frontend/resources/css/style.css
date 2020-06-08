@@ -263,11 +263,11 @@ body > header nav ul a {
 	color: inherit;
 	background: var(--default-gradient) center bottom / 0 0.15em no-repeat;
 	transition: background 0.25s ease;
+	--background-size-open: 100% 0.15em;
 }
 
-body > header nav ul a:hover,
-body > header.open nav ul a {
-	background-size: 100% 0.15em;
+body > header nav ul a:hover {
+	background-size: var(--background-size-open);
 }
 
 body > header nav ul a:last-of-type {
@@ -300,12 +300,16 @@ body > header .opener button > span {
 	margin: 0.3rem 0;
 	background-color: var(--color-auxiliary-text);
 	transform-origin: center center;
-	transition: margin 0.25s 0.25s ease, transform 0.25s ease, background 0.25s 0.25s ease;
+	transition: margin 0.25s ease 0.25s, transform 0.25s ease, background 0.25s ease 0.25s;
 }
 
 body > header.open .opener button > span {
 	margin: -0.15rem 0;
-	transition: margin 0.25s ease, transform 0.25s 0.25s ease, background 0.25s ease;
+	transition: margin 0.25s ease, transform 0.25s ease 0.25s, background 0.25s ease;
+}
+
+body > header.notransition .opener button > span {
+	transition: all 0s linear 0s;
 }
 
 body > header.open .opener button > .top {
@@ -505,8 +509,13 @@ article.preview .teaser time {
 		margin: 2rem 0;
 	}
 
+
 	body > header nav ul a {
 		margin: 0.25rem 0;
+	}
+
+	body > header.open nav ul a {
+		background-size: var(--background-size-open);
 	}
 
 	body > * .logo {

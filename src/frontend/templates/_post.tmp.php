@@ -16,7 +16,7 @@ if(!empty($post->overline)){
 	<?php
 }
 ?>
-					<h1 class="headline"><span><?php echo $post->headline; ?></span></h1>
+					<h1><span><?php echo $post->headline; ?></span></h1>
 <?php
 if(!empty($post->subline)){
 	?>
@@ -52,5 +52,6 @@ if(isset($post->image)){
 			</article>
 		</main>
 		<?php include COMPONENT_PATH . 'footer.comp.php'; ?>
+		<script src="/resources/js/script.js"></script>
 	</body>
 </html>

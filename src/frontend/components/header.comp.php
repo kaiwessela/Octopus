@@ -1,4 +1,4 @@
-<header id="header">
+<header class="open notransition">
 	<span class="logo">Kai Florian Wessela</span>
 	<nav>
 		<ul>
@@ -7,7 +7,7 @@
 		</ul>
 	</nav>
 	<div class="opener">
-		<button onclick="document.getElementById('header').classList.toggle('open')">
+		<button>
 			<span class="top"></span>
 			<span class="middle"></span>
 			<span class="bottom"></span>

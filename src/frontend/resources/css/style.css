@@ -126,21 +126,20 @@
 :root {
 	--font-primary: 'Open Sans';
 	--font-secondary: 'Catamaran';
-	--color-bg-main: #ffffff;
-	--color-bg-auxiliary: #dddddd;
-	--color-bg-blendover: #00000011;
+	--color-bg: #ffffff;
 	--color-text: #000000;
-	--color-text-inverted: #ffffff;
-	--color-text-fade-1: #444444;
-	--color-text-fade-2: #666666;
+	--color-text-dark: #222222;
+	--color-text-darker: #444444;
+	--color-auxiliary-bg: #333333;
+	--color-auxiliary-text: #ffffff;
+	--color-auxiliary-text-dark: #dddddd;
 	--default-gradient: linear-gradient(45deg, #73d8ed, #ff9ded);
-	--default-blend-gradient: linear-gradient(45deg, #73d8ed33, #ff9ded33);
+	--default-gradient-blend: linear-gradient(45deg, #73d8ed33, #ff9ded33);
 	--default-shadow: 0 0 0.75rem 0.75rem #0000000f;
-	--main-content-width: 60rem;
 }
 
 ::selection {
-	background-color: #00000044;
+	background: #00000044;
 }
 
 html {
@@ -150,9 +149,12 @@ html {
 
 body {
 	display: grid;
-	grid-template-columns: [grid-start] 1fr [sym-start large-start] 6rem [content-start] 3rem [text-start] 20rem [center] 20rem [text-end] 3rem [content-end] 6rem [large-end] 16rem [sym-end] 1fr [grid-end];
+	grid-template-columns: [grid-start] 1fr [sym-start large-start] 6rem [content-start] 3rem [text-start] 20rem
+		[center] 20rem [text-end] 3rem [content-end] 6rem [large-end] 16rem [sym-end] 1fr [grid-end];
 	margin: 0;
 	padding: 0;
+	color: var(--color-text);
+	background: var(--color-bg);
 }
 
 body > *,
@@ -168,7 +170,7 @@ main > div:first-child,
 main > section:first-child {
 	margin: 0 0 2rem;
 	padding: 4rem 0;
-	background-image: var(--default-blend-gradient);
+	background: var(--default-gradient-blend);
 }
 
 p {
@@ -180,8 +182,9 @@ h1, h2, h3, h4, h5, h6 {
 	font-family: var(--font-primary);
 }
 
-h1 {
-	grid-column: large-start / large-end !important;
+h1,
+article h1 {
+	grid-column: large-start / large-end;
 	font-size: 4rem;
 	line-height: 1.2em;
 	margin: 0.2em 0;
@@ -200,10 +203,7 @@ span a,
 div > a {
 	color: inherit;
 	text-decoration: none;
-	background-image: var(--default-gradient);
-	background-size: 100% 0.15em;
-	background-position: 0 1.2em;
-	background-repeat: no-repeat;
+	background: var(--default-gradient) 0 1.2em / 100% 0.15em no-repeat;
 	transition: background 0.25s ease;
 }
 
@@ -219,12 +219,9 @@ div > a:focus {
 
 body > header {
 	grid-template-rows: [solid-start expand-start] 4rem [solid-end expand-end];
-	color: #ffffff;
+	color: var(--color-auxiliary-text);
 	padding: 0.25rem 0 0;
-	background-color: #333333;
-	background-image: var(--default-gradient);
-	background-size: 100% 0.25rem;
-	background-repeat: no-repeat;
+	background: var(--default-gradient) top center / 100% 0.25rem no-repeat, var(--color-auxiliary-bg);
 }
 
 body > * .logo {
@@ -261,13 +258,10 @@ body > header nav ul a {
 	font-family: var(--font-secondary);
 	font-weight: 500;
 	font-size: 1.2rem;
-	color: #ffffff;
 	text-decoration: none;
 	margin: 0 1rem;
-	background-image: var(--default-gradient);
-	background-size: 0 0.15em;
-	background-position: center bottom;
-	background-repeat: no-repeat;
+	color: inherit;
+	background: var(--default-gradient) center bottom / 0 0.15em no-repeat;
 	transition: background 0.25s ease;
 }
 
@@ -304,9 +298,9 @@ body > header .opener button > span {
 	width: 100%;
 	height: 0.15rem;
 	margin: 0.3rem 0;
-	background-color: #ffffff;
-	transition: margin 0.25s 0.25s ease, transform 0.25s ease, background 0.25s 0.25s ease;
+	background-color: var(--color-auxiliary-text);
 	transform-origin: center center;
+	transition: margin 0.25s 0.25s ease, transform 0.25s ease, background 0.25s 0.25s ease;
 }
 
 body > header.open .opener button > span {
@@ -328,9 +322,9 @@ body > header.open .opener button > .bottom {
 
 body > footer {
 	grid-template-rows: auto;
-	background: var(--default-blend-gradient), no-repeat center bottom / 100% 0.25rem var(--default-gradient);
 	margin: 4rem 0 0;
 	padding: 4rem 0;
+	background: var(--default-gradient-blend), no-repeat center bottom / 100% 0.25rem var(--default-gradient);
 }
 
 body > footer > * {
@@ -364,7 +358,7 @@ article:not(.preview) > header {
 	grid-column: inherit;
 	padding: 4rem 0 0;
 	margin: 0 0 4rem;
-	background-image: var(--default-blend-gradient);
+	background: var(--default-gradient-blend);
 }
 
 article:not(.preview) > header .overline {
@@ -379,16 +373,14 @@ article:not(.preview) > header .author-and-date {
 	grid-column: text-start / text-end;
 	font-size: 1rem;
 	margin: 2rem 0 1rem;
-	color: #000000dd;
+	color: var(--color-text-dark);
 }
 
 article .overline {
 	font-family: var(--font-secondary);
 	font-size: 1.6rem;
 	font-weight: 600;
-	width: max-content;
 	margin: 0.25em 0;
-	color: #000000;
 }
 
 article h1 {
@@ -397,10 +389,7 @@ article h1 {
 }
 
 article h1 span {
-	background-image: var(--default-gradient);
-	background-size: 100% 0.1em;
-	background-position: center 1.2em;
-	background-repeat: no-repeat;
+	background: var(--default-gradient) center 1.2em / 100% 0.1em no-repeat;
 }
 
 article .subline {
@@ -427,7 +416,7 @@ article.preview:last-of-type {
 
 article.preview a {
 	display: block;
-	color: #000000;
+	color: inherit;
 	text-decoration: none;
 	padding: 0.5rem;
 }
@@ -436,7 +425,7 @@ article.preview .overline {
 	font-size: 1.1rem;
 	margin: 0;
 	padding: 0;
-	color: #222222;
+	color: var(--color-text-dark);
 	background: none;
 }
 
@@ -448,10 +437,7 @@ article.preview h3 {
 
 article.preview h3 span {
 	display: inline;
-	background-image: var(--default-gradient);
-	background-size: 100% 0.1em;
-	background-position: center 1.2em;
-	background-repeat: no-repeat;
+	background: var(--default-gradient) center 1.2em / 100% 0.1em no-repeat;
 	transition: background 0.25s ease;
 }
 
@@ -463,7 +449,7 @@ article.preview a:focus h3 span {
 
 article.preview .subline {
 	font-size: 1.3rem;
-	color: #222222;
+	color: var(--color-text-dark);
 }
 
 article.preview img {
@@ -476,7 +462,7 @@ article.preview img {
 }
 
 article.preview .teaser time {
-	color: #444444;
+	color: var(--color-text-darker);
 }
 
 @media (max-width: 78rem) {
@@ -510,7 +496,7 @@ article.preview .teaser time {
 
 	body > header.open nav {
 		height: auto;
-		border-top: 1px solid #ffffff22;
+		border-top: 1px solid var(--color-auxiliary-text-dark);
 	}
 
 	body > header nav ul {
@@ -527,7 +513,8 @@ article.preview .teaser time {
 		font-size: 1.5rem;
 	}
 
-	h1 {
+	h1,
+	article h1 {
 		font-size: 2rem;
 	}
 

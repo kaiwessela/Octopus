@@ -1,5 +1,5 @@
 <header class="open notransition">
-	<span class="logo">Kai Florian Wessela</span>
+	<span class="logo" role="banner">Kai Florian Wessela</span>
 	<nav>
 		<ul>
 			<a href="/"><li>Startseite</li></a>
@@ -7,7 +7,7 @@
 		</ul>
 	</nav>
 	<div class="opener">
-		<button>
+		<button title="Navigation anzeigen oder ausblenden">
 			<span class="top"></span>
 			<span class="middle"></span>
 			<span class="bottom"></span>

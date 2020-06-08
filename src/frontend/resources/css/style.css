@@ -136,6 +136,8 @@
 	--default-gradient: linear-gradient(45deg, #73d8ed, #ff9ded);
 	--default-gradient-blend: linear-gradient(45deg, #73d8ed33, #ff9ded33);
 	--default-shadow: 0 0 0.75rem 0.75rem #0000000f;
+	--pride-gradient: linear-gradient(to right, #e40303 0%, #e40303 16.66%, #ff8c00 16.67%, #ff8c00 33.33%, #ffed00
+		33.34%, #ffed00 50%, #008026 50%, #008026 66.66%, #004dff 66.67%, #004dff 83.33%, #750787 83.34%, #750787 100%);
 }
 
 ::selection {
@@ -200,7 +202,8 @@ picture > img {
 
 p a,
 span a,
-div > a {
+div > a,
+ul a {
 	color: inherit;
 	text-decoration: none;
 	background: var(--default-gradient) 0 1.2em / 100% 0.15em no-repeat;
@@ -212,9 +215,16 @@ span a:hover,
 p a:focus,
 span a:focus,
 div > a:hover,
-div > a:focus {
+div > a:focus,
+ul a:hover,
+ul a:focus {
 	background-size: 100% 0.7em;
 	background-position: 0 0.5em;
+}
+
+*:focus {
+	outline: none;
+	border: 4px solid orange;
 }
 
 body > header {
@@ -348,6 +358,17 @@ body > footer .content > div {
 
 body > footer h2 {
 	font-size: 1.1rem;
+}
+
+body > footer ul.link-list {
+	margin: 0.5rem 0;
+	padding: 0;
+}
+
+body > footer ul.link-list li {
+	margin: 0.25rem 0;
+	padding: 0;
+	list-style-type: none;
 }
 
 article:not(.preview) > p {
@@ -498,7 +519,8 @@ article.preview .teaser time {
 		display: block;
 	}
 
-	body > header.open nav {
+	body > header.open nav,
+	body > header nav:focus-within {
 		height: auto;
 		border-top: 1px solid var(--color-auxiliary-text-dark);
 	}

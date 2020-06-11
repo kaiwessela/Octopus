@@ -3,6 +3,10 @@
 	<head>
 		<?php include COMPONENT_PATH . 'head.comp.php'; ?>
 		<title><?php echo $post->headline; ?> – Kai Florian Wessela</title>
+		<link rel="canonical" href="https://kaiwessela.de/posts/<?php echo $post->longid; ?>">
+		<meta name="author" content="<?php echo $post->author; ?>">
+		<meta name="description" content="<?php echo $post->teaser; ?>">
+		<meta name="date" content="<?php echo to_html_time($post->timestamp); ?>">
 	</head>
 	<body>
 		<?php include COMPONENT_PATH . 'header.comp.php'; ?>

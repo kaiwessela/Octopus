@@ -16,6 +16,23 @@ class Post extends ContentObject {
 		return $obj;
 	}
 
+	public static function pull($id_or_longid) {
+		global $pdo;
+
+		$query = 'SELECT * FROM posts LEFT JOIN images ON image_id = post_image_id WHERE post_id = :id OR post_longid = :id';
+		$values = ['id' => $id_or_longid];
+
+		$s = $pdo->prepare($query);
+
+		if(!$s->execute($values)){
+			throw new DatabaseException($s);
+		} else if($s->rowCount() != 1){
+			throw new EmptyResultException($query, $values);
+		} else {
+			return self::load($s->fetch());
+		}
+	}
+
 	public static function pull_by_id($id) {
 		global $pdo;
 

@@ -1,7 +1,7 @@
 <?php
 class ContentObject {
 	public $id; 		# String(8)[base16]
-	public $longid; 	# String(1-128)[a-z0-9-]
+	public $longid; 	# String(1-7,9-128)[a-z0-9-]
 
 
 	protected function import_check_id_and_longid($id, $longid) {
@@ -12,11 +12,11 @@ class ContentObject {
 
 	protected function import_longid($longid) {
 		if(!isset($longid)){
-			throw new InvalidInputException('longid', '[a-z0-9-]{1,128}');
+			throw new InvalidInputException('longid', '([a-z0-9-]{1,7}|[a-z0-9-]{9,128})');
 		}
 
-		if(!preg_match('/^[a-z0-9-]{1,128}$/', $longid)){
-			throw new InvalidInputException('longid', '[a-z0-9-]{1,128}', $longid);
+		if(!preg_match('/^([a-z0-9-]{1,7}|[a-z0-9-]{9,128})$/', $longid)){
+			throw new InvalidInputException('longid', '([a-z0-9-]{1,7}|[a-z0-9-]{9,128})', $longid);
 		}
 
 		try {

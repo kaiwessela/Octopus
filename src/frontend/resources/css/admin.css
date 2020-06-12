@@ -1,39 +1,4 @@
 @font-face {
-	font-family: 'EB Garamond';
-	font-weight: 400;
-	font-style: normal;
-	src: url('../fonts/EB_Garamond/regular.woff2');
-}
-
-@font-face {
-	font-family: 'EB Garamond';
-	font-weight: 500;
-	font-style: italic;
-	src: url('../fonts/EB_Garamond/medium-italic.woff2');
-}
-
-@font-face {
-	font-family: 'EB Garamond';
-	font-weight: 600;
-	font-style: normal;
-	src: url('../fonts/EB_Garamond/semibold.woff2');
-}
-
-@font-face {
-	font-family: 'EB Garamond';
-	font-weight: 600;
-	font-style: italic;
-	src: url('../fonts/EB_Garamond/semibold-italic.woff2');
-}
-
-@font-face {
-	font-family: 'EB Garamond';
-	font-weight: 700;
-	font-style: normal;
-	src: url('../fonts/EB_Garamond/bold.woff2');
-}
-
-@font-face {
 	font-family: 'Open Sans';
 	font-weight: 400;
 	font-style: normal;
@@ -199,8 +164,10 @@ label {
 
 input,
 textarea {
-	width: calc(100% - 2 * 0.5rem);
+	font-family: 'Fira Mono';
 	font-size: 1rem;
+	line-height: 1.3em;
+	width: calc(100% - 2 * 0.5rem);
 	padding: 0.5rem;
 	margin: 0 0 0.5rem;
 	outline: none;
@@ -235,39 +202,16 @@ input[type=submit]:active {
 	border-color: #000000;
 }
 
-input#longid {
-	font-family: 'Fira Mono';
-}
-
-input#overline {
-	font-family: 'Open Sans';
-	font-weight: 600;
-}
-
-input#subline {
-	font-family: 'EB Garamond';
-	font-size: 1.5rem;
-	font-weight: 600;
-	font-style: italic;
-}
-
-input#headline {
-	font-family: 'EB Garamond';
-	font-weight: 700;
-	font-size: 2.5rem;
-}
-
-textarea#teaser {
-	font-family: 'EB Garamond';
-	font-weight: 500;
-	font-style: italic;
+textarea {
 	resize: vertical;
 }
 
-textarea#content {
-	font-family: 'EB Garamond';
-	resize: vertical;
-	height: 10rem;
+textarea.teaser-text {
+	height: 3.9em;
+}
+
+textarea.long-text {
+	height: 13em;
 }
 
 span.code {
@@ -282,28 +226,15 @@ img {
 	max-height: 20rem;
 }
 
-article .overline,
-article .subline {
-	font-family: 'Open Sans';
-	font-weight: 600;
+.dialog {
+	display: none;
+	position: absolute;
+	top: 2rem;
+	left: 2rem;
+	background-color: #ffffff;
+	padding: 1rem;
 }
 
-article .headline {
-	font-family: 'EB Garamond';
-	font-weight: 600;
-	font-size: 2rem;
-}
-
-article .teaser {
-	font-family: 'EB Garamond';
-	font-weight: 600;
-}
-
-article .author {
-	font-family: 'Open Sans';
-	font-weight: 600;
-}
-
-article .content {
-	font-family: 'EB Garamond';
+.dialog.open {
+	display: block;
 }

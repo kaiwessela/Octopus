@@ -55,5 +55,6 @@ $imagemanager = new ImageManager(ROOT . 'resources/images/dynamic');
 			include $page;
 			?>
 		</main>
+		<script src="script.js"></script>
 	</body>
 </html>

@@ -143,6 +143,10 @@ SQL;
 		return $s->execute($values);
 	}
 
+	public function has_size($size) {
+		return in_array($size, $this->sizes);
+	}
+
 	private function import_description($description) {
 		$this->description = $description;
 	}

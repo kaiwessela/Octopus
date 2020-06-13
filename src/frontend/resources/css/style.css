@@ -273,11 +273,10 @@ body > header nav ul a {
 	color: inherit;
 	background: var(--default-gradient) center bottom / 0 0.15em no-repeat;
 	transition: background 0.25s ease;
-	--background-size-open: 100% 0.15em;
 }
 
 body > header nav ul a:hover {
-	background-size: var(--background-size-open);
+	background: var(--default-gradient) center bottom / 100% 0.15em no-repeat;
 }
 
 body > header nav ul a:last-of-type {

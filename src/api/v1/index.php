@@ -1,11 +1,7 @@
 <?php
-session_start();
-
-//error_reporting(0);
-
 /* ################################
 
-ROUTING:
+VALID ROUTES:
 /
 /posts
 /posts/new
@@ -20,6 +16,12 @@ ROUTING:
 
 */ ################################
 
+session_start();
+
+# turn off error reporting because it would interfere with the encoding
+error_reporting(0);
+
+# define paths
 define('ROOT', $_SERVER['DOCUMENT_ROOT'] . '/');
 define('BACKEND_PATH', ROOT . 'backend/');
 define('TEMPLATE_PATH', ROOT . 'templates/');
@@ -27,264 +29,203 @@ define('COMPONENT_PATH', ROOT . 'components/');
 define('CONFIG_PATH', ROOT . 'config/');
 define('LIBS_PATH', ROOT . 'libs/');
 
+# include config and backend classes
 require_once CONFIG_PATH . 'config.php';
 require_once BACKEND_PATH . 'functions.php';
 require_once BACKEND_PATH . 'exceptions.php';
 require_once BACKEND_PATH . 'contentobject.php';
 require_once BACKEND_PATH . 'post.php';
 require_once BACKEND_PATH . 'image.php';
+require_once BACKEND_PATH . 'imagemanager.php';
+require_once 'apirequest.php';
+require_once 'apiresponse.php';
 
-$pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD);
+# initialize request and response objects
+$req = new APIRequest();
+$res = new APIResponse();
 
-$return = [
-	'api_status' => 'kaiwessela/blog API v1 – OK.',
-	'response_code' => null,
-	'result' => null
-];
+# set default response values
+$res->set_api_status('kaiwessela/blog API v1 – running.');
+$res->set_header('Content-Type: application/json');
 
-$class = $_GET['class'] ?? null;
-$identifier = $_GET['identifier'] ?? null;
-$action = $_GET['action'] ?? null;
+# establish database connection
+try {
+	$pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD);
+} catch(PDOException $e){
+	# database connection failed, answer with error
+	$res->set_api_status('kaiwessela/blog API v1 – degraded.');
+	$res->set_response_code(500);
+	$res->set_error_message('PDO: Connection failed – ' . $e->getMessage());
+	$res->send();
+}
 
-if($_SERVER['REQUEST_METHOD'] == 'POST'){
-	if($_SERVER['CONTENT_TYPE'] == 'application/json'){
-		$data = json_decode(file_get_contents('php://input'), true);
-	} else {
-		$data = $_POST;
-	}
+# initialize image manager
+try {
+	$imagemanager = new ImageManager(ROOT . 'resources/images/dynamic');
+} catch(InvalidArgumentException $e){
+	# image manager does not work, change api status
+	$res->set_api_status('kaiwessela/blog API v1 – degraded.');
+	$res->set_error_message('ImageManager error: ' . $e->getMessage());
 }
 
 
-# NO CLASS
-if(!isset($class)){
-	returnResponseCode(200);
-	finish();
-
-# CLASS POST
-} else if($class == 'posts'){
-
-	if(!isset($identifier)){
-		try {
-			$posts = Post::pull_all();
-		} catch(EmptyResultException $e){
-			returnResponseCode(404);
-			finish();
-		} catch(DatabaseException $e){
-			returnResponseCode(500);
-			returnError($e->getMessage());
-			finish();
-		}
-
-		returnResponseCode(200);
-		returnResult($posts);
-		finish();
-	} else if($identifier == 'new'){
-		if($_SERVER['REQUEST_METHOD'] != 'POST'){
-			returnResponseCode(405);
-			returnError('invalid request method.');
-			finish();
-		} else {
-			$post = Post::new();
-
-			try {
-				$post->insert($data);
-			} catch(InvalidInputException $e){
-				returnResponseCode(400);
-				returnError($e->getMessage());
-				finish();
-			} catch(DatabaseException $e){
-				returnResponseCode(500);
-				returnError($e->getMessage());
-				finish();
-			}
-
-			returnResponseCode(200);
-			returnResult($post);
-			finish();
-		}
-	} else {
-		try {
-			$post = Post::pull($identifier);
-		} catch(EmptyResultException $e){
-			returnResponseCode(404);
-			finish();
-		} catch(DatabaseException $e){
-			returnResponseCode(500);
-			returnError($e->getMessage());
-			finish();
-		}
-
-		if(!isset($action)){
-			# continue;
-		} else if($action == 'edit'){
-			try {
-				$post->update($data);
-			} catch(InvalidInputException $e){
-				returnResponseCode(400);
-				returnError($e->getMessage());
-				finish();
-			} catch(DatabaseException $e){
-				returnResponseCode(500);
-				returnError($e->getMessage());
-				finish();
-			}
-		} else if($action == 'delete'){
-			try {
-				$post->delete();
-			} catch(DatabaseException $e){
-				returnResponseCode(500);
-				returnError($e->getMessage());
-				finish();
-			}
-		} else {
-			returnResponseCode(400);
-			returnError('invalid action.');
-			finish();
-		}
-
-		returnResponseCode(200);
-		returnResult($post);
-		finish();
-	}
-
-# CLASS IMAGE
-} else if($class == 'images'){
-
-	if(!isset($identifier)){
-		try {
-			$images = Image::pull_all();
-		} catch(EmptyResultException $e){
-			returnResponseCode(404);
-			finish();
-		} catch(DatabaseException $e){
-			returnResponseCode(500);
-			returnError($e->getMessage());
-			finish();
-		}
-
-		returnResponseCode(200);
-		returnResult($images);
-		finish();
-	} else if($identifier == 'new'){
-		if($_SERVER['REQUEST_METHOD'] != 'POST'){
-			returnResponseCode(405);
-			returnError('invalid request method.');
-			finish();
-		} else {
-			$image = Image::new();
-
-			try {
-				$image->insert($data);
-			} catch(ImageManagerException $e){
-				returnResponseCode(400);
-				returnError($e->getMessage());
-				finish();
-			} catch(InvalidInputException $e){
-				returnResponseCode(400);
-				returnError($e->getMessage());
-				finish();
-			} catch(DatabaseException $e){
-				returnResponseCode(500);
-				returnError($e->getMessage());
-				finish();
-			}
-
-			returnResponseCode(200);
-			returnResult($image);
-			finish();
-		}
-	} else {
-		try {
-			$image = Image::pull($identifier);
-		} catch(EmptyResultException $e){
-			returnResponseCode(404);
-			finish();
-		} catch(DatabaseException $e){
-			returnResponseCode(500);
-			returnError($e->getMessage());
-			finish();
-		}
-
-		if(!isset($action)){
-			# continue;
-		} else if($action == 'edit'){
-			try {
-				$image->update($data);
-			} catch(InvalidInputException $e){
-				returnResponseCode(400);
-				returnError($e->getMessage());
-				finish();
-			} catch(DatabaseException $e){
-				returnResponseCode(500);
-				returnError($e->getMessage());
-				finish();
-			}
-		} else if($action == 'delete'){
-			try {
-				$image->delete();
-			} catch(DatabaseException $e){
-				returnResponseCode(500);
-				returnError($e->getMessage());
-				finish();
-			}
-		} else {
-			returnResponseCode(400);
-			returnError('invalid action.');
-			finish();
-		}
-
-		returnResponseCode(200);
-		returnResult($image);
-		finish();
-	}
-
-# INVALID CLASS
+# CLASS HANDLING MODULE
+if(!isset($req->class)){
+	# no class requested, answer only with api status
+	$res->set_response_code(200);
+	$res->send();
+} else if($req->class == 'posts'){
+	# class Post requested
+	$backend_class = 'Post';
+} else if($req->class == 'images'){
+	# class Image requested
+	$backend_class = 'Image';
 } else {
-	returnResponseCode(400);
-	returnError('invalid class.');
-	finish();
+	# invalid class requested, answer with error
+	$res->set_response_code(400);
+	$res->set_error_message('API: invalid class.');
+	$res->send();
 }
 
-# FUNCTIONS
-function returnResponseCode($code) {
-	global $return;
 
-	if($code == 400){
-		$return['response_code'] = '400 Bad Request';
-		http_response_code(400);
-	} else if($code == 404){
-		$return['response_code'] = '404 Not Found';
-		http_response_code(404);
-	} else if($code == 405){
-		$return['response_code'] = '405 Method Not Allowed';
-		http_response_code(405);
-		header('Allow: POST');
-	} else if($code == 500){
-		$return['response_code'] = '500 Internal Server Error';
-		http_response_code(500);
-	} else {
-		$return['response_code'] = '200 OK';
-		http_response_code(200);
+# IDENTIFIER HANDLING MODULE
+if(!isset($req->identifier)){
+	# no identifier specified -> return all instances of class
+	try {
+		# try to pull all instances of class
+		$objs = $backend_class::pull_all();
+	} catch(EmptyResultException $e){
+		# no instances found, answer with error
+		$res->set_response_code(404);
+		$res->set_error_message('API: no objects found.');
+		$res->send();
+	} catch(DatabaseException $e){
+		# internal database exception, answer with error
+		$res->set_response_code(500);
+		$res->set_error_message('API: internal database error.');
+		$res->send();
 	}
+
+	# everything worked, return objects
+	$res->set_response_code(200);
+	$res->set_result($objs);
+	$res->send();
+
+} else if($req->identifier == 'new') {
+	# generic identifier 'new' specified -> insert a new instance of class
+	# check if Request-Method is POST
+	if($req->method != 'POST'){
+		# Request-Method must be POST but isn't, answer with error
+		$res->set_response_code(405);
+		$res->set_error_message('API: invalid request method.');
+		$res->send();
+	}
+
+	# Request-Method is valid
+	# create new instance of class
+	$obj = $backend_class::new();
+
+	try {
+		# try to insert post data into the instance
+		$obj->insert($req->post);
+	} catch(InvalidInputException $e) {
+		# post data is invalid, answer with error
+		$res->set_response_code(400);
+		$res->set_error_message($e->getMessage());
+		$res->send();
+	} catch(DatabaseException $e) {
+		# internal database exception, answer with error
+		$res->set_response_code(500);
+		$res->set_error_message($e->getMessage());
+		$res->send();
+	}
+
+	# everything worked, return object
+	$res->set_response_code(200);
+	$res->set_result($obj);
+	$res->send();
+
+} else {
+	# object-specific identifier specified -> pull requested instance of class, handle depending on specified action
+	try {
+		# try to pull the specified instance of class
+		$obj = $backend_class::pull($req->identifier);
+	} catch(EmptyResultException $e){
+		# instance not found, answer with error
+		$res->set_response_code(404);
+		$res->set_error_message('API: object not found.');
+		$res->send();
+	} catch(DatabaseException $e){
+		# internal database exception, answer with error
+		$res->set_response_code(500);
+		$res->set_error_message($e->getMessage());
+		$res->send();
+	}
+
+	# proceed in the action handling module
+
 }
 
-function returnError($err) {
-	global $return;
 
-	$return['error'] = $err;
-}
+# ACTION HANDLING MODULE
+if(!isset($req->action)){
+	# no action specified -> return instance of class
+	$res->set_response_code(200);
+	$res->set_result($obj);
+	$res->send();
 
-function returnResult($result) {
-	global $return;
+} else if($req->action == 'edit'){
+	# action 'edit' specified -> edit instance of class
+	# check if Request-Method is POST
+	if($req->method != 'POST'){
+		# Request-Method must be POST but isn't, answer with error
+		$res->set_response_code(405);
+		$res->set_error_message('API: invalid request method.');
+		$res->send();
+	}
 
-	$return['result'] = $result;
-}
+	try {
+		# try to update the object
+		$obj->update();
+	} catch(InvalidInputException $e){
+		# post data is invalid, answer with error
+		$res->set_response_code(400);
+		$res->set_error_message($e->getMessage());
+		$res->send();
+	} catch(DatabaseException $e){
+		# internal database exception, answer with error
+		$res->set_response_code(500);
+		$res->set_error_message($e->getMessage());
+		$res->send();
+	}
 
-function finish() {
-	global $return;
+	# everything worked, return object
+	$res->set_response_code(200);
+	$res->set_result($obj);
+	$res->send();
 
-	header('Content-Type: application/json');
-	echo json_encode($return);
-	exit;
+} else if($req->action == 'delete'){
+	# action 'delete' specified -> delete instance of class
+	try {
+		# try to delete the object
+		$obj->delete();
+	} catch(DatabaseException $e){
+		# internal database exception, answer with error
+		$res->set_response_code(500);
+		$res->set_error_message($e->getMessage());
+		$res->send();
+	}
+
+	# everything worked, return object
+	$res->set_response_code(200);
+	$res->set_result($obj);
+	$res->send();
+
+} else {
+	# invalid action specified, answer with error
+	$res->set_response_code(400);
+	$res->set_error_message('API: invalid action.');
+	$res->send();
+
 }
 ?>

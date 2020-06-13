@@ -1,4 +1,4 @@
 RewriteEngine on
-RewriteRule ^(.[^\/]+)(\/?)$ index.php?class=$1 [QSA]
-RewriteRule ^(.[^\/]+)/(.[^\/]+)(\/?)$ index.php?class=$1&identifier=$2 [QSA]
-RewriteRule ^(.[^\/]+)/(.[^\/]+)/(.[^\/]+)(\/?)$ index.php?class=$1&identifier=$2&action=$3 [QSA]
+RewriteRule ^([^\/.]+)(\/?)$ index.php?class=$1 [QSA]
+RewriteRule ^([^\/.]+)/([^\/]+)(\/?)$ index.php?class=$1&identifier=$2 [QSA]
+RewriteRule ^([^\/.]+)/([^\/]+)/([^\/]+)(\/?)$ index.php?class=$1&identifier=$2&action=$3 [QSA]

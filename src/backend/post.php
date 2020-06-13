@@ -16,6 +16,23 @@ class Post extends ContentObject {
 		return $obj;
 	}
 
+	public static function pull($id_or_longid) {
+		global $pdo;
+
+		$query = 'SELECT * FROM posts LEFT JOIN images ON image_id = post_image_id WHERE post_id = :id OR post_longid = :id';
+		$values = ['id' => $id_or_longid];
+
+		$s = $pdo->prepare($query);
+
+		if(!$s->execute($values)){
+			throw new DatabaseException($s);
+		} else if($s->rowCount() != 1){
+			throw new EmptyResultException($query, $values);
+		} else {
+			return self::load($s->fetch());
+		}
+	}
+
 	public static function pull_by_id($id) {
 		global $pdo;
 
@@ -50,10 +67,26 @@ class Post extends ContentObject {
 		}
 	}
 
-	public static function pull_all() {
+	public static function pull_all($limit = null, $offset = null) {
 		global $pdo;
 
 		$query = 'SELECT * FROM posts LEFT JOIN images ON image_id = post_image_id';
+
+		if($limit != null){
+			if(!is_int($limit)){
+				throw new InvalidArgumentException('Invalid argument: limit must be an integer.');
+			}
+
+			if($offset != null){
+				if(!is_int($offset)){
+					throw new InvalidArgumentException('Invalid argument: offset must be an integer.');
+				}
+
+				$query .= " LIMIT $offset, $limit";
+			} else {
+				$query .= " LIMIT $limit";
+			}
+		}
 
 		$s = $pdo->prepare($query);
 
@@ -80,7 +113,7 @@ class Post extends ContentObject {
 		$obj->subline = $data['post_subline'];
 		$obj->teaser = $data['post_teaser'];
 		$obj->author = $data['post_author'];
-		$obj->timestamp = $data['post_timestamp'];
+		$obj->timestamp = (int) $data['post_timestamp'];
 
 		if(isset($data['image_id'])){
 			$obj->image = Image::load($data);
@@ -89,6 +122,19 @@ class Post extends ContentObject {
 		$obj->content = $data['post_content'];
 
 		return $obj;
+	}
+
+	public static function count() {
+		global $pdo;
+
+		$query = 'SELECT COUNT(*) FROM posts';
+
+		$s = $pdo->prepare($query);
+		if(!$s->execute([])){
+			throw new DatabaseException($s);
+		} else {
+			return (int) $s->fetch()[0];
+		}
 	}
 
 	public function insert($data) {

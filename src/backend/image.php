@@ -15,6 +15,23 @@ class Image extends ContentObject {
 		return $obj;
 	}
 
+	public static function pull($id_or_longid) {
+		global $pdo;
+
+		$query = 'SELECT * FROM images WHERE image_id = :id OR image_longid = :id';
+
+		$values = ['id' => $id_or_longid];
+
+		$s = $pdo->prepare($query);
+		if(!$s->execute($values)){
+			throw new DatabaseException($s);
+		} else if($s->rowCount() != 1){
+			throw new EmptyResultException($query, $values);
+		} else {
+			return self::load($s->fetch());
+		}
+	}
+
 	public static function pull_by_id($id) {
 		global $pdo;
 
@@ -48,15 +65,32 @@ class Image extends ContentObject {
 		}
 	}
 
-	public static function pull_all() {
+	public static function pull_all($limit = null, $offset = null) {
 		global $pdo;
 
 		$query = 'SELECT * FROM images';
+		$values = [];
+
+		if($limit != null){
+			if(!is_int($limit)){
+				throw new InvalidArgumentException('Invalid argument: limit must be an integer.');
+			}
+
+			if($offset != null){
+				if(!is_int($offset)){
+					throw new InvalidArgumentException('Invalid argument: offset must be an integer.');
+				}
+
+				$query .= " LIMIT $offset, $limit";
+			} else {
+				$query .= " LIMIT $limit";
+			}
+		}
 
 		$s = $pdo->prepare($query);
 
 		if(!$s->execute([])){
-			throw new DatabaseException($e);
+			throw new DatabaseException($s);
 		} else if($s->rowCount() == 0){
 			throw new EmptyResultException($query);
 		} else {
@@ -78,6 +112,19 @@ class Image extends ContentObject {
 		$obj->sizes = explode(' ', $data['image_sizes']);
 
 		return $obj;
+	}
+
+	public static function count() {
+		global $pdo;
+
+		$query = 'SELECT COUNT(*) FROM images';
+
+		$s = $pdo->prepare($query);
+		if(!$s->execute([])){
+			throw new DatabaseException($s);
+		} else {
+			return (int) $s->fetch()[0];
+		}
 	}
 
 	public function insert($data) {
@@ -141,6 +188,10 @@ SQL;
 
 		$s = $pdo->prepare($query);
 		return $s->execute($values);
+	}
+
+	public function has_size($size) {
+		return in_array($size, $this->sizes);
 	}
 
 	private function import_description($description) {

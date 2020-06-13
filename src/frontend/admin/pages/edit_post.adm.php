@@ -74,25 +74,28 @@ if(!isset($_GET['id'])){
 			<input type="hidden" id="id" name="id" value="<?php echo $obj->id; ?>">
 			<input type="hidden" id="longid" name="longid" value="<?php echo $obj->longid; ?>">
 
-			<label for="overline">Overline</label>
+			<label for="overline">Overline (optional)</label>
 			<input type="text" id="overline" name="overline" value="<?php echo $obj->overline; ?>">
 
 			<label for="headline">Überschrift</label>
 			<input type="text" id="headline" name="headline" required value="<?php echo $obj->headline; ?>">
 
-			<label for="subline">Subline</label>
+			<label for="subline">Subline (optional)</label>
 			<input type="text" id="subline" name="subline" value="<?php echo $obj->subline; ?>">
 
-			<label for="teaser">Teaser</label>
-			<textarea id="teaser" name="teaser"><?php echo $obj->teaser; ?></textarea>
+			<label for="teaser">Teaser (optional)</label>
+			<textarea id="teaser" name="teaser" class="teaser-text"><?php echo $obj->teaser; ?></textarea>
 
 			<label for="author">Autor</label>
 			<input type="text" id="author" name="author" required value="<?php echo $obj->author; ?>">
 
-			<!-- TODO add image -->
+			<label for="image_id">Bild-ID</label>
+			<input type="text" id="image_id" name="image_id" value="<?php echo $obj->image->id; ?>">
+			<a href="#image-select">Bild auswählen</a>
+			<a href="#image-upload">Bild hochladen</a>
 
-			<label for="content">Inhalt</label>
-			<textarea id="content" name="content"><?php echo $obj->content; ?></textarea>
+			<label for="content">Inhalt (optional)</label>
+			<textarea id="content" name="content" class="long-text"><?php echo $obj->content; ?></textarea>
 
 			<input type="submit" value="Speichern">
 		</form>
@@ -103,3 +106,38 @@ if(!isset($_GET['id'])){
 ?>
 
 <a href="all_posts">Zurück zu allen Posts</a>
+
+<div class="dialog open" id="image-select">
+	<h2>Bild auswählen</h2>
+	<div class="masonry">
+
+<?php
+$images = Image::pull_all();
+foreach($images as $image){
+	if($image->has_size('small')){
+		$size = 'small';
+	} else {
+		$size = 'original';
+	}
+		?>
+
+		<template>
+			<button id="<?php echo $image->id; ?>" class="image">
+				<img src="../resources/images/dynamic/<?php echo $image->id . '/' . $size . '.' . $image->extension; ?>"
+					alt = "<?php echo $image->description; ?>">
+			</button>
+		</template>
+
+		<?php
+}
+?>
+
+	</div>
+	<button class="more">Mehr Bilder anzeigen</button>
+	<button class="close">Schließen</button>
+	<button class="finish">Fertig</button>
+</div>
+
+<div class="dialog" id="image-upload">
+	<h2>Bild hochladen</h2>
+</div>

@@ -9,6 +9,8 @@ class APIRequest {
 	public $identifier;		# object identifier	– 2nd part of path: /api/v1/.../xxx/...
 	public $action;			# requested action	– 3rd part of path: /api/v1/.../.../xxx
 
+	public $query_string;	# request query string
+
 	public $post;			# data received if request is a POST request
 
 
@@ -18,6 +20,8 @@ class APIRequest {
 		$this->class = $_GET['class'] ?? null;
 		$this->identifier = $_GET['identifier'] ?? null;
 		$this->action = $_GET['action'] ?? null;
+
+		$this->query_string = $_GET;
 
 		if($this->method == 'POST'){
 			$this->content_type = $_SERVER['CONTENT_TYPE'];

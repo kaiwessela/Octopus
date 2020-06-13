@@ -1,5 +1,6 @@
 <?php
 /* ################################
+TODO change htaccess based on api htaccess
 
 # HOW THIS SYSTEM WORKS
 This lightweight system provides a simple content management system and basic blog functionality.

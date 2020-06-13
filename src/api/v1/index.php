@@ -3,13 +3,15 @@
 
 VALID ROUTES:
 /
-/posts
+/posts (?limit=[int](&offset=[int]))
 /posts/new
+/posts/count
 /posts/[id|longid]
 /posts/[id|longid]/edit
 /posts/[id|longid]/delete
-/images
+/images (?limit=[int](&offset=[int]))
 /images/new
+/images/count
 /images/[id|longid]
 /images/[id|longid]/edit
 /images/[id|longid]/delete
@@ -91,9 +93,20 @@ if(!isset($req->class)){
 # IDENTIFIER HANDLING MODULE
 if(!isset($req->identifier)){
 	# no identifier specified -> return all instances of class
+
+	$limit = null;
+	$offset = null;
+	if(isset($req->query_string['limit'])){
+		$limit = (int) $req->query_string['limit'];
+
+		if(isset($req->query_string['offset'])){
+			$offset = (int) $req->query_string['offset'];
+		}
+	}
+
 	try {
 		# try to pull all instances of class
-		$objs = $backend_class::pull_all();
+		$objs = $backend_class::pull_all($limit, $offset);
 	} catch(EmptyResultException $e){
 		# no instances found, answer with error
 		$res->set_response_code(404);
@@ -103,6 +116,11 @@ if(!isset($req->identifier)){
 		# internal database exception, answer with error
 		$res->set_response_code(500);
 		$res->set_error_message('API: internal database error.');
+		$res->send();
+	} catch(InvalidArgumentException $e){
+		# invalid argument supplied, answer with error
+		$res->set_response_code(400);
+		$res->set_error_message($e->getMessage());
 		$res->send();
 	}
 
@@ -128,12 +146,12 @@ if(!isset($req->identifier)){
 	try {
 		# try to insert post data into the instance
 		$obj->insert($req->post);
-	} catch(InvalidInputException $e) {
+	} catch(InvalidInputException $e){
 		# post data is invalid, answer with error
 		$res->set_response_code(400);
 		$res->set_error_message($e->getMessage());
 		$res->send();
-	} catch(DatabaseException $e) {
+	} catch(DatabaseException $e){
 		# internal database exception, answer with error
 		$res->set_response_code(500);
 		$res->set_error_message($e->getMessage());
@@ -143,6 +161,23 @@ if(!isset($req->identifier)){
 	# everything worked, return object
 	$res->set_response_code(200);
 	$res->set_result($obj);
+	$res->send();
+
+} else if($req->identifier == 'count'){
+	# generic identifier 'count' specified -> return the amount of instances of class available
+	try {
+		# try to count all instances of class
+		$count = $backend_class::count();
+	} catch(DatabaseException $e){
+		# internal database exception, answer with error
+		$res->set_response_code(500);
+		$res->set_error_message($e->getMessage());
+		$res->send();
+	}
+
+	# everything worked, return count
+	$res->set_response_code(200);
+	$res->set_result($count);
 	$res->send();
 
 } else {

@@ -97,7 +97,7 @@ class Post extends ContentObject {
 		$obj->subline = $data['post_subline'];
 		$obj->teaser = $data['post_teaser'];
 		$obj->author = $data['post_author'];
-		$obj->timestamp = $data['post_timestamp'];
+		$obj->timestamp = (int) $data['post_timestamp'];
 
 		if(isset($data['image_id'])){
 			$obj->image = Image::load($data);

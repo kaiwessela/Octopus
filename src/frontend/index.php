@@ -81,9 +81,19 @@ if(!isset($qs_page)){
 
 } else if($qs_page == 'posts') {
 	# determine whether a single post or a posts list is requested
-	if(!isset($qs_post)){
+	if(!isset($qs_post) || strlen($qs_post) < 8){
 		# posts list
-		include TEMPLATE_PATH . '_posts.tmp.php';
+		$post_count = Post::count();
+		$posts_per_page = 5;
+		$pagination_current = (int)($qs_post ?? 1);
+		$pagination_max = ceil($post_count / $posts_per_page);
+
+		if($pagination_current <= 0 || $pagination_current > $pagination_max){
+			# pagination is invalid, page does not exist
+			include TEMPLATE_PATH . '_404.tmp.php';
+		} else {
+			include TEMPLATE_PATH . '_posts.tmp.php';
+		}
 
 	} else {
 		# single post

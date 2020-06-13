@@ -1,3 +1,11 @@
+<?php
+$offset = $posts_per_page * ($pagination_current - 1);
+
+$to = $offset + $posts_per_page;
+if($to > $post_count){
+	$to = $post_count;
+}
+?>
 <!DOCTYPE html>
 <html lang="de">
 	<head>
@@ -10,10 +18,14 @@
 			<div>
 				<h1>Alle Artikel</h1>
 			</div>
-			<p><b>Seite 1 von x</b> – Angezeigt werden Artikel 1 bis 10 von insgesamt 500 Artikeln</p>
+			<p>
+				<b>Seite <?= $pagination_current ?> von <?= $pagination_max ?></b>
+				– Angezeigt werden Artikel <?= $offset+1 ?> bis <?= $to ?>
+				von insgesamt <?= $post_count ?> Artikeln
+			</p>
 
 <?php
-$posts = Post::pull_all();
+$posts = Post::pull_all($posts_per_page, $offset);
 foreach($posts as $post){
 
 			include COMPONENT_PATH . 'preview-post.comp.php';

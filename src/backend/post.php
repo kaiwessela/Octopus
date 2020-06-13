@@ -70,7 +70,7 @@ class Post extends ContentObject {
 	public static function pull_all($limit = null, $offset = null) {
 		global $pdo;
 
-		$query = 'SELECT * FROM posts LEFT JOIN images ON image_id = post_image_id';
+		$query = 'SELECT * FROM posts LEFT JOIN images ON image_id = post_image_id ORDER BY post_timestamp DESC';
 
 		if($limit != null){
 			if(!is_int($limit)){

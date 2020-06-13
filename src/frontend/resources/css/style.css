@@ -223,8 +223,7 @@ ul a:focus {
 }
 
 *:focus {
-	outline: none;
-	border: 4px solid orange;
+	outline: 4px solid orange;
 }
 
 body > header {
@@ -281,6 +280,15 @@ body > header nav ul a:hover {
 
 body > header nav ul a:last-of-type {
 	margin-right: 0;
+}
+
+body > header nav ul a:last-of-type:focus {
+	margin-right: 4px;
+}
+
+body > header nav ul a:focus {
+	margin-top: 4px;
+	margin-bottom: 4px;
 }
 
 body > header .opener {

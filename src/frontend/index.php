@@ -44,9 +44,9 @@ _posts.tmp.php
 
 session_start();
 
-setlocale(LC_ALL, 'de_DE.utf-8');
+error_reporting(0);
 
-//error_reporting(0);
+setlocale(LC_ALL, 'de_DE.utf-8');
 
 # define constants
 define('ROOT', $_SERVER['DOCUMENT_ROOT'] . '/');

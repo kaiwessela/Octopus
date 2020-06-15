@@ -39,16 +39,9 @@ if(!empty($post->subline)){
 
 <?php
 if(isset($post->image)){
-	$image_path = '/resources/images/dynamic/' . $post->image->longid . '/';
-	$ext = $post->image->extension;
-	$image_alt = $post->image->description;
-
-	?>
-				<picture>
-					<!-- IDEA add different sources -->
-					<img src="<?php echo $image_path . 'original.' . $ext; ?>" alt="<?php echo $image_alt; ?>">
-				</picture>
-	<?php
+	include COMPONENT_PATH . 'picture.comp.php';
+	$picture = new Picture($post->image, 600);
+	$picture->display();
 }
 ?>
 

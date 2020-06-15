@@ -1,28 +1,22 @@
 <article class="preview">
-	<a href="/posts/<?php echo $post->longid; ?>">
+	<a href="/posts/<?= $post->longid ?>">
 
 <?php
 if(isset($post->image)){
-$image_path = '/resources/images/dynamic/' . $post->image->longid . '/';
-$ext = $post->image->extension;
-$image_alt = $post->image->description;
-
-?>
-		<picture>
-			<img src="<?php echo $image_path . 'original.' . $ext; ?>" alt="<?php echo $image_alt; ?>">
-		</picture>
-<?php
+	include COMPONENT_PATH . 'picture.comp.php';
+	$picture = new Picture($post->image, 200);
+	$picture->display();
 }
 ?>
 
-		<p class="overline"><?php echo $post->overline; ?></p>
-		<h3><span><?php echo $post->headline; ?></span></h3>
-		<p class="subline"><?php echo $post->subline; ?></p>
+		<p class="overline"><?= $post->overline ?></p>
+		<h3><span><?= $post->headline ?></span></h3>
+		<p class="subline"><?= $post->subline ?></p>
 		<p class="teaser">
-			<time datetime="<?php echo to_html_time($post->timestamp); ?>">
-				<?php echo to_date($post->timestamp); ?> –
+			<time datetime="<?= to_html_time($post->timestamp) ?>">
+				<?= to_date($post->timestamp) ?> –
 			</time>
-			<?php echo $post->teaser; ?>
+			<?= $post->teaser ?>
 		</p>
 	</a>
 </article>

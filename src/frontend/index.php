@@ -46,6 +46,8 @@ session_start();
 
 setlocale(LC_ALL, 'de_DE.utf-8');
 
+//error_reporting(0);
+
 # define constants
 define('ROOT', $_SERVER['DOCUMENT_ROOT'] . '/');
 define('BACKEND_PATH', ROOT . 'backend/');
@@ -61,6 +63,7 @@ require_once BACKEND_PATH . 'contentobject.php';
 require_once BACKEND_PATH . 'post.php';
 require_once BACKEND_PATH . 'image.php';
 require_once 'functions.php';
+require_once 'pagination.php';
 
 require_once LIBS_PATH . 'parsedown/Parsedown.php';
 
@@ -83,16 +86,20 @@ if(!isset($qs_page)){
 	# determine whether a single post or a posts list is requested
 	if(!isset($qs_post) || strlen($qs_post) < 8){
 		# posts list
-		$post_count = Post::count();
-		$posts_per_page = 5;
-		$pagination_current = (int)($qs_post ?? 1);
-		$pagination_max = ceil($post_count / $posts_per_page);
+		try {
+			$post_count = Post::count();
+			$page_requested = (int)($qs_post ?? 1);
+			$pagination = new Pagination($post_count, 1, $page_requested);
+		} catch(InvalidArgumentException $e){
+			return_404();
+		} catch(Exception $e){
+			// 500 page
+		}
 
-		if($pagination_current <= 0 || $pagination_current > $pagination_max){
-			# pagination is invalid, page does not exist
-			include TEMPLATE_PATH . '_404.tmp.php';
-		} else {
+		if($pagination->current_page_exists()){
 			include TEMPLATE_PATH . '_posts.tmp.php';
+		} else {
+			return_404();
 		}
 
 	} else {

@@ -56,6 +56,8 @@ define('COMPONENT_PATH', ROOT . 'components/');
 define('CONFIG_PATH', ROOT . 'config/');
 define('LIBS_PATH', ROOT . 'libs/');
 
+define('BASE_URL', 'http://home.local');
+
 require_once CONFIG_PATH . 'config.php';
 require_once BACKEND_PATH . 'functions.php';
 require_once BACKEND_PATH . 'exceptions.php';

@@ -3,8 +3,8 @@
 		<div>
 			<h2>Navigation</h2>
 			<ul class="link-list">
-				<li><a href="/">Startseite</a></li>
-				<li><a href="/posts">Alle Blogartikel</a></li>
+				<li><a href="<?= BASE_URL ?>/">Startseite</a></li>
+				<li><a href="<?= BASE_URL ?>/posts/">Alle Blogartikel</a></li>
 			</ul>
 		</div>
 		<div>

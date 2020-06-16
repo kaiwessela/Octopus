@@ -10,7 +10,7 @@
 
 		</main>
 		<?php include COMPONENT_PATH . 'footer.comp.php'; ?>
-		<script src="/resources/js/script.js"></script>
+		<?php include COMPONENT_PATH . 'scripts.comp.php'; ?>
 	</body>
 </html>
 <!-- TODO add aria and roles everywhere -->

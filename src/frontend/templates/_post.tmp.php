@@ -3,7 +3,7 @@
 	<head>
 		<?php include COMPONENT_PATH . 'head.comp.php'; ?>
 		<title><?= $post->headline ?> – Kai Florian Wessela</title>
-		<link rel="canonical" href="https://kaiwessela.de/posts/<?= $post->longid ?>">
+		<link rel="canonical" href="<?= BASE_URL ?>/posts/<?= $post->longid ?>">
 		<meta name="author" content="<?= $post->author ?>">
 		<meta name="description" content="<?= $post->teaser ?>">
 		<meta name="date" content="<?= to_html_time($post->timestamp) ?>">
@@ -49,6 +49,6 @@ if(isset($post->image)){
 			</article>
 		</main>
 		<?php include COMPONENT_PATH . 'footer.comp.php'; ?>
-		<script src="/resources/js/script.js"></script>
+		<?php include COMPONENT_PATH . 'scripts.comp.php'; ?>
 	</body>
 </html>

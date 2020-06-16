@@ -12,5 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 window.onload = function() {
 	var pagination = document.querySelector('.pagination');
-	pagination.scrollTo((pagination.scrollWidth - pagination.offsetWidth) / 2, 0);
+	if(pagination){
+		pagination.scrollTo((pagination.scrollWidth - pagination.offsetWidth) / 2, 0);
+	}
 }

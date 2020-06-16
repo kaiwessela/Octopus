@@ -2,124 +2,125 @@
 	font-family: 'Open Sans';
 	font-weight: 300;
 	font-style: normal;
-	src: url('../fonts/Open_Sans/light.woff2');
+	src: url('../fonts/Open_Sans/light.woff2') format('woff2'), local('Open Sans Light');
 }
 
 @font-face {
 	font-family: 'Open Sans';
 	font-weight: 300;
 	font-style: italic;
-	src: url('../fonts/Open_Sans/light-italic.woff2');
+	src: url('../fonts/Open_Sans/light-italic.woff2') format('woff2'), local('Open Sans Light Italic');
 }
 
 @font-face {
 	font-family: 'Open Sans';
 	font-weight: 400;
 	font-style: normal;
-	src: url('../fonts/Open_Sans/regular.woff2');
+	src: url('../fonts/Open_Sans/regular.woff2') format('woff2'), local('Open Sans Regular'), local('Open Sans');
 }
 
 @font-face {
 	font-family: 'Open Sans';
 	font-weight: 400;
 	font-style: italic;
-	src: url('../fonts/Open_Sans/regular-italic.woff2');
+	src: url('../fonts/Open_Sans/regular-italic.woff2') format('woff2'),
+		local('Open Sans Regular Italic'), local('Open Sans Italic');
 }
 
 @font-face {
 	font-family: 'Open Sans';
 	font-weight: 600;
 	font-style: normal;
-	src: url('../fonts/Open_Sans/semibold.woff2');
+	src: url('../fonts/Open_Sans/semibold.woff2') format('woff2'), local('Open Sans Semibold');
 }
 
 @font-face {
 	font-family: 'Open Sans';
 	font-weight: 600;
 	font-style: italic;
-	src: url('../fonts/Open_Sans/semibold-italic.woff2');
+	src: url('../fonts/Open_Sans/semibold-italic.woff2') format('woff2'), local('Open Sans Semibold Italic');
 }
 
 @font-face {
 	font-family: 'Open Sans';
 	font-weight: 700;
 	font-style: normal;
-	src: url('../fonts/Open_Sans/bold.woff2');
+	src: url('../fonts/Open_Sans/bold.woff2') format('woff2'), local('Open Sans Bold');
 }
 
 @font-face {
 	font-family: 'Open Sans';
 	font-weight: 700;
 	font-style: italic;
-	src: url('../fonts/Open_Sans/bold-italic.woff2');
+	src: url('../fonts/Open_Sans/bold-italic.woff2') format('woff2'), local('Open Sans Bold Italic');
 }
 
 @font-face {
 	font-family: 'Open Sans';
 	font-weight: 800;
 	font-style: normal;
-	src: url('../fonts/Open_Sans/extrabold.woff2');
+	src: url('../fonts/Open_Sans/extrabold.woff2') format('woff2'), local('Open Sans Extrabold');
 }
 
 @font-face {
 	font-family: 'Open Sans';
 	font-weight: 800;
 	font-style: italic;
-	src: url('../fonts/Open_Sans/extrabold-italic.woff2');
+	src: url('../fonts/Open_Sans/extrabold-italic.woff2') format('woff2'), local('Open Sans Extrabold Italic');
 }
 
 @font-face {
 	font-family: 'Catamaran';
 	font-weight: 100;
-	src: url('../fonts/Catamaran/thin.woff2');
+	src: url('../fonts/Catamaran/thin.woff2') format('woff2'), local('Catamaran Thin');
 }
 
 @font-face {
 	font-family: 'Catamaran';
 	font-weight: 200;
-	src: url('../fonts/Catamaran/extralight.woff2');
+	src: url('../fonts/Catamaran/extralight.woff2') format('woff2'), local('Catamaran Extralight');
 }
 
 @font-face {
 	font-family: 'Catamaran';
 	font-weight: 300;
-	src: url('../fonts/Catamaran/light.woff2');
+	src: url('../fonts/Catamaran/light.woff2') format('woff2'), local('Catamaran Light');
 }
 
 @font-face {
 	font-family: 'Catamaran';
 	font-weight: 400;
-	src: url('../fonts/Catamaran/regular.woff2');
+	src: url('../fonts/Catamaran/regular.woff2') format('woff2'), local('Catamaran Regular'), local('Catamaran');
 }
 
 @font-face {
 	font-family: 'Catamaran';
 	font-weight: 500;
-	src: url('../fonts/Catamaran/medium.woff2');
+	src: url('../fonts/Catamaran/medium.woff2') format('woff2'), local('Catamaran Medium');
 }
 
 @font-face {
 	font-family: 'Catamaran';
 	font-weight: 600;
-	src: url('../fonts/Catamaran/semibold.woff2');
+	src: url('../fonts/Catamaran/semibold.woff2') format('woff2'), local('Catamaran Semibold');
 }
 
 @font-face {
 	font-family: 'Catamaran';
 	font-weight: 700;
-	src: url('../fonts/Catamaran/bold.woff2');
+	src: url('../fonts/Catamaran/bold.woff2') format('woff2'), local('Catamaran Bold');
 }
 
 @font-face {
 	font-family: 'Catamaran';
 	font-weight: 800;
-	src: url('../fonts/Catamaran/extrabold.woff2');
+	src: url('../fonts/Catamaran/extrabold.woff2') format('woff2'), local('Catamaran Extrabold');
 }
 
 @font-face {
 	font-family: 'Catamaran';
 	font-weight: 900;
-	src: url('../fonts/Catamaran/black.woff2');
+	src: url('../fonts/Catamaran/black.woff2') format('woff2'), local('Catamaran Black');
 }
 
 :root {
@@ -296,6 +297,7 @@ body > header .opener {
 	width: 2rem;
 	top: 1.25rem;
 	right: 1rem;
+	margin: 0;
 }
 
 body > header .opener button {
@@ -317,7 +319,7 @@ body > header .opener button > div {
 	transition: margin 0.25s ease 0.25s, transform 0.25s ease, background 0.25s ease 0.25s;
 }
 
-body > header.open .opener button > span {
+body > header.open .opener button > div {
 	margin: -0.15rem 0;
 	transition: margin 0.25s ease, transform 0.25s ease 0.25s, background 0.25s ease;
 }

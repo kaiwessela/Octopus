@@ -602,7 +602,6 @@ article.preview .teaser time {
 	main > div:first-child,
 	main > section:first-child {
 		margin-bottom: 1rem;
-		padding: 2rem 0;
 	}
 
 	article:not(.preview) header {

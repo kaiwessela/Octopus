@@ -64,8 +64,8 @@ require_once BACKEND_PATH . 'exceptions.php';
 require_once BACKEND_PATH . 'contentobject.php';
 require_once BACKEND_PATH . 'post.php';
 require_once BACKEND_PATH . 'image.php';
-require_once 'functions.php';
-require_once 'pagination.php';
+require_once 'resources/php/functions.php';
+require_once 'resources/php/pagination.php';
 
 require_once LIBS_PATH . 'parsedown/Parsedown.php';
 

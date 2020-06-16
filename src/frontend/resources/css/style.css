@@ -1,4 +1,3 @@
-/* TODO remove unnecessary */
 @font-face {
 	font-family: 'Open Sans';
 	font-weight: 300;
@@ -160,28 +159,34 @@ body {
 }
 
 body > *,
-main > div,
 main > section,
-article:not(.preview) {
+main > article {
 	display: grid;
 	grid-template-columns: inherit;
 	grid-column: grid-start / grid-end;
 }
 
-main > section > * {
-	grid-column: content-start / content-end;
-}
-
-main > div:first-child,
-main > section:first-child {
+main > section:first-child.highlighted,
+main > section:first-of-type > header.highlighted,
+main > article > header {
+	display: grid;
+	grid-template-columns: inherit;
+	grid-column: grid-start / grid-end;
 	margin: 0 0 2rem;
 	padding: 4rem 0;
 	background: var(--default-gradient-blend);
 }
 
-p {
+main > section > *,
+main > section > header > * {
+	grid-column: content-start / content-end;
+}
+
+p,
+div {
 	grid-column: content-start / content-end;
 	font-family: var(--font-primary);
+	margin: 0.5rem 0;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -225,10 +230,6 @@ ul a:hover,
 ul a:focus {
 	background-size: 100% 0.7em;
 	background-position: 0 0.5em;
-}
-
-*:focus {
-	outline: 4px solid orange;
 }
 
 body > header {
@@ -288,15 +289,6 @@ body > header nav ul a:last-of-type {
 	margin-right: 0;
 }
 
-body > header nav ul a:last-of-type:focus {
-	margin-right: 4px;
-}
-
-body > header nav ul a:focus {
-	margin-top: 4px;
-	margin-bottom: 4px;
-}
-
 body > header .opener {
 	display: none;
 	position: absolute;
@@ -316,8 +308,7 @@ body > header .opener button {
 	width: 100%;
 }
 
-body > header .opener button > span {
-	display: block;
+body > header .opener button > div {
 	width: 100%;
 	height: 0.15rem;
 	margin: 0.3rem 0;
@@ -331,7 +322,7 @@ body > header.open .opener button > span {
 	transition: margin 0.25s ease, transform 0.25s ease 0.25s, background 0.25s ease;
 }
 
-body > header.notransition .opener button > span {
+body > header.notransition .opener button > div {
 	transition: all 0s linear 0s;
 }
 
@@ -391,12 +382,7 @@ article:not(.preview) > p {
 }
 
 article:not(.preview) > header {
-	display: grid;
-	grid-template-columns: inherit;
-	grid-column: inherit;
-	padding: 4rem 0 0;
-	margin: 0 0 4rem;
-	background: var(--default-gradient-blend);
+	padding-bottom: 0;
 }
 
 article:not(.preview) > header .overline {
@@ -412,6 +398,10 @@ article:not(.preview) > header .author-and-date {
 	font-size: 1rem;
 	margin: 2rem 0 1rem;
 	color: var(--color-text-dark);
+}
+
+article:not(.preview) img {
+	margin-bottom: 2rem;
 }
 
 article .overline {

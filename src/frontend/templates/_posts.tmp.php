@@ -7,15 +7,15 @@
 	<body>
 		<?php include COMPONENT_PATH . 'header.comp.php'; ?>
 		<main>
-			<div>
-				<h1>Alle Artikel</h1>
-			</div>
 			<section>
-				<p>
+				<header class="highlighted">
+					<h1>Alle Artikel</h1>
+				</header>
+				<div>
 					<b>Seite <?= $pagination->current_page ?> von <?= $pagination->page_count ?></b>
 					– Angezeigt werden Artikel <?= $pagination->get_first_object_number() ?> bis
 					<?= $pagination->get_last_object_number() ?> von insgesamt <?= $pagination->object_count ?> Artikeln
-				</p>
+				</div>
 				<div class="pagination">
 
 <?php

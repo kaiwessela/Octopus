@@ -8,9 +8,9 @@
 	</nav>
 	<div class="opener">
 		<button title="Navigation anzeigen oder ausblenden">
-			<span class="top"></span>
-			<span class="middle"></span>
-			<span class="bottom"></span>
+			<div class="top"></div>
+			<div class="middle"></div>
+			<div class="bottom"></div>
 		</button>
 	</div>
 </header>

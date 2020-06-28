@@ -1,1 +1,1 @@
-<script src="<?= BASE_URL ?>/resources/js/script.js"></script>
+<script src="<?= SERVER_URL ?>/resources/js/script.js"></script>

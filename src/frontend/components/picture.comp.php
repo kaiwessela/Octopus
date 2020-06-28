@@ -3,7 +3,7 @@ class Picture {
 	public $image;
 	public $width;
 
-	const PATH = BASE_URL . '/resources/images/dynamic/';
+	const PATH = SERVER_URL . '/resources/images/dynamic/';
 	const WIDTHS = [
 		'extrasmall'	=> 	300,
 		'small'			=> 	600,
@@ -38,13 +38,15 @@ class Picture {
 				continue;
 			}
 
-			$sources[] = $path_base . $size . '.' . $this->image->extension . ' ' . self::WIDTHS[$size] . 'w';
+			$sources[] = $path_base . $size . '.' . $this->image->extension . ' '
+				. self::WIDTHS[$size] . 'w';
 			$w = self::WIDTHS[$size];
 		}
 			?>
 
 			<source srcset="<?= implode(' ,', $sources); ?>">
-			<img src="<?= $orig_path ?>" alt="<?= $alt ?>" width="<?= $this->width ?>" height="<?= $height ?>">
+			<img src="<?= $orig_path ?>" alt="<?= $alt ?>" width="<?= $this->width ?>"
+				height="<?= $height ?>">
 		</picture>
 
 		<?php

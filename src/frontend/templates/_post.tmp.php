@@ -3,7 +3,7 @@
 	<head>
 		<?php include COMPONENT_PATH . 'head.comp.php'; ?>
 		<title><?= $post->headline ?> – Kai Florian Wessela</title>
-		<link rel="canonical" href="<?= BASE_URL ?>/posts/<?= $post->longid ?>">
+		<link rel="canonical" href="<?= SERVER_URL ?>/posts/<?= $post->longid ?>">
 		<meta name="author" content="<?= $post->author ?>">
 		<meta name="description" content="<?= $post->teaser ?>">
 		<meta name="date" content="<?= to_html_time($post->timestamp) ?>">

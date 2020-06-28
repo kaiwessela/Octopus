@@ -5,8 +5,8 @@ TODO change htaccess based on api htaccess
 # HOW THIS SYSTEM WORKS
 This lightweight system provides a simple content management system and basic blog functionality.
 Some essential pages like the startpage are predefined and cannot be removed.
-You can add as much additional pages as you want simply by adding a template file. The name of that file
-determines the path of that page (i.e. test.tmp.php -> example.org/test; see ROUTING for details).
+You can add as much additional pages as you want simply by adding a template file. The name of that
+file determines the path of that page (test.tmp.php -> example.org/test; see ROUTING for details).
 
 # TEMPLATE / COMPONENT NOMENCLATURE
 ## Difference between Template and Component:
@@ -21,8 +21,8 @@ Components can include other Components.
 ## Nomenclature
 _?.tmp.php	–	predefined Template; used for essential functionality and cannot be removed
 ?.tmp.php	–	custom Template; use this for your own pages
-?.comp.php	–	Component; there are no set rules for component structure or predefined components. Structure your
-				site and components how it fits best for you
+?.comp.php	–	Component; there are no set rules for component structure or predefined components.
+				Structure your site and components how it fits best for you
 
 Template files must be located in the frontend/templates/ folder.
 Component files must be located in the frontend/components/ folder.
@@ -44,33 +44,16 @@ _posts.tmp.php
 
 session_start();
 
-error_reporting(0);
-
-setlocale(LC_ALL, 'de_DE.utf-8');
-
-# define constants
 define('ROOT', $_SERVER['DOCUMENT_ROOT'] . '/');
-define('BACKEND_PATH', ROOT . 'backend/');
-define('TEMPLATE_PATH', ROOT . 'templates/');
-define('COMPONENT_PATH', ROOT . 'components/');
-define('CONFIG_PATH', ROOT . 'config/');
-define('LIBS_PATH', ROOT . 'libs/');
 
-define('BASE_URL', 'http://home.local');
+require_once ROOT . 'config/endpoint_common.php';
 
-require_once CONFIG_PATH . 'config.php';
-require_once BACKEND_PATH . 'functions.php';
-require_once BACKEND_PATH . 'exceptions.php';
-require_once BACKEND_PATH . 'contentobject.php';
 require_once BACKEND_PATH . 'post.php';
 require_once BACKEND_PATH . 'image.php';
-require_once 'resources/php/functions.php';
-require_once 'resources/php/pagination.php';
+require_once FRONTEND_INCLUDES . 'functions.php';
+require_once FRONTEND_INCLUDES . 'pagination.php';
 
 require_once LIBS_PATH . 'parsedown/Parsedown.php';
-
-# establish database connection
-$pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD);
 
 # create a parsedown instance
 $parsedown = new Parsedown();
@@ -98,6 +81,7 @@ if(!isset($qs_page)){
 			// 500 page
 		}
 
+		// BUG this leads to 404 if no posts are available, but should show a 'zero posts' found
 		if($pagination->current_page_exists()){
 			include TEMPLATE_PATH . '_posts.tmp.php';
 		} else {
@@ -131,7 +115,8 @@ if(!isset($qs_page)){
 		include TEMPLATE_PATH . '_post.tmp.php';
 
 	} else {
-		# redirect to the regular posts list page because /p is not intended to be used as a regular page
+		# redirect to the regular posts list page because /p is not intended to be used as a
+		# regular page
 		http_response_code(308);
 		header('Location: /posts');
 		exit;

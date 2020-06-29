@@ -23,6 +23,10 @@ define('DB_NAME', 'blog'); # name of your database
 define('DB_USER', 'user'); # username of your database user
 define('DB_PASSWORD', 'password'); # password of your database user
 
+# WEBSITE CONFIGURATION
+# the amount of preview posts displayed per post list page
+define('PREVIEW_POSTS_PER_PAGE', 3);
+
 
 # - end of server configuration -
 ?>

@@ -19,5 +19,5 @@ define('LIBS_PATH', ROOT . 'libs/');
 
 # relative to config.php
 define('DYN_IMG_PATH', SERVER_URL . '/resources/images/dynamic/');
-define('STA_IMG_PATH', SERVER_URL . '/resources/images/dynamic/');
+define('STA_IMG_PATH', SERVER_URL . '/resources/images/static/');
 ?>

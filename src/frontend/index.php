@@ -74,7 +74,7 @@ if(!isset($qs_page)){
 		try {
 			$post_count = Post::count();
 			$page_requested = (int)($qs_post ?? 1);
-			$pagination = new Pagination($post_count, 1, $page_requested);
+			$pagination = new Pagination($post_count, PREVIEW_POSTS_PER_PAGE, $page_requested);
 		} catch(InvalidArgumentException $e){
 			return_404();
 		} catch(Exception $e){

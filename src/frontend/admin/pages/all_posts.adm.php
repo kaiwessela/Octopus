@@ -18,7 +18,7 @@ if($objs == false){
 }
 ?>
 
-<a href="new_post" class="button">Neuen Post hinzufügen</a>
+<a href="<?= ADMIN_URL ?>/new_post" class="button">Neuen Post hinzufügen</a>
 
 <?php
 if($objs != false){
@@ -33,12 +33,12 @@ if($objs != false){
 		foreach($objs as $obj){
 			?>
 			<tr>
-				<td><?php echo $obj->headline; ?></td>
-				<td><span class="code"><?php echo $obj->longid; ?></span></td>
+				<td><?= $obj->headline ?></td>
+				<td><span class="code"><?= $obj->longid ?></span></td>
 				<td>
-					<a href="view_post?id=<?php echo $obj->id; ?>">Ansehen</a>
-					<a href="edit_post?id=<?php echo $obj->id; ?>">Bearbeiten</a>
-					<a href="delete_post?id=<?php echo $obj->id; ?>">Löschen</a>
+					<a href="<?= ADMIN_URL ?>/view_post?id=<?= $obj->id ?>">Ansehen</a>
+					<a href="<?= ADMIN_URL ?>/edit_post?id=<?= $obj->id ?>">Bearbeiten</a>
+					<a href="<?= ADMIN_URL ?>/delete_post?id=<?= $obj->id ?>">Löschen</a>
 				</td>
 			</tr>
 			<?php

@@ -38,7 +38,7 @@ if(!isset($_GET['id'])){
 			<span class="message error">
 				Fehler beim Versuch, die Post-Daten zu ändern.
 			</span>
-			<p>Details: <span class="code"><?php echo $e->getMessage(); ?></span></p>
+			<p>Details: <span class="code"><?= $e->getMessage() ?></span></p>
 
 			<?php
 		} else {
@@ -70,32 +70,32 @@ if(!isset($_GET['id'])){
 	} else {
 		?>
 
-		<form action="edit_post?id=<?php echo $obj->id; ?>&action=submit" method="post">
-			<input type="hidden" id="id" name="id" value="<?php echo $obj->id; ?>">
-			<input type="hidden" id="longid" name="longid" value="<?php echo $obj->longid; ?>">
+		<form action="<?= ADMIN_URL ?>/edit_post?id=<?= $obj->id ?>&action=submit" method="post">
+			<input type="hidden" id="id" name="id" value="<?= $obj->id ?>">
+			<input type="hidden" id="longid" name="longid" value="<?= $obj->longid ?>">
 
 			<label for="overline">Overline (optional)</label>
-			<input type="text" id="overline" name="overline" value="<?php echo $obj->overline; ?>">
+			<input type="text" id="overline" name="overline" value="<?= $obj->overline ?>">
 
 			<label for="headline">Überschrift</label>
-			<input type="text" id="headline" name="headline" required value="<?php echo $obj->headline; ?>">
+			<input type="text" id="headline" name="headline" required value="<?= $obj->headline ?>">
 
 			<label for="subline">Subline (optional)</label>
-			<input type="text" id="subline" name="subline" value="<?php echo $obj->subline; ?>">
+			<input type="text" id="subline" name="subline" value="<?= $obj->subline ?>">
 
 			<label for="teaser">Teaser (optional)</label>
-			<textarea id="teaser" name="teaser" class="teaser-text"><?php echo $obj->teaser; ?></textarea>
+			<textarea id="teaser" name="teaser" class="teaser-text"><?= $obj->teaser ?></textarea>
 
 			<label for="author">Autor</label>
-			<input type="text" id="author" name="author" required value="<?php echo $obj->author; ?>">
+			<input type="text" id="author" name="author" required value="<?= $obj->author ?>">
 
 			<label for="image_id">Bild-ID</label>
-			<input type="text" id="image_id" name="image_id" value="<?php echo $obj->image->id; ?>">
+			<input type="text" id="image_id" name="image_id" value="<?= $obj->image->id ?>">
 			<a href="#image-select">Bild auswählen</a>
 			<a href="#image-upload">Bild hochladen</a>
 
 			<label for="content">Inhalt (optional)</label>
-			<textarea id="content" name="content" class="long-text"><?php echo $obj->content; ?></textarea>
+			<textarea id="content" name="content" class="long-text"><?= $obj->content ?></textarea>
 
 			<input type="submit" value="Speichern">
 		</form>
@@ -105,7 +105,7 @@ if(!isset($_GET['id'])){
 }
 ?>
 
-<a href="all_posts">Zurück zu allen Posts</a>
+<a href="<?= ADMIN_URL ?>/all_posts">Zurück zu allen Posts</a>
 
 <div class="dialog open" id="image-select">
 	<h2>Bild auswählen</h2>
@@ -122,9 +122,9 @@ foreach($images as $image){
 		?>
 
 		<template>
-			<button id="<?php echo $image->id; ?>" class="image">
-				<img src="../resources/images/dynamic/<?php echo $image->id . '/' . $size . '.' . $image->extension; ?>"
-					alt = "<?php echo $image->description; ?>">
+			<button id="<?= $image->id ?>" class="image">
+				<img src="<?= DYN_IMG_PATH . $image->id . '/' . $size . '.' . $image->extension ?>"
+					alt = "<?= $image->description ?>">
 			</button>
 		</template>
 

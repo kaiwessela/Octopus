@@ -3,7 +3,7 @@
 if($not_found){
 	?>
 	<span class="message error">
-		Die angefragte Seite (<?php echo $_GET['page']; ?>) wurde nicht gefunden.
+		Die angefragte Seite (<?= $_GET['page'] ?>) wurde nicht gefunden.
 	</span>
 	<?php
 }

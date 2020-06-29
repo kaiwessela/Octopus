@@ -18,7 +18,7 @@ if($objs == false){
 }
 ?>
 
-<a href="new_image" class="button">Neues Bild hochladen</a>
+<a href="<?= ADMIN_URL ?>/new_image" class="button">Neues Bild hochladen</a>
 
 <?php
 if($objs != false){
@@ -33,12 +33,12 @@ if($objs != false){
 		foreach($objs as $obj){
 			?>
 			<tr>
-				<td><span class="code"><?php echo $obj->longid; ?></span></td>
-				<td><span class="code"><?php echo $obj->extension; ?></span></td>
+				<td><span class="code"><?= $obj->longid ?></span></td>
+				<td><span class="code"><?= $obj->extension ?></span></td>
 				<td>
-					<a href="view_image?id=<?php echo $obj->id; ?>">Ansehen</a>
-					<a href="edit_image?id=<?php echo $obj->id; ?>">Bearbeiten</a>
-					<a href="delete_image?id=<?php echo $obj->id; ?>">Löschen</a>
+					<a href="<?= ADMIN_URL ?>/view_image?id=<?= $obj->id ?>">Ansehen</a>
+					<a href="<?= ADMIN_URL ?>/edit_image?id=<?= $obj->id ?>">Bearbeiten</a>
+					<a href="<?= ADMIN_URL ?>/delete_image?id=<?= $obj->id ?>">Löschen</a>
 				</td>
 			</tr>
 			<?php

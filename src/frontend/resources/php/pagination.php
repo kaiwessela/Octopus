@@ -27,6 +27,10 @@ class Pagination {
 
 		$this->page_count = ceil($this->object_count / $this->objects_per_page);
 
+		if($this->page_count == 0){ # set an empty page if there are no objects
+			$this->page_count = 1;
+		}
+
 		for($i = 1; $i <= $this->page_count; $i++){
 			$this->pages[] = $i;
 		}
@@ -49,11 +53,23 @@ class Pagination {
 	}
 
 	public function get_first_object_number() {
-		return $this->get_object_offset() + 1;
+		$first_number = $this->get_object_offset() + 1;
+
+		if($first_number > $this->object_count){
+			return $this->object_count;
+		} else {
+			return $first_number;
+		}
 	}
 
 	public function get_last_object_number() {
-		return $this->get_object_offset() + $this->get_object_limit();
+		$last_number = $this->get_object_offset() + $this->get_object_limit();
+
+		if($last_number > $this->object_count){
+			return $this->object_count;
+		} else {
+			return $last_number;
+		}
 	}
 }
 ?>

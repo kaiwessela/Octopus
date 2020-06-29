@@ -43,11 +43,31 @@ foreach($pagination_items as $pg_item){
 				</div>
 
 <?php
-$posts = Post::pull_all($pagination->get_object_limit(), $pagination->get_object_offset());
-foreach($posts as $post){
+$error = false;
+try {
+	$posts = Post::pull_all($pagination->get_object_limit(), $pagination->get_object_offset());
+} catch(EmptyResultException $e){
+	$error = true;
+				?>
 
-				include COMPONENT_PATH . 'preview-post.comp.php';
+				<p>Keine Posts vorhanden.</p>
 
+				<?php
+} catch(DatabaseException $e){
+	$error = true;
+				?>
+
+				<p>Interner Datenbankfehler</p>
+
+				<?php
+}
+
+if(!$error){
+	foreach($posts as $post){
+
+		include COMPONENT_PATH . 'preview-post.comp.php';
+
+	}
 }
 ?>
 

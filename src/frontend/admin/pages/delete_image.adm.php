@@ -53,9 +53,9 @@ if(!isset($_GET['id'])){
 	} else {
 		?>
 
-		<p>Bild <span class="code"><?php echo $obj->longid; ?></span> löschen?</p>
-		<form action="delete_image?id=<?php echo $obj->id; ?>&action=submit" method="post">
-			<input type="hidden" id="id" name="id" value="<?php echo $obj->id; ?>">
+		<p>Bild <span class="code"><?= $obj->longid ?></span> löschen?</p>
+		<form action="<?= ADMIN_URL ?>/delete_image?id=<?= $obj->id ?>&action=submit" method="post">
+			<input type="hidden" id="id" name="id" value="<?= $obj->id ?>">
 			<input type="submit" value="Löschen">
 		</form>
 
@@ -64,4 +64,4 @@ if(!isset($_GET['id'])){
 }
 ?>
 
-<a href="all_images">Zurück zu allen Posts</a>
+<a href="<?= ADMIN_URL ?>/all_images">Zurück zu allen Posts</a>

@@ -38,7 +38,7 @@ if(!isset($_GET['id'])){
 			<span class="message error">
 				Fehler beim Versuch, die Bildinformationen zu ändern.
 			</span>
-			<p>Details: <span class="code"><?php echo $e->getMessage(); ?></span></p>
+			<p>Details: <span class="code"><?= $e->getMessage() ?></span></p>
 
 			<?php
 		} else {
@@ -70,13 +70,13 @@ if(!isset($_GET['id'])){
 	} else {
 		?>
 
-		<p>Bild-URL: <span class="code"><?php echo $obj->longid; ?></span></p>
-		<form action="edit_image?id=<?php echo $obj->id; ?>&action=submit" method="post">
-			<input type="hidden" id="id" name="id" value="<?php echo $obj->id; ?>">
-			<input type="hidden" id="longid" name="longid" value="<?php echo $obj->longid; ?>">
+		<p>Bild-URL: <span class="code"><?= $obj->longid ?></span></p>
+		<form action="<?= ADMIN_URL ?>/edit_image?id=<?= $obj->id ?>&action=submit" method="post">
+			<input type="hidden" id="id" name="id" value="<?= $obj->id ?>">
+			<input type="hidden" id="longid" name="longid" value="<?= $obj->longid ?>">
 
 			<label for="description">Beschreibung</label>
-			<input type="text" id="description" name="description" value="<?php echo $obj->description; ?>">
+			<input type="text" id="description" name="description" value="<?= $obj->description ?>">
 
 			<input type="submit" value="Speichern">
 		</form>
@@ -86,4 +86,4 @@ if(!isset($_GET['id'])){
 }
 ?>
 
-<a href="all_images">Zurück zu allen Bildern</a>
+<a href="<?= ADMIN_URL ?>/all_images">Zurück zu allen Bildern</a>

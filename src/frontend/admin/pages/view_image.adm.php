@@ -22,22 +22,22 @@ if($obj == false){
 } else {
 	?>
 
-	<a href="all_images">Zurück zu allen Bildern</a><br>
-	<a href="edit_image?id=<?php echo $obj->id; ?>" class="button">Bildinformationen bearbeiten</a>
-	<a href="delete_image?id=<?php echo $obj->id; ?>" class="button">Bild löschen</a><br><br>
+	<a href="<?= ADMIN_URL ?>/all_images">Zurück zu allen Bildern</a><br>
+	<a href="<?= ADMIN_URL ?>/edit_image?id=<?= $obj->id ?>" class="button">Bildinformationen bearbeiten</a>
+	<a href="<?= ADMIN_URL ?>/delete_image?id=<?= $obj->id ?>" class="button">Bild löschen</a><br><br>
 
-	<p>Bild-URL: <span class="code"><?php echo $obj->longid; ?></span></p><br>
-	<img src="../resources/images/dynamic/<?php echo $obj->longid . '/original.' . $obj->extension; ?>" alt="Bild">
+	<p>Bild-URL: <span class="code"><?= $obj->longid ?></span></p><br>
+	<img src="<?= DYN_IMG_PATH . $obj->longid . '/original.' . $obj->extension ?>" alt="Bild">
 	<h2>Beschreibung:</h2>
-	<p><?php echo $obj->description; ?></p>
+	<p><?= $obj->description ?></p>
 
 	<h2>Verfügbare Größen:</h2>
 
 	<?php
 	foreach($obj->sizes as $size){
 		?>
-		<a href="../resources/images/dynamic/<?php echo $obj->longid . '/' . $size . '.' . $obj->extension; ?>">
-			<?php echo $size; ?>
+		<a href="<?= DYN_IMG_PATH . $obj->longid . '/' . $size . '.' . $obj->extension ?>">
+			<?= $size ?>
 		</a><br>
 		<?php
 	}

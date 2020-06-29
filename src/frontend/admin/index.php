@@ -3,39 +3,30 @@
 
 session_start();
 
-# define constants
 define('ROOT', $_SERVER['DOCUMENT_ROOT'] . '/');
-define('BACKEND_PATH', ROOT . 'backend/');
-define('TEMPLATE_PATH', ROOT . 'templates/');
-define('COMPONENT_PATH', ROOT . 'components/');
-define('CONFIG_PATH', ROOT . 'config/');
 
-require_once CONFIG_PATH . 'config.php';
-require_once BACKEND_PATH . 'functions.php';
-require_once BACKEND_PATH . 'exceptions.php';
-require_once BACKEND_PATH . 'contentobject.php';
+require_once ROOT . 'config/endpoint_common.php';
+
+define('ADMIN_URL', SERVER_URL . '/admin');
+
 require_once BACKEND_PATH . 'post.php';
 require_once BACKEND_PATH . 'image.php';
 require_once BACKEND_PATH . 'imagemanager.php';
-require_once '../functions.php'; // IDEA to frontend path
 
-# establish database connection
-$pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD);
-$imagemanager = new ImageManager(ROOT . 'resources/images/dynamic');
+$imagemanager = new ImageManager(ROOT . 'resources/images/dynamic'); # TODO make as constant
 
 ?>
 <!DOCTYPE html>
 <html lang="de">
 	<head>
-		<base href="/admin/">
 		<meta charset="utf-8">
-		<link rel="stylesheet" type="text/css" href="../resources/css/admin.css">
+		<link rel="stylesheet" type="text/css" href="<?= SERVER_URL ?>/resources/css/admin.css">
 	</head>
 	<body>
 		<header>
-			<a href="./">Startseite</a>
-			<a href="all_posts">Posts</a>
-			<a href="all_images">Bilder</a>
+			<a href="<?= ADMIN_URL ?>">Startseite</a>
+			<a href="<?= ADMIN_URL ?>/all_posts">Posts</a>
+			<a href="<?= ADMIN_URL ?>/all_images">Bilder</a>
 		</header>
 		<main>
 			<?php
@@ -55,6 +46,6 @@ $imagemanager = new ImageManager(ROOT . 'resources/images/dynamic');
 			include $page;
 			?>
 		</main>
-		<script src="script.js"></script>
+		<script src="<?= ADMIN_URL ?>/script.js"></script>
 	</body>
 </html>

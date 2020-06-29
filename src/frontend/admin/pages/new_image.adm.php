@@ -17,7 +17,7 @@ if(isset($_GET['action']) && $_GET['action'] == 'submit'){
 		<span class="message error">
 			Fehler beim Versuch, die Bildinformationen hochzuladen.
 		</span>
-		<p>Details: <span class="code"><?php echo $e->getMessage(); ?></span></p>
+		<p>Details: <span class="code"><?= $e->getMessage() ?></span></p>
 
 		<?php
 	} else {
@@ -32,7 +32,7 @@ if(isset($_GET['action']) && $_GET['action'] == 'submit'){
 } else {
 	?>
 
-	<form action="new_image?action=submit" method="post" enctype="multipart/form-data">
+	<form action="<?= ADMIN_URL ?>/new_image?action=submit" method="post" enctype="multipart/form-data">
 		<label for="longid">URL</label>
 		<input type="text" id="longid" name="longid" required>
 
@@ -49,4 +49,4 @@ if(isset($_GET['action']) && $_GET['action'] == 'submit'){
 }
 ?>
 
-<a href="all_images">Zurück zu allen Bildern</a>
+<a href="<?= ADMIN_URL ?>/sall_images">Zurück zu allen Bildern</a>

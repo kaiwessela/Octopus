@@ -19,7 +19,7 @@ cp -r ./build/. /var/www/blog.local
 
 # copy previously uploaded images
 if [ "$images_exist" == "true" ]; then
-	cp -r /var/www/blog.local/temp-images/* /var/www/home.local/resources/images/dynamic
+	cp -r /var/www/blog.local/temp-images/* /var/www/blog.local/resources/images/dynamic
 	rm -rf /var/www/blog.local/temp-images
 fi
 

@@ -5,7 +5,7 @@ class Post extends ContentObject {
 	public $subline;	# String(0-256)
 	public $teaser;		# String					// IDEA limit length
 	public $author;		# String(1-128)				// IDEA use profile id
-	public $timestamp;	# Integer[unix timestamp]	// IDEA publishdate, last edited, ...
+	public $timestamp;	# Integer[unix timestamp]	// IDEA publishdate, last edited, ... TODO 64bit
 	public $image;		# Image
 	public $content;	# String
 

@@ -46,6 +46,8 @@ $imagemanager = new ImageManager(ROOT . 'resources/images/dynamic'); # TODO make
 			include $page;
 			?>
 		</main>
-		<script src="<?= ADMIN_URL ?>/script.js"></script>
+		<script src="<?= ADMIN_URL ?>/js/apihandler.js"></script>
+		<script src="<?= ADMIN_URL ?>/js/dialog.js"></script>
+		<script src="<?= ADMIN_URL ?>/js/script.js"></script>
 	</body>
 </html>

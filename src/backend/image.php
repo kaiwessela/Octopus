@@ -161,7 +161,9 @@ SQL;
 		];
 
 		$s = $pdo->prepare($query);
-		$s->execute($values);
+		if(!$s->execute($values)){
+			throw new DatabaseException($s);
+		}
 	}
 
 	public function update($data) {
@@ -174,7 +176,9 @@ SQL;
 		$values = ['description' => $this->description, 'id' => $this->id];
 
 		$s = $pdo->prepare($query);
-		$s->execute($values);
+		if(!$s->execute($values)){
+			throw new DatabaseException($s);
+		}
 	}
 
 	public function delete() {
@@ -187,7 +191,9 @@ SQL;
 		$values = ['id' => $this->id];
 
 		$s = $pdo->prepare($query);
-		return $s->execute($values);
+		if(!$s->execute($values)){
+			throw new DatabaseException($s);
+		}
 	}
 
 	public function has_size($size) {

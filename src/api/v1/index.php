@@ -21,7 +21,7 @@ VALID ROUTES:
 session_start();
 
 # turn off error reporting because it would interfere with the encoding
-#error_reporting(0);
+error_reporting(0);
 
 # define paths
 define('ROOT', $_SERVER['DOCUMENT_ROOT'] . '/');

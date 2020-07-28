@@ -89,11 +89,7 @@ if(!isset($_GET['id'])){
 			<label for="author">Autor</label>
 			<input type="text" id="author" name="author" required value="<?= $obj->author ?>">
 
-			<label for="image_id">Bild-ID</label>
-			<input type="text" id="image_id" name="image_id" value="<?= $obj->image->id ?? '' ?>">
-
-			<button type="button" onclick="document.querySelector('#image-select').classList.add('open')">Bild auswählen</button>
-			<button type="button" onclick="document.querySelector('#image-upload').classList.add('open')">Bild hochladen</button>
+			<div id="imageinput" data-value="<?= $obj->image->id ?? '' ?>" data-longid="<?= $obj->image->longid ?? '' ?>" data-name="image_id"></div>
 
 			<label for="content">Inhalt (optional)</label>
 			<textarea id="content" name="content" class="long-text"><?= $obj->content ?></textarea>

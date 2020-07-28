@@ -47,6 +47,8 @@ $imagemanager = new ImageManager(ROOT . 'resources/images/dynamic'); # TODO make
 			?>
 		</main>
 		<?php include ROOT . 'admin/templates/imageinput.php'; ?>
+		<script src="<?= ADMIN_URL ?>/js/selectableimage.js"></script>
+		<script src="<?= ADMIN_URL ?>/js/imageinputpicker.js"></script>
 		<script src="<?= ADMIN_URL ?>/js/imageinputuploader.js"></script>
 		<script src="<?= ADMIN_URL ?>/js/imageinput.js"></script>
 		<script src="<?= ADMIN_URL ?>/js/script.js"></script>

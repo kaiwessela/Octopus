@@ -51,7 +51,7 @@ if(isset($_GET['action']) && $_GET['action'] == 'submit'){
 		<label for="author">Autor</label>
 		<input type="text" id="author" name="author" required>
 
-		<div id="imageinput" data-value="" data-name="image_id"></div>
+		<div id="imageinput" data-value="" data-longid="" data-name="image_id"></div>
 
 		<label for="content">Inhalt</label>
 		<textarea id="content" name="content"></textarea>

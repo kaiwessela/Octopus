@@ -37,6 +37,7 @@ class ImageInput {
 		this.setName(this.name);
 
 		this.uploader = new ImageInputUploader(this);
+		this.picker = new ImageInputPicker(this);
 	}
 
 	clear() {
@@ -66,6 +67,7 @@ class ImageInput {
 
 	openPicker() {
 		this.closeUploader();
+		this.picker.open();
 	}
 
 	openUploader() {
@@ -74,7 +76,7 @@ class ImageInput {
 	}
 
 	closePicker() {
-		//this.picker.close();
+		this.picker.close();
 	}
 
 	closeUploader() {

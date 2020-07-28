@@ -310,7 +310,7 @@ SQL;
 	}
 
 	private function import_image($data) {
-		if(isset($data['image_id'])){
+		if($data['image_id']){
 			try {
 				$image = Image::pull_by_id($data['image_id']);
 			} catch(EmptyResultException $e){
@@ -325,11 +325,12 @@ SQL;
 				$image = Image::insert($data['image']);
 			} catch(Exception $e){
 				throw new InvalidInputException('image', 'wrong exception but look in php', 'will be changed later'); // TODO
+				// TODO exception handling with and in images
 			}
 
 			$this->image = $image;
 		} else {
-			throw new InvalidInputException('image(_id)', 'image id or object');
+			$this->image = null;
 		}
 	}
 }

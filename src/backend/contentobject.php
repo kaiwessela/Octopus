@@ -32,7 +32,7 @@ class ContentObject {
 		if($not_found){
 			$this->longid = $longid;
 		} else {
-			throw new Exception('longid already exists'); // TODO to special exception
+			throw new InvalidInputException('longid', ';already-exists', $longid); // TODO to special exception
 		}
 	}
 }

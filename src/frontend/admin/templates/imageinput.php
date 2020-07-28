@@ -17,7 +17,12 @@
 </template>
 
 <template id="iit-picker">
+	<div class="dialog">
+		<div class="masonry">
 
+		</div>
+		<button type="button" id="ii-picker-cancel">Abbrechen</button>
+	</div>
 </template>
 
 <template id="iit-uploader">
@@ -33,4 +38,8 @@
 			<button type="button" id="ii-uploader-cancel">Abbrechen</button>
 		</form>
 	</div>
+</template>
+
+<template id="iit-selectableimage">
+	<img src="<?= DYN_IMG_PATH ?>%II.image.longid%/original.jpg" alt="Bild">
 </template>

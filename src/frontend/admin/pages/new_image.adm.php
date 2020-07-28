@@ -39,7 +39,7 @@ if(isset($_GET['action']) && $_GET['action'] == 'submit'){
 		<label for="description">Beschreibung</label>
 		<input type="text" id="description" name="description">
 
-		<label for="imagefile">Datei (Maximale Größe: <?= ini_get('upload_max_filesize') ?>)</label>
+		<label for="imagefile">Datei</label>
 		<input type="file" id="imagefile" name="imagedata" required>
 
 		<input type="submit" value="Speichern">

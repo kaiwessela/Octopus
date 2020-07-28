@@ -147,6 +147,7 @@ class Post extends ContentObject {
 		$this->import_teaser($data['teaser']);
 		$this->import_author($data['author']);
 		$this->import_content($data['content']);
+		$this->import_image($data);
 
 		$this->timestamp = time();
 
@@ -190,7 +191,7 @@ SQL;
 			'content' => $this->content
 		];
 
-		if(isset($this->image)){
+		if(isset($this->image->id)){
 			$values['image_id'] = $this->image->id;
 		} else {
 			$values['image_id'] = '';
@@ -212,8 +213,7 @@ SQL;
 		$this->import_teaser($data['teaser']);
 		$this->import_author($data['author']);
 		$this->import_content($data['content']);
-
-		// TODO image routine (id or upload)
+		$this->import_image($data);
 
 		$query = <<<SQL
 UPDATE posts SET
@@ -237,10 +237,10 @@ SQL;
 			'id' => $this->id
 		];
 
-		if(isset($this->image)){
+		if(isset($this->image->id)){
 			$values['image_id'] = $this->image->id;
 		} else {
-			$values['image_id'] = null;
+			$values['image_id'] = '';
 		}
 
 		$s = $pdo->prepare($query);
@@ -307,6 +307,30 @@ SQL;
 
 	private function import_content($content) {
 		$this->content = $content;
+	}
+
+	private function import_image($data) {
+		if(isset($data['image_id'])){
+			try {
+				$image = Image::pull_by_id($data['image_id']);
+			} catch(EmptyResultException $e){
+				throw new InvalidInputException('image_id', 'image id; No Image Found', $data['image_id']); // TODO better exc.-> api index.php
+			} catch(DatabaseException $e){
+				throw $e;
+			}
+
+			$this->image = $image;
+		} else if(isset($data['image'])){
+			try {
+				$image = Image::insert($data['image']);
+			} catch(Exception $e){
+				throw new InvalidInputException('image', 'wrong exception but look in php', 'will be changed later'); // TODO
+			}
+
+			$this->image = $image;
+		} else {
+			throw new InvalidInputException('image(_id)', 'image id or object');
+		}
 	}
 }
 ?>

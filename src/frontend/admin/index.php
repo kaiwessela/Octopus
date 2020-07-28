@@ -46,8 +46,9 @@ $imagemanager = new ImageManager(ROOT . 'resources/images/dynamic'); # TODO make
 			include $page;
 			?>
 		</main>
-		<script src="<?= ADMIN_URL ?>/js/apihandler.js"></script>
-		<script src="<?= ADMIN_URL ?>/js/dialog.js"></script>
+		<?php include ROOT . 'admin/templates/imageinput.php'; ?>
+		<script src="<?= ADMIN_URL ?>/js/imageinputuploader.js"></script>
+		<script src="<?= ADMIN_URL ?>/js/imageinput.js"></script>
 		<script src="<?= ADMIN_URL ?>/js/script.js"></script>
 	</body>
 </html>

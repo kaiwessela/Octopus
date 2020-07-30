@@ -125,8 +125,10 @@ if(!isset($qs_page)){
 } else {
 	# some other page is requested
 	# check if the requested page exists as a template file
-	if(file_exists(TEMPLATE_PATH . '/' . $qs_page . '.tmp.php')){
-		include TEMPLATE_PATH . '/' . $qs_page . '.tmp.php';
+	# check also if qs_page contains any illegal characters to prevent an injection
+	$template_file = TEMPLATE_PATH . $qs_page . '.tmp.php';
+	if(preg_match('/^[a-zA-Z0-9_.-]*$/', $qs_page) && file_exists($template_file)){
+		include $template_file;
 
 	} else {
 		# the requested page could not be found

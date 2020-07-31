@@ -5,6 +5,7 @@ rm -rf build
 
 # create new build folder and subfolders
 mkdir build
+mkdir build/api
 mkdir build/backend
 mkdir build/config
 

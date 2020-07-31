@@ -3,7 +3,7 @@
 
 	</div>
 	<input type="hidden" id="ii-value" name="" value="">
-	<button type="button" id="ii-basic-clear">Bild entfernen</button>
+	<button type="button" class="negative" id="ii-basic-clear">Bild entfernen</button>
 	<button type="button" id="ii-basic-pick">Aus vorhandenen Bildern auswählen</button>
 	<button type="button" id="ii-basic-upload">Neues Bild hochladen</button>
 </template>

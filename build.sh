@@ -8,19 +8,13 @@ mkdir build
 mkdir build/api
 mkdir build/backend
 mkdir build/config
+mkdir build/share
+mkdir build/libs
 
-# copy frontend
+# copy files
 cp -r src/frontend/. build
-
-# copy api
 cp -r src/api/. build/api
-
-# copy backend files
 cp -r src/backend/. build/backend
-
-# copy config files
 cp -r src/config/. build/config
-
-
-# copy libs
+cp -r src/share/. build/share
 cp -r libs/. build/libs

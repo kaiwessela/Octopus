@@ -19,23 +19,9 @@ VALID ROUTES:
 */ ################################
 
 session_start();
-
-# turn off error reporting because it would interfere with the encoding
-error_reporting(0);
-
-# define paths
 define('ROOT', $_SERVER['DOCUMENT_ROOT'] . '/');
-define('BACKEND_PATH', ROOT . 'backend/');
-define('TEMPLATE_PATH', ROOT . 'templates/');
-define('COMPONENT_PATH', ROOT . 'components/');
-define('CONFIG_PATH', ROOT . 'config/');
-define('LIBS_PATH', ROOT . 'libs/');
+require_once ROOT . 'share/endpoint_common.php';
 
-# include config and backend classes
-require_once CONFIG_PATH . 'config.php';
-require_once BACKEND_PATH . 'functions.php';
-require_once BACKEND_PATH . 'exceptions.php';
-require_once BACKEND_PATH . 'contentobject.php';
 require_once BACKEND_PATH . 'post.php';
 require_once BACKEND_PATH . 'image.php';
 require_once BACKEND_PATH . 'imagemanager.php';

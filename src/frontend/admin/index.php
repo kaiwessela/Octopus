@@ -1,11 +1,8 @@
 <?php
 # ADMIN PAGE
-
 session_start();
-
 define('ROOT', $_SERVER['DOCUMENT_ROOT'] . '/');
-
-require_once ROOT . 'config/endpoint_common.php';
+require_once ROOT . 'share/endpoint_common.php';
 
 define('ADMIN_URL', SERVER_URL . '/admin');
 

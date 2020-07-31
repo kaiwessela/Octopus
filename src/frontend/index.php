@@ -43,15 +43,13 @@ _posts.tmp.php
 */ ################################
 
 session_start();
-
 define('ROOT', $_SERVER['DOCUMENT_ROOT'] . '/');
-
-require_once ROOT . 'config/endpoint_common.php';
+require_once ROOT . 'share/endpoint_common.php';
 
 require_once BACKEND_PATH . 'post.php';
 require_once BACKEND_PATH . 'image.php';
-require_once FRONTEND_INCLUDES . 'functions.php';
-require_once FRONTEND_INCLUDES . 'pagination.php';
+require_once SHARE_PATH . 'pagination.php';
+require_once SHARE_PATH . 'frontend_functions.php';
 
 require_once LIBS_PATH . 'parsedown/Parsedown.php';
 

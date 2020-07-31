@@ -14,7 +14,7 @@ define('SERVER_LANG', 'de_DE'); # de_DE, de_AT, fr_FR, en_EN, en_US, … (withou
 # DEBUG MODE
 # enabling this mode will turn on php error reporting. use it for debugging, if you only see a
 # blank page or if you see any other bugs
-define('DEBUG_MODE', true); # true = debug mode, false = normal/production mode
+define('DEBUG_MODE', false); # true = debug mode, false = normal/production mode
 
 # MYSQL DATABASE CONFIGURATION
 # authentication credentials for your mysql database which stores your posts and other site data

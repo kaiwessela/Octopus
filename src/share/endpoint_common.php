@@ -19,7 +19,7 @@ if(DEBUG_MODE){
 # establish database connection
 $pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD);
 
-require_once BACKEND_PATH . 'functions.php';
-require_once BACKEND_PATH . 'exceptions.php';
+require_once SHARE_PATH . 'exceptions.php';
+require_once SHARE_PATH . 'backend_functions.php';
 require_once BACKEND_PATH . 'contentobject.php';
 ?>

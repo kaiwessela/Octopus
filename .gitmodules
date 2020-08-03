@@ -1,3 +1,6 @@
 [submodule "libs/parsedown"]
 	path = libs/parsedown
 	url = git@github.com:erusev/parsedown
+[submodule "libs/astronauth"]
+	path = libs/astronauth
+	url = git@github.com:kaiwessela/astronauth

@@ -12,6 +12,23 @@ require_once BACKEND_PATH . 'imagemanager.php';
 
 $imagemanager = new ImageManager(ROOT . 'resources/images/dynamic'); # TODO make as constant
 
+spl_autoload_register(function($name){
+	$file = DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $name) . '.php';
+	$include = __DIR__ . '/../astronauth' . strtolower(str_replace(DIRECTORY_SEPARATOR . 'Astronauth', '', $file));
+
+	if(file_exists($include)){
+		require_once $include;
+	}
+});
+
+use Astronauth\Backend\User;
+$user = new User();
+$user->authenticate();
+if(!$user->is_authenticated()){
+	header('Location: ' . SERVER_URL . '/astronauth/signin');
+	exit;
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="de">

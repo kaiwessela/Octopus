@@ -10,6 +10,7 @@ mkdir build/backend
 mkdir build/config
 mkdir build/share
 mkdir build/libs
+mkdir build/astronauth
 
 # copy files
 cp -r src/frontend/. build
@@ -18,3 +19,8 @@ cp -r src/backend/. build/backend
 cp -r src/config/. build/config
 cp -r src/share/. build/share
 cp -r libs/. build/libs
+
+cd libs/astronauth
+./build.sh
+cd ../..
+cp -r libs/astronauth/build/. build/astronauth

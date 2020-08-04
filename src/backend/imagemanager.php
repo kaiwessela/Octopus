@@ -1,5 +1,7 @@
 <?php
 // BUG: permissions of the uploaded files
+namespace Blog\Backend;
+
 class ImageManager {
 	private $dir;
 

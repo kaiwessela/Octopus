@@ -1,4 +1,6 @@
 <?php
+namespace Blog\Backend;
+
 class Image extends ContentObject {
 	public $extension;		# String(1-4)[filename extension]
 	public $description;	# String(1-256)

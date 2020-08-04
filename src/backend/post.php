@@ -1,4 +1,6 @@
 <?php
+namespace Blog\Backend;
+
 class Post extends ContentObject {
 	public $overline;	# String(0-64)
 	public $headline; 	# String(1-256)

@@ -1,4 +1,7 @@
 <?php
+namespace Blog\Backend;
+
+// TODO to trait
 class ContentObject {
 	public $id; 		# String(8)[base16]
 	public $longid; 	# String(9-128)[a-z0-9-]

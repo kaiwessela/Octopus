@@ -1,5 +1,5 @@
 <article class="preview">
-	<a href="<?= SERVER_URL ?>/posts/<?= $post->longid ?>">
+	<a href="<?= $server->url ?>/posts/<?= $post->longid ?>">
 
 <?php
 if(isset($post->image)){

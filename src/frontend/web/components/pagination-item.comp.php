@@ -26,7 +26,7 @@ $pgi_title = str_replace('{num}', $pgi_number, $pgi_title);
 $pgi_text = str_replace('{num}', $pgi_number, $pgi_text);
 
 if($pagination->page_exists($pgi_number)){
-	$url = SERVER_URL . '/posts/' . $pgi_number;
+	$url = $server->url . '/posts/' . $pgi_number;
 	?>
 
 	<a href="<?= $url ?>/" class="<?= $pgi_classes ?>" title="<?= $pgi_title ?>"><?= $pgi_text ?></a>

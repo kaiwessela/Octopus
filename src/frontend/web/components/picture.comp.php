@@ -3,7 +3,7 @@ class Picture {
 	public $image;
 	public $width;
 
-	const PATH = SERVER_URL . '/resources/images/dynamic/';
+	const PATH = $server->url . '/resources/images/dynamic/';
 	const WIDTHS = [
 		'extrasmall'	=> 	300,
 		'small'			=> 	600,

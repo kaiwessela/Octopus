@@ -1,7 +1,16 @@
 <?php
-namespace Blog\Backend;
+namespace Blog\Backend\Models;
+use \Blog\Backend\Model;
+use \Blog\Backend\Models\Image;
+use \Blog\Backend\Exceptions\WrongObjectStateException;
+use \Blog\Backend\Exceptions\DatabaseException;
+use \Blog\Backend\Exceptions\EmptyResultException;
+use \Blog\Backend\Exceptions\InvalidInputException;
+use InvalidArgumentException;
 
-class Post extends ContentObject {
+class Post implements Model {
+	public $id;
+	public $longid;
 	public $overline;	# String(0-64)
 	public $headline; 	# String(1-256)
 	public $subline;	# String(0-256)
@@ -11,66 +20,50 @@ class Post extends ContentObject {
 	public $image;		# Image
 	public $content;	# String
 
+	private $pdo;
+	private $new;
+	private $empty;
 
-	public static function new() {
-		$obj = new self();
-		$obj->id = generate_id();
-		return $obj;
+	use Model;
+
+
+	function __construct() {
+		$this->pdo = self::open_pdo();
+		$this->empty = true;
 	}
 
-	public static function pull($id_or_longid) {
-		global $pdo;
+	public function generate() {
+		if(!$this->empty){
+			throw new WrongObjectStateException('empty');
+		}
+
+		$this->generate_id();
+		$this->image = new Image();
+
+		$this->new = true;
+		$this->empty = false;
+	}
+
+	public function pull($identifier) {
+		if(!$this->empty){
+			throw new WrongObjectStateException('empty');
+		}
 
 		$query = 'SELECT * FROM posts LEFT JOIN images ON image_id = post_image_id WHERE post_id = :id OR post_longid = :id';
-		$values = ['id' => $id_or_longid];
+		$values = ['id' => $identifier];
 
-		$s = $pdo->prepare($query);
-
+		$s = $this->pdo->prepare($query);
 		if(!$s->execute($values)){
 			throw new DatabaseException($s);
 		} else if($s->rowCount() != 1){
 			throw new EmptyResultException($query, $values);
 		} else {
-			return self::load($s->fetch());
-		}
-	}
-
-	public static function pull_by_id($id) {
-		global $pdo;
-
-		$query = 'SELECT * FROM posts LEFT JOIN images ON image_id = post_image_id WHERE post_id = :id';
-		$values = ['id' => $id];
-
-		$s = $pdo->prepare($query);
-
-		if(!$s->execute($values)){
-			throw new DatabaseException($s);
-		} else if($s->rowCount() != 1){
-			throw new EmptyResultException($query, $values);
-		} else {
-			return self::load($s->fetch());
-		}
-	}
-
-	public static function pull_by_longid($longid) {
-		global $pdo;
-
-		$query = 'SELECT * FROM posts LEFT JOIN images ON image_id = post_image_id WHERE post_longid = :longid';
-		$values = ['longid' => $longid];
-
-		$s = $pdo->prepare($query);
-
-		if(!$s->execute($values)){
-			throw new DatabaseException($s);
-		} if($s->rowCount() != 1){
-			throw new EmptyResultException($query, $values);
-		} else {
-			return self::load($s->fetch());
+			$this->load($s->fetch());
 		}
 	}
 
 	public static function pull_all($limit = null, $offset = null) {
-		global $pdo;
+		$pdo = self::open_pdo();
 
 		$query = 'SELECT * FROM posts LEFT JOIN images ON image_id = post_image_id ORDER BY post_timestamp DESC';
 
@@ -99,35 +92,41 @@ class Post extends ContentObject {
 		} else {
 			$res = [];
 			while($r = $s->fetch()){
-				$res[] = self::load($r);
+				$obj = new Post();
+				$obj->load($r);
+				$res[] = &$obj;
 			}
 			return $res;
 		}
 	}
 
-	public static function load($data) {
-		$obj = new self();
-
-		$obj->id = $data['post_id'];
-		$obj->longid = $data['post_longid'];
-		$obj->overline = $data['post_overline'];
-		$obj->headline = $data['post_headline'];
-		$obj->subline = $data['post_subline'];
-		$obj->teaser = $data['post_teaser'];
-		$obj->author = $data['post_author'];
-		$obj->timestamp = (int) $data['post_timestamp'];
-
-		if(isset($data['image_id'])){
-			$obj->image = Image::load($data);
+	public function load($data) {
+		if(!$this->empty){
+			throw new WrongObjectStateException('empty');
 		}
 
-		$obj->content = $data['post_content'];
+		$this->id = $data['post_id'];
+		$this->longid = $data['post_longid'];
+		$this->overline = $data['post_overline'];
+		$this->headline = $data['post_headline'];
+		$this->subline = $data['post_subline'];
+		$this->teaser = $data['post_teaser'];
+		$this->author = $data['post_author'];
+		$this->timestamp = (int) $data['post_timestamp'];
 
-		return $obj;
+		if(isset($data['image_id'])){
+			$this->image = new Image();
+			$this->image->load($data);
+		}
+
+		$this->content = $data['post_content'];
+
+		$this->empty = false;
+		$this->new = false;
 	}
 
 	public static function count() {
-		global $pdo;
+		$pdo = self::open_pdo();
 
 		$query = 'SELECT COUNT(*) FROM posts';
 
@@ -139,10 +138,51 @@ class Post extends ContentObject {
 		}
 	}
 
-	public function insert($data) {
-		global $pdo;
+	public function push() {
+		if($this->empty){
+			throw new WrongObjectStateException('not empty');
+		}
 
-		$this->import_longid($data['longid']);
+		$values = [
+			'id' => $this->id,
+			'overline' => $this->overline,
+			'headline' => $this->headline,
+			'subline' => $this->subline,
+			'teaser' => $this->teaser,
+			'author' => $this->author,
+			'image_id' => $this->image->id,
+			'content' => $this->content
+		];
+
+		if($this->new){
+			$query = 'INSERT INTO posts (post_id, post_longid, post_overline, post_headline,
+				post_subline, post_teaser, post_author, post_timestamp, post_image_id,
+				post_content) VALUES (:id, :longid, :overline, :headline, :subline, :teaser,
+				:author, :timestamp, :image_id, :content)';
+
+			$values['longid'] = $this->longid;
+			$values['timestamp'] = $this->timestamp;
+		} else {
+			$query = 'UPDATE posts SET post_overline = :overline, post_headline = :headline,
+				post_subline = :subline, post_teaser = :teaser, post_author = :author,
+				post_image_id = :image_id, post_content = :content WHERE post_id = :id';
+		}
+
+		$s = $this->pdo->prepare($query);
+		if(!$s->execute($values)){
+			throw new DatabaseException($s);
+		} else {
+			$this->new = false;
+		}
+	}
+
+	public function import($data) {
+		if($this->new){
+			$this->import_longid($data['longid']);
+		} else {
+			$this->import_check_id_and_longid($data['id'], $data['longid']);
+		}
+
 		$this->import_overline($data['overline']);
 		$this->import_headline($data['headline']);
 		$this->import_subline($data['subline']);
@@ -153,106 +193,11 @@ class Post extends ContentObject {
 
 		$this->timestamp = time();
 
-		// TODO image routine (id or upload)
-
-		$query = <<<SQL
-INSERT INTO posts (
- post_id,
- post_longid,
- post_overline,
- post_headline,
- post_subline,
- post_teaser,
- post_author,
- post_timestamp,
- post_image_id,
- post_content
-) VALUES (
- :id,
- :longid,
- :overline,
- :headline,
- :subline,
- :teaser,
- :author,
- :timestamp,
- :image_id,
- :content
-)
-SQL;
-
-		$values = [
-			'id' => $this->id,
-			'longid' => $this->longid,
-			'overline' => $this->overline,
-			'headline' => $this->headline,
-			'subline' => $this->subline,
-			'teaser' => $this->teaser,
-			'author' => $this->author,
-			'timestamp' => $this->timestamp,
-			'content' => $this->content
-		];
-
-		if(isset($this->image->id)){
-			$values['image_id'] = $this->image->id;
-		} else {
-			$values['image_id'] = '';
-		}
-
-		$s = $pdo->prepare($query);
-		if(!$s->execute($values)){
-			throw new DatabaseException($s);
-		}
-	}
-
-	public function update($data) {
-		global $pdo;
-
-		$this->import_check_id_and_longid($data['id'], $data['longid']);
-		$this->import_overline($data['overline']);
-		$this->import_headline($data['headline']);
-		$this->import_subline($data['subline']);
-		$this->import_teaser($data['teaser']);
-		$this->import_author($data['author']);
-		$this->import_content($data['content']);
-		$this->import_image($data);
-
-		$query = <<<SQL
-UPDATE posts SET
- post_overline = :overline,
- post_headline = :headline,
- post_subline = :subline,
- post_teaser = :teaser,
- post_author = :author,
- post_image_id = :image_id,
- post_content = :content
-WHERE post_id = :id
-SQL;
-
-		$values = [
-			'overline' => $this->overline,
-			'headline' => $this->headline,
-			'subline' => $this->subline,
-			'teaser' => $this->teaser,
-			'author' => $this->author,
-			'content' => $this->content,
-			'id' => $this->id
-		];
-
-		if(isset($this->image->id)){
-			$values['image_id'] = $this->image->id;
-		} else {
-			$values['image_id'] = '';
-		}
-
-		$s = $pdo->prepare($query);
-		if(!$s->execute($values)){
-			throw new DatabaseException($s);
-		}
+		$this->empty = false;
 	}
 
 	public function delete() {
-		global $pdo;
+		if($this->empty)
 
 		$query = 'DELETE FROM posts WHERE post_id = :id';
 		$values = ['id' => $this->id];
@@ -260,6 +205,8 @@ SQL;
 		$s = $pdo->prepare($query);
 		if(!$s->execute($values)){
 			throw new DatabaseException($s);
+		} else {
+			$this->new = true;
 		}
 	}
 
@@ -314,7 +261,8 @@ SQL;
 	private function import_image($data) {
 		if($data['image_id']){
 			try {
-				$image = Image::pull_by_id($data['image_id']);
+				$image = new Image();
+				$image->pull_by_id($data['image_id']);
 			} catch(EmptyResultException $e){
 				throw new InvalidInputException('image_id', 'image id; No Image Found', $data['image_id']); // TODO better exc.-> api index.php
 			} catch(DatabaseException $e){
@@ -324,7 +272,10 @@ SQL;
 			$this->image = $image;
 		} else if(isset($data['image'])){
 			try {
-				$image = Image::insert($data['image']);
+				$image = new Image();
+				$image->generate();
+				$image->import($data['image']);
+				$image->push();
 			} catch(Exception $e){
 				throw new InvalidInputException('image', 'wrong exception but look in php', 'will be changed later'); // TODO
 				// TODO exception handling with and in images

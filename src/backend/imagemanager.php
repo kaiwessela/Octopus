@@ -1,6 +1,9 @@
 <?php
 // BUG: permissions of the uploaded files
 namespace Blog\Backend;
+use \Blog\Backend\Models\Image;
+use \Blog\Backend\Exceptions\ImageManagerException;
+use \Blog\Backend\Exceptions\InvalidArgumentException;
 
 class ImageManager {
 	private $dir;

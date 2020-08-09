@@ -3,7 +3,6 @@ namespace Blog\Frontend\Web;
 use PDO;
 use \Blog\Config\Config;
 use \Blog\Config\Routes;
-use Parsedown;
 
 class Endpoint {
 	public $pdo;
@@ -19,8 +18,6 @@ class Endpoint {
 			Config::DB_PASSWORD
 		);
 
-		$this->parsedown = new Parsedown();
-
 		setlocale(\LC_ALL, Config::SERVER_LANG . '.utf-8');
 
 		if(Config::DEBUG_MODE){
@@ -31,7 +28,7 @@ class Endpoint {
 			error_reporting(0);
 		}
 
-		$this->path = implode('/', [$_GET['page'], $_GET['post']]);
+		$this->path = implode('/', [$_GET['page'] ?? '', $_GET['post'] ?? '']);
 	}
 
 	public function handle() {

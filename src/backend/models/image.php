@@ -1,6 +1,7 @@
 <?php
 namespace Blog\Backend\Models;
 use \Blog\Backend\Model;
+use \Blog\Backend\ModelTrait;
 use \Blog\Backend\ImageManager;
 use \Blog\Backend\Exceptions\WrongObjectStateException;
 use \Blog\Backend\Exceptions\DatabaseException;
@@ -25,7 +26,7 @@ class Image implements Model {
 	const EXTENSION_JPG = 'jpg';
 	const EXTENSION_GIF = 'gif';
 
-	use Model;
+	use ModelTrait;
 
 
 	function __construct() {

@@ -1,6 +1,7 @@
 <?php
 namespace Blog\Backend\Models;
 use \Blog\Backend\Model;
+use \Blog\Backend\ModelTrait;
 use \Blog\Backend\Models\Image;
 use \Blog\Backend\Exceptions\WrongObjectStateException;
 use \Blog\Backend\Exceptions\DatabaseException;
@@ -24,7 +25,7 @@ class Post implements Model {
 	private $new;
 	private $empty;
 
-	use Model;
+	use ModelTrait;
 
 
 	function __construct() {

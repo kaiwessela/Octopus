@@ -6,7 +6,7 @@
 		<link rel="canonical" href="<?= $server->url ?>/posts/<?= $post->longid ?>">
 		<meta name="author" content="<?= $post->author ?>">
 		<meta name="description" content="<?= $post->teaser ?>">
-		<meta name="date" content="<?= to_html_time($post->timestamp) ?>">
+		<meta name="date" content="<?= $timeformat->html_time($post->timestamp) ?>">
 	</head>
 	<body>
 		<?php include COMPONENT_PATH . 'header.comp.php'; ?>
@@ -31,8 +31,8 @@ if(!empty($post->subline)){
 					<p class="author-and-date">
 						<!-- IDEA use address element? -->
 						Von <?= $post->author ?>, <wbr>veröffentlicht am
-						<time datetime="<?= to_html_time($post->timestamp) ?>">
-							<?= to_date($post->timestamp) ?>
+						<time datetime="<?= $timeformat->html_time($post->timestamp) ?>">
+							<?= $timeformat->date($post->timestamp) ?>
 						</time>
 					</p>
 				</header>

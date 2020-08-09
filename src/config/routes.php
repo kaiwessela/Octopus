@@ -4,14 +4,14 @@ namespace Blog\Config;
 class Routes {
 	const ROUTES = [
 		[
-			'path' => '/^$/',
+			'path' => '/^\/$/',
 			'template' => 'index',
-			'handler' => 'Index'
+			'handler' => 'IndexController'
 		],
 		[
 			'path' => '/^posts\/[0-9]{0,8}$/',
 			'template' => 'posts',
-			'handler' => 'PostList'
+			'handler' => 'PostListController'
 		],
 		[
 			'path' => '/^posts\/.{9,}$/',

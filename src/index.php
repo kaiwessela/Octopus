@@ -13,7 +13,7 @@ spl_autoload_register(function($name){
 define('TEMPLATE_PATH', __DIR__ . '/frontend/web/templates/');
 define('COMPONENT_PATH', __DIR__ . '/frontend/web/components/');
 
-require_once 'libs/parsedown/Parsedown.php'; // TEMP
+require_once 'libs/parsedown/Parsedown.php';
 
 $endpoint = new \Blog\Frontend\Web\Endpoint();
 $endpoint->handle();

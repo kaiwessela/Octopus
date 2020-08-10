@@ -1,6 +1,7 @@
 <?php
-namespace Blog\Frontend\Web\Modules;
+namespace Blog\Frontend\Web\Modules\Pagination;
 use \Blog\Config\PaginationConfig;
+use \Blog\Backend\Exceptions\InvalidArgumentException;
 
 class Pagination {
 	public $object_count;
@@ -34,25 +35,26 @@ class Pagination {
 
 		foreach(PaginationConfig::STRUCTURE as $item){
 			$item = (object) $item;
+			$item->disabled = false;
 
 			if($item->type == 'absolute'){
 				if($item->page == 'first'){
 					$item->absolute_number = 1;
 				} else if($item->page == 'last'){
-					$item->absolute_number = $this->page_count;
+					$item->absolute_number = (int) $this->page_count;
 				} else if($item->page == 'current'){
-					$item->absolute_number = $this->current_page;
+					$item->absolute_number = (int) $this->current_page;
 				} else if(is_int($item->page)){
 					$item->absolute_number = $item->page;
 				} else {
 					continue;
 				}
 
-				$item->relative_number = $this->current_number - $item->absolute_number;
+				$item->relative_number = $this->current_page - $item->absolute_number;
 			} else if($item->type == 'relative'){
 				if(is_int($item->page)){
 					$item->relative_number = $item->page;
-					$item->absolute_number = $this->current_number + $item->relative_number;
+					$item->absolute_number = $this->current_page + $item->relative_number;
 				} else {
 					continue;
 				}
@@ -73,7 +75,7 @@ class Pagination {
 
 		$numbers_used = [];
 		foreach($this->items as $index => $item){
-			if(array_key_exists($item->absolute_number, $numbers_used){
+			if(!array_key_exists((int) $item->absolute_number, $numbers_used)){
 				# number is not used but will from now on be, write it into the list
 				$numbers_used[$item->absolute_number] = $index;
 				continue;
@@ -98,6 +100,7 @@ class Pagination {
 	}
 
 	public function display_items() {
+		$pagination = &$this; // TEMP
 		foreach($this->items as $item){
 			include __DIR__ . '/templates/' . $item->template . '.item.php';
 		}
@@ -117,11 +120,11 @@ class Pagination {
 	}
 
 	public function get_object_offset() {
-		return $this->objects_per_page * ($this->current_page - 1);
+		return PaginationConfig::OBJECTS_PER_PAGE * ($this->current_page - 1);
 	}
 
 	public function get_object_limit() {
-		return $this->objects_per_page;
+		return PaginationConfig::OBJECTS_PER_PAGE;
 	}
 
 	public function get_first_object_number() {

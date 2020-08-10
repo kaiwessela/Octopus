@@ -9,9 +9,9 @@ class PaginationConfig {
 			'type' => 'absolute',
 			'page' => 'first',
 			'hide_on_void' => false,
-			'hide_on_duplicate' => false,
-			'duplicate_priority' => 1,
-			'template' => 'default',
+			'hide_on_duplicate' => true,
+			'duplicate_priority' => 0.5,
+			'template' => 'first',
 			'title' => 'Erste Seite'
 		],
 		[
@@ -28,27 +28,27 @@ class PaginationConfig {
 			'page' => -3,
 			'hide_on_void' => true,
 			'hide_on_duplicate' => true,
-			'duplicate_priority' => 0.5,
+			'duplicate_priority' => 0.75,
 			'template' => 'default',
 			'title' => 'Drei Seiten zurück'
 		],
 		[
 			'type' => 'relative',
-			'page' => -3,
+			'page' => -2,
 			'hide_on_void' => true,
 			'hide_on_duplicate' => true,
-			'duplicate_priority' => 0.5,
+			'duplicate_priority' => 0.75,
 			'template' => 'default',
 			'title' => 'Zwei Seiten zurück'
 		],
 		[
 			'type' => 'relative',
-			'page' => -3,
+			'page' => -1,
 			'hide_on_void' => true,
 			'hide_on_duplicate' => true,
-			'duplicate_priority' => 0.5,
+			'duplicate_priority' => 0.75,
 			'template' => 'default',
-			'title' => 'Eine Seiten zurück'
+			'title' => 'Eine Seite zurück'
 		],
 		[
 			'type' => 'absolute',
@@ -56,7 +56,7 @@ class PaginationConfig {
 			'hide_on_void' => false,
 			'hide_on_duplicate' => false,
 			'duplicate_priority' => 1,
-			'template' => 'default',
+			'template' => 'current',
 			'title' => 'Aktuelle Seite'
 		],
 		[
@@ -64,7 +64,7 @@ class PaginationConfig {
 			'page' => 1,
 			'hide_on_void' => true,
 			'hide_on_duplicate' => true,
-			'duplicate_priority' => 0.5,
+			'duplicate_priority' => 0.75,
 			'template' => 'default',
 			'title' => 'Eine Seite vor'
 		],
@@ -73,7 +73,7 @@ class PaginationConfig {
 			'page' => 2,
 			'hide_on_void' => true,
 			'hide_on_duplicate' => true,
-			'duplicate_priority' => 0.5,
+			'duplicate_priority' => 0.75,
 			'template' => 'default',
 			'title' => 'Zwei Seiten vor'
 		],
@@ -82,7 +82,7 @@ class PaginationConfig {
 			'page' => 3,
 			'hide_on_void' => true,
 			'hide_on_duplicate' => true,
-			'duplicate_priority' => 0.5,
+			'duplicate_priority' => 0.75,
 			'template' => 'default',
 			'title' => 'Drei Seiten vor'
 		],
@@ -99,11 +99,11 @@ class PaginationConfig {
 			'type' => 'absolute',
 			'page' => 'last',
 			'hide_on_void' => false,
-			'hide_on_duplicate' => false,
-			'duplicate_priority' => 1,
-			'template' => 'default',
+			'hide_on_duplicate' => true,
+			'duplicate_priority' => 0.5,
+			'template' => 'last',
 			'title' => 'Letzte Seite'
 		]
-	]
+	];
 }
 ?>

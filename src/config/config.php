@@ -30,5 +30,7 @@ class Config {
 	# the amount of preview posts displayed per post list page
 	const PREVIEW_POSTS_PER_PAGE = 3;
 
+	const DYNAMIC_IMAGE_PATH = '/resources/images/dynamic/';
+
 }
 ?>

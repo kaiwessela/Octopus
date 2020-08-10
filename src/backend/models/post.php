@@ -21,7 +21,6 @@ class Post implements Model {
 	public $image;		# Image
 	public $content;	# String
 
-	private $pdo;
 	private $new;
 	private $empty;
 
@@ -29,7 +28,6 @@ class Post implements Model {
 
 
 	function __construct() {
-		$this->pdo = self::open_pdo();
 		$this->empty = true;
 	}
 
@@ -46,6 +44,8 @@ class Post implements Model {
 	}
 
 	public function pull($identifier) {
+		$pdo = self::open_pdo();
+
 		if(!$this->empty){
 			throw new WrongObjectStateException('empty');
 		}
@@ -53,7 +53,7 @@ class Post implements Model {
 		$query = 'SELECT * FROM posts LEFT JOIN images ON image_id = post_image_id WHERE post_id = :id OR post_longid = :id';
 		$values = ['id' => $identifier];
 
-		$s = $this->pdo->prepare($query);
+		$s = $pdo->prepare($query);
 		if(!$s->execute($values)){
 			throw new DatabaseException($s);
 		} else if($s->rowCount() != 1){
@@ -95,7 +95,7 @@ class Post implements Model {
 			while($r = $s->fetch()){
 				$obj = new Post();
 				$obj->load($r);
-				$res[] = &$obj;
+				$res[] = $obj;
 			}
 			return $res;
 		}
@@ -115,8 +115,8 @@ class Post implements Model {
 		$this->author = $data['post_author'];
 		$this->timestamp = (int) $data['post_timestamp'];
 
+		$this->image = new Image();
 		if(isset($data['image_id'])){
-			$this->image = new Image();
 			$this->image->load($data);
 		}
 
@@ -140,6 +140,8 @@ class Post implements Model {
 	}
 
 	public function push() {
+		$pdo = self::open_pdo();
+
 		if($this->empty){
 			throw new WrongObjectStateException('not empty');
 		}
@@ -169,7 +171,7 @@ class Post implements Model {
 				post_image_id = :image_id, post_content = :content WHERE post_id = :id';
 		}
 
-		$s = $this->pdo->prepare($query);
+		$s = $pdo->prepare($query);
 		if(!$s->execute($values)){
 			throw new DatabaseException($s);
 		} else {

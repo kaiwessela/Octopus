@@ -1,5 +1,6 @@
 <?php
 namespace Blog\Backend\Models;
+use \Blog\Config\Config;
 use \Blog\Backend\Model;
 use \Blog\Backend\ModelTrait;
 use \Blog\Backend\ImageManager;
@@ -16,11 +17,8 @@ class Image implements Model {
 	public $description;	# String(1-256)
 	public $sizes;
 
-	private $pdo;
 	private $new;
 	private $empty;
-
-	private $imagemanager;
 
 	const EXTENSION_PNG = 'png';
 	const EXTENSION_JPG = 'jpg';
@@ -30,8 +28,7 @@ class Image implements Model {
 
 
 	function __construct() {
-		$this->pdo = self::open_pdo();
-		$this->imagemanager = new ImageManager();
+		//$this->imagemanager = new ImageManager(Config::DYNAMIC_IMAGE_PATH);
 		$this->empty = true;
 	}
 
@@ -46,7 +43,9 @@ class Image implements Model {
 		$this->empty = false;
 	}
 
-	public static function pull($identifier) {
+	public function pull($identifier) {
+		$pdo = self::open_pdo();
+
 		if(!$this->empty){
 			throw new WrongObjectStateException('empty');
 		}
@@ -54,7 +53,7 @@ class Image implements Model {
 		$query = 'SELECT * FROM images WHERE image_id = :id OR image_longid = :id';
 		$values = ['id' => $identifier];
 
-		$s = $this->pdo->prepare($query);
+		$s = $pdo->prepare($query);
 		if(!$s->execute($values)){
 			throw new DatabaseException($s);
 		} else if($s->rowCount() != 1){
@@ -95,7 +94,7 @@ class Image implements Model {
 			$res = [];
 			while($r = $s->fetch()){
 				$obj = new Image();
-				$obj->load($r)
+				$obj->load($r);
 				$res[] = &$obj;
 			}
 			return $res;
@@ -131,6 +130,8 @@ class Image implements Model {
 	}
 
 	public function push() {
+		$pdo = self::open_pdo();
+
 		if($this->empty){
 			throw new WrongObjectStateException('not empty');
 		}
@@ -152,7 +153,7 @@ class Image implements Model {
 			$query = 'UPDATE images SET image_description = :description WHERE image_id = :id';
 		}
 
-		$s = $this->pdo->prepare($query);
+		$s = $pdo->prepare($query);
 		if(!$s->execute($values)){
 			throw new DatabaseException($s);
 		} else {
@@ -174,12 +175,14 @@ class Image implements Model {
 	}
 
 	public function delete() {
+		$pdo = self::open_pdo();
+
 		$this->imagemanager->delete_images($this);
 
 		$query = 'DELETE FROM images WHERE image_id = :id';
 		$values = ['id' => $this->id];
 
-		$s = $this->pdo->prepare($query);
+		$s = $pdo->prepare($query);
 		if(!$s->execute($values)){
 			throw new DatabaseException($s);
 		} else {
@@ -189,6 +192,10 @@ class Image implements Model {
 
 	public function has_size($size) {
 		return in_array($size, $this->sizes);
+	}
+
+	public function is_empty() {
+		return $this->empty;
 	}
 
 	private function import_description($description) {

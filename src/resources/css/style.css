@@ -521,7 +521,7 @@ article.preview .teaser time {
 }
 
 .pagination .current {
-	width: 4rem;
+	background: var(--default-gradient) center center / 100% 100% no-repeat;
 	font-weight: 600;
 }
 

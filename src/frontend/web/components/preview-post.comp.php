@@ -1,11 +1,14 @@
+<?php
+use \Blog\Frontend\Web\Modules\TimeFormat;
+$tf = new TimeFormat;
+?>
 <article class="preview">
 	<a href="<?= $server->url ?>/posts/<?= $post->longid ?>">
 
 <?php
-if(isset($post->image)){
+if($post->show_picture){
+	$picture = $post->picture;
 	include COMPONENT_PATH . 'picture.comp.php';
-	$picture = new Picture($post->image, 200);
-	$picture->display();
 }
 ?>
 
@@ -13,8 +16,8 @@ if(isset($post->image)){
 		<h3><span><?= $post->headline ?></span></h3>
 		<p class="subline"><?= $post->subline ?></p>
 		<p class="teaser">
-			<time datetime="<?= to_html_time($post->timestamp) ?>">
-				<?= to_date($post->timestamp) ?> –
+			<time datetime="<?= $timeformat->html_time($post->timestamp) ?>">
+				<?= $tf->date($post->timestamp) ?> –
 			</time>
 			<?= $post->teaser ?>
 		</p>

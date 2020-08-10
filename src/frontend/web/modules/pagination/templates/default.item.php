@@ -1,5 +1,5 @@
-<a href="<?= Config::SERVER_URL ?>"
-	class="pagination-item default"
-	title="">
-	<?= $item->relative_number ?>
+<a href="./<?= $item->absolute_number ?>"
+	class="pagination-item default <?php if($item->disabled){ ?>disabled<?php } ?>"
+	title="<?= $item->title ?>">
+	<?= $item->absolute_number ?>
 </a>

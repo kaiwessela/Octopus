@@ -1,4 +1,6 @@
 <?php
+namespace Blog\Frontend\API\v1;
+
 class APIResponse {
 	# APIResponse class – container and handler for response information
 

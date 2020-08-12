@@ -1,4 +1,6 @@
 <?php
+namespace Blog\Frontend\API\v1;
+
 class APIRequest {
 	# APIRequest class – container for request information
 

@@ -95,7 +95,7 @@ class Image implements Model {
 			while($r = $s->fetch()){
 				$obj = new Image();
 				$obj->load($r);
-				$res[] = &$obj;
+				$res[] = $obj;
 			}
 			return $res;
 		}

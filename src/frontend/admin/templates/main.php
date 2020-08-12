@@ -16,11 +16,5 @@ use \Blog\Config\Config;
 		<main>
 			<?php $controller->display(); ?>
 		</main>
-		<?php // include 'imageinput.php'; ?>
-		<script src="<?= Config::SERVER_URL ?>/admin/resources/js/selectableimage.js"></script>
-		<script src="<?= Config::SERVER_URL ?>/admin/resources/js/imageinputpicker.js"></script>
-		<script src="<?= Config::SERVER_URL ?>/admin/resources/js/imageinputuploader.js"></script>
-		<script src="<?= Config::SERVER_URL ?>/admin/resources/js/imageinput.js"></script>
-		<script src="<?= Config::SERVER_URL ?>/admin/resources/js/script.js"></script>
 	</body>
 </html>

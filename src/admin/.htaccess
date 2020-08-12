@@ -1,4 +1,8 @@
 RewriteEngine on
-RewriteRule ^([^\/.]+)(\/?)$ index.php?class=$1 [QSA]
-RewriteRule ^([^\/.]+)/([^\/]+)(\/?)$ index.php?class=$1&identifier=$2 [QSA]
-RewriteRule ^([^\/.]+)/([^\/]+)/([^\/]+)(\/?)$ index.php?class=$1&identifier=$2&action=$3 [QSA]
+RewriteBase /admin/
+RewriteRule ^resources					- 											[L,NC]
+RewriteRule ^([a-z]*)$ 					index.php?class=$1 							[QSA]
+RewriteRule ^([a-z]*)/([a-z0-9]*)$ 		index.php?class=$1&identifier=$2 			[QSA]
+RewriteRule ^([a-z]*)/([a-z0-9]*)/(.*) 	index.php?class=$1&identifier=$2&action=$3 	[QSA]
+
+ErrorDocument 404						index.php?class=404

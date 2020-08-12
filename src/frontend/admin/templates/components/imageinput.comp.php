@@ -1,3 +1,7 @@
+<?php
+use \Blog\Config\Config;
+?>
+
 <template id="iit-basic">
 	<div class="ii-imagebox">
 
@@ -9,7 +13,7 @@
 </template>
 
 <template id="iit-imagebox-filled">
-	<img src="<?= DYN_IMG_PATH ?>%II.image.longid%/original.jpg" alt="Ausgewähltes Bild">
+	<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH ?>%II.image.longid%/original.jpg" alt="Ausgewähltes Bild">
 </template>
 
 <template id="iit-imagebox-empty">
@@ -41,5 +45,11 @@
 </template>
 
 <template id="iit-selectableimage">
-	<img src="<?= DYN_IMG_PATH ?>%II.image.longid%/original.jpg" alt="Bild">
+	<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH ?>%II.image.longid%/original.jpg" alt="Bild">
 </template>
+
+<script src="<?= Config::SERVER_URL ?>/admin/resources/js/selectableimage.js"></script>
+<script src="<?= Config::SERVER_URL ?>/admin/resources/js/imageinputpicker.js"></script>
+<script src="<?= Config::SERVER_URL ?>/admin/resources/js/imageinputuploader.js"></script>
+<script src="<?= Config::SERVER_URL ?>/admin/resources/js/imageinput.js"></script>
+<script src="<?= Config::SERVER_URL ?>/admin/resources/js/script.js"></script>

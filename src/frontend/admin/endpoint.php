@@ -17,14 +17,14 @@ use \Blog\Frontend\Admin\Controllers\NotFoundController;
 
 class Endpoint {
 	public $controller;
+	public $user;
 
 	function __construct() {
-		$user = new User();
-		$user->authenticate();
-		if(!$user->is_authenticated()){
-
-			#header('Location: ' . Config::SERVER_URL . '/astronauth/signin');
-			#exit;
+		$this->user = new User();
+		$this->user->authenticate();
+		if(!$this->user->is_authenticated()){
+			header('Location: ' . Config::SERVER_URL . '/astronauth/signin');
+			exit;
 		}
 
 		$request = [];
@@ -72,6 +72,7 @@ class Endpoint {
 
 	public function handle() {
 		$controller = $this->controller;
+		$user = $this->user;
 
 		include 'templates/main.php';
 	}

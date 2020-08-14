@@ -25,9 +25,14 @@ use \Blog\Config\Config;
 <?php } ?>
 
 <?php if($controller->show_form){ ?>
-<p>Post <span class="code"><?= $controller->post->longid ?></span> löschen?</p>
-<form action="<?= Config::SERVER_URL ?>/admin/posts/<?= $controller->post->id ?>/delete" method="post">
-	<input type="hidden" id="id" name="id" value="<?= $controller->post->id ?>">
+<?php $post = $controller->post; ?>
+<p>
+	<a href="<?= Config::SERVER_URL ?>/posts/<?= $post->longid ?>">Blogansicht</a>
+	<a href="<?= Config::SERVER_URL ?>/admin/posts/<?= $post->id ?>/edit" class="edit">Bearbeiten</a>
+</p>
+<p>Post <span class="code"><?= $post->longid ?></span> löschen?</p>
+<form action="#" method="post">
+	<input type="hidden" id="id" name="id" value="<?= $post->id ?>">
 	<input type="submit" value="Löschen">
 </form>
 <?php } ?>

@@ -54,7 +54,8 @@ class ImageInput {
 			this.value = id;
 			this.longid = longid;
 			this.clearButton.disabled = false;
-			this.imagebox.innerHTML = document.getElementById('iit-imagebox-filled').innerHTML.replace('%II.image.longid%', this.longid);
+			this.imagebox.innerHTML = document.getElementById('iit-imagebox-filled').innerHTML
+				.replace(/%II\.image\.longid%/g, this.longid);
 		}
 
 		this.input.value = id;

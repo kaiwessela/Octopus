@@ -7,37 +7,63 @@ use \Blog\Config\Config;
 
 	</div>
 	<input type="hidden" id="ii-value" name="" value="">
-	<button type="button" class="negative" id="ii-basic-clear">Bild entfernen</button>
-	<button type="button" id="ii-basic-pick">Aus vorhandenen Bildern auswählen</button>
-	<button type="button" id="ii-basic-upload">Neues Bild hochladen</button>
+	<button type="button" id="ii-basic-clear">entfernen</button>
+	<button type="button" id="ii-basic-pick">aus Liste auswählen</button>
+	<button type="button" id="ii-basic-upload">hochladen</button>
 </template>
 
 <template id="iit-imagebox-filled">
-	<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH ?>%II.image.longid%/original.jpg" alt="Ausgewähltes Bild">
+	<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH ?>%II.image.longid%/original.jpg"
+		alt="[ANZEIGEFEHLER] Hier sollte das Bild angezeigt werden.">
+	<p>Bild-ID: <span class="code">%II.image.longid%</span></p>
 </template>
 
 <template id="iit-imagebox-empty">
-	<div class="ii-imagebox-empty">Kein Bild ausgewählt</div>
+	<div class="ii-imagebox-empty">Kein Bild ausgewählt.</div>
 </template>
 
 <template id="iit-picker">
 	<div class="dialog">
-		<div class="masonry">
+		<div>
+			<h2>Bild auswählen</h2>
+			<div class="masonry">
 
+			</div>
+			<button type="button" id="ii-picker-cancel">Abbrechen</button>
 		</div>
-		<button type="button" id="ii-picker-cancel">Abbrechen</button>
 	</div>
 </template>
 
 <template id="iit-uploader">
 	<div class="dialog">
 		<form>
-			<label for="ii-uploader-longid">URL</label>
-			<input type="text" id="ii-uploader-longid" name="longid">
-			<label for="ii-uploader-description">Beschreibung</label>
-			<input type="text" id="ii-uploader-description" name="description">
-			<label for="ii-uploader-file">Datei</label>
-			<input type="file" id="ii-uploader-file" name="imagefile">
+			<h2>Bild hochladen</h2>
+			<label for="ii-uploader-longid">
+				<span class="name">Bild-ID</span>
+				<span class="requirements">
+					erforderlich; 9 bis 128 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
+					Bindestriche (-)
+				</span>
+				<span class="description">
+					Die Bild-ID wird in der URL verwendet und sollte den Bildinhalt kurz
+					beschreiben.
+				</span>
+			</label>
+			<input type="text" id="ii-uploader-longid" class="longid" name="longid">
+			<label for="ii-uploader-description">
+				<span class="name">Beschreibung</span>
+				<span class="requirements">optional</span>
+				<span class="description">
+					Die Beschreibung wird als Alternativtext angezeigt, wenn das Bild nicht geladen
+					werden kann. Sie sollte den Bildinhalt wiedergeben.
+				</span>
+			</label>
+			<input type="text" id="ii-uploader-description" class="description" name="description">
+			<label for="ii-uploader-file">
+				<span class="name">Datei</span>
+				<span class="requirements">erforderlich; PNG, JPEG oder GIF</span>
+			</label>
+			<input type="file" id="ii-uploader-file" class="file" name="imagefile">
 			<input type="submit" value="Hochladen">
 			<button type="button" id="ii-uploader-cancel">Abbrechen</button>
 		</form>

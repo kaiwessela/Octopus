@@ -24,13 +24,84 @@ html {
 
 body {
 	display: grid;
-	grid-template-rows: auto 1fr;
+	grid-template-columns: [grid-start] 1fr [outer-start] 5rem [content-start] 60rem [content-end] 5rem [outer-end] 1fr [grid-end];
 	margin: 0;
 	padding: 0;
 }
 
-a,
-a:visited {
+header {
+	grid-column: grid-start / grid-end;
+	display: grid;
+	grid-template-columns: inherit;
+	height: 4rem;
+	background-color: #26262b;
+	color: #ffffff;
+}
+
+header nav {
+	grid-column: outer-start / outer-end;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+header nav div {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+}
+
+header nav .logo {
+	font-size: 1.1rem;
+	font-weight: 800;
+}
+
+header nav .logo .darkened {
+	color: #ffffff88;
+}
+
+header nav a {
+	display: block;
+	line-height: 4rem;
+	padding: 0 1rem;
+	color: inherit;
+	text-decoration: none;
+}
+
+header nav a:hover,
+header nav a:focus {
+	background-color: #00000044;
+}
+
+header div.astronauth {
+	font-weight: 600;
+}
+
+header div.astronauth .icon {
+	font-size: 2rem;
+	padding: 0 0.5rem;
+}
+
+header div.astronauth .dropdown {
+	position: absolute;
+	top: 4rem;
+	padding: 0.5rem;
+	background-color: #26262b;
+	display: none;
+}
+
+header div.astronauth:hover .dropdown,
+header div.astronauth:focus .dropdown {
+	display: block;
+}
+
+main {
+	grid-column: content-start / content-end;
+	padding: 0 1rem 2rem;
+}
+
+a {
 	color: #1da1f2;
 	text-decoration: underline;
 }
@@ -43,6 +114,14 @@ a:focus {
 a:active {
 	color: #000000;
 	background-color: #ffff00;
+}
+
+a.edit {
+	color: #00bb00;
+}
+
+a.delete {
+	color: #e3000f;
 }
 
 a.button,
@@ -67,48 +146,6 @@ a.button:active {
 	color: #000000;
 	background-color: #ffff00;
 	border-color: #000000;
-}
-
-header {
-	grid-row: 1 / 2;
-	background-color: #26262b;
-	color: #ffffff;
-	display: flex;
-	flex-direction: row;
-}
-
-header a:link,
-header a:visited {
-	display: block;
-	padding: 1em 1em 1.2em;
-	color: inherit;
-	text-decoration: none;
-}
-
-header a:hover,
-header a:focus {
-	background-color: #00000044;
-}
-
-main {
-	grid-row: 2 / 3;
-	padding: 0 1rem 2rem;
-}
-
-table {
-	border-collapse: collapse;
-	margin: 1rem 0;
-}
-
-table tr th {
-	font-weight: 700;
-	border: 1px solid #00000044;
-	padding: 0.5rem;
-}
-
-table tr td {
-	border: 1px solid #00000044;
-	padding: 0.5rem;
 }
 
 span.message {
@@ -153,66 +190,175 @@ span.message.error::before {
 	content: 'Fehler';
 }
 
+
+
+article.post.preview {
+	margin: 1rem 0;
+	padding: 0.5rem;
+	border: 1px solid #00000044;
+}
+
+article.post.preview p {
+	margin: 0.5em 0;
+}
+
+article.post .longid {
+	width: max-content;
+	margin: 0;
+	padding: 0.1em 0.2em;
+	font-family: 'Fira Mono';
+	background-color: #00000022;
+}
+
+article.post .overline {
+	font-weight: 600;
+	margin: 0.75em 0 0.5em;
+}
+
+article.post .headline {
+	margin: 0.25em 0;
+}
+
+article.post .subline {
+	font-size: 1.1em;
+	font-weight: 500;
+	font-style: italic;
+	margin: 0.25em 0;
+}
+
+article.post .author {
+	color: #00000088;
+}
+
+article.post .timestamp {
+	color: #00000088;
+	font-style: italic;
+}
+
+article.post.preview .teaser {
+	height: 0;
+	overflow: hidden;
+}
+
+article.post.preview:hover .teaser,
+article.post.preview:focus .teaser {
+	height: auto;
+}
+
+
+
 form {
-	width: 60rem;
+
 }
 
 label {
 	display: block;
-	margin: 0.5rem 0 0;
+	margin: 1.5rem 0 0;
 }
 
-input,
+label span {
+	display: block;
+	margin: 0.25rem 0;
+}
+
+label .name {
+	font-size: 1.1em;
+	font-weight: 600;
+}
+
+label .requirements {
+	color: #00000088;
+	font-style: italic;
+}
+
+input[type=text],
+input[type=file],
 textarea {
+	display: block;
+	margin: 0.5rem 0 1rem;
+	padding: 0.5rem;
 	font-family: 'Fira Mono';
 	font-size: 1rem;
-	line-height: 1.3em;
-	width: calc(100% - 2 * 0.5rem);
-	padding: 0.5rem;
-	margin: 0 0 0.5rem;
-	outline: none;
-	border: 3px solid #00000044;
+	border: none;
+	border-bottom: 0.15rem solid #1da1f2;
 	border-radius: 0.25rem;
-}
-
-input:focus,
-textarea:focus {
-	border-color: #1da1f2;
-}
-
-input[type=submit] {
-	width: 20rem;
-	font-family: 'Open Sans';
-	font-size: 1rem;
-	background-color: #1da1f2;
-	border-color: #1da1f2;
-	color: #ffffff;
-	margin: 0.5rem 0;
-}
-
-input[type=submit]:hover,
-input[type=submit]:focus {
-	background-color: #ffffff;
-	color: #1da1f2;
-}
-
-input[type=submit]:active {
-	background-color: #ffff00;
-	color: #000000;
-	border-color: #000000;
+	outline: none;
+	background-color: #0000000f;
+	box-sizing: border-box;
 }
 
 textarea {
 	resize: vertical;
 }
 
-textarea.teaser-text {
-	height: 3.9em;
+input.longid {
+	font-family: 'Fira Mono';
+	width: 50%;
 }
 
-textarea.long-text {
-	height: 13em;
+input.overline {
+	font-family: 'Open Sans';
+	font-weight: 600;
+	width: 25%;
 }
+
+input.headline {
+	font-family: 'Open Sans';
+	font-size: 2rem;
+	font-weight: 700;
+	width: 75%;
+}
+
+input.subline {
+	font-family: 'Open Sans';
+	font-size: 1.3rem;
+	font-weight: 600;
+	font-style: italic;
+	width: 75%;
+}
+
+textarea.teaser {
+	font-family: 'Open Sans';
+	line-height: 1.25em;
+	width: 50%;
+	height: 5em;
+}
+
+input.author {
+	width: 25%;
+}
+
+textarea.content {
+	font-family: 'Open Sans';
+	line-height: 1.5em;
+	width: 100%;
+	height: 30rem;
+}
+
+input.description {
+	width: 100%;
+}
+
+input.file {
+	width: 50%;
+}
+
+input[type=submit] {
+	display: block;
+	margin: 2rem 0;
+	padding: 0.5rem 1rem;
+	font-family: 'Open Sans';
+	font-size: 1rem;
+	border: none;
+	border-radius: 0.25rem;
+	outline: none;
+	color: #ffffff;
+	background-color: #1da1f2;
+}
+
+
+
+
 
 span.code {
 	background-color: #00000022;
@@ -244,22 +390,112 @@ button.negative:focus {
 	background-color: #f0474788;
 }
 
+
+
 #imageinput {
+	display: block;
+	margin: 0.5rem 0 1rem;
 	padding: 0.5rem;
-	border: 3px solid #00000044;
+	font-size: 1rem;
+	border: none;
+	border-bottom: 0.15rem solid #1da1f2;
 	border-radius: 0.25rem;
+	outline: none;
+	background-color: #0000000f;
+	box-sizing: border-box;
+	width: 50%;
+}
+
+#imageinput button,
+.dialog button {
+	--color: #000000;
+	--color-bg: #00000022;
+	--color-border: #00000044;
+	margin: 1rem 0 0;
+	padding: 0.4rem;
+	font-family: 'Open Sans';
+	font-size: 0.9rem;
+	text-transform: uppercase;
+	border: 0.1rem solid var(--color-border);
+	border-radius: 0.25rem;
+	outline: none;
+	color: var(--color);
+	background-color: var(--color-bg);
+}
+
+#imageinput button#ii-basic-clear {
+	--color-bg: #f0474766;
+	--color-border: #f04747;
+}
+
+#imageinput button#ii-basic-pick {
+	--color-bg: #1da1f266;
+	--color-border: #1da1f2;
+}
+
+#imageinput button#ii-basic-upload {
+	--color-bg: #00bb0066;
+	--color-border: #00bb00;
+}
+
+#imageinput img {
+	display: block;
+	width: 100%;
+	font-family: 'Fira Mono';
 }
 
 div.dialog {
-	display: none;
+	display: grid;
+	grid-template-columns: inherit;
+	grid-template-rows: 5rem auto 1fr 5rem;
+	visibility: hidden;
 	position: fixed;
-	top: 2rem;
+	top: 0;
+	left: 0;
+	height: 100vh;
+	width: 100vw;
+	background-color: #000000bb;
+	z-index: 99;
+}
+
+div.dialog > * {
+	grid-column: content-start / content-end;
+	grid-row: 2 / 3;
+	width: 60rem;
+	height: auto;
 	padding: 1rem;
-	margin: 1rem;
 	background-color: #ffffff;
-	box-shadow: 0 0 1rem 1rem #00000022;
+	border-radius: 0.5rem;
+	z-index: 100;
 }
 
 div.dialog.open {
-	display: block;
+	visibility: visible;
+}
+
+div.dialog h2 {
+	margin: 0.25rem 0;
+}
+
+div.dialog .masonry {
+	margin: 1rem 0;
+	overflow-y: scroll;
+}
+
+div.dialog button {
+	margin: 0 0.25rem 0 0;
+	padding: 0.4rem;
+	font-family: 'Open Sans';
+	font-size: 1rem;
+	text-transform: none;
+	border: 0.1rem solid #00000044;
+	border-radius: 0.25rem;
+	outline: none;
+	background-color: #00000022;
+}
+
+div.dialog input[type=submit] {
+	display: inline-block;
+	margin: 1rem 0.25rem 0 0;
+	padding: 0.5rem 1rem;
 }

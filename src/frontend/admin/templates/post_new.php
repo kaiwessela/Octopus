@@ -18,32 +18,90 @@ use \Blog\Config\Config;
 <?php } ?>
 
 <?php if($controller->show_form){ ?>
-<form action="<?= Config::SERVER_URL ?>/admin/posts/new" method="post">
-	<label for="longid">URL</label>
-	<input type="text" id="longid" name="longid" required>
+<form action="#" method="post">
+	<label for="longid">
+		<span class="name">Post-ID</span>
+		<span class="requirements">
+			erforderlich; 9 bis 128 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
+			Bindestriche (-)
+		</span>
+		<span class="description">
+			Die Post-ID wird in der URL verwendet und entspricht oftmals ungefähr der Überschrift.
+		</span>
+	</label>
+	<input type="text" id="longid" class="longid" name="longid" required>
 
-	<label for="overline">Overline</label>
-	<input type="text" id="overline" name="overline">
+	<label for="overline">
+		<span class="name">Dachzeile</span>
+		<span class="requirements">optional, bis zu 64 Zeichen</span>
+		<span class="description">
+			Die Dachzeile steht direkt über der Überschrift und beinhaltet meist ein kurzes
+			Stichwort, das das Thema des Artikels angibt.
+		</span>
+	</label>
+	<input type="text" id="overline" class="overline" name="overline">
 
-	<label for="headline">Überschrift</label>
-	<input type="text" id="headline" name="headline" required>
+	<label for="headline">
+		<span class="name">Schlagzeile</span>
+		<span class="requirements">erforderlich, 1 bis 256 Zeichen</span>
+		<span class="description">
+			Die Schlagzeile ist die Überschrift des Artikels und fasst die Kernaussage prägnant
+			zusammen.
+		</span>
+	</label>
+	<input type="text" id="headline" class="headline" name="headline" required>
 
-	<label for="subline">Subline</label>
-	<input type="text" id="subline" name="subline">
+	<label for="subline">
+		<span class="name">Unterzeile</span>
+		<span class="requirements">optional, bis zu 256 Zeichen</span>
+		<span class="description">
+			Die Unterzeile steht unterhalb der Schlagzeile und ergänzt diese um weitere
+			Informationen.
+		</span>
+	</label>
+	<input type="text" id="subline" class="subline" name="subline">
 
-	<label for="teaser">Teaser</label>
-	<textarea id="teaser" name="teaser"></textarea>
+	<label for="teaser">
+		<span class="name">Teaser</span>
+		<span class="requirements">optional</span>
+		<span class="description">
+			Der Teaser wird nur in der Artikelvorschau angezeigt. Er fasst den Artikel kurz
+			zusammen und soll zum Weiterlesen anregen.
+		</span>
+	</label>
+	<textarea id="teaser" class="teaser" name="teaser"></textarea>
 
-	<label for="author">Autor</label>
-	<input type="text" id="author" name="author" required>
+	<label for="author">
+		<span class="name">Autor</span>
+		<span class="requirements">erforderlich, 1 bis 128 Zeichen</span>
+		<span class="description">Der Autor des Artikels.</span>
+	</label>
+	<input type="text" id="author" class="author" name="author" required>
 
+	<label>
+		<span class="name">Artikelbild</span>
+		<span class="requirements">optional</span>
+		<span class="description">
+			Das Artikelbild wird prominent zwischen Überschrift und Inhalt sowie in der
+			Artikelvorschau angezeigt.
+		</span>
+	</label>
 	<div id="imageinput" data-value="" data-longid="" data-name="image_id"></div>
 
-	<label for="content">Inhalt</label>
-	<textarea id="content" name="content"></textarea>
+	<label for="content">
+		<span class="name">Inhalt</span>
+		<span class="requirements">
+			optional, Markdown-Schreibweise möglich
+			(<a href="https://de.wikipedia.org/wiki/Markdown">Wikipedia: Markdown</a>)
+		</span>
+		<span class="description">Der eigentliche Inhalt des Artikels</span>
+	</label>
+	<textarea id="content" class="content" name="content"></textarea>
 
 	<input type="submit" value="Speichern">
 </form>
 <?php } ?>
 
 <a href="<?= Config::SERVER_URL ?>/admin/posts">Zurück zu allen Posts</a>
+
+<?php include __DIR__ . '/components/imageinput.comp.php'; ?>

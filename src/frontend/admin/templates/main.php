@@ -9,9 +9,25 @@ use \Blog\Config\Config;
 	</head>
 	<body>
 		<header>
-			<a href="<?= Config::SERVER_URL ?>/admin">Startseite</a>
-			<a href="<?= Config::SERVER_URL ?>/admin/posts">Posts</a>
-			<a href="<?= Config::SERVER_URL ?>/admin/images">Bilder</a>
+			<nav>
+				<div>
+					<a href="<?= Config::SERVER_URL ?>" class="logo">
+						kaiwessela:Blog<span class="darkened">/admin</span>
+					</a>
+					<a href="<?= Config::SERVER_URL ?>/admin">Startseite</a>
+					<a href="<?= Config::SERVER_URL ?>/admin/posts">Posts</a>
+					<a href="<?= Config::SERVER_URL ?>/admin/images">Bilder</a>
+				</div>
+				<div class="astronauth">
+					<div class="navline">
+						<span class="icon">🚀</span>
+						<?= $user->account->name ?>
+					</div>
+					<div class="dropdown">
+						<a href="<?= Config::SERVER_URL ?>/astronauth/signout" class="button">Abmelden</a>
+					</div>
+				</div>
+			</nav>
 		</header>
 		<main>
 			<?php $controller->display(); ?>

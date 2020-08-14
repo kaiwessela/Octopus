@@ -17,7 +17,9 @@ class SelectableImage {
 		this.description = data.description;
 
 		var con = document.createElement('div');
-		con.innerHTML = document.getElementById('iit-selectableimage').innerHTML.replace('%II.image.longid%', this.longid);
+		con.innerHTML = document.getElementById('iit-selectableimage').innerHTML
+			.replace('%II.image.longid%', this.longid)
+			.replace('%II.image.description%', this.description);
 		this.elem = con.firstElementChild;
 
 		this.elem.addEventListener('click', () => {this.select()});

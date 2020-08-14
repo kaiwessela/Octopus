@@ -12,49 +12,34 @@ use \Blog\Config\Config;
 <?php } ?>
 
 <?php if($controller->show_post){ ?>
-<a href="<?= Config::SERVER_URL ?>/admin/posts">Zurück zu allen Posts</a><br>
-<a href="<?= Config::SERVER_URL ?>/admin/posts/<?= $controller->post->id ?>/edit" class="button">Post bearbeiten</a>
-<a href="<?= Config::SERVER_URL ?>/admin/posts/<?= $controller->post->id ?>/delete" class="button">Post löschen</a><br><br>
+<?php $post = $controller->post ?>
+<a href="<?= Config::SERVER_URL ?>/admin/posts" class="button">&laquo; Zurück zu allen Posts</a>
 
-<article>
-	<table>
-		<tr>
-			<td>Post-URL</td>
-			<td><span class="code"><?= $controller->post->longid ?></span></td>
-		</tr>
-		<tr>
-			<td>Overline</td>
-			<td class="overline"><?= $controller->post->overline ?></td>
-		</tr>
-		<tr>
-			<td>Headline</td>
-			<td class="headline"><?= $controller->post->headline ?></td>
-		</tr>
-		<tr>
-			<td>Subline</td>
-			<td class="subline"><?= $controller->post->subline ?></td>
-		</tr>
-		<tr>
-			<td>Teaser</td>
-			<td class="teaser"><?= $controller->post->teaser ?></p>
-		</tr>
-		<tr>
-			<td>Autor und Datum</td>
-			<td class="author">Von <?= $controller->post->author ?> &middot; <?= //to_date_and_time($controller->post->timestamp) ?></td>
-		</tr>
+<article class="post">
+	<p>
+		<a href="<?= Config::SERVER_URL ?>/posts/<?= $post->longid ?>">Blogansicht</a>
+		<a href="<?= Config::SERVER_URL ?>/admin/posts/<?= $post->id ?>/edit" class="edit">Bearbeiten</a>
+		<a href="<?= Config::SERVER_URL ?>/admin/posts/<?= $post->id ?>/delete" class="delete">Löschen</a>
+	</p>
+	<p class="longid"><?= $post->longid ?></p>
+	<p class="overline"><?= $post->overline ?></p>
+	<h1 class="headline"><?= $post->headline ?></h1>
+	<p class="subline"><?= $post->subline ?></p>
+	<p class="teaser"><?= $post->teaser ?></p>
+	<p>
+		Von <span class="author"><?= $post->author ?></span> –
+		<span class="timestamp"><?= $post->timestamp ?></span>
+	</p>
 
-		<?php if(!$controller->post->image->is_empty())){ ?>
-		<tr>
-			<td>Bild</td>
-			<td><img src="<?= Config::SERVER_URL . Config::DYN_IMG_PATH . $controller->post->image->longid?>.<?= $controller->post->image->extension ?>?size=large"
-				alt="<?= $controller->post->image->description ?>"></td>
-		</tr>
-		<?php } ?>
+	<?php if(!$post->image->is_empty()){ ?>
+	<div>
+		Bild: <span class="code"><?= $post->image->longid ?></span>
+		<a href="<?= Config::SERVER_URL ?>/admin/images/<?= $post->image->longid ?>">ansehen</a>
+		<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH . $post->image->longid . '.'
+			. $post->image->extension ?>?size=original" alt="<?= $post->image->description ?>">
+	</div>
+	<?php } ?>
 
-		<tr>
-			<td>Inhalt</td>
-			<td class="content"><?= $controller->post->content ?></td>
-		</tr>
-	</table>
+	<p class="content"><?= $post->content ?></p>
 </article>
 <?php } ?>

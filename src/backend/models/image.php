@@ -28,7 +28,6 @@ class Image implements Model {
 
 
 	function __construct() {
-		//$this->imagemanager = new ImageManager(Config::DYNAMIC_IMAGE_PATH);
 		$this->empty = true;
 	}
 
@@ -162,9 +161,11 @@ class Image implements Model {
 	}
 
 	public function import($data) {
+		$imagemanager = new ImageManager(Config::DYNAMIC_IMAGE_PATH);
+
 		if($this->new){
 			$this->import_longid($data['longid']);
-			$this->imagemanager->receive_upload($this);
+			$imagemanager->receive_upload($this);
 		} else {
 			$this->import_check_id_and_longid($data['id'], $data['longid']);
 		}
@@ -176,8 +177,9 @@ class Image implements Model {
 
 	public function delete() {
 		$pdo = self::open_pdo();
+		$imagemanager = new ImageManager(Config::DYNAMIC_IMAGE_PATH);
 
-		$this->imagemanager->delete_images($this);
+		$imagemanager->delete_images($this);
 
 		$query = 'DELETE FROM images WHERE image_id = :id';
 		$values = ['id' => $this->id];

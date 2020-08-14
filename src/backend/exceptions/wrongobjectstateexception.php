@@ -1,5 +1,5 @@
 <?php
-namespace \Blog\Backend\Exceptions;
+namespace Blog\Backend\Exceptions;
 use Exception;
 
 class WrongObjectStateException extends Exception {

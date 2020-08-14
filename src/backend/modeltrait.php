@@ -23,7 +23,7 @@ trait ModelTrait {
 		}
 
 		try {
-			$test = $this->pull_by_longid($longid);
+			$test = $this->pull($longid);
 		} catch(Exception $e){
 			if($e instanceof DatabaseException){
 				throw $e;

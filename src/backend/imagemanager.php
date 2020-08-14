@@ -3,7 +3,7 @@
 namespace Blog\Backend;
 use \Blog\Backend\Models\Image;
 use \Blog\Backend\Exceptions\ImageManagerException;
-use \Blog\Backend\Exceptions\InvalidArgumentException;
+use InvalidArgumentException;
 
 class ImageManager {
 	private $dir;
@@ -28,6 +28,7 @@ class ImageManager {
 
 
 	function __construct($dir) {
+		$dir = __DIR__ . '/..' . $dir;
 		if(!is_dir($dir)){
 			throw new InvalidArgumentException('Directory is not a valid directory: ' . $dir);
 		} else if(!is_writable($dir)){
@@ -149,7 +150,7 @@ class ImageManager {
 	}
 
 	private function write_image(&$image, $data, $size) {
-		$path = $this->dir . '/' . $image->longid . '/' . $size . '.' . $image->extension;
+		$path = "$this->dir/$image->longid/$size.$image->extension";
 
 		if(!file_put_contents($path, $data)){
 			throw new ImageManagerException('Unable to write file. Check your server configuration and permissions.');
@@ -176,10 +177,15 @@ class ImageManager {
 
 	public function delete_images($image) {
 		foreach($image->sizes as $size){
-			unlink($this->dir . '/' . $image->longid . '/' . $size . '.' . $image->extension);
+			$file = "$this->dir/$image->longid/$size.$image->extension";
+			if(file_exists($file)){
+				unlink($file);
+			}
 		}
 
-		rmdir($this->dir . '/' . $image->longid);
+		$dir = "$this->dir/$image->longid";
+		if(is_dir($dir))
+		rmdir($dir);
 	}
 }
 ?>

@@ -57,7 +57,7 @@ class ImageInputUploader {
 			ajax.responseType = 'json';
 			ajax.onreadystatechange = function(){
 				if(this.readyState == 4 && this.status == 200){
-					iiu.parent.setImage(this.response.result.id, this.response.result.longid);
+					iiu.parent.setImage(this.response.result.id, this.response.result.longid, this.response.result.extension);
 					iiu.close();
 				}
 			}

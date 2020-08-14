@@ -265,7 +265,7 @@ class Post implements Model {
 		if($data['image_id']){
 			try {
 				$image = new Image();
-				$image->pull_by_id($data['image_id']);
+				$image->pull($data['image_id']);
 			} catch(EmptyResultException $e){
 				throw new InvalidInputException('image_id', 'image id; No Image Found', $data['image_id']); // TODO better exc.-> api index.php
 			} catch(DatabaseException $e){

@@ -5,6 +5,7 @@ class SelectableImage {
 		this.id;
 		this.longid;
 		this.description;
+		this.extension;
 
 		if(parent instanceof ImageInputPicker){
 			this.parent = parent;
@@ -15,11 +16,13 @@ class SelectableImage {
 		this.id = data.id;
 		this.longid = data.longid;
 		this.description = data.description;
+		this.extension = data.extension;
 
 		var con = document.createElement('div');
 		con.innerHTML = document.getElementById('iit-selectableimage').innerHTML
-			.replace('%II.image.longid%', this.longid)
-			.replace('%II.image.description%', this.description);
+			.replace(/%II\.image\.longid%/g, this.longid)
+			.replace(/%II\.image\.description%/g, this.description)
+			.replace(/%II\.image\.extension%/g, this.extension);
 		this.elem = con.firstElementChild;
 
 		this.elem.addEventListener('click', () => {this.select()});

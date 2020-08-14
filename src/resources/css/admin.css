@@ -101,6 +101,10 @@ main {
 	padding: 0 1rem 2rem;
 }
 
+img {
+	width: 100%;
+}
+
 a {
 	color: #1da1f2;
 	text-decoration: underline;
@@ -202,7 +206,7 @@ article.post.preview p {
 	margin: 0.5em 0;
 }
 
-article.post .longid {
+article .longid {
 	width: max-content;
 	margin: 0;
 	padding: 0.1em 0.2em;
@@ -243,6 +247,10 @@ article.post.preview .teaser {
 article.post.preview:hover .teaser,
 article.post.preview:focus .teaser {
 	height: auto;
+}
+
+article.image img {
+	width: 100%;
 }
 
 
@@ -365,11 +373,6 @@ span.code {
 	padding: 0.25rem;
 	margin: 0 0.25rem;
 	font-family: 'Fira Mono';
-}
-
-img {
-	max-width: 30rem;
-	max-height: 20rem;
 }
 
 button {
@@ -498,4 +501,36 @@ div.dialog input[type=submit] {
 	display: inline-block;
 	margin: 1rem 0.25rem 0 0;
 	padding: 0.5rem 1rem;
+}
+
+
+
+.grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	grid-gap: 0.5rem 0.5rem;
+	margin: 1rem 0;
+}
+
+article.image.preview {
+	position: relative;
+}
+
+article.image.preview img {
+	max-height: 100%;
+	max-width: 100%;
+}
+
+article.image.preview span {
+	position: absolute;
+	top: 0.5rem;
+	left: 0.5rem;
+	background-color: #00000088;
+	color: #ffffff;
+}
+
+article.image.preview a {
+	display: block;
+	color: #ffffff;
+	text-decoration: none;
 }

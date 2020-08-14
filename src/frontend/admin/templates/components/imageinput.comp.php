@@ -13,7 +13,7 @@ use \Blog\Config\Config;
 </template>
 
 <template id="iit-imagebox-filled">
-	<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH ?>%II.image.longid%/original.jpg"
+	<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH ?>%II.image.longid%/original.%II.image.extension%"
 		alt="[ANZEIGEFEHLER] Hier sollte das Bild angezeigt werden.">
 	<p>Bild-ID: <span class="code">%II.image.longid%</span></p>
 </template>
@@ -26,8 +26,8 @@ use \Blog\Config\Config;
 	<div class="dialog">
 		<div>
 			<h2>Bild auswählen</h2>
-			<div class="masonry">
-
+			<div class="grid">
+				
 			</div>
 			<button type="button" id="ii-picker-cancel">Abbrechen</button>
 		</div>
@@ -71,7 +71,10 @@ use \Blog\Config\Config;
 </template>
 
 <template id="iit-selectableimage">
-	<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH ?>%II.image.longid%/original.jpg" alt="Bild">
+	<article class="image preview">
+		<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH ?>%II.image.longid%/original.%II.image.extension%" alt="[ANZEIGEFEHLER]">
+		<span class="longid">%II.image.longid%</span>
+	</article>
 </template>
 
 <script src="<?= Config::SERVER_URL ?>/admin/resources/js/selectableimage.js"></script>

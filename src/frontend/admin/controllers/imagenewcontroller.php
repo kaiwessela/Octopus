@@ -11,12 +11,14 @@ class ImageNewController {
 	public $show_success;
 
 	function __construct() {
+		$this->image = new Image();
+		$this->image->generate();
 		$this->show_success = false;
 		$this->show_form = true;
 
 		if($_POST){
 			try {
-				$this->image->import();
+				$this->image->import($_POST);
 				$this->image->push();
 				$this->show_success = true;
 				$this->show_form = false;

@@ -13,22 +13,15 @@ use \Blog\Config\Config;
 <a href="<?= Config::SERVER_URL ?>/admin/images/new" class="button">Neues Bild hochladen</a>
 
 <?php if($controller->show_list){ ?>
-<table>
-	<tr>
-		<th>URL</th>
-		<th>Dateityp</th>
-		<th>Aktionen</th>
-	</tr>
-
+<section class="grid">
 	<?php foreach($controller->images as $image){ ?>
-	<tr>
-		<td><span class="code"><?= $image->longid ?></span></td>
-		<td><span class="code"><?= $image->extension ?></span></td>
-		<td><a href="<?= Config::SERVER_URL ?>/admin/images/<?= $image->id ?>">Ansehen</a></td>
-		<td><a href="<?= Config::SERVER_URL ?>/admin/images/<?= $image->id ?>/edit">Bearbeiten</a></td>
-		<td><a href="<?= Config::SERVER_URL ?>/admin/images/<?= $image->id ?>/delete">Löschen</a></td>
-	</tr>
+	<article class="image preview">
+		<a href="<?= Config::SERVER_URL ?>/admin/images/<?= $image->id ?>">
+			<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH
+				. $image->longid ?>/original.<?= $image->extension ?>" alt="<?= $image->alt ?>">
+			<span class="longid"><?= $image->longid ?></span>
+		</a>
+	</article>
 	<?php } ?>
-
-</table>
+</section>
 <?php } ?>

@@ -2,7 +2,7 @@ class ImageInputPicker {
 	constructor(parent) {
 		this.parent;
 		this.elem;
-		this.masonry;
+		this.grid;
 		this.images = [];
 		this.cancelButton;
 		this.closeButton;
@@ -18,7 +18,7 @@ class ImageInputPicker {
 		this.elem = con.firstElementChild;
 		document.body.appendChild(this.elem);
 
-		this.masonry = this.elem.querySelector('.masonry') || document.createElement('div');
+		this.grid = this.elem.querySelector('.grid') || document.createElement('div');
 		this.cancelButton = document.getElementById('ii-picker-cancel') || document.createElement('button');
 		this.closeButton = document.getElementById('ii-picker-close') || document.createElement('button');
 
@@ -44,12 +44,12 @@ class ImageInputPicker {
 
 	addImage(image) {
 		this.images.push(image);
-		this.masonry.appendChild(image.elem);
+		this.grid.appendChild(image.elem);
 	}
 
 	clearImages() {
 		this.images = [];
-		this.masonry.innerHTML = '';
+		this.grid.innerHTML = '';
 	}
 
 	open() {
@@ -69,7 +69,7 @@ class ImageInputPicker {
 	}
 
 	submit(image) {
-		this.parent.setImage(image.id, image.longid);
+		this.parent.setImage(image.id, image.longid, image.extension);
 		this.close();
 	}
 }

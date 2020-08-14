@@ -11,12 +11,14 @@ class PostNewController {
 	public $show_success;
 
 	function __construct() {
+		$this->post = new Post();
+		$this->post->generate();
 		$this->show_success = false;
 		$this->show_form = true;
 
 		if($_POST){
 			try {
-				$this->post->import();
+				$this->post->import($_POST);
 				$this->post->push();
 				$this->show_success = true;
 				$this->show_form = false;

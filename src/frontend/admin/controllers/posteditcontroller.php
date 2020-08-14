@@ -27,7 +27,7 @@ class PostEditController {
 
 		if($_POST){
 			try {
-				$this->post->import();
+				$this->post->import($_POST);
 				$this->post->push();
 				$this->show_success = true;
 				$this->show_form = false;

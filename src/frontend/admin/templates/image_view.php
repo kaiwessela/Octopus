@@ -12,20 +12,26 @@ use \Blog\Config\Config;
 <?php } ?>
 
 <?php if($controller->show_image){ ?>
-<a href="<?= Config::SERVER_URL ?>/admin/images">Zurück zu allen Bildern</a><br>
-<a href="<?= Config::SERVER_URL ?>/admin/images/<?= $controller->image->id ?>/edit" class="button">Bildinformationen bearbeiten</a>
-<a href="<?= Config::SERVER_URL ?>/admin/images/<?= $controller->image->id ?>/delete" class="button">Bild löschen</a><br><br>
+<?php $image = $controller->image ?>
+<a href="<?= Config::SERVER_URL ?>/admin/images" class="button">&laquo; Zurück zu allen Bildern</a>
 
-<p>Bild-URL: <span class="code"><?= $controller->image->longid ?></span></p><br>
-<img src="<?= Config::SERVER_URL . Config::DYN_IMG_PATH . $controller->image->longid?>/original.<?= $controller->image->extension ?>" alt="Bild">
-<h2>Beschreibung:</h2>
-<p><?= $controller->image->description ?></p>
-
-<h2>Verfügbare Größen:</h2>
-
-	<?php foreach($controller->image->sizes as $size){ ?>
-	<a href="<?= Config::SERVER_URL . Config::DYN_IMG_PATH . $obj->longid?>/<?= $size ?>.<?= $obj->extension ?>">
-		<?= $size ?>
-	</a><br>
-	<?php } ?>
+<article class="image">
+	<p>
+		<a href="<?= Config::SERVER_URL ?>/admin/images/<?= $image->id ?>/edit" class="edit">Bearbeiten</a>
+		<a href="<?= Config::SERVER_URL ?>/admin/images/<?= $image->id ?>/delete" class="delete">Löschen</a>
+	</p>
+	<p class="longid"><?= $image->longid ?></p>
+	<p class="description"><?= $image->description ?></p>
+	<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH . $image->longid ?>/original.<?= $image->extension ?>"
+		alt="[ANZEIGEFEHLER] Hier sollte das Bild angezeigt werden">
+	<p>
+		Verfügbare Größen:
+		<?php foreach($image->sizes as $size){ ?>
+		<br>
+		<a href="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH . $image->longid ?>/<?= $size ?>.<?= $image->extension ?>">
+			<?= $size ?>
+		</a>
+		<?php } ?>
+	</p>
+</article>
 <?php } ?>

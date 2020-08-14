@@ -25,11 +25,19 @@ use \Blog\Config\Config;
 <?php } ?>
 
 <?php if($controller->show_form){ ?>
+<?php $image = $controller->image; ?>
 <p>Bild <span class="code"><?= $controller->image->longid ?></span> löschen?</p>
+<p>
+	<a href="<?= Config::SERVER_URL ?>/admin/images/<?= $image->id ?>">Ansehen</a>
+	<a href="<?= Config::SERVER_URL ?>/admin/images/<?= $image->id ?>/edit" class="edit">Bearbeiten</a>
+</p>
+
 <form action="<?= Config::SERVER_URL ?>/admin/images/<?= $controller->image->id ?>/delete" method="post">
 	<input type="hidden" id="id" name="id" value="<?= $controller->image->id ?>">
 	<input type="submit" value="Löschen">
 </form>
+
+<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH . "$image->longid/original.$image->extension" ?>" alt="[ANZEIGEFEHLER]">
 <?php } ?>
 
 <a href="<?= Config::SERVER_URL ?>/admin/images">Zurück zu allen Bildern</a>

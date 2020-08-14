@@ -93,7 +93,8 @@ use \Blog\Config\Config;
 			Artikelvorschau angezeigt.
 		</span>
 	</label>
-	<div id="imageinput" data-value="<?= $post->image->id ?? '' ?>" data-longid="<?= $post->image->longid ?? '' ?>" data-name="image_id"></div>
+	<div id="imageinput" data-value="<?= $post->image->id ?? '' ?>" data-longid="<?= $post->image->longid ?? '' ?>" data-name="image_id"
+		data-extension="<?= $post->image->extension ?>"></div>
 
 	<label for="content">
 		<span class="name">Inhalt</span>

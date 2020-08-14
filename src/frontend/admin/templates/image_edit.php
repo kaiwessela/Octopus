@@ -25,16 +25,32 @@ use \Blog\Config\Config;
 <?php } ?>
 
 <?php if($controller->show_form){ ?>
-<p>Bild-URL: <span class="code"><?= $controller->image->longid ?></span></p>
-<form action="<?= Config::SERVER_URL ?>/admin/images/<?= $controller->image->id ?>/edit" method="post">
-	<input type="hidden" id="id" name="id" value="<?= $controller->image->id ?>">
-	<input type="hidden" id="longid" name="longid" value="<?= $controller->image->longid ?>">
+<?php $image = $controller->image; ?>
 
-	<label for="description">Beschreibung</label>
-	<input type="text" id="description" name="description" value="<?= $controller->image->description ?>">
+<p>Bild-ID: <span class="code"><?= $image->longid ?></span></p>
+<p>
+	<a href="<?= Config::SERVER_URL ?>/admin/images/<?= $image->id ?>">Ansehen</a>
+	<a href="<?= Config::SERVER_URL ?>/admin/images/<?= $image->id ?>/delete" class="delete">Löschen</a>
+</p>
+
+<form action="#" method="post">
+	<input type="hidden" id="id" name="id" value="<?= $image->id ?>">
+	<input type="hidden" id="longid" name="longid" value="<?= $image->longid ?>">
+
+	<label for="description">
+		<span class="name">Beschreibung</span>
+		<span class="requirements">optional</span>
+		<span class="description">
+			Die Beschreibung wird als Alternativtext angezeigt, wenn das Bild nicht geladen
+			werden kann. Sie sollte den Bildinhalt wiedergeben.
+		</span>
+	</label>
+	<input type="text" id="description" class="description" name="description" value="<?= $image->description ?>">
 
 	<input type="submit" value="Speichern">
 </form>
+
+<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH . "$image->longid/original.$image->extension" ?>" alt="[ANZEIGEFEHLER]">
 <?php } ?>
 
 <a href="<?= Config::SERVER_URL ?>/admin/images">Zurück zu allen Bildern</a>

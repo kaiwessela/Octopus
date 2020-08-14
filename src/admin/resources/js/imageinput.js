@@ -4,6 +4,7 @@ class ImageInput {
 		this.name; // field name for sending the image id to php backend
 		this.value;
 		this.longid;
+		this.extension;
 		this.input;
 		this.clearButton;
 		this.pickButton;
@@ -33,7 +34,8 @@ class ImageInput {
 		this.name = this.container.getAttribute('data-name') || 'image_id';
 		var value = this.container.getAttribute('data-value') || null;
 		var longid = this.container.getAttribute('data-longid') || null;
-		this.setImage(value, longid);
+		var extension = this.container.getAttribute('data-extension') || null;
+		this.setImage(value, longid, extension);
 		this.setName(this.name);
 
 		this.uploader = new ImageInputUploader(this);
@@ -41,21 +43,24 @@ class ImageInput {
 	}
 
 	clear() {
-		this.setImage(null, null);
+		this.setImage(null, null, null);
 	}
 
-	setImage(id, longid) {
-		if(!id || !longid){
+	setImage(id, longid, extension) {
+		if(!id || !longid || !extension){
 			this.value = null;
 			this.longid = null;
+			this.extension = null;
 			this.clearButton.disabled = true;
 			this.imagebox.innerHTML = document.getElementById('iit-imagebox-empty').innerHTML;
 		} else {
 			this.value = id;
 			this.longid = longid;
+			this.extension = extension;
 			this.clearButton.disabled = false;
 			this.imagebox.innerHTML = document.getElementById('iit-imagebox-filled').innerHTML
-				.replace(/%II\.image\.longid%/g, this.longid);
+				.replace(/%II\.image\.longid%/g, this.longid)
+				.replace(/%II\.image\.extension%/g, this.extension);
 		}
 
 		this.input.value = id;

@@ -27,7 +27,7 @@ class ImageEditController {
 
 		if($_POST){
 			try {
-				$this->image->import();
+				$this->image->import($_POST);
 				$this->image->push();
 				$this->show_success = true;
 				$this->show_form = false;

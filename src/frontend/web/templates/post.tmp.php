@@ -1,51 +1,50 @@
+<?php
+use \Blog\Config\Config;
+use \Blog\Frontend\Web\Modules\TimeFormat;
+?>
 <!DOCTYPE html>
 <html lang="de">
 	<head>
 		<?php include COMPONENT_PATH . 'head.comp.php'; ?>
 		<title><?= $post->headline ?> – Kai Florian Wessela</title>
-		<link rel="canonical" href="<?= $server->url ?>/posts/<?= $post->longid ?>">
+		<link rel="canonical" href="<?= Config::SERVER_URL ?>/posts/<?= $post->longid ?>">
 		<meta name="author" content="<?= $post->author ?>">
 		<meta name="description" content="<?= $post->teaser ?>">
-		<meta name="date" content="<?= $timeformat->html_time($post->timestamp) ?>">
+		<meta name="date" content="<?= TimeFormat::html_time($post->timestamp) ?>">
 	</head>
 	<body>
 		<?php include COMPONENT_PATH . 'header.comp.php'; ?>
 		<main>
 			<article>
 				<header>
-<?php
-if(!empty($post->overline)){
-	?>
-					<p class="overline"><?= $post->overline ?></p><!-- NOTE: is p semantically correct? -->
-	<?php
-}
-?>
+
+					<?php if($post->overline){ ?>
+					<p class="overline"><?= $post->overline ?></p>
+					<?php } ?>
+
 					<h1><span><?= $post->headline ?></span></h1>
-<?php
-if(!empty($post->subline)){
-	?>
+
+					<?php if($post->subline){ ?>
 					<p class="subline"><?= $post->subline ?></p>
-	<?php
-}
-?>
+					<?php } ?>
+
 					<p class="author-and-date">
 						<!-- IDEA use address element? -->
 						Von <?= $post->author ?>, <wbr>veröffentlicht am
-						<time datetime="<?= $timeformat->html_time($post->timestamp) ?>">
-							<?= $timeformat->date($post->timestamp) ?>
+						<time datetime="<?= TimeFormat::html_time($post->timestamp) ?>">
+							<?= TimeFormat::date($post->timestamp) ?>
 						</time>
 					</p>
 				</header>
 
-<?php
-if(isset($post->image)){
-	include COMPONENT_PATH . 'picture.comp.php';
-	$picture = new Picture($post->image, 600);
-	$picture->display();
-}
-?>
+				<?php
+				if($controller->show_picture){
+					$picture = $post->picture;
+					include COMPONENT_PATH . 'picture.comp.php';
+				}
+				?>
 
-				<?= $parsedown->text($post->content) ?>
+				<?= $controller->content ?>
 			</article>
 		</main>
 		<?php include COMPONENT_PATH . 'footer.comp.php'; ?>

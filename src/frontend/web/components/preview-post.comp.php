@@ -1,9 +1,9 @@
 <?php
+use \Blog\Config\Config;
 use \Blog\Frontend\Web\Modules\TimeFormat;
-$tf = new TimeFormat;
 ?>
 <article class="preview">
-	<a href="<?= $server->url ?>/posts/<?= $post->longid ?>">
+	<a href="<?= Config::SERVER_URL ?>/posts/<?= $post->longid ?>">
 
 <?php
 if($post->show_picture){
@@ -16,8 +16,8 @@ if($post->show_picture){
 		<h3><span><?= $post->headline ?></span></h3>
 		<p class="subline"><?= $post->subline ?></p>
 		<p class="teaser">
-			<time datetime="<?= $timeformat->html_time($post->timestamp) ?>">
-				<?= $tf->date($post->timestamp) ?> –
+			<time datetime="<?= TimeFormat::html_time($post->timestamp) ?>">
+				<?= TimeFormat::date($post->timestamp) ?> –
 			</time>
 			<?= $post->teaser ?>
 		</p>

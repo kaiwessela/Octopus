@@ -1,23 +1,16 @@
 <?php
 namespace Blog\Frontend\Web;
-use PDO;
 use \Blog\Config\Config;
 use \Blog\Config\Routes;
+use PDO;
 
 class Endpoint {
-	public $pdo;
 	public $parsedown;
 	public $path;
 	public $route;
 
 
 	function __construct() {
-		$this->pdo = new PDO(
-			'mysql:host=' . Config::DB_HOST . ';dbname=' . Config::DB_NAME,
-			Config::DB_USER,
-			Config::DB_PASSWORD
-		);
-
 		setlocale(\LC_ALL, Config::SERVER_LANG . '.utf-8');
 
 		if(Config::DEBUG_MODE){
@@ -44,7 +37,7 @@ class Endpoint {
 			$this->route = Routes::DEFAULT_ROUTE;
 		}
 
-		$controllerclass = '\Blog\Frontend\Web\Controllers\\' . $this->route['handler'];
+		$controllerclass = '\Blog\Frontend\Web\Controllers\\' . $this->route['controller'];
 		$controller = new $controllerclass($this->route);
 
 

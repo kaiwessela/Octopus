@@ -1,8 +1,8 @@
 <?php
 namespace Blog\Frontend\Web\Controllers;
 use \Blog\Frontend\Web\Controllers\Controller;
-use \Blog\Config\Config;
 use \Blog\Frontend\Web\Modules\TimeFormat;
+use \Blog\Frontend\Web\Modules\Picture;
 use \Blog\Backend\Models\Post;
 use Parsedown;
 
@@ -20,17 +20,22 @@ class PostController extends Controller {
 			return false;
 		}
 
+		if(!$this->post->image->is_empty()){
+			$this->show_picture = true;
+			$this->post->picture = new Picture($this->post->image);
+		} else {
+			$this->show_picture = false;
+		}
+
+		$parsedown = new Parsedown();
+		$this->content = $parsedown->text($this->post->content);
+
 		return true;
 	}
 
 	public function display() {
 		$post = $this->post;
-		$server = (object) [
-			'url' => Config::SERVER_URL
-		];
-		$content = $this->content;
-		$timeformat = new TimeFormat();
-		$parsedown = new Parsedown();
+		$controller = $this;
 
 		include 'frontend/web/templates/' . $this->route['template'] . '.tmp.php';
 	}

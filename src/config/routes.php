@@ -6,28 +6,28 @@ class Routes {
 		[
 			'path' => '/^\/$/',
 			'template' => 'index',
-			'handler' => 'IndexController'
+			'controller' => 'IndexController'
 		],
 		[
 			'path' => '/^posts\/[0-9]{0,8}$/',
 			'template' => 'posts',
-			'handler' => 'PostListController'
+			'controller' => 'PostListController'
 		],
 		[
 			'path' => '/^posts\/.{9,}$/',
 			'template' => 'post',
-			'handler' => 'PostController'
+			'controller' => 'PostController'
 		],
 		[
 			'path' => '/^p\/.{8}$/',
 			'template' => 'post',
-			'handler' => 'PostController'
+			'controller' => 'PostController'
 		]
 	];
 
 	const DEFAULT_ROUTE = [
 		'template' => 'default',
-		'handler' => 'Controller'
+		'controller' => 'Controller'
 	];
 }
 ?>

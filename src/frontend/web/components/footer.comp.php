@@ -1,10 +1,13 @@
+<?php
+use \Blog\Config\Config;
+?>
 <footer>
 	<div class="content">
 		<div>
 			<h2>Navigation</h2>
 			<ul class="link-list">
-				<li><a href="<?= $server->url ?>/">Startseite</a></li>
-				<li><a href="<?= $server->url ?>/posts/">Alle Blogartikel</a></li>
+				<li><a href="<?= Config::SERVER_URL ?>/">Startseite</a></li>
+				<li><a href="<?= Config::SERVER_URL ?>/posts/">Alle Blogartikel</a></li>
 			</ul>
 		</div>
 		<div>

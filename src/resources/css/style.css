@@ -445,7 +445,7 @@ article.preview:last-of-type {
 }
 
 article.preview a {
-	display: block;
+	display: flow-root;
 	color: inherit;
 	text-decoration: none;
 	padding: 0.5rem;

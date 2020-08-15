@@ -50,7 +50,7 @@ class Endpoint {
 
 	function return_404() {
 		http_response_code(404);
-		include 'templates/_404.tmp.php';
+		include 'templates/404.tmp.php';
 		exit;
 	}
 }

@@ -140,6 +140,18 @@
 		33.34%, #ffed00 50%, #008026 50%, #008026 66.66%, #004dff 66.67%, #004dff 83.33%, #750787 83.34%, #750787 100%);
 }
 
+:root.night {
+	--color-bg: #232323;
+	--color-text: #dddddd;
+	--color-text-dark: #bbbbbb;
+	--color-text-darker: #999999;
+	--color-auxiliary-bg: #1f1f1f;
+	--color-auxiliary-text: #dddddd;
+	--color-auxiliary-text-dark: #999999;
+	--default-gradient: linear-gradient(45deg, #72d8ed88, #ff9ded88);
+	--default-shadow: 0 0 0.75rem 0.75rem #00000033;
+}
+
 ::selection {
 	background: #00000044;
 }

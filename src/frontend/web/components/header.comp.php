@@ -1,8 +1,9 @@
 <?php
 use \Blog\Config\Config;
+use \Blog\Frontend\Web\SiteConfig;
 ?>
 <header class="open notransition">
-	<span class="logo" role="banner">Kai Florian Wessela</span>
+	<span class="logo" role="banner"><?= SiteConfig::TITLE ?></span>
 	<nav>
 		<ul>
 			<a href="<?= Config::SERVER_URL ?>/"><li>Startseite</li></a>

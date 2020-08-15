@@ -1,12 +1,13 @@
 <?php
 use \Blog\Config\Config;
+use \Blog\Frontend\Web\SiteConfig;
 use \Blog\Frontend\Web\Modules\TimeFormat;
 ?>
 <!DOCTYPE html>
 <html lang="de">
 	<head>
 		<?php include COMPONENT_PATH . 'head.comp.php'; ?>
-		<title><?= $post->headline ?> – Kai Florian Wessela</title>
+		<title><?= $post->headline ?> – <?= SiteConfig::TITLE ?></title>
 		<link rel="canonical" href="<?= Config::SERVER_URL ?>/posts/<?= $post->longid ?>">
 		<meta name="author" content="<?= $post->author ?>">
 		<meta name="description" content="<?= $post->teaser ?>">

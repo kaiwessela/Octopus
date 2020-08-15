@@ -1,8 +1,11 @@
+<?php
+use \Blog\Frontend\Web\SiteConfig;
+?>
 <!DOCTYPE html>
 <html lang="de">
 	<head>
 		<?php include COMPONENT_PATH . 'head.comp.php'; ?>
-		<title>Alle Artikel – Kai Florian Wessela</title>
+		<title>Alle Artikel – <?= SiteConfig::TITLE ?></title>
 	</head>
 	<body>
 		<?php include COMPONENT_PATH . 'header.comp.php'; ?>

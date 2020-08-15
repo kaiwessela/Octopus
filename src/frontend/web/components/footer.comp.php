@@ -1,5 +1,6 @@
 <?php
 use \Blog\Config\Config;
+use \Blog\Frontend\Web\SiteConfig;
 ?>
 <footer>
 	<div class="content">
@@ -25,6 +26,6 @@ use \Blog\Config\Config;
 		</div>
 	</div>
 	<div class="logo">
-		Kai Florian Wessela
+		<?= SiteConfig::TITLE ?>
 	</div>
 </footer>

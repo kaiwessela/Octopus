@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.0.1
+-- version 4.9.5
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Erstellungszeit: 14. Apr 2020 um 14:02
--- Server-Version: 10.3.22-MariaDB-0+deb10u1
--- PHP-Version: 7.3.14-1~deb10u1
+-- Erstellungszeit: 15. Aug 2020 um 15:30
+-- Server-Version: 10.3.23-MariaDB-1
+-- PHP-Version: 7.4.5
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -25,19 +25,6 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `imagefiles`
---
-
-CREATE TABLE `imagefiles` (
-  `imagefile_id` varchar(8) NOT NULL,
-  `imagefile_image_id` varchar(8) NOT NULL,
-  `imagefile_size` tinyint(4) NOT NULL,
-  `imagefile_data` longblob NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- --------------------------------------------------------
-
---
 -- Tabellenstruktur für Tabelle `images`
 --
 
@@ -45,7 +32,8 @@ CREATE TABLE `images` (
   `image_id` varchar(8) NOT NULL,
   `image_longid` varchar(128) NOT NULL,
   `image_extension` varchar(4) NOT NULL,
-  `image_description` varchar(256) DEFAULT NULL
+  `image_description` varchar(256) DEFAULT NULL,
+  `image_sizes` varchar(128) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -70,13 +58,6 @@ CREATE TABLE `posts` (
 --
 -- Indizes der exportierten Tabellen
 --
-
---
--- Indizes für die Tabelle `imagefiles`
---
-ALTER TABLE `imagefiles`
-  ADD PRIMARY KEY (`imagefile_id`),
-  ADD KEY `imagefile_image_id` (`imagefile_image_id`);
 
 --
 -- Indizes für die Tabelle `images`

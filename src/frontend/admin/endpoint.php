@@ -13,6 +13,11 @@ use \Blog\Frontend\Admin\Controllers\PostViewController;
 use \Blog\Frontend\Admin\Controllers\PostEditController;
 use \Blog\Frontend\Admin\Controllers\PostNewController;
 use \Blog\Frontend\Admin\Controllers\PostDeleteController;
+use \Blog\Frontend\Admin\Controllers\PersonListController;
+use \Blog\Frontend\Admin\Controllers\PersonViewController;
+use \Blog\Frontend\Admin\Controllers\PersonEditController;
+use \Blog\Frontend\Admin\Controllers\PersonNewController;
+use \Blog\Frontend\Admin\Controllers\PersonDeleteController;
 use \Blog\Frontend\Admin\Controllers\NotFoundController;
 
 class Endpoint {
@@ -65,6 +70,16 @@ class Endpoint {
 			$this->controller = new PostEditController();
 		} else if(preg_match('/^posts\/.{8}\/delete$/', $path)){
 			$this->controller = new PostDeleteController();
+		} else if(preg_match('/^persons$/', $path)){
+			$this->controller = new PersonListController();
+		} else if(preg_match('/^persons\/new$/', $path)){
+			$this->controller = new PersonNewController();
+		} else if(preg_match('/^persons\/.{8}$/', $path)){
+			$this->controller = new PersonViewController();
+		} else if(preg_match('/^persons\/.{8}\/edit$/', $path)){
+			$this->controller = new PersonEditController();
+		} else if(preg_match('/^persons\/.{8}\/delete$/', $path)){
+			$this->controller = new PersonDeleteController();
 		} else {
 			$this->controller = new NotFoundController();
 		}

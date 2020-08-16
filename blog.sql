@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Erstellungszeit: 15. Aug 2020 um 15:30
+-- Erstellungszeit: 16. Aug 2020 um 19:59
 -- Server-Version: 10.3.23-MariaDB-1
 -- PHP-Version: 7.4.5
 
@@ -39,6 +39,19 @@ CREATE TABLE `images` (
 -- --------------------------------------------------------
 
 --
+-- Tabellenstruktur für Tabelle `persons`
+--
+
+CREATE TABLE `persons` (
+  `person_id` varchar(8) NOT NULL,
+  `person_longid` varchar(128) NOT NULL,
+  `person_name` varchar(64) NOT NULL,
+  `person_image_id` varchar(8) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Tabellenstruktur für Tabelle `posts`
 --
 
@@ -65,6 +78,13 @@ CREATE TABLE `posts` (
 ALTER TABLE `images`
   ADD PRIMARY KEY (`image_id`),
   ADD UNIQUE KEY `image_longid` (`image_longid`);
+
+--
+-- Indizes für die Tabelle `persons`
+--
+ALTER TABLE `persons`
+  ADD PRIMARY KEY (`person_id`),
+  ADD UNIQUE KEY `person_longid` (`person_longid`);
 
 --
 -- Indizes für die Tabelle `posts`

@@ -60,10 +60,13 @@ class Endpoint {
 			$this->response->send();
 		} else if($this->request->class == 'posts'){
 			# class Post requested
-			$backend_class = '\Blog\Backend\Models\Post';
+			$backend_class = new \Blog\Backend\Models\Post;
 		} else if($this->request->class == 'images'){
 			# class Image requested
-			$backend_class = '\Blog\Backend\Models\Image';
+			$backend_class = new \Blog\Backend\Models\Image;
+		} else if($this->request->class == 'persons'){
+			# class Person requested
+			$backend_class = new \Blog\Backend\Models\Person;
 		} else {
 			# invalid class requested, answer with error
 			$this->response->set_response_code(400);
@@ -88,7 +91,7 @@ class Endpoint {
 
 			try {
 				# try to pull all instances of class
-				$objs = $backend_class::pull_all($limit, $offset);
+				$objs = $backend_class->pull_all($limit, $offset);
 			} catch(EmptyResultException $e){
 				# no instances found, answer with error
 				$this->response->set_response_code(404);
@@ -123,11 +126,12 @@ class Endpoint {
 
 			# Request-Method is valid
 			# create new instance of class
-			$obj = $backend_class::new();
+			$backend_class->generate();
 
 			try {
 				# try to insert post data into the instance
-				$obj->insert($this->request->post);
+				$backend_class->import($this->request->post);
+				$backend_class->push();
 			} catch(InvalidInputException $e){
 				# post data is invalid, answer with error
 				$this->response->set_response_code(400);
@@ -142,14 +146,14 @@ class Endpoint {
 
 			# everything worked, return object
 			$this->response->set_response_code(200);
-			$this->response->set_result($obj);
+			$this->response->set_result($backend_class);
 			$this->response->send();
 
 		} else if($this->request->identifier == 'count'){
 			# generic identifier 'count' specified -> return the amount of instances of class available
 			try {
 				# try to count all instances of class
-				$count = $backend_class::count();
+				$count = $backend_class->count();
 			} catch(DatabaseException $e){
 				# internal database exception, answer with error
 				$this->response->set_response_code(500);
@@ -166,7 +170,7 @@ class Endpoint {
 			# object-specific identifier specified -> pull requested instance of class, handle depending on specified action
 			try {
 				# try to pull the specified instance of class
-				$obj = $backend_class::pull($this->request->identifier);
+				$backend_class->pull($this->request->identifier);
 			} catch(EmptyResultException $e){
 				# instance not found, answer with error
 				$this->response->set_response_code(404);
@@ -188,7 +192,7 @@ class Endpoint {
 		if(!isset($this->request->action)){
 			# no action specified -> return instance of class
 			$this->response->set_response_code(200);
-			$this->response->set_result($obj);
+			$this->response->set_result($backend_class);
 			$this->response->send();
 
 		} else if($this->request->action == 'edit'){
@@ -203,7 +207,8 @@ class Endpoint {
 
 			try {
 				# try to update the object
-				$obj->update();
+				$backend_class->import($this->request->post);
+				$backend_class->push();
 			} catch(InvalidInputException $e){
 				# post data is invalid, answer with error
 				$this->response->set_response_code(400);
@@ -218,14 +223,14 @@ class Endpoint {
 
 			# everything worked, return object
 			$this->response->set_response_code(200);
-			$this->response->set_result($obj);
+			$this->response->set_result($backend_class);
 			$this->response->send();
 
 		} else if($this->request->action == 'delete'){
 			# action 'delete' specified -> delete instance of class
 			try {
 				# try to delete the object
-				$obj->delete();
+				$backend_class->delete();
 			} catch(DatabaseException $e){
 				# internal database exception, answer with error
 				$this->response->set_response_code(500);
@@ -235,7 +240,7 @@ class Endpoint {
 
 			# everything worked, return object
 			$this->response->set_response_code(200);
-			$this->response->set_result($obj);
+			$this->response->set_result($backend_class);
 			$this->response->send();
 
 		} else {

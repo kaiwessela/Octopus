@@ -87,7 +87,7 @@ class Person implements Model {
 		} else {
 			$res = [];
 			while($r = $s->fetch()){
-				$obj = new Post();
+				$obj = new Person();
 				$obj->load($r);
 				$res[] = $obj;
 			}
@@ -102,7 +102,7 @@ class Person implements Model {
 
 		$this->id = $data['person_id'];
 		$this->longid = $data['person_longid'];
-		$this->name = $data['person_name']
+		$this->name = $data['person_name'];
 
 		$this->image = new Image();
 		if(isset($data['image_id'])){
@@ -140,7 +140,7 @@ class Person implements Model {
 		];
 
 		if($this->new){
-			$query = 'INSERT INTO persons (person_id, person_longid, person_name, post_image_id)
+			$query = 'INSERT INTO persons (person_id, person_longid, person_name, person_image_id)
 				VALUES (:id, :longid, :name, :image_id)';
 
 			$values['longid'] = $this->longid;

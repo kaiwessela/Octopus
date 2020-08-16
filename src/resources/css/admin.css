@@ -336,6 +336,11 @@ input.author {
 	width: 25%;
 }
 
+input.name {
+	font-family: 'Open Sans';
+	width: 50%;
+}
+
 textarea.content {
 	font-family: 'Open Sans';
 	line-height: 1.5em;

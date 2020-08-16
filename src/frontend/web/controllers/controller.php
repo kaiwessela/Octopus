@@ -11,8 +11,6 @@ class Controller {
 
 	function __construct($route) {
 		$this->route = $route;
-		echo 'Test';
-		var_dump(Routes::TITLES);
 	}
 
 	public function load() {

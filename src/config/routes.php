@@ -29,5 +29,9 @@ class Routes {
 		'template' => 'default',
 		'controller' => 'Controller'
 	];
+
+	const TITLES = [
+		# 'path (not as regex)' => 'Title',
+	];
 }
 ?>

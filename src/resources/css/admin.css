@@ -352,6 +352,10 @@ input.description {
 	width: 100%;
 }
 
+input.copyright {
+	width: 100%;
+}
+
 input.file {
 	width: 50%;
 }

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Erstellungszeit: 16. Aug 2020 um 19:59
+-- Erstellungszeit: 17. Aug 2020 um 22:19
 -- Server-Version: 10.3.23-MariaDB-1
 -- PHP-Version: 7.4.5
 
@@ -33,6 +33,7 @@ CREATE TABLE `images` (
   `image_longid` varchar(128) NOT NULL,
   `image_extension` varchar(4) NOT NULL,
   `image_description` varchar(256) DEFAULT NULL,
+  `image_copyright` varchar(256) NOT NULL,
   `image_sizes` varchar(128) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

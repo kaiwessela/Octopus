@@ -2,7 +2,6 @@
 namespace Blog\Frontend\Web;
 use \Blog\Config\Config;
 use \Blog\Config\Routes;
-use \Blog\Frontend\Web\Controllers\IndexController;
 use \Blog\Frontend\Web\Controllers\PostController;
 use \Blog\Frontend\Web\Controllers\PostListController;
 use \Blog\Frontend\Web\Controllers\StaticController;

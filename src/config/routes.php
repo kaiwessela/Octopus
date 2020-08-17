@@ -8,7 +8,7 @@ class Routes {
 			'template' => 'index',
 			'controllers' => [
 				'PostListController' => [
-					'limit' => 3,
+					'limit' => 5,
 					'offset' => 0
 				]
 			]

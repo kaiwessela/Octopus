@@ -7,11 +7,11 @@ use \Blog\Frontend\Web\Modules\TimeFormat;
 <html lang="de">
 	<head>
 		<?php include COMPONENT_PATH . 'head.comp.php'; ?>
-		<title><?= $post->headline ?> – <?= SiteConfig::TITLE ?></title>
-		<link rel="canonical" href="<?= Config::SERVER_URL ?>/posts/<?= $post->longid ?>">
-		<meta name="author" content="<?= $post->author ?>">
-		<meta name="description" content="<?= $post->teaser ?>">
-		<meta name="date" content="<?= TimeFormat::html_time($post->timestamp) ?>">
+		<title><?= $PostController->post->headline ?> – <?= SiteConfig::TITLE ?></title>
+		<link rel="canonical" href="<?= Config::SERVER_URL ?>/posts/<?= $PostController->post->longid ?>">
+		<meta name="author" content="<?= $PostController->post->author ?>">
+		<meta name="description" content="<?= $PostController->post->teaser ?>">
+		<meta name="date" content="<?= TimeFormat::html_time($PostController->post->timestamp) ?>">
 	</head>
 	<body>
 		<?php include COMPONENT_PATH . 'header.comp.php'; ?>
@@ -19,33 +19,33 @@ use \Blog\Frontend\Web\Modules\TimeFormat;
 			<article>
 				<header>
 
-					<?php if($post->overline){ ?>
-					<p class="overline"><?= $post->overline ?></p>
+					<?php if($PostController->post->overline){ ?>
+					<p class="overline"><?= $PostController->post->overline ?></p>
 					<?php } ?>
 
-					<h1><span><?= $post->headline ?></span></h1>
+					<h1><span><?= $PostController->post->headline ?></span></h1>
 
-					<?php if($post->subline){ ?>
-					<p class="subline"><?= $post->subline ?></p>
+					<?php if($PostController->post->subline){ ?>
+					<p class="subline"><?= $PostController->post->subline ?></p>
 					<?php } ?>
 
 					<p class="author-and-date">
 						<!-- IDEA use address element? -->
-						Von <?= $post->author ?>, <wbr>veröffentlicht am
-						<time datetime="<?= TimeFormat::html_time($post->timestamp) ?>">
-							<?= TimeFormat::date($post->timestamp) ?>
+						Von <?= $PostController->post->author ?>, <wbr>veröffentlicht am
+						<time datetime="<?= TimeFormat::html_time($PostController->post->timestamp) ?>">
+							<?= TimeFormat::date($PostController->post->timestamp) ?>
 						</time>
 					</p>
 				</header>
 
 				<?php
-				if($controller->show_picture){
-					$picture = $post->picture;
+				if($PostController->show_picture){
+					$picture = $PostController->picture;
 					include COMPONENT_PATH . 'picture.comp.php';
 				}
 				?>
 
-				<?= $controller->content ?>
+				<?= $PostController->parsed ?>
 			</article>
 		</main>
 		<?php include COMPONENT_PATH . 'footer.comp.php'; ?>

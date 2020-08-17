@@ -5,7 +5,7 @@ use \Blog\Frontend\Web\SiteConfig;
 <html lang="de">
 	<head>
 		<?php include COMPONENT_PATH . 'head.comp.php'; ?>
-		<title><?= SiteConfig::TITLE ?></title>
+		<title><?= $title ?> – <?= SiteConfig::TITLE ?></title>
 	</head>
 	<body>
 		<?php include COMPONENT_PATH . 'header.comp.php'; ?>

@@ -6,32 +6,45 @@ class Routes {
 		[
 			'path' => '/^\/$/',
 			'template' => 'index',
-			'controller' => 'IndexController'
+			'controllers' => [
+				'PostListController' => [
+					'limit' => 3,
+					'offset' => 0
+				]
+			]
 		],
 		[
 			'path' => '/^posts\/[0-9]{0,8}$/',
 			'template' => 'posts',
-			'controller' => 'PostListController'
+			'controllers' => [
+				'PostListController' => []
+			]
 		],
 		[
 			'path' => '/^posts\/.{9,}$/',
 			'template' => 'post',
-			'controller' => 'PostController'
+			'controllers' => [
+				'PostController' => []
+			]
 		],
 		[
 			'path' => '/^p\/.{8}$/',
 			'template' => 'post',
-			'controller' => 'PostController'
+			'controller' => [
+				'PostController' => []
+			]
 		]
 	];
 
-	const DEFAULT_ROUTE = [
-		'template' => 'default',
-		'controller' => 'Controller'
+	const STATIC_ROUTE = [
+		'template' => 'static',
+		'controllers' => [
+			'StaticController' => []
+		]
 	];
 
 	const TITLES = [
-		# 'path (not as regex)' => 'Title',
+		#'path' => 'Titel'
 	];
 }
 ?>

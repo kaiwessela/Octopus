@@ -6,38 +6,23 @@ use \Blog\Frontend\Web\Modules\Picture;
 use \Blog\Backend\Models\Post;
 use Parsedown;
 
-class PostController extends Controller {
+class PostController implements Controller {
 	public $post;
+	public $picture;
+	public $parsed;
+	public $show_picture = false;
 
 
-	public function load() {
+	public function __construct($route, $settings) {
 		$this->post = new Post();
-		try {
-			$this->post->pull($_GET['post']);
-		} catch(EmptyResultException $e){
-			return false;
-		} catch(DatabaseException $e){
-			return false;
-		}
+		$this->post->pull($_GET['post']);
 
 		if(!$this->post->image->is_empty()){
 			$this->show_picture = true;
-			$this->post->picture = new Picture($this->post->image);
-		} else {
-			$this->show_picture = false;
+			$this->picture = new Picture($this->post->image);
 		}
 
-		$parsedown = new Parsedown();
-		$this->content = $parsedown->text($this->post->content);
-
-		return true;
-	}
-
-	public function display() {
-		$post = $this->post;
-		$controller = $this;
-
-		include 'frontend/web/templates/' . $this->route['template'] . '.tmp.php';
+		$this->parsed = Parsedown::instance()->text($this->post->content);
 	}
 }
 ?>

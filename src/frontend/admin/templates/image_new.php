@@ -50,7 +50,7 @@ use \Blog\Config\Config;
 			zur Verfügung zu stellen. Er wird normalerweise unterhalb des Bildes angezeigt.
 		</span>
 	</label>
-	<input type="text" id="copyright" class="copyright" name="copyright" value="<?= $image->copyright ?>">
+	<input type="text" id="copyright" class="copyright" name="copyright">
 
 	<label for="imagefile">
 		<span class="name">Datei</span>

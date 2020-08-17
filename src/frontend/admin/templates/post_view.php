@@ -34,9 +34,9 @@ use \Blog\Config\Config;
 	<?php if(!$post->image->is_empty()){ ?>
 	<div>
 		Bild: <span class="code"><?= $post->image->longid ?></span>
-		<a href="<?= Config::SERVER_URL ?>/admin/images/<?= $post->image->longid ?>">ansehen</a>
-		<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH . $post->image->longid . '.'
-			. $post->image->extension ?>?size=original" alt="<?= $post->image->description ?>">
+		<a href="<?= Config::SERVER_URL ?>/admin/images/<?= $post->image->id ?>">ansehen</a>
+		<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH . $post->image->longid . '/original.'
+			. $post->image->extension ?>" alt="<?= $post->image->description ?>">
 	</div>
 	<?php } ?>
 

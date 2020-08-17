@@ -29,11 +29,12 @@ class Image implements Model {
 
 
 	function __construct() {
+		$this->new = false;
 		$this->empty = true;
 	}
 
 	public function generate() {
-		if(!$this->empty){
+		if(!$this->is_empty()){
 			throw new WrongObjectStateException('empty');
 		}
 
@@ -46,7 +47,7 @@ class Image implements Model {
 	public function pull($identifier) {
 		$pdo = self::open_pdo();
 
-		if(!$this->empty){
+		if(!$this->is_empty()){
 			throw new WrongObjectStateException('empty');
 		}
 
@@ -102,7 +103,7 @@ class Image implements Model {
 	}
 
 	public function load($data) {
-		if(!$this->empty){
+		if(!$this->is_empty()){
 			throw new WrongObjectStateException('empty');
 		}
 
@@ -133,7 +134,7 @@ class Image implements Model {
 	public function push() {
 		$pdo = self::open_pdo();
 
-		if($this->empty){
+		if($this->is_empty()){
 			throw new WrongObjectStateException('not empty');
 		}
 
@@ -143,7 +144,7 @@ class Image implements Model {
 			'copyright' => $this->copyright
 		];
 
-		if($this->new){
+		if($this->is_new()){
 			$query = 'INSERT INTO images (image_id, image_longid, image_extension,
 				image_description, image_copyright, image_sizes) VALUES (:id, :longid, :extension,
 				:description, :copyright, :sizes)';
@@ -167,7 +168,7 @@ class Image implements Model {
 	public function import($data) {
 		$imagemanager = new ImageManager(Config::DYNAMIC_IMAGE_PATH);
 
-		if($this->new){
+		if($this->is_new()){
 			$this->import_longid($data['longid']);
 			$imagemanager->receive_upload($this);
 		} else {
@@ -181,6 +182,14 @@ class Image implements Model {
 	}
 
 	public function delete() {
+		if($this->is_empty()){
+			throw new WrongObjectStateException('not empty');
+		}
+
+		if($this->is_new()){
+			throw new WrongObjectStateException('not new');
+		}
+
 		$pdo = self::open_pdo();
 		$imagemanager = new ImageManager(Config::DYNAMIC_IMAGE_PATH);
 
@@ -199,10 +208,6 @@ class Image implements Model {
 
 	public function has_size($size) {
 		return in_array($size, $this->sizes);
-	}
-
-	public function is_empty() {
-		return $this->empty;
 	}
 
 	private function import_description($description) {

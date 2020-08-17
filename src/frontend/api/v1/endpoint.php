@@ -1,5 +1,6 @@
 <?php
 namespace Blog\Frontend\API\v1;
+use \Astronauth\Backend\User;
 use \Blog\Config\Config;
 use \Blog\Frontend\API\v1\APIRequest;
 use \Blog\Frontend\API\v1\APIResponse;
@@ -16,6 +17,7 @@ class Endpoint {
 	private $pdo;
 	private $request;
 	private $response;
+	private $user;
 
 	function __construct() {
 		setlocale(\LC_ALL, Config::SERVER_LANG . '.utf-8');
@@ -34,6 +36,14 @@ class Endpoint {
 		# set default response values
 		$this->response->set_api_status('kaiwessela/blog API v1 – running.');
 		$this->response->set_header('Content-Type: application/json');
+
+		$this->user = new User();
+		$this->user->authenticate();
+		if(!$this->user->is_authenticated()){
+			$this->response->set_response_code(403);
+			$this->response->set_error_message('Astronauth: Authentication failed.');
+			$this->response->send();
+		}
 
 		# establish database connection
 		try {

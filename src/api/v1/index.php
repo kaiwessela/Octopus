@@ -29,6 +29,15 @@ spl_autoload_register(function($name){
 	}
 });
 
+spl_autoload_register(function($name){
+	$file = DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $name) . '.php';
+	$include = __DIR__ . DIRECTORY_SEPARATOR . '../../astronauth' . strtolower(str_replace(DIRECTORY_SEPARATOR . 'Astronauth', '', $file));
+
+	if(file_exists($include)){
+		require_once $include;
+	}
+});
+
 $endpoint = new \Blog\Frontend\API\v1\Endpoint();
 $endpoint->handle();
 ?>

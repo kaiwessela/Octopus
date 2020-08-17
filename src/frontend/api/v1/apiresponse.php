@@ -35,6 +35,7 @@ class APIResponse {
 		switch ($code) {
 			case 200: $this->response['response_code'] = '200 OK';						break;
 			case 400: $this->response['response_code'] = '400 Bad Request';				break;
+			case 403: $this->response['response_code'] = '403 Forbidden';				break;
 			case 404: $this->response['response_code'] = '404 Not Found'; 				break;
 			case 405: $this->response['response_code'] = '405 Method Not Allowed';		break;
 			case 500: $this->response['response_code'] = '500 Internal Server Error';	break;

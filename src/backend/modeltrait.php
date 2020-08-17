@@ -51,5 +51,13 @@ trait ModelTrait {
 			[PDO::ATTR_PERSISTENT => true]
 		);
 	}
+
+	public function is_empty() {
+		return $this->empty;
+	}
+
+	public function is_new() {
+		return $this->new;
+	}
 }
 ?>

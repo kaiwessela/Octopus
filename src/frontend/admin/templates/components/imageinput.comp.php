@@ -27,7 +27,7 @@ use \Blog\Config\Config;
 		<div>
 			<h2>Bild auswählen</h2>
 			<div class="grid">
-				
+
 			</div>
 			<button type="button" id="ii-picker-cancel">Abbrechen</button>
 		</div>
@@ -59,6 +59,15 @@ use \Blog\Config\Config;
 				</span>
 			</label>
 			<input type="text" id="ii-uploader-description" class="description" name="description">
+			<label for="copyright">
+				<span class="name">Urheberrechtshinweis</span>
+				<span class="requirements">optional</span>
+				<span class="description">
+					Der Urbeherrechtshinweis kann genutzt werden, um Lizensierungsinformationen zu dem Bild
+					zur Verfügung zu stellen. Er wird normalerweise unterhalb des Bildes angezeigt.
+				</span>
+			</label>
+			<input type="text" id="ii-uploader-copyright" class="copyright" name="copyright">
 			<label for="ii-uploader-file">
 				<span class="name">Datei</span>
 				<span class="requirements">erforderlich; PNG, JPEG oder GIF</span>

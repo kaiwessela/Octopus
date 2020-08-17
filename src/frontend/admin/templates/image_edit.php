@@ -39,13 +39,23 @@ use \Blog\Config\Config;
 
 	<label for="description">
 		<span class="name">Beschreibung</span>
-		<span class="requirements">optional</span>
+		<span class="requirements">optional, bis zu 256 Zeichen</span>
 		<span class="description">
 			Die Beschreibung wird als Alternativtext angezeigt, wenn das Bild nicht geladen
 			werden kann. Sie sollte den Bildinhalt wiedergeben.
 		</span>
 	</label>
 	<input type="text" id="description" class="description" name="description" value="<?= $image->description ?>">
+
+	<label for="copyright">
+		<span class="name">Urheberrechtshinweis</span>
+		<span class="requirements">optional, bis zu 256 Zeichen</span>
+		<span class="description">
+			Der Urbeherrechtshinweis kann genutzt werden, um Lizensierungsinformationen zu dem Bild
+			zur Verfügung zu stellen. Er wird normalerweise unterhalb des Bildes angezeigt.
+		</span>
+	</label>
+	<input type="text" id="copyright" class="copyright" name="copyright" value="<?= $image->copyright ?>">
 
 	<input type="submit" value="Speichern">
 </form>

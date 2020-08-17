@@ -28,16 +28,17 @@ class Post implements Model {
 
 
 	function __construct() {
+		$this->new = false;
 		$this->empty = true;
+		$this->image = new Image();
 	}
 
 	public function generate() {
-		if(!$this->empty){
+		if(!$this->is_empty()){
 			throw new WrongObjectStateException('empty');
 		}
 
 		$this->generate_id();
-		$this->image = new Image();
 
 		$this->new = true;
 		$this->empty = false;
@@ -46,7 +47,7 @@ class Post implements Model {
 	public function pull($identifier) {
 		$pdo = self::open_pdo();
 
-		if(!$this->empty){
+		if(!$this->is_empty()){
 			throw new WrongObjectStateException('empty');
 		}
 
@@ -102,7 +103,7 @@ class Post implements Model {
 	}
 
 	public function load($data) {
-		if(!$this->empty){
+		if(!$this->is_empty()){
 			throw new WrongObjectStateException('empty');
 		}
 
@@ -115,7 +116,6 @@ class Post implements Model {
 		$this->author = $data['post_author'];
 		$this->timestamp = (int) $data['post_timestamp'];
 
-		$this->image = new Image();
 		if(isset($data['image_id'])){
 			$this->image->load($data);
 		}
@@ -142,7 +142,7 @@ class Post implements Model {
 	public function push() {
 		$pdo = self::open_pdo();
 
-		if($this->empty){
+		if($this->is_empty()){
 			throw new WrongObjectStateException('not empty');
 		}
 
@@ -153,11 +153,16 @@ class Post implements Model {
 			'subline' => $this->subline,
 			'teaser' => $this->teaser,
 			'author' => $this->author,
-			'image_id' => $this->image->id,
 			'content' => $this->content
 		];
 
-		if($this->new){
+		if(!$this->image->is_empty()){
+			$values['image_id'] = $this->image->id;
+		} else {
+			$values['image_id'] = '';
+		}
+
+		if($this->is_new()){
 			$query = 'INSERT INTO posts (post_id, post_longid, post_overline, post_headline,
 				post_subline, post_teaser, post_author, post_timestamp, post_image_id,
 				post_content) VALUES (:id, :longid, :overline, :headline, :subline, :teaser,
@@ -180,7 +185,7 @@ class Post implements Model {
 	}
 
 	public function import($data) {
-		if($this->new){
+		if($this->is_new()){
 			$this->import_longid($data['longid']);
 		} else {
 			$this->import_check_id_and_longid($data['id'], $data['longid']);
@@ -200,7 +205,15 @@ class Post implements Model {
 	}
 
 	public function delete() {
-		if($this->empty)
+		$pdo = self::open_pdo();
+		
+		if($this->is_empty()){
+			throw new WrongObjectStateException('not empty');
+		}
+
+		if($this->is_new()){
+			throw new WrongObjectStateException('not new');
+		}
 
 		$query = 'DELETE FROM posts WHERE post_id = :id';
 		$values = ['id' => $this->id];
@@ -285,8 +298,6 @@ class Post implements Model {
 			}
 
 			$this->image = $image;
-		} else {
-			$this->image = null;
 		}
 	}
 }

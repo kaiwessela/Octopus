@@ -46,7 +46,8 @@ class ImageInputUploader {
 
 		var image = {
 			longid: this.elem.querySelector('input[name=longid]').value,
-			description: this.elem.querySelector('input[name=description]').value
+			description: this.elem.querySelector('input[name=description]').value,
+			copyright: this.elem.querySelector('input[name=copyright]').value
 		}
 
 		var reader = new FileReader();

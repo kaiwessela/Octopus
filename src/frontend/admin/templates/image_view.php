@@ -22,8 +22,11 @@ use \Blog\Config\Config;
 	</p>
 	<p class="longid"><?= $image->longid ?></p>
 	<p class="description"><?= $image->description ?></p>
-	<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH . $image->longid ?>/original.<?= $image->extension ?>"
-		alt="[ANZEIGEFEHLER] Hier sollte das Bild angezeigt werden">
+	<figure>
+		<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH . $image->longid ?>/original.<?= $image->extension ?>"
+			alt="[ANZEIGEFEHLER] Hier sollte das Bild angezeigt werden">
+		<figcaption><?= $image->copyright; ?>
+	</figure>
 	<p>
 		Verfügbare Größen:
 		<?php foreach($image->sizes as $size){ ?>

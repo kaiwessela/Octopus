@@ -15,6 +15,7 @@ class Image implements Model {
 	public $longid;
 	public $extension;		# String(1-4)[filename extension]
 	public $description;	# String(1-256)
+	public $copyright;
 	public $sizes;
 
 	private $new;
@@ -28,11 +29,12 @@ class Image implements Model {
 
 
 	function __construct() {
+		$this->new = false;
 		$this->empty = true;
 	}
 
 	public function generate() {
-		if(!$this->empty){
+		if(!$this->is_empty()){
 			throw new WrongObjectStateException('empty');
 		}
 
@@ -45,7 +47,7 @@ class Image implements Model {
 	public function pull($identifier) {
 		$pdo = self::open_pdo();
 
-		if(!$this->empty){
+		if(!$this->is_empty()){
 			throw new WrongObjectStateException('empty');
 		}
 
@@ -101,7 +103,7 @@ class Image implements Model {
 	}
 
 	public function load($data) {
-		if(!$this->empty){
+		if(!$this->is_empty()){
 			throw new WrongObjectStateException('empty');
 		}
 
@@ -109,6 +111,7 @@ class Image implements Model {
 		$this->longid = $data['image_longid'];
 		$this->extension = $data['image_extension'];
 		$this->description = $data['image_description'];
+		$this->copyright = $data['image_copyright'];
 		$this->sizes = explode(' ', $data['image_sizes']);
 
 		$this->empty = false;
@@ -131,25 +134,27 @@ class Image implements Model {
 	public function push() {
 		$pdo = self::open_pdo();
 
-		if($this->empty){
+		if($this->is_empty()){
 			throw new WrongObjectStateException('not empty');
 		}
 
 		$values = [
 			'id' => $this->id,
-			'description' => $this->description
+			'description' => $this->description,
+			'copyright' => $this->copyright
 		];
 
-		if($this->new){
+		if($this->is_new()){
 			$query = 'INSERT INTO images (image_id, image_longid, image_extension,
-				image_description, image_sizes) VALUES (:id, :longid, :extension, :description,
-				:sizes)';
+				image_description, image_copyright, image_sizes) VALUES (:id, :longid, :extension,
+				:description, :copyright, :sizes)';
 
 			$values['longid'] = $this->longid;
 			$values['extension'] = $this->extension;
 			$values['sizes'] = implode(' ', $this->sizes);
 		} else {
-			$query = 'UPDATE images SET image_description = :description WHERE image_id = :id';
+			$query = 'UPDATE images SET image_description = :description, image_copyright =
+			 	:copyright WHERE image_id = :id';
 		}
 
 		$s = $pdo->prepare($query);
@@ -163,7 +168,7 @@ class Image implements Model {
 	public function import($data) {
 		$imagemanager = new ImageManager(Config::DYNAMIC_IMAGE_PATH);
 
-		if($this->new){
+		if($this->is_new()){
 			$this->import_longid($data['longid']);
 			$imagemanager->receive_upload($this);
 		} else {
@@ -171,11 +176,20 @@ class Image implements Model {
 		}
 
 		$this->import_description($data['description']);
+		$this->import_copyright($data['copyright']);
 
 		$this->empty = false;
 	}
 
 	public function delete() {
+		if($this->is_empty()){
+			throw new WrongObjectStateException('not empty');
+		}
+
+		if($this->is_new()){
+			throw new WrongObjectStateException('not new');
+		}
+
 		$pdo = self::open_pdo();
 		$imagemanager = new ImageManager(Config::DYNAMIC_IMAGE_PATH);
 
@@ -196,12 +210,24 @@ class Image implements Model {
 		return in_array($size, $this->sizes);
 	}
 
-	public function is_empty() {
-		return $this->empty;
+	private function import_description($description) {
+		if(!isset($description)){
+			$this->description = null;
+		} else if(!preg_match('/^.{0,256}$/', $description)){
+			throw new InvalidInputException('description', '.{0,256}', $description);
+		} else {
+			$this->description = $description;
+		}
 	}
 
-	private function import_description($description) {
-		$this->description = $description;
+	private function import_copyright($copyright) {
+		if(!isset($copyright)){
+			$this->copyright = null;
+		} else if(!preg_match('/^.{0,256}$/', $copyright)){
+			throw new InvalidInputException('copyright', '.{0,256}', $copyright);
+		} else {
+			$this->copyright = $copyright;
+		}
 	}
 }
 ?>

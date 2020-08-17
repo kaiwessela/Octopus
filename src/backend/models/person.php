@@ -22,16 +22,17 @@ class Person implements Model {
 
 
 	function __construct() {
+		$this->new = false;
 		$this->empty = true;
+		$this->image = new Image();
 	}
 
 	public function generate() {
-		if(!$this->empty){
+		if(!$this->is_empty()){
 			throw new WrongObjectStateException('empty');
 		}
 
 		$this->generate_id();
-		$this->image = new Image();
 
 		$this->new = true;
 		$this->empty = false;
@@ -40,7 +41,7 @@ class Person implements Model {
 	public function pull($identifier) {
 		$pdo = self::open_pdo();
 
-		if(!$this->empty){
+		if(!$this->is_empty()){
 			throw new WrongObjectStateException('empty');
 		}
 
@@ -96,7 +97,7 @@ class Person implements Model {
 	}
 
 	public function load($data) {
-		if(!$this->empty){
+		if(!$this->is_empty()){
 			throw new WrongObjectStateException('empty');
 		}
 
@@ -104,7 +105,6 @@ class Person implements Model {
 		$this->longid = $data['person_longid'];
 		$this->name = $data['person_name'];
 
-		$this->image = new Image();
 		if(isset($data['image_id'])){
 			$this->image->load($data);
 		}
@@ -129,17 +129,22 @@ class Person implements Model {
 	public function push() {
 		$pdo = self::open_pdo();
 
-		if($this->empty){
+		if($this->is_empty()){
 			throw new WrongObjectStateException('not empty');
 		}
 
 		$values = [
 			'id' => $this->id,
-			'name' => $this->name,
-			'image_id' => $this->image->id
+			'name' => $this->name
 		];
 
-		if($this->new){
+		if(!$this->image->is_empty()){
+			$values['image_id'] = $this->image->id;
+		} else {
+			$values['image_id'] = '';
+		}
+
+		if($this->is_new()){
 			$query = 'INSERT INTO persons (person_id, person_longid, person_name, person_image_id)
 				VALUES (:id, :longid, :name, :image_id)';
 
@@ -157,7 +162,7 @@ class Person implements Model {
 	}
 
 	public function import($data) {
-		if($this->new){
+		if($this->is_new()){
 			$this->import_longid($data['longid']);
 		} else {
 			$this->import_check_id_and_longid($data['id'], $data['longid']);
@@ -170,7 +175,15 @@ class Person implements Model {
 	}
 
 	public function delete() {
-		if($this->empty)
+		$pdo = self::open_pdo();
+
+		if($this->is_empty()){
+			throw new WrongObjectStateException('not empty');
+		}
+
+		if($this->is_new()){
+			throw new WrongObjectStateException('not new');
+		}
 
 		$query = 'DELETE FROM persons WHERE person_id = :id';
 		$values = ['id' => $this->id];
@@ -217,8 +230,6 @@ class Person implements Model {
 			}
 
 			$this->image = $image;
-		} else {
-			$this->image = null;
 		}
 	}
 }

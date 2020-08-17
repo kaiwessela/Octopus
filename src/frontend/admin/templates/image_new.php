@@ -42,6 +42,16 @@ use \Blog\Config\Config;
 	</label>
 	<input type="text" id="description" class="description" name="description">
 
+	<label for="copyright">
+		<span class="name">Urheberrechtshinweis</span>
+		<span class="requirements">optional</span>
+		<span class="description">
+			Der Urbeherrechtshinweis kann genutzt werden, um Lizensierungsinformationen zu dem Bild
+			zur Verfügung zu stellen. Er wird normalerweise unterhalb des Bildes angezeigt.
+		</span>
+	</label>
+	<input type="text" id="copyright" class="copyright" name="copyright">
+
 	<label for="imagefile">
 		<span class="name">Datei</span>
 		<span class="requirements">erforderlich; PNG, JPEG oder GIF</span>

@@ -16,7 +16,7 @@ use \Blog\Frontend\Web\Modules\TimeFormat;
 	<body>
 		<?php include COMPONENT_PATH . 'header.comp.php'; ?>
 		<main>
-			<article>
+			<article class="post">
 				<header>
 
 					<?php if($PostController->post->overline){ ?>
@@ -40,8 +40,15 @@ use \Blog\Frontend\Web\Modules\TimeFormat;
 
 				<?php
 				if($PostController->show_picture){
-					$picture = $PostController->picture;
-					include COMPONENT_PATH . 'picture.comp.php';
+					?>
+					<figure>
+						<?php
+						$picture = $PostController->picture;
+						include COMPONENT_PATH . 'picture.comp.php';
+						?>
+						<figcaption><small><?= $picture->image->copyright ?></small></figcaption>
+					</figure>
+					<?php
 				}
 				?>
 

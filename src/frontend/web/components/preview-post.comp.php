@@ -2,7 +2,7 @@
 use \Blog\Config\Config;
 use \Blog\Frontend\Web\Modules\TimeFormat;
 ?>
-<article class="preview">
+<article class="post preview">
 	<a href="<?= Config::SERVER_URL ?>/posts/<?= $post->longid ?>">
 
 <?php

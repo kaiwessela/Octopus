@@ -414,8 +414,22 @@ article:not(.preview) > header .author-and-date {
 	color: var(--color-text-dark);
 }
 
-article:not(.preview) img {
-	margin-bottom: 2rem;
+article:not(.preview) figure {
+	grid-column: content-start / content-end;
+	padding: 0;
+	margin: 0;
+	padding-bottom: 2rem;
+}
+
+article:not(.preview) figure figcaption {
+	font-size: 0.9rem;
+	font-weight: 600;
+}
+
+article:not(.preview) figure figcaption small {
+	color: #666666;
+	font-size: 1em;
+	font-style: italic;
 }
 
 article .overline {

@@ -6,7 +6,6 @@ use InvalidArgumentException;
 
 class DatabaseException extends Exception {
 	public $query;			# original query
-	public $debug_info;		# PDOStatement->debugDumpParams
 	public $error_code;		# PDOStatement->errorCode
 	public $error_info;		# PDOStatement->errorInfo
 
@@ -18,17 +17,12 @@ class DatabaseException extends Exception {
 		}
 
 		$this->query = $pdo_statement->queryString;
-		$this->debug_info = $pdo_statement->debugDumpParams();
 		$this->error_code = $pdo_statement->errorCode();
 		$this->error_info = $pdo_statement->errorInfo();
 	}
 
 	public function get_query() {
 		return $this->query;
-	}
-
-	public function get_debug_info() {
-		return $this->debug_info;
 	}
 
 	public function get_error_code() {

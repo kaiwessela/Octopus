@@ -18,6 +18,7 @@ use \Blog\Config\Config;
 					<a href="<?= Config::SERVER_URL ?>/admin/posts">Posts</a>
 					<a href="<?= Config::SERVER_URL ?>/admin/images">Bilder</a>
 					<a href="<?= Config::SERVER_URL ?>/admin/persons">Personen</a>
+					<a href="<?= Config::SERVER_URL ?>/admin/events">Veranstaltungen</a>
 				</div>
 				<div class="astronauth">
 					<div class="navline">

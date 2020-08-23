@@ -77,6 +77,9 @@ class Endpoint {
 		} else if($this->request->class == 'persons'){
 			# class Person requested
 			$backend_class = new \Blog\Backend\Models\Person;
+		} else if($this->request->class == 'events'){
+			# class Event requested
+			$backend_class = new \Blog\Backend\Models\Event;
 		} else {
 			# invalid class requested, answer with error
 			$this->response->set_response_code(400);

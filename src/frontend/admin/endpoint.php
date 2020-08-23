@@ -18,6 +18,11 @@ use \Blog\Frontend\Admin\Controllers\PersonViewController;
 use \Blog\Frontend\Admin\Controllers\PersonEditController;
 use \Blog\Frontend\Admin\Controllers\PersonNewController;
 use \Blog\Frontend\Admin\Controllers\PersonDeleteController;
+use \Blog\Frontend\Admin\Controllers\EventListController;
+use \Blog\Frontend\Admin\Controllers\EventViewController;
+use \Blog\Frontend\Admin\Controllers\EventEditController;
+use \Blog\Frontend\Admin\Controllers\EventNewController;
+use \Blog\Frontend\Admin\Controllers\EventDeleteController;
 use \Blog\Frontend\Admin\Controllers\NotFoundController;
 
 class Endpoint {
@@ -80,6 +85,16 @@ class Endpoint {
 			$this->controller = new PersonEditController();
 		} else if(preg_match('/^persons\/.{8}\/delete$/', $path)){
 			$this->controller = new PersonDeleteController();
+		} else if(preg_match('/^events$/', $path)){
+			$this->controller = new EventListController();
+		} else if(preg_match('/^events\/new$/', $path)){
+			$this->controller = new EventNewController();
+		} else if(preg_match('/^events\/.{8}$/', $path)){
+			$this->controller = new EventViewController();
+		} else if(preg_match('/^events\/.{8}\/edit$/', $path)){
+			$this->controller = new EventEditController();
+		} else if(preg_match('/^events\/.{8}\/delete$/', $path)){
+			$this->controller = new EventDeleteController();
 		} else {
 			$this->controller = new NotFoundController();
 		}

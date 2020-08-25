@@ -153,6 +153,7 @@ class Post implements Model {
 			'subline' => $this->subline,
 			'teaser' => $this->teaser,
 			'author' => $this->author,
+			'timestamp' => $this->timestamp,
 			'content' => $this->content
 		];
 
@@ -169,11 +170,11 @@ class Post implements Model {
 				:author, :timestamp, :image_id, :content)';
 
 			$values['longid'] = $this->longid;
-			$values['timestamp'] = $this->timestamp;
 		} else {
 			$query = 'UPDATE posts SET post_overline = :overline, post_headline = :headline,
 				post_subline = :subline, post_teaser = :teaser, post_author = :author,
-				post_image_id = :image_id, post_content = :content WHERE post_id = :id';
+				post_timestamp = :timestamp, post_image_id = :image_id, post_content = :content
+				WHERE post_id = :id';
 		}
 
 		$s = $pdo->prepare($query);
@@ -196,17 +197,16 @@ class Post implements Model {
 		$this->import_subline($data['subline']);
 		$this->import_teaser($data['teaser']);
 		$this->import_author($data['author']);
+		$this->import_timestamp($data['timestamp'] ?? time());
 		$this->import_content($data['content']);
 		$this->import_image($data);
-
-		$this->timestamp = time();
 
 		$this->empty = false;
 	}
 
 	public function delete() {
 		$pdo = self::open_pdo();
-		
+
 		if($this->is_empty()){
 			throw new WrongObjectStateException('not empty');
 		}
@@ -267,6 +267,16 @@ class Post implements Model {
 			throw new InvalidInputException('author', '.{1,128}', $author);
 		} else {
 			$this->author = $author;
+		}
+	}
+
+	public function import_timestamp($timestamp) {
+		if(!isset($timestamp)){
+			throw new InvalidInputException('timestamp', '[unix timestamp]');
+		} else if(!is_numeric($timestamp)){
+			throw new InvalidInputException('timestmap', '[unix timestamp]', $timestamp);
+		} else {
+			$this->timestamp = (int) $timestamp;
 		}
 	}
 

@@ -251,7 +251,7 @@ class Event implements Model {
 		if(!isset($timestamp)){
 			throw new InvalidInputException('timestamp', '[unix timestamp]');
 		} else if(!is_numeric($timestamp)){
-			throw new InvalidInputException('timestmap', '[unix timestamp]');
+			throw new InvalidInputException('timestmap', '[unix timestamp]', $timestamp);
 		} else {
 			$this->timestamp = (int) $timestamp;
 		}

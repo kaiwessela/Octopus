@@ -21,7 +21,7 @@ use \Blog\Config\Config;
 		<p class="subline"><?= $post->subline ?></p>
 		<p>
 			<span class="author"><?= $post->author ?></span> –
-			<span class="timestamp"><?= $post->timestamp ?></span>
+			<span class="timestamp"><?= date('d.m.Y, H:i \U\h\r', $post->timestamp) ?></span>
 		</p>
 		<div>
 			<a href="<?= Config::SERVER_URL ?>/admin/posts/<?= $post->id ?>" class="view">Ansehen</a>

@@ -79,6 +79,17 @@ use \Blog\Config\Config;
 	<input type="text" id="author" class="author" name="author" required>
 
 	<label>
+		<span class="name">Veröffentlichungsdatum und -uhrzeit</span>
+		<span class="requirements">erforderlich</span>
+		<span class="description">
+			Datum und Uhrzeit der Veröffentlichung. Hat derzeit nur eine informierende Funktion,
+			Artikel mit Datum in der Zukunft werden trotzdem angezeigt. Es ist aber eine Funktion
+			zur terminierten Veröffentlichung geplant.
+		</span>
+	</label>
+	<div id="timeinput" data-value="" data-name="timestamp"></div>
+
+	<label>
 		<span class="name">Artikelbild</span>
 		<span class="requirements">optional</span>
 		<span class="description">
@@ -105,3 +116,4 @@ use \Blog\Config\Config;
 <a href="<?= Config::SERVER_URL ?>/admin/posts">Zurück zu allen Posts</a>
 
 <?php include __DIR__ . '/components/imageinput.comp.php'; ?>
+<?php include __DIR__ . '/components/timeinput.comp.php'; ?>

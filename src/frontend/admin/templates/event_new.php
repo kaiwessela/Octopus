@@ -66,12 +66,21 @@ use \Blog\Config\Config;
 	</label>
 	<textarea id="description" name="description" class="description"></textarea>
 
-	<label for="cancelled">
+	<label>
 		<span class="name">Absage</span>
 		<span class="requirements">optional</span>
 		<span class="description">Ist die Veranstaltung abgesagt?
 	</label>
-	<label>Ja <input type="checkbox" id="cancelled" class="cancelled" name="cancelled" value="true"></label>
+	<label class="checkbodge turn-around">
+		<span class="label-field">Ja</span>
+		<input type="checkbox" id="cancelled" name="cancelled" class="cancelled" value="true">
+		<span class="bodgecheckbox">
+			<span class="bodgetick">
+				<span class="bodgetick-down"></span>
+				<span class="bodgetick-up"></span>
+			</span>
+		</span>
+	</label>
 
 
 	<input type="submit" value="Speichern">

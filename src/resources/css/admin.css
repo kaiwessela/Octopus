@@ -281,6 +281,8 @@ label .requirements {
 
 input[type=text],
 input[type=file],
+input[type=date],
+input[type=time],
 textarea {
 	display: block;
 	margin: 0.5rem 0 1rem;
@@ -341,11 +343,30 @@ input.name {
 	width: 50%;
 }
 
+input.title {
+	font-family: 'Open Sans';
+	font-size: 1.6rem;
+	font-weight: 600;
+	width: 75%;
+}
+
+input.organisation {
+	width: 50%;
+}
+
+input.location {
+	width: 50%;
+}
+
 textarea.content {
 	font-family: 'Open Sans';
 	line-height: 1.5em;
 	width: 100%;
 	height: 30rem;
+}
+
+textarea.description {
+	width: 100%;
 }
 
 input.description {
@@ -542,4 +563,98 @@ article.image.preview a {
 	display: block;
 	color: #ffffff;
 	text-decoration: none;
+}
+
+/* CHECKBODGE */
+.checkbodge {
+	width: 100%;
+	font-size: 0.9rem;
+	line-height: 1.6em;
+	display: inline-flex;
+	margin: 0;
+}
+
+.checkbodge.turn-around {
+	flex-direction: row-reverse;
+	justify-content: flex-end;
+}
+
+.checkbodge input[type=checkbox] {
+	opacity: 0;
+	position: absolute;
+}
+
+.checkbodge > .label-field {
+	margin-right: 0.5rem;
+	font-size: 1.1em;
+}
+
+.checkbodge.turn-around > .label-field {
+	margin-left: 0.5rem;
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+.checkbodge > .bodgecheckbox {
+	display: inline-block;
+	vertical-align: top;
+	width: 1.2em;
+	height: 1.2em;
+	border: 0.2em solid #00000044;
+	border-radius: 0.25em;
+	background-color: #ffffff;
+	transition-duration: 0.25s;
+	margin: 0;
+}
+
+input[type=checkbox]:hover ~ .bodgecheckbox,
+input[type=checkbox]:focus ~ .bodgecheckbox,
+.checkbodge:hover > .bodgecheckbox,
+.checkbodge:focus > .bodgecheckbox {
+	border-color: #1da1f2;
+}
+
+.checkbodge > .bodgecheckbox > .bodgetick {
+	display: block;
+	position: relative;
+	height: inherit;
+	width: inherit;
+	opacity: 0;
+	transform: rotate(45deg);
+	left: 3%;
+	top: 5%;
+	transition-duration: 0.2s;
+	transition-timing-function: ease-in;
+	margin: 0;
+}
+
+.checkbodge > .bodgecheckbox > .bodgetick > span {
+	display: block;
+	height: 12%;
+	width: 12%;
+	background-color: #1da1f2;
+	border-radius: 0.075em;
+	position: absolute;
+	bottom: 20%;
+	right: 44%;
+	box-sizing: border-box;
+	transition-duration: 0.2s;
+	transition-timing-function: ease;
+	margin: 0;
+}
+
+input:checked ~ .bodgecheckbox {
+	border-color: #1da1f2;
+}
+
+input:checked ~ .bodgecheckbox > .bodgetick {
+	opacity: 100;
+}
+
+input:checked ~ .bodgecheckbox > .bodgetick > .bodgetick-down {
+	width: 40%;
+}
+
+input:checked ~ .bodgecheckbox > .bodgetick > .bodgetick-up {
+	height: 80%;
 }

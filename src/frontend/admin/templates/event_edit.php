@@ -78,7 +78,16 @@ use \Blog\Config\Config;
 		<span class="requirements">optional</span>
 		<span class="description">Ist die Veranstaltung abgesagt?
 	</label>
-	<label>Ja <input type="checkbox" id="cancelled" class="cancelled" name="cancelled" value="true" <?php if($event->cancelled){ echo 'checked'; } ?>></label>
+	<label class="checkbodge turn-around">
+		<span class="label-field">Ja</span>
+		<input type="checkbox" id="cancelled" name="cancelled" class="cancelled" value="true" <?php if($event->cancelled){ echo 'checked'; } ?>>
+		<span class="bodgecheckbox">
+			<span class="bodgetick">
+				<span class="bodgetick-down"></span>
+				<span class="bodgetick-up"></span>
+			</span>
+		</span>
+	</label>
 
 	<input type="submit" value="Speichern">
 </form>

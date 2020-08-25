@@ -21,7 +21,8 @@ class TimeInput {
 
 		this.name = this.container.getAttribute('data-name') || 'timestamp';
 		this.value = new Date();
-		this.value.setTime(this.container.getAttribute('data-value') * 1000);
+
+		this.value.setTime(parseInt(this.container.getAttribute('data-value'), 10) * 1000 || Date.now());
 
 		this.input.value = this.value.getTime() / 1000;
 		this.input.name = this.name;

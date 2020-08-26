@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Erstellungszeit: 17. Aug 2020 um 22:19
+-- Erstellungszeit: 26. Aug 2020 um 01:56
 -- Server-Version: 10.3.23-MariaDB-1
 -- PHP-Version: 7.4.5
 
@@ -21,6 +21,23 @@ SET time_zone = "+00:00";
 --
 -- Datenbank: `blog`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `events`
+--
+
+CREATE TABLE `events` (
+  `event_id` varchar(8) NOT NULL,
+  `event_longid` varchar(128) NOT NULL,
+  `event_title` varchar(64) NOT NULL,
+  `event_organisation` varchar(64) NOT NULL,
+  `event_timestamp` bigint(20) NOT NULL,
+  `event_location` varchar(128) DEFAULT NULL,
+  `event_description` text DEFAULT NULL,
+  `event_cancelled` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -72,6 +89,13 @@ CREATE TABLE `posts` (
 --
 -- Indizes der exportierten Tabellen
 --
+
+--
+-- Indizes für die Tabelle `events`
+--
+ALTER TABLE `events`
+  ADD PRIMARY KEY (`event_id`),
+  ADD UNIQUE KEY `event_longid` (`event_longid`);
 
 --
 -- Indizes für die Tabelle `images`

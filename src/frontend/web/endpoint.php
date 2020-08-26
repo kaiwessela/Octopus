@@ -6,6 +6,7 @@ use \Blog\Frontend\Web\Controllers\PostController;
 use \Blog\Frontend\Web\Controllers\PostListController;
 use \Blog\Frontend\Web\Controllers\StaticController;
 use PDO;
+use Exception;
 
 class Endpoint {
 	public $route;

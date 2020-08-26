@@ -37,13 +37,13 @@ class Endpoint {
 			$this->route = Routes::STATIC_ROUTE;
 		}
 
-		try {
-			foreach($this->route['controllers'] as $class => $settings){
+		foreach($this->route['controllers'] as $class => $settings){
+			try {
 				$controller_name = '\Blog\Frontend\Web\Controllers\\' . $class;
 				$this->controllers[$class] = new $controller_name($route, $settings);
+			} catch(Exception $e){
+				$this->return_404();
 			}
-		} catch(Exception $e){
-			$this->return_404();
 		}
 	}
 

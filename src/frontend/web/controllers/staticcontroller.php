@@ -2,6 +2,7 @@
 namespace Blog\Frontend\Web\Controllers;
 use \Blog\Frontend\Web\Controllers\Controller;
 use \Blog\Config\Routes;
+use Exception;
 
 class StaticController implements Controller {
 	public $title;

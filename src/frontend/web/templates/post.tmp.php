@@ -14,10 +14,10 @@ use \Blog\Frontend\Web\Modules\TimeFormat;
 		<meta name="date" content="<?= TimeFormat::html_time($PostController->post->timestamp) ?>">
 
 		<?php if($PostController->show_picture){ ?>
-			<meta name="twitter:card" content="summary">
-		<?php } else { ?>
 			<meta name="twitter:card" content="summary_large_image">
 			<meta property="og:image" content="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH . $PostController->post->image->longid . '/original.' . $PostController->post->image->extension ?>">
+		<?php } else { ?>
+			<meta name="twitter:card" content="summary">
 		<?php } ?>
 
 		<meta name="twitter:site" content="<?= SiteConfig::TWITTER_SITE ?>">

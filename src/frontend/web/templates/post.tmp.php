@@ -24,7 +24,7 @@ use \Blog\Frontend\Web\Modules\TimeFormat;
 
 		<meta property="og:type" content="article">
 		<meta property="og:url" content="<?= Config::SERVER_URL . '/' . SiteConfig::CANONICAL_URL_PREFIX . '/' . $PostController->post->id ?>">
-		<meta property="og:title" content="<?= $PostController->post->title ?>">
+		<meta property="og:title" content="<?= $PostController->post->headline ?>">
 		<meta property="og:description" content="<?= $PostController->post->teaser ?>">
 	</head>
 	<body>

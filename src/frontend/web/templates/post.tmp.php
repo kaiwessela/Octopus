@@ -12,6 +12,20 @@ use \Blog\Frontend\Web\Modules\TimeFormat;
 		<meta name="author" content="<?= $PostController->post->author ?>">
 		<meta name="description" content="<?= $PostController->post->teaser ?>">
 		<meta name="date" content="<?= TimeFormat::html_time($PostController->post->timestamp) ?>">
+
+		<?php if($PostController->show_picture){ ?>
+			<meta name="twitter:card" content="summary">
+		<?php } else { ?>
+			<meta name="twitter:card" content="summary_large_image">
+			<meta property="og:image" content="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH . $PostController->post->image->longid . '/original.' . $PostController->post->image->extension ?>">
+		<?php } ?>
+
+		<meta name="twitter:site" content="<?= SiteConfig::TWITTER_SITE ?>">
+
+		<meta property="og:type" content="article">
+		<meta property="og:url" content="<?= Config::SERVER_URL . '/' . SiteConfig::CANONICAL_URL_PREFIX . '/' . $PostController->post->id ?>">
+		<meta property="og:title" content="<?= $PostController->post->title ?>">
+		<meta property="og:description" content="<?= $PostController->post->teaser ?>">
 	</head>
 	<body>
 		<?php include COMPONENT_PATH . 'header.comp.php'; ?>

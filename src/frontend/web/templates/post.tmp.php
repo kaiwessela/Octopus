@@ -8,7 +8,7 @@ use \Blog\Frontend\Web\Modules\TimeFormat;
 	<head>
 		<?php include COMPONENT_PATH . 'head.comp.php'; ?>
 		<title><?= $PostController->post->headline ?> – <?= SiteConfig::TITLE ?></title>
-		<link rel="canonical" href="<?= Config::SERVER_URL ?>/posts/<?= $PostController->post->longid ?>">
+		<link rel="canonical" href="<?= Config::SERVER_URL ?>/<?= SiteConfig::CANONICAL_URL_PREFIX ?>/<?= $PostController->post->longid ?>">
 		<meta name="author" content="<?= $PostController->post->author ?>">
 		<meta name="description" content="<?= $PostController->post->teaser ?>">
 		<meta name="date" content="<?= TimeFormat::html_time($PostController->post->timestamp) ?>">
@@ -23,7 +23,7 @@ use \Blog\Frontend\Web\Modules\TimeFormat;
 		<meta name="twitter:site" content="<?= SiteConfig::TWITTER_SITE ?>">
 
 		<meta property="og:type" content="article">
-		<meta property="og:url" content="<?= Config::SERVER_URL . '/' . SiteConfig::CANONICAL_URL_PREFIX . '/' . $PostController->post->id ?>">
+		<meta property="og:url" content="<?= Config::SERVER_URL ?>/<?= SiteConfig::CANONICAL_URL_PREFIX ?>/<?= $PostController->post->longid ?>">
 		<meta property="og:title" content="<?= $PostController->post->headline ?>">
 		<meta property="og:description" content="<?= $PostController->post->teaser ?>">
 	</head>

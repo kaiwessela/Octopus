@@ -6,6 +6,6 @@ class SiteConfig {
 
 	const TWITTER_SITE = '@KaiWessela';
 
-	const CANONICAL_URL_PREFIX = 'p';
+	const CANONICAL_URL_PREFIX = 'posts';
 }
 ?>

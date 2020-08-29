@@ -9,9 +9,11 @@ mkdir build/libs
 
 # copy
 cp -r src/. build
-cp -r libs/. build/libs
 
+# copy parsedown
+cp -r libs/parsedown/Parsedown.php build/libs/parsedown/Parsedown.php
 
+# copy astronauth
 cd libs/astronauth
 ./build.sh
 cd ../..

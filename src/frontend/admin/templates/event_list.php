@@ -1,5 +1,6 @@
 <?php
 use \Blog\Config\Config;
+$controller->events = $controller->objs; // TEMP
 ?>
 
 <h1>Alle Veranstaltungen</h1>

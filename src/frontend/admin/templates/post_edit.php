@@ -1,5 +1,6 @@
 <?php
 use \Blog\Config\Config;
+$controller->post = $controller->obj; // TEMP
 ?>
 
 <h1>Post bearbeiten</h1>

@@ -11,7 +11,8 @@ mkdir build/libs
 cp -r src/. build
 
 # copy parsedown
-cp -r libs/parsedown/Parsedown.php build/libs/parsedown/Parsedown.php
+mkdir build/libs/parsedown
+cp libs/parsedown/Parsedown.php build/libs/parsedown/Parsedown.php
 
 # copy astronauth
 cd libs/astronauth

@@ -1,5 +1,6 @@
 <?php
 use \Blog\Config\Config;
+$controller->person = $controller->obj; // TEMP
 ?>
 
 <h1>Person ansehen</h1>
@@ -11,7 +12,7 @@ use \Blog\Config\Config;
 <p>Details: <span class="code"><?= $controller->err_not_found_msg ?></span></p>
 <?php } ?>
 
-<?php if($controller->show_person){ ?>
+<?php if($controller->show_obj){ ?>
 <?php $person = $controller->person ?>
 <a href="<?= Config::SERVER_URL ?>/admin/persons" class="button">&laquo; Zurück zu allen Personen</a>
 

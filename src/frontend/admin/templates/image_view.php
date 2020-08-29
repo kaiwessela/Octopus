@@ -1,5 +1,6 @@
 <?php
 use \Blog\Config\Config;
+$controller->image = $controller->obj; // TEMP
 ?>
 
 <h1>Bild ansehen</h1>
@@ -11,7 +12,7 @@ use \Blog\Config\Config;
 <p>Details: <span class="code"><?= $controller->err_not_found_msg ?></span></p>
 <?php } ?>
 
-<?php if($controller->show_image){ ?>
+<?php if($controller->show_obj){ ?>
 <?php $image = $controller->image ?>
 <a href="<?= Config::SERVER_URL ?>/admin/images" class="button">&laquo; Zurück zu allen Bildern</a>
 

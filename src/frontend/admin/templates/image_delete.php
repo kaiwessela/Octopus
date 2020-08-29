@@ -1,5 +1,6 @@
 <?php
 use \Blog\Config\Config;
+$controller->image = $controller->obj; // TEMP
 ?>
 
 <h1>Bild löschen</h1>

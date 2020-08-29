@@ -1,5 +1,6 @@
 <?php
 use \Blog\Config\Config;
+$controller->event = $controller->obj; // TEMP
 ?>
 
 <h1>Veranstaltung ansehen</h1>
@@ -11,7 +12,7 @@ use \Blog\Config\Config;
 <p>Details: <span class="code"><?= $controller->err_not_found_msg ?></span></p>
 <?php } ?>
 
-<?php if($controller->show_event){ ?>
+<?php if($controller->show_obj){ ?>
 <?php $event = $controller->event ?>
 <a href="<?= Config::SERVER_URL ?>/admin/events" class="button">&laquo; Zurück zu allen Veranstaltungen</a>
 

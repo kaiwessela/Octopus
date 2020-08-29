@@ -1,10 +1,10 @@
 <?php
 namespace Blog\Frontend\Admin\Controllers;
-use \Blog\Backend\Models\Image;
 use Exception;
 
-class ImageDeleteController {
-	public $image;
+class DeleteController {
+	public $template;
+	public $obj;
 	public $show_err_not_found;
 	public $err_not_found_msg;
 	public $show_err_invalid;
@@ -12,10 +12,13 @@ class ImageDeleteController {
 	public $show_form;
 	public $show_success;
 
-	function __construct() {
+	function __construct($template, $model) {
+		$this->template = $template;
+
 		try {
-			$this->image = new Image();
-			$this->image->pull($_GET['identifier']);
+			$model = "\Blog\Backend\Models\\$model";
+			$this->obj = new $model();
+			$this->obj->pull($_GET['identifier']);
 			$this->show_err_not_found = false;
 		} catch(Exception $e){
 			$this->show_err_not_found = true;
@@ -27,7 +30,7 @@ class ImageDeleteController {
 
 		if($_POST){
 			try {
-				$this->image->delete();
+				$this->obj->delete();
 				$this->show_success = true;
 				$this->show_form = false;
 				$this->show_err_invalid = false;
@@ -40,7 +43,7 @@ class ImageDeleteController {
 
 	public function display() {
 		$controller = $this;
-		include __DIR__ . '/../templates/image_delete.php';
+		include __DIR__ . "/../templates/$this->template.php";
 	}
 }
 ?>

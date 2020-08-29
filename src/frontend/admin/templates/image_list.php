@@ -1,5 +1,6 @@
 <?php
 use \Blog\Config\Config;
+$controller->images = $controller->objs; // TEMP
 ?>
 
 <h1>Alle Bilder</h1>

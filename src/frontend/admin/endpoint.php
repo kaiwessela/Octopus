@@ -3,26 +3,11 @@ namespace Blog\Frontend\Admin;
 use \Astronauth\Backend\User;
 use \Blog\Config\Config;
 use \Blog\Frontend\Admin\Controllers\StartController;
-use \Blog\Frontend\Admin\Controllers\ImageListController;
-use \Blog\Frontend\Admin\Controllers\ImageViewController;
-use \Blog\Frontend\Admin\Controllers\ImageEditController;
-use \Blog\Frontend\Admin\Controllers\ImageNewController;
-use \Blog\Frontend\Admin\Controllers\ImageDeleteController;
-use \Blog\Frontend\Admin\Controllers\PostListController;
-use \Blog\Frontend\Admin\Controllers\PostViewController;
-use \Blog\Frontend\Admin\Controllers\PostEditController;
-use \Blog\Frontend\Admin\Controllers\PostNewController;
-use \Blog\Frontend\Admin\Controllers\PostDeleteController;
-use \Blog\Frontend\Admin\Controllers\PersonListController;
-use \Blog\Frontend\Admin\Controllers\PersonViewController;
-use \Blog\Frontend\Admin\Controllers\PersonEditController;
-use \Blog\Frontend\Admin\Controllers\PersonNewController;
-use \Blog\Frontend\Admin\Controllers\PersonDeleteController;
-use \Blog\Frontend\Admin\Controllers\EventListController;
-use \Blog\Frontend\Admin\Controllers\EventViewController;
-use \Blog\Frontend\Admin\Controllers\EventEditController;
-use \Blog\Frontend\Admin\Controllers\EventNewController;
-use \Blog\Frontend\Admin\Controllers\EventDeleteController;
+use \Blog\Frontend\Admin\Controllers\ListController;
+use \Blog\Frontend\Admin\Controllers\ViewController;
+use \Blog\Frontend\Admin\Controllers\EditController;
+use \Blog\Frontend\Admin\Controllers\NewController;
+use \Blog\Frontend\Admin\Controllers\DeleteController;
 use \Blog\Frontend\Admin\Controllers\NotFoundController;
 
 class Endpoint {
@@ -56,45 +41,45 @@ class Endpoint {
 		if(preg_match('/^$/', $path)){
 			$this->controller = new StartController();
 		} else if(preg_match('/^images$/', $path)){
-			$this->controller = new ImageListController();
+			$this->controller = new ListController('image_list', 'Image');
 		} else if(preg_match('/^images\/new$/', $path)){
-			$this->controller = new ImageNewController();
+			$this->controller = new NewController('image_new', 'Image');
 		} else if(preg_match('/^images\/.{8}$/', $path)){
-			$this->controller = new ImageViewController();
+			$this->controller = new ViewController('image_view', 'Image');
 		} else if(preg_match('/^images\/.{8}\/edit$/', $path)){
-			$this->controller = new ImageEditController();
+			$this->controller = new EditController('image_edit', 'Image');
 		} else if(preg_match('/^images\/.{8}\/delete$/', $path)){
-			$this->controller = new ImageDeleteController();
+			$this->controller = new DeleteController('image_delete', 'Image');
 		} else if(preg_match('/^posts$/', $path)){
-			$this->controller = new PostListController();
+			$this->controller = new ListController('post_list', 'Post');
 		} else if(preg_match('/^posts\/new$/', $path)){
-			$this->controller = new PostNewController();
+			$this->controller = new NewController('post_new', 'Post');
 		} else if(preg_match('/^posts\/.{8}$/', $path)){
-			$this->controller = new PostViewController();
+			$this->controller = new ViewController('post_view', 'Post');
 		} else if(preg_match('/^posts\/.{8}\/edit$/', $path)){
-			$this->controller = new PostEditController();
+			$this->controller = new EditController('post_edit', 'Post');
 		} else if(preg_match('/^posts\/.{8}\/delete$/', $path)){
-			$this->controller = new PostDeleteController();
+			$this->controller = new DeleteController('post_delete', 'Post');
 		} else if(preg_match('/^persons$/', $path)){
-			$this->controller = new PersonListController();
+			$this->controller = new ListController('person_list', 'Person');
 		} else if(preg_match('/^persons\/new$/', $path)){
-			$this->controller = new PersonNewController();
+			$this->controller = new NewController('person_new', 'Person');
 		} else if(preg_match('/^persons\/.{8}$/', $path)){
-			$this->controller = new PersonViewController();
+			$this->controller = new ViewController('person_view', 'Person');
 		} else if(preg_match('/^persons\/.{8}\/edit$/', $path)){
-			$this->controller = new PersonEditController();
+			$this->controller = new EditController('person_edit', 'Person');
 		} else if(preg_match('/^persons\/.{8}\/delete$/', $path)){
-			$this->controller = new PersonDeleteController();
+			$this->controller = new DeleteController('person_delete', 'Person');
 		} else if(preg_match('/^events$/', $path)){
-			$this->controller = new EventListController();
+			$this->controller = new ListController('event_list', 'Event');
 		} else if(preg_match('/^events\/new$/', $path)){
-			$this->controller = new EventNewController();
+			$this->controller = new NewController('event_new', 'Event');
 		} else if(preg_match('/^events\/.{8}$/', $path)){
-			$this->controller = new EventViewController();
+			$this->controller = new ViewController('event_view', 'Event');
 		} else if(preg_match('/^events\/.{8}\/edit$/', $path)){
-			$this->controller = new EventEditController();
+			$this->controller = new EditController('event_edit', 'Event');
 		} else if(preg_match('/^events\/.{8}\/delete$/', $path)){
-			$this->controller = new EventDeleteController();
+			$this->controller = new DeleteController('event_delete', 'Event');
 		} else {
 			$this->controller = new NotFoundController();
 		}

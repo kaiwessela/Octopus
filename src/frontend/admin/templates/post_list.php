@@ -1,5 +1,6 @@
 <?php
 use \Blog\Config\Config;
+$controller->posts = $controller->objs; // TEMP
 ?>
 
 <h1>Alle Posts</h1>

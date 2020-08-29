@@ -1,5 +1,6 @@
 <?php
 use \Blog\Config\Config;
+$controller->persons = $controller->objs; // TEMP
 ?>
 
 <h1>Alle Personen</h1>

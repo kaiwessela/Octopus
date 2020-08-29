@@ -1,5 +1,6 @@
 <?php
 use \Blog\Config\Config;
+$controller->event = $controller->obj; // TEMP
 ?>
 
 <h1>Veranstaltung bearbeiten</h1>

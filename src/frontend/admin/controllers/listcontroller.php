@@ -1,16 +1,19 @@
 <?php
 namespace Blog\Frontend\Admin\Controllers;
-use \Blog\Backend\Models\Event;
 use Exception;
 
-class EventListController {
+class ListController {
+	public $template;
+	public $objs;
 	public $show_warn_no_fount;
 	public $show_list;
-	public $events;
 
-	function __construct() {
+	function __construct($template, $model) {
+		$this->template = $template;
+
 		try {
-			$this->events = Event::pull_all();
+			$model = "\Blog\Backend\Models\\$model";
+			$this->objs = $model::pull_all();
 			$this->show_warn_no_found = false;
 			$this->show_list = true;
 		} catch(Exception $e){
@@ -21,7 +24,7 @@ class EventListController {
 
 	public function display() {
 		$controller = $this;
-		include __DIR__ . '/../templates/event_list.php';
+		include __DIR__ . "/../templates/$this->template.php";
 	}
 }
 ?>

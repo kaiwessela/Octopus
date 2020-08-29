@@ -1,5 +1,6 @@
 <?php
 use \Blog\Config\Config;
+$controller->person = $controller->obj; // TEMP
 ?>
 
 <h1>Neue Person hinzufügen</h1>

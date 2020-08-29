@@ -1,5 +1,6 @@
 <?php
 use \Blog\Config\Config;
+$controller->post = $controller->obj; // TEMP
 ?>
 
 <h1>Post ansehen</h1>
@@ -11,7 +12,7 @@ use \Blog\Config\Config;
 <p>Details: <span class="code"><?= $controller->err_not_found_msg ?></span></p>
 <?php } ?>
 
-<?php if($controller->show_post){ ?>
+<?php if($controller->show_obj){ ?>
 <?php $post = $controller->post ?>
 <a href="<?= Config::SERVER_URL ?>/admin/posts" class="button">&laquo; Zurück zu allen Posts</a>
 

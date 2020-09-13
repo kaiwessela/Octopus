@@ -2,9 +2,6 @@
 namespace Blog\Frontend\Web;
 use \Blog\Config\Config;
 use \Blog\Config\Routes;
-use \Blog\Frontend\Web\Controllers\PostController;
-use \Blog\Frontend\Web\Controllers\PostListController;
-use \Blog\Frontend\Web\Controllers\StaticController;
 use PDO;
 use Exception;
 
@@ -24,9 +21,13 @@ class Endpoint {
 			error_reporting(0);
 		}
 
-		$path = implode('/', [$_GET['page'] ?? '', $_GET['post'] ?? '']);
+		$path = implode('/', [$_GET['1'] ?? '', $_GET['2'] ?? '']);
 
 		foreach(Routes::ROUTES as $route){
+			if($route['path'] == '@else'){
+				continue;
+			}
+
 			if(!preg_match($route['path'], $path)){
 				continue;
 			}
@@ -35,16 +36,21 @@ class Endpoint {
 		}
 
 		if(!$this->route){
-			$this->route = Routes::STATIC_ROUTE;
+			$this->route = Routes::ROUTES['@else'];
 		}
 
 		foreach($this->route['controllers'] as $class => $settings){
+			$controller_name = "\Blog\Frontend\Web\Controllers\\${class}Controller";
+			$this->controllers[$class] = new $controller_name();
+			$this->controllers[$class]->prepare($settings);
+
 			try {
-				$controller_name = '\Blog\Frontend\Web\Controllers\\' . $class;
-				$this->controllers[$class] = new $controller_name($route, $settings);
+				$this->controllers[$class]->execute();
 			} catch(Exception $e){
 				$this->return_404();
 			}
+
+			$this->controllers[$class]->process();
 		}
 	}
 

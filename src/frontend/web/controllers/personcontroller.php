@@ -1,14 +1,14 @@
 <?php
 namespace Blog\Frontend\Web\Controllers;
 use \Blog\Frontend\Web\Controllers\Controller;
-use \Blog\Backend\Models\Post;
-use \Blog\Frontend\Web\Modules\Pagination\Pagination;
+use \Blog\Backend\Models\Person;
+use \Blog\Backend\Exceptions\EmptyResultException;
+use \Blog\Frontend\Web\Modules\Pagination;
 use \Blog\Frontend\Web\Modules\Picture;
-use Parsedown;
 
 
-class PostController extends Controller {
-	const MODEL = 'Post';
+class PersonController implements Controller {
+	const MODEL = 'Person';
 
 	public $errors = [
 		'404' => false
@@ -26,7 +26,6 @@ class PostController extends Controller {
 
 	public $pagination;
 
-
 	public function process() {
 		foreach($this->models as $key => &$model){
 			$this->objects[$key] = $model->export();
@@ -35,8 +34,6 @@ class PostController extends Controller {
 
 			if($this->objects[$key]->image){
 				$this->objects[$key]->picture = new Picture($model->image);
-			} else {
-				$this->objects[$key]->picture = null;
 			}
 		}
 	}

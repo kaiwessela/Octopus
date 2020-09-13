@@ -6,7 +6,7 @@ use \Blog\Frontend\Web\Modules\TimeFormat;
 	<a href="<?= Config::SERVER_URL ?>/posts/<?= $post->longid ?>">
 
 <?php
-if($post->show_picture){
+if($post->picture){
 	$picture = $post->picture;
 	include COMPONENT_PATH . 'picture.comp.php';
 }

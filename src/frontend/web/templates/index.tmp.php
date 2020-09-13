@@ -16,7 +16,7 @@ use \Blog\Frontend\Web\SiteConfig;
 			<section>
 				<h2>Neueste Posts</h2>
 				<?php
-				foreach($PostListController->posts as $post){
+				foreach($Post->objects as $post){
 					include COMPONENT_PATH . 'preview-post.comp.php';
 				}
 				?>

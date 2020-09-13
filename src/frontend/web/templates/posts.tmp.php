@@ -15,18 +15,18 @@ use \Blog\Frontend\Web\SiteConfig;
 					<h1>Alle Artikel</h1>
 				</header>
 				<div>
-					<b>Seite <?= $PostListController->pagination->current_page ?> von <?= $PostListController->pagination->page_count ?></b>
-					– Angezeigt werden Artikel <?= $PostListController->pagination->get_first_object_number() ?> bis
-					<?= $PostListController->pagination->get_last_object_number() ?> von insgesamt <?= $PostListController->pagination->object_count ?> Artikeln
+					<b>Seite <?= $Post->pagination->current_page ?> von <?= $Post->pagination->page_count ?></b>
+					– Angezeigt werden Artikel <?= $Post->pagination->get_first_object_number() ?> bis
+					<?= $Post->pagination->get_last_object_number() ?> von insgesamt <?= $Post->pagination->object_count ?> Artikeln
 				</div>
-				<?php $PostListController->pagination->display(); ?>
+				<?php $Post->pagination->display(); ?>
 
-				<?php if($PostListController->show_no_posts_found){ ?>
+				<?php if($Post->error('404')){ ?>
 				<p>Keine Posts gefunden.</p>
 				<?php } ?>
 
 <?php
-foreach($PostListController->posts as $post){
+foreach($Post->objects as $post){
 	include COMPONENT_PATH . 'preview-post.comp.php';
 }
 ?>

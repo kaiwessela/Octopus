@@ -1,10 +1,8 @@
 <?php
 namespace Blog\Frontend\Web\Controllers;
 use \Blog\Frontend\Web\Controllers\Controller;
-use \Blog\Backend\Models\Person;
-use \Blog\Backend\Exceptions\EmptyResultException;
-use \Blog\Frontend\Web\Modules\Pagination;
 use \Blog\Frontend\Web\Modules\Picture;
+use Parsedown;
 
 
 class PersonController implements Controller {

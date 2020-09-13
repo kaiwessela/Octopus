@@ -1,5 +1,5 @@
 <?php
-namespace Blog\Frontend\Web\Modules\Pagination;
+namespace Blog\Frontend\Web\Modules;
 use \Blog\Config\PaginationConfig;
 use InvalidArgumentException;
 
@@ -105,13 +105,13 @@ class Pagination {
 	public function display_items() {
 		$pagination = &$this; // TEMP
 		foreach($this->items as $item){
-			include __DIR__ . '/templates/' . $item->template . '.item.php';
+			include __DIR__ . '/../templates/pagination/' . $item->template . '.item.php';
 		}
 	}
 
 	public function display() {
 		$pagination = &$this;
-		include __DIR__ . '/templates/main.php';
+		include __DIR__ . '/../templates/pagination/main.php';
 	}
 
 	public function page_exists($page) {

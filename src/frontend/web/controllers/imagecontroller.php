@@ -1,8 +1,7 @@
 <?php
 namespace Blog\Frontend\Web\Controllers;
 use \Blog\Frontend\Web\Controllers\Controller;
-use \Blog\Backend\Models\Image;
-use \Blog\Frontend\Web\Modules\Pagination;
+use \Blog\Frontend\Web\Modules\Picture;
 
 
 class ImageController extends Controller {

@@ -2,7 +2,7 @@
 namespace Blog\Frontend\Web\Controllers;
 use \Blog\Frontend\Web\Controllers\Exceptions\InvalidParameterException;
 use \Blog\Backend\Exceptions\EmptyResultException;
-use \Blog\Frontend\Web\Modules\Pagination\Pagination;
+use \Blog\Frontend\Web\Modules\Pagination;
 
 /*# IDEA:
 

@@ -1,8 +1,6 @@
 <?php
 namespace Blog\Frontend\Web\Controllers;
 use \Blog\Frontend\Web\Controllers\Controller;
-use \Blog\Backend\Models\Post;
-use \Blog\Frontend\Web\Modules\Pagination\Pagination;
 use \Blog\Frontend\Web\Modules\Picture;
 use Parsedown;
 

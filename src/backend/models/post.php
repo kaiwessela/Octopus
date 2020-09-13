@@ -226,6 +226,27 @@ class Post implements Model {
 		}
 	}
 
+	public function export() {
+		if($this->is_empty()){
+			return null;
+		}
+		
+		$obj = (object) [];
+
+		$obj->id = $this->id;
+		$obj->longid = $this->longid;
+		$obj->overline = $this->overline;
+		$obj->headline = $this->headline;
+		$obj->subline = $this->subline;
+		$obj->teaser = $this->teaser;
+		$obj->author = $this->author;
+		$obj->timestamp = $this->timestamp;
+		$obj->content = $this->content;
+		$obj->image = $this->image->export();
+
+		return $obj;
+	}
+
 	private function import_overline($overline) {
 		if(!isset($overline)){
 			$this->overline = null;

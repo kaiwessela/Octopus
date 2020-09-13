@@ -227,6 +227,25 @@ class Event implements Model {
 		}
 	}
 
+	public function export() {
+		if($this->is_empty()){
+			return null;
+		}
+
+		$obj = (object) [];
+
+		$obj->id = $this->id;
+		$obj->longid = $this->longid;
+		$obj->title = $this->title;
+		$obj->organisation = $this->organisation;
+		$obj->timestamp = $this->timestamp;
+		$obj->location = $this->location;
+		$obj->description = $this->description;
+		$obj->cancelled = $this->cancelled;
+
+		return $obj;
+	}
+
 	public function import_title($title) {
 		if(!isset($title)){
 			throw new InvalidInputException('title', '.{1,64}');

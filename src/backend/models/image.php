@@ -206,6 +206,23 @@ class Image implements Model {
 		}
 	}
 
+	public function export() {
+		if($this->is_empty()){
+			return null;
+		}
+		
+		$obj = (object) [];
+
+		$obj->id = $this->id;
+		$obj->longid = $this->longid;
+		$obj->extension = $this->extension;
+		$obj->description = $this->description;
+		$obj->copyright = $this->copyright;
+		$obj->sizes = $this->sizes;
+
+		return $obj;
+	}
+
 	public function has_size($size) {
 		return in_array($size, $this->sizes);
 	}

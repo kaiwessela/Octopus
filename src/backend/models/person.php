@@ -196,6 +196,21 @@ class Person implements Model {
 		}
 	}
 
+	public function export() {
+		if($this->is_empty()){
+			return null;
+		}
+		
+		$obj = (object) [];
+
+		$obj->id = $this->id;
+		$obj->longid = $this->longid;
+		$obj->name = $this->name;
+		$obj->image = $this->image->export();
+
+		return $obj;
+	}
+
 	private function import_name($name) {
 		if(!isset($name)){
 			throw new InvalidInputException('name', '.{1,64}');

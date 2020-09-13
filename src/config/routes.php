@@ -11,10 +11,10 @@ class Routes {
 					'mode' => 'multi',
 					'amount' => 5
 				],
-				//'Event' => [
-				//	'mode' => 'multi',
-					// 'amount' => 5
-				// ]
+				'Event' => [
+					'mode' => 'multi',
+					'amount' => 5
+				]
 			]
 		],
 		[

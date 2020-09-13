@@ -138,7 +138,7 @@ abstract class Controller {
 		} else if(is_numeric($parameters['page']) && $parameters['page'] > 0){
 			$this->params->page = $parameters['page'];
 		} else if(preg_match('/^\?([0-9])?/', $parameters['page'], $matches)){
-			$this->params->page = $_GET[$matches[1]] ?? 1;
+			$this->params->page = (empty($_GET[$matches[1]])) ? 1 : (int) $_GET[$matches[1]];
 		} else {
 			throw new InvalidParameterException('page', 'int|QueryParam', $parameters);
 		}

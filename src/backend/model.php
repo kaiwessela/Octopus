@@ -11,19 +11,18 @@ abstract class Model {
 	public $id;
 	public $longid;
 
-	private $new;
-	private $empty;
+	protected $new;
+	protected $empty;
 
 
-	abstract static function count();
-	abstract static function pull_all($limit, $offset);
-	abstract function pull($identifier);
-	abstract function push();
-	abstract function load($data);
-	abstract function import();
-	abstract function export();
-	abstract function delete();
-
+	abstract public static function count();
+	abstract public static function pull_all($limit, $offset);
+	abstract public function pull($identifier);
+	abstract public function push();
+	abstract public function load($data);
+	abstract public function import($data);
+	abstract public function export();
+	abstract public function delete();
 
 	function __construct() {
 		$this->new = false;
@@ -41,13 +40,13 @@ abstract class Model {
 		$this->empty = false;
 	}
 
-	private function import_check_id_and_longid($id, $longid) {
+	protected function import_check_id_and_longid($id, $longid) {
 		if($id != $this->id || $longid != $this->longid){
 			throw new InvalidInputException('id/longid', 'original id and longid', $data['id'] . ' ' . $data['longid']);
 		}
 	}
 
-	private function import_longid($longid) {
+	protected function import_longid($longid) {
 		if(!isset($longid)){
 			throw new InvalidInputException('longid', '[a-z0-9-]{9,128}');
 		}
@@ -73,7 +72,7 @@ abstract class Model {
 		}
 	}
 
-	private static function open_pdo() {
+	protected static function open_pdo() {
 		return new PDO(
 			'mysql:host=' . Config::DB_HOST . ';dbname=' . Config::DB_NAME,
 			Config::DB_USER,
@@ -82,16 +81,16 @@ abstract class Model {
 		);
 	}
 
-	private function generate_id() {
+	protected function generate_id() {
 		$this->id = bin2hex(random_bytes(4));
 	}
 
 
-	private function is_empty() {
+	protected function is_empty() {
 		return $this->empty;
 	}
 
-	private function is_new() {
+	protected function is_new() {
 		return $this->new;
 	}
 }

@@ -9,9 +9,7 @@ use \Blog\Backend\Exceptions\EmptyResultException;
 use \Blog\Backend\Exceptions\InvalidInputException;
 use InvalidArgumentException;
 
-class Post implements Model {
-	public $id;
-	public $longid;
+class Post extends Model {
 	public $overline;	# String(0-64)
 	public $headline; 	# String(1-256)
 	public $subline;	# String(0-256)
@@ -21,27 +19,18 @@ class Post implements Model {
 	public $image;		# Image
 	public $content;	# String
 
+	/* @inherited
+	public $id;
+	public $longid;
+
 	private $new;
 	private $empty;
-
-	use ModelTrait;
+	*/
 
 
 	function __construct() {
-		$this->new = false;
-		$this->empty = true;
+		parent::__construct();
 		$this->image = new Image();
-	}
-
-	public function generate() {
-		if(!$this->is_empty()){
-			throw new WrongObjectStateException('empty');
-		}
-
-		$this->generate_id();
-
-		$this->new = true;
-		$this->empty = false;
 	}
 
 	public function pull($identifier) {
@@ -230,7 +219,7 @@ class Post implements Model {
 		if($this->is_empty()){
 			return null;
 		}
-		
+
 		$obj = (object) [];
 
 		$obj->id = $this->id;

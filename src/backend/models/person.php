@@ -9,33 +9,22 @@ use \Blog\Backend\Exceptions\EmptyResultException;
 use \Blog\Backend\Exceptions\InvalidInputException;
 use InvalidArgumentException;
 
-class Person implements Model {
-	public $id;
-	public $longid;
+class Person extends Model {
 	public $name;
 	public $image;
 
+	/* @inherited
+	public $id;
+	public $longid;
+
 	private $new;
 	private $empty;
-
-	use ModelTrait;
+	*/
 
 
 	function __construct() {
-		$this->new = false;
-		$this->empty = true;
+		parent::__construct();
 		$this->image = new Image();
-	}
-
-	public function generate() {
-		if(!$this->is_empty()){
-			throw new WrongObjectStateException('empty');
-		}
-
-		$this->generate_id();
-
-		$this->new = true;
-		$this->empty = false;
 	}
 
 	public function pull($identifier) {
@@ -200,7 +189,7 @@ class Person implements Model {
 		if($this->is_empty()){
 			return null;
 		}
-		
+
 		$obj = (object) [];
 
 		$obj->id = $this->id;

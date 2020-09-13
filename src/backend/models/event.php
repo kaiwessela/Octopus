@@ -9,9 +9,7 @@ use \Blog\Backend\Exceptions\EmptyResultException;
 use \Blog\Backend\Exceptions\InvalidInputException;
 use InvalidArgumentException;
 
-class Event implements Model {
-	public $id;
-	public $longid;
+class Event extends Model {
 	public $title;
 	public $organisation;
 	public $timestamp;
@@ -19,27 +17,14 @@ class Event implements Model {
 	public $description;
 	public $cancelled;
 
+	/* @inherited
+	public $id;
+	public $longid;
+
 	private $new;
 	private $empty;
+	*/
 
-	use ModelTrait;
-
-
-	function __construct() {
-		$this->new = false;
-		$this->empty = true;
-	}
-
-	public function generate() {
-		if(!$this->is_empty()){
-			throw new WrongObjectStateException('empty');
-		}
-
-		$this->generate_id();
-
-		$this->new = true;
-		$this->empty = false;
-	}
 
 	public function pull($identifier) {
 		$pdo = self::open_pdo();

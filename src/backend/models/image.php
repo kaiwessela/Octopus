@@ -10,39 +10,24 @@ use \Blog\Backend\Exceptions\EmptyResultException;
 use \Blog\Backend\Exceptions\InvalidInputException;
 use InvalidArgumentException;
 
-class Image implements Model {
-	public $id;
-	public $longid;
+class Image extends Model {
 	public $extension;		# String(1-4)[filename extension]
 	public $description;	# String(1-256)
 	public $copyright;
 	public $sizes;
 
+	/* @inherited
+	public $id;
+	public $longid;
+
 	private $new;
 	private $empty;
+	*/
 
 	const EXTENSION_PNG = 'png';
 	const EXTENSION_JPG = 'jpg';
 	const EXTENSION_GIF = 'gif';
 
-	use ModelTrait;
-
-
-	function __construct() {
-		$this->new = false;
-		$this->empty = true;
-	}
-
-	public function generate() {
-		if(!$this->is_empty()){
-			throw new WrongObjectStateException('empty');
-		}
-
-		$this->generate_id();
-
-		$this->new = true;
-		$this->empty = false;
-	}
 
 	public function pull($identifier) {
 		$pdo = self::open_pdo();
@@ -210,7 +195,7 @@ class Image implements Model {
 		if($this->is_empty()){
 			return null;
 		}
-		
+
 		$obj = (object) [];
 
 		$obj->id = $this->id;

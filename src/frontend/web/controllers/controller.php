@@ -1,13 +1,30 @@
 <?php
 namespace Blog\Frontend\Web\Controllers;
+use \Blog\Frontend\Web\Controllers\ControllerModules;
 use \Blog\Frontend\Web\Controllers\Exceptions\InvalidParameterException;
 use \Blog\Backend\Exceptions\EmptyResultException;
 use \Blog\Frontend\Web\Modules\Pagination;
 
 /*# IDEA:
 
+NEW IDEA:
+
+[
+	action: 'list' | 'show' | 'new' | 'edit' | 'delete'
+
+	#for action=list
+	amount: int(>0)
+	page: int(>0)
+
+	#for action=show||edit||delete
+	identifier: string, required
+]
+
+
+---
+
 INPUT: [
-	mode: 'multi' | 'single',
+	mode: 'multi' | 'single' | 'new',
 
 	#for mode=multi
 	amount: int(>0)
@@ -30,32 +47,48 @@ OUTPUT: [
 	]
 ]
 
+possible actions:
+show (default), new (default and only on mode=new), edit, delete
+
 
 */# ---
 
 abstract class Controller {
 	const MODEL = null;
 
+	public $action;
+	public $errors;
+
 	protected $params;
-	protected $models;
 
 	public $objects;
-	public $errors;
+
+	use ControllerModules;
 
 
 	function __construct() {
 		$this->params = (object) [];
 	}
 
-	public function prepare($parameters) {
-		$this->prepare_mode($parameters);
+	function __set($name, $value) {
+		if($name == 'object'){
+			$this->objects[0] = $value;
+		}
+	}
 
-		if($this->params->mode == 'multi'){
+	function __get($name) {
+		if($name == 'object'){
+			return $this->objects[0];
+		}
+	}
+
+	public function prepare($parameters) {
+		$this->prepare_action($parameters);
+
+		if($this->action == 'list'){
 			$this->prepare_amount($parameters);
 			$this->prepare_page($parameters);
-		}
-
-		if($this->params->mode == 'single'){
+		} else if($this->action == 'show' || $this->action == 'edit' || $this->action == 'delete'){
 			$this->prepare_identifier($parameters);
 		}
 	}
@@ -63,50 +96,91 @@ abstract class Controller {
 	public function execute() {
 		$model = '\Blog\Backend\Models\\' . $this::MODEL;
 
-		if($this->params->mode == 'single'){
+		if($this->action == 'new'){
+			$this->objects[0] == new $model();
+			$this->action->set_state('ready');
+
+			if($_POST){
+				try {
+					$this->objects[0]->generate();
+					$this->objects[0]->import($_POST);
+					$this->objects[0]->push();
+					$this->action->set_state('completed');
+				} catch(Exception $e){
+					$this->errors[] = $e;
+					$this->action->set_state('failed');
+				}
+			}
+		}
+
+		if($this->action == 'show' || $this->action == 'edit' || $this->action == 'delete'){
 			try {
-				$this->models[0] = new $model();
-				$this->models[0]->pull($this->params->identifier);
-			} catch(EmptyResultException $e){
-				$this->models = [];
-				$this->errors['404'] = true;
+				$this->objects[0] = new $model();
+				$this->objects[0]->pull($this->params->identifier);
+				$this->action->set_state('ready');
+			} catch(Exception $e){
+				$this->errors[] = $e;
 			}
 
-			return;
+			if($this->action == 'edit' && $_POST){
+				try {
+					$this->objects[0]->import($_POST);
+					$this->objects[0]->push();
+					$this->action->set_state('completed');
+				} catch(Exception $e){
+					$this->errors[] = $e;
+					$this->action->set_state('failed');
+				}
+			} else if($this->action == 'delete' && $_POST){
+				try {
+					$this->objects[0]->delete();
+					$this->action->set_state('completed');
+				} catch(Exception $e){
+					$this->errors[] = $e;
+					$this->action->set_state('failed');
+				}
+			}
 		}
 
-		if($this->params->page == null){
-			$limit = $this->params->amount;
-			$offset = null;
-		} else {
-			$count = $model::count();
-			if($count == 0){
-				$this->models = [];
-				$this->errors['404'] = true;
+		if($this->action == 'list'){
+			if($this->params->page == null){
+				$limit = $this->params->amount;
+				$offset = null;
+			} else {
+				$count = $model::count();
 
-				return;
+				if($count == 0){
+					$this->objects = [];
+					// error
+				} else {
+					$this->pagination = new Pagination($count, $this->params->page, $this->params->amount);
+					$this->pagination->load_items();
+
+					if($this->pagination->current_page_exists()){
+						$limit = $this->pagination->get_object_limit();
+						$offset = $this->pagination->get_object_offset();
+					} else {
+						// error
+					}
+				}
 			}
 
-			$this->pagination = new Pagination($count, $this->params->page, $this->params->amount);
-			$this->pagination->load_items();
-
-			if(!$this->pagination->current_page_exists()){
-				$this->models = [];
-				$this->errors['404'] = true;
-
-				return;
+			try {
+				$this->objects = $model::pull_all($limit, $offset);
+				$this->action->set_state('ready');
+			} catch(Exception $e){
+				$this->objects = [];
+				// error
 			}
-
-			$limit = $this->pagination->get_object_limit();
-			$offset = $this->pagination->get_object_offset();
 		}
-
-		$this->models = $model::pull_all($limit, $offset);
 	}
 
 	public function process() {
-		foreach($this->models as $key => &$model){
-			$this->objects[$key] = $model->export();
+		$objs = $this->objects;
+		$this->objects = [];
+
+		foreach($objs as $key => &$obj){
+			$this->objects[$key] = $obj->export();
 		}
 	}
 
@@ -114,44 +188,8 @@ abstract class Controller {
 		return $this->errors[$code] ?? null;
 	}
 
-
-	# prepare modules
-	protected function prepare_mode($parameters) {
-		if($parameters['mode'] == 'single' || $parameters['mode'] == 'multi'){
-			$this->params->mode = $parameters['mode'];
-		} else {
-			throw new InvalidParameterException('mode', 'single|multi', $parameters);
-		}
-	}
-
-	protected function prepare_amount($parameters) {
-		if(is_numeric($parameters['amount']) && $parameters['amount'] > 0){
-			$this->params->amount = (int) $parameters['amount'];
-		} else {
-			$this->params->amount = null;
-		}
-	}
-
-	protected function prepare_page($parameters) {
-		if(!isset($parameters['page']) || $parameters['page'] == null){
-			$this->params->page = null;
-		} else if(is_numeric($parameters['page']) && $parameters['page'] > 0){
-			$this->params->page = $parameters['page'];
-		} else if(preg_match('/^\?([0-9])?/', $parameters['page'], $matches)){
-			$this->params->page = (empty($_GET[$matches[1]])) ? 1 : (int) $_GET[$matches[1]];
-		} else {
-			throw new InvalidParameterException('page', 'int|QueryParam', $parameters);
-		}
-	}
-
-	protected function prepare_identifier($parameters) {
-		if(preg_match('/^\?([0-9])?/', $parameters['identifier'], $matches)){
-			$this->params->identifier = $_GET[$matches[1]];
-		} else if(is_string($parameters['identifier'])){
-			$this->params->identifier = $parameters['identifier'];
-		} else {
-			throw new InvalidParameterException('identifier', 'string|QueryParam', $parameters);
-		}
+	public function success($action) {
+		return $this->success[$action] ?? null;
 	}
 }
 ?>

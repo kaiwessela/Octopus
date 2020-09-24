@@ -2,10 +2,12 @@
 namespace Blog\Frontend\Web;
 use \Blog\Config\Config;
 use \Blog\Config\Routes;
+use \Astronauth\Backend\User;
 use PDO;
 use Exception;
 
 class Endpoint {
+	public $user;
 	public $route;
 	public $controllers;
 
@@ -21,10 +23,27 @@ class Endpoint {
 			error_reporting(0);
 		}
 
-		$path = implode('/', [$_GET['1'] ?? '', $_GET['2'] ?? '']);
+		$get = [
+			$_GET['1'],
+			$_GET['2'],
+			$_GET['3'],
+			$_GET['4'],
+			$_GET['5'],
+			$_GET['6'],
+			$_GET['7'],
+			$_GET['8'],
+			$_GET['9']
+		];
+
+		$get = array_filter($get, function($var){
+			return strlen($var) != 0;
+		});
+
+		$path = implode('/', $get);
 
 		foreach(Routes::ROUTES as $route){
 			if($route['path'] == '@else'){
+				$else_route = $route;
 				continue;
 			}
 
@@ -36,30 +55,75 @@ class Endpoint {
 		}
 
 		if(!$this->route){
-			$this->route = Routes::ROUTES['@else'];
+			$this->route = $else_route;
 		}
 
-		foreach($this->route['controllers'] as $class => $settings){
-			$controller_name = "\Blog\Frontend\Web\Controllers\\${class}Controller";
-			$this->controllers[$class] = new $controller_name();
-			$this->controllers[$class]->prepare($settings);
+		$this->user = new User();
+		$this->user->authenticate();
 
-			try {
-				$this->controllers[$class]->execute();
-			} catch(Exception $e){
-				$this->return_404();
+		if($this->route['auth'] ?? false == true){
+			if(!$this->user->is_authenticated()){
+				header('Location: ' . Config::SERVER_URL . '/astronauth/signin');
+				exit;
 			}
+		}
 
-			$this->controllers[$class]->process();
+		if(!empty($this->route['controllers'])){
+			foreach($this->route['controllers'] as $class => $settings){
+				if(preg_match('/^\?([0-9])$/', $class, $matches)){
+					$classaliases = [
+						'post' => 'Post',
+						'posts' => 'Post',
+					];
+
+					$class = $classaliases[(empty($_GET[$matches[1]])) ? null : $_GET[$matches[1]]];
+				}
+
+				$controller_name = '\Blog\Frontend\Web\Controllers\\' . $class . 'Controller';
+				$this->controllers[$class] = new $controller_name();
+				$this->controllers[$class]->prepare($settings);
+
+				try {
+					$this->controllers[$class]->execute();
+				} catch(Exception $e){
+					$this->return_404();
+				}
+
+				$this->controllers[$class]->process();
+			}
 		}
 	}
 
 	public function handle() {
-		foreach($this->controllers as $name => $controller){
-			$$name = $controller;
+		if(!empty($this->controllers)){
+			foreach($this->controllers as $name => $controller){
+				global $$name;
+				$$name = $controller;
+			}
 		}
 
-		include __DIR__ . '/templates/' . $this->route['template'] . '.tmp.php';
+		global $server;
+		$server = (object) [
+			'url' => Config::SERVER_URL,
+			'lang' => Config::SERVER_LANG
+		];
+
+		global $astronauth;
+		$astronauth = $this->user;
+
+		$template = $this->route['template'];
+
+		$template = str_replace(
+			['?1', '?2', '?3', '?4', '?5', '?6', '?7', '?8', '?9'],
+			[$_GET['1'], $_GET['2'], $_GET['3'], $_GET['4'], $_GET['5'], $_GET['6'], $_GET['7'], $_GET['8'], $_GET['9']],
+			$template
+		);
+
+		$template = __DIR__ . '/templates/' . $template . '.tmp.php';
+
+		$template = str_replace('s.', '.', $template);
+
+		include $template;
 	}
 
 	function return_404() {

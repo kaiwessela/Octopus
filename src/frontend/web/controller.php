@@ -1,6 +1,6 @@
 <?php
-namespace Blog\Frontend\Web\Controllers;
-use \Blog\Frontend\Web\Controllers\ControllerModules;
+namespace Blog\Frontend\Web;
+use \Blog\Frontend\Web\ControllerModules;
 use \Blog\Frontend\Web\Controllers\Exceptions\InvalidParameterException;
 use \Blog\Backend\Exceptions\EmptyResultException;
 

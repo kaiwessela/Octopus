@@ -1,6 +1,6 @@
 <?php
 namespace Blog\Frontend\Web\Controllers;
-use \Blog\Frontend\Web\Controllers\Controller;
+use \Blog\Frontend\Web\Controller;
 use \Blog\Frontend\Web\Controllers\Exceptions\InvalidParameterException;
 
 class PageController extends Controller {

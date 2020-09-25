@@ -1,5 +1,5 @@
 <?php
-namespace Blog\Frontend\Web\Controllers;
+namespace Blog\Frontend\Web;
 
 class ControllerAction {
 	private $name;

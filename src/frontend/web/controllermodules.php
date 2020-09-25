@@ -1,6 +1,7 @@
 <?php
-namespace Blog\Frontend\Web\Controllers;
-use \Blog\Frontend\Web\Controllers\ControllerModules;
+namespace Blog\Frontend\Web;
+use \Blog\Frontend\Web\ControllerAction;
+use \Blog\Frontend\Web\Controllers\Exceptions\InvalidParameterException;
 
 trait ControllerModules {
 	protected function prepare_mode($parameters) {

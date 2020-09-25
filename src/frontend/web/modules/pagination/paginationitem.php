@@ -1,5 +1,5 @@
 <?php
-namespace Blog\Frontend\Web\Modules;
+namespace Blog\Frontend\Web\Modules\Pagination;
 
 class PaginationItem {
 	public $disabled;

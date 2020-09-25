@@ -1,5 +1,5 @@
 <?php
-namespace Blog\Frontend\Web\Modules;
+namespace Blog\Frontend\Web\Modules\Pagination;
 use \Blog\Config\PaginationConfig;
 use \Blog\Frontend\Web\Modules\PaginationItem;
 use InvalidArgumentException;

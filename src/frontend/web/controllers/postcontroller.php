@@ -2,15 +2,12 @@
 namespace Blog\Frontend\Web\Controllers;
 use \Blog\Frontend\Web\Controllers\Controller;
 use \Blog\Frontend\Web\Modules\Picture;
+use \Blog\Frontend\Web\Modules\Pagination;
 use Parsedown;
 
 
 class PostController extends Controller {
 	const MODEL = 'Post';
-
-	public $errors = [
-		'404' => false
-	];
 
 	/* @inherited
 	const MODEL;
@@ -26,16 +23,22 @@ class PostController extends Controller {
 
 
 	public function process() {
-		foreach($this->models as $key => &$model){
-			$this->objects[$key] = $model->export();
+		$objs = $this->objects;
+		$this->objects = [];
 
-			$this->objects[$key]->parsed_content = Parsedown::instance()->text($model->content);
+		foreach($objs as $key => $obj){
+			$this->objects[$key] = $obj->export();
+			$this->objects[$key]->parsed_content = Parsedown::instance()->text($obj->content);
 
 			if($this->objects[$key]->image){
-				$this->objects[$key]->picture = new Picture($model->image);
+				$this->objects[$key]->picture = new Picture($obj->image);
 			} else {
 				$this->objects[$key]->picture = null;
 			}
+		}
+
+		if($this->action == 'list'){
+			$this->pagination = new Pagination($this->params->page, $this->params->amount, $this->params->total);
 		}
 	}
 }

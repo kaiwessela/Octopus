@@ -1,153 +1,76 @@
 <?php
 namespace Blog\Frontend\Web\Modules;
 use \Blog\Config\PaginationConfig;
+use \Blog\Frontend\Web\Modules\PaginationItem;
 use InvalidArgumentException;
 
 class Pagination {
-	public $object_count;
-	public $current_page;
-	public $objects_per_page;
-	public $page_count;
+	private $current_page;
+	private $objects_per_page;
+	private $total_objects;
+	#total_pages;
+	#first_object;
+	#last_object;
 
 	public $items;
 
 
-	function __construct($object_count, $current_page = 1, $objects_per_page = PaginationConfig::OBJECTS_PER_PAGE) {
-		if(!is_int($object_count) || $object_count < 0){
-			throw new InvalidArgumentException('Pagination: object_count must be a positive integer or 0.');
+	function __construct($current_page, $objects_per_page, $total_objects) {
+		if((is_int($current_page) && $current_page > 0) || is_null($current_page)){
+			$this->current_page = (int) $current_page ?? 1;
+		} else {
+			throw new InvalidArgumentException('Pagination: current_page must be a positive integer or 0.');
 		}
 
-		if(!is_int($current_page) || $current_page <= 0){
-			throw new InvalidArgumentException('Pagination: current_page must be a positive integer.');
+		if(is_int($objects_per_page) && $objects_per_page > 0){
+			$this->objects_per_page = $objects_per_page;
+		} else {
+			throw new InvalidArgumentException('Pagination: objects_per_page must be a positive integer.');
 		}
 
-		$this->object_count = $object_count;
-		$this->current_page = $current_page;
-
-		$this->objects_per_page = $objects_per_page;
-
-		$this->page_count = ceil($this->object_count / $this->objects_per_page);
-
-		if($this->page_count == 0){ # set an empty page if there are no objects
-			$this->page_count = 1;
-		}
-	}
-
-	public function load_items() {
-		$item_count = ceil($this->object_count / $this->objects_per_page);
-
-		foreach(PaginationConfig::STRUCTURE as $item){
-			$item = (object) $item;
-			$item->disabled = false;
-
-			if($item->type == 'absolute'){
-				if($item->page == 'first'){
-					$item->absolute_number = 1;
-				} else if($item->page == 'last'){
-					$item->absolute_number = (int) $this->page_count;
-				} else if($item->page == 'current'){
-					$item->absolute_number = (int) $this->current_page;
-				} else if(is_int($item->page)){
-					$item->absolute_number = $item->page;
-				} else {
-					continue;
-				}
-
-				$item->relative_number = $this->current_page - $item->absolute_number;
-			} else if($item->type == 'relative'){
-				if(is_int($item->page)){
-					$item->relative_number = $item->page;
-					$item->absolute_number = $this->current_page + $item->relative_number;
-				} else {
-					continue;
-				}
-			} else {
-				continue;
-			}
-
-			if($item->absolute_number < 1 || $item->absolute_number > $this->page_count){
-				if($item->hide_on_void){
-					continue;
-				} else {
-					$item->disabled = true;
-				}
-			}
-
-			$this->items[] = $item;
+		if(is_int($total_objects) && $total_objects >= 0){
+			$this->total_objects = $total_objects;
+		} else {
+			throw new InvalidArgumentException('Pagination: total_objects must be a positive integer or 0.');
 		}
 
-		$numbers_used = [];
-		foreach($this->items as $index => $item){
-			if(!array_key_exists((int) $item->absolute_number, $numbers_used)){
-				# number is not used but will from now on be, write it into the list
-				$numbers_used[$item->absolute_number] = $index;
+		foreach(PaginationConfig::STRUCTURE as $item_settings){
+			$item = new PaginationItem($item_settings, $this);
+
+			if(!$item->exists() && !$item->disabled){
 				continue;
 			} else {
-				# number is already used
-				$before_index = $numbers_used[$item->absolute_number];
-				if($item->duplicate_priority > $this->items[$before_index]->duplicate_priority){
-					if($this->items[$before_index]->hide_on_duplicate){
-						unset($this->items[$before_index]);
-					}
+				$this->items[] = $item;
+			}
+		}
 
-					$numbers_used[$item->absolute_number] = $index;
-				} else if($item->duplicate_priority < $this->items[$before_index]->duplicate_priority){
-					if($item->hide_on_duplicate){
-						unset($this->items[$index]);
-					}
-				} else {
-					continue;
-				}
+		foreach($this->items as &$item){
+			if($item->yields()){
+				unset($item);
 			}
 		}
 	}
 
-	public function display_items() {
-		$pagination = &$this; // TEMP
-		foreach($this->items as $item){
-			include __DIR__ . '/../templates/pagination/' . $item->template . '.item.php';
-		}
-	}
+	function __get($name) {
+		if($name == 'current_page'){
+			return $this->current_page;
 
-	public function display() {
-		$pagination = &$this;
-		include __DIR__ . '/../templates/pagination/main.php';
-	}
+		} else if($name == 'objects_per_page'){
+			return $this->objects_per_page;
 
-	public function page_exists($page) {
-		return $page >= 1 && $page <= $this->page_count;
-	}
+		} else if($name == 'total_objects'){
+			return $this->total_objects;
 
-	public function current_page_exists() {
-		return $this->page_exists($this->current_page);
-	}
+		} else if($name == 'total_pages'){
+			return ceil($this->total_objects / $this->objects_per_page);
 
-	public function get_object_offset() {
-		return $this->objects_per_page * ($this->current_page - 1);
-	}
+		} else if($name == 'first_object'){
+			return ($this->current_page - 1) * $this->objects_per_page + 1;
 
-	public function get_object_limit() {
-		return $this->objects_per_page;
-	}
+		} else if($name == 'last_object'){
+			return (($this->current_page * $this->objects_per_page) > $this->total_objects)
+				? $this->total_objects : ($this->current_page * $this->objects_per_page);
 
-	public function get_first_object_number() {
-		$first_number = $this->get_object_offset() + 1;
-
-		if($first_number > $this->object_count){
-			return $this->object_count;
-		} else {
-			return $first_number;
-		}
-	}
-
-	public function get_last_object_number() {
-		$last_number = $this->get_object_offset() + $this->get_object_limit();
-
-		if($last_number > $this->object_count){
-			return $this->object_count;
-		} else {
-			return $last_number;
 		}
 	}
 }
-?>

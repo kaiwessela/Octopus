@@ -121,8 +121,6 @@ class Endpoint {
 
 		$template = __DIR__ . '/templates/' . $template . '.tmp.php';
 
-		$template = str_replace('s.', '.', $template);
-
 		include $template;
 	}
 

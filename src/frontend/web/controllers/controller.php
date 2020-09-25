@@ -3,12 +3,8 @@ namespace Blog\Frontend\Web\Controllers;
 use \Blog\Frontend\Web\Controllers\ControllerModules;
 use \Blog\Frontend\Web\Controllers\Exceptions\InvalidParameterException;
 use \Blog\Backend\Exceptions\EmptyResultException;
-use \Blog\Frontend\Web\Modules\Pagination;
 
 /*# IDEA:
-
-NEW IDEA:
-
 [
 	action: 'list' | 'show' | 'new' | 'edit' | 'delete'
 
@@ -20,36 +16,8 @@ NEW IDEA:
 	identifier: string, required
 ]
 
-
----
-
-INPUT: [
-	mode: 'multi' | 'single' | 'new',
-
-	#for mode=multi
-	amount: int(>0)
-	page: int(>0)
-
-	#for mode=single
-	identifier: string, required
-]
-
-OUTPUT: [
-	#for mode=multi
-	pagination
-
-	objects: [
-		[
-			…,
-			parsed_content,
-			picture
-		]
-	]
-]
-
-possible actions:
-show (default), new (default and only on mode=new), edit, delete
-
+BUG: Pagination cannot use relative paths. There must be a way to provide an absolute path for the
+pagination links.
 
 */# ---
 
@@ -148,19 +116,19 @@ abstract class Controller {
 				$offset = null;
 			} else {
 				$count = $model::count();
+				$this->params->total = $count;
 
 				if($count == 0){
 					$this->objects = [];
 					// error
 				} else {
-					$this->pagination = new Pagination($count, $this->params->page, $this->params->amount);
-					$this->pagination->load_items();
+					$limit = $this->params->amount;
+					$offset = $this->params->amount * ($this->params->page - 1);
 
-					if($this->pagination->current_page_exists()){
-						$limit = $this->pagination->get_object_limit();
-						$offset = $this->pagination->get_object_offset();
-					} else {
-						// error
+					$last_page = ceil($count / $this->params->amount);
+
+					if($this->params->page > $last_page || $this->params->page == 0){
+						// error page not found
 					}
 				}
 			}

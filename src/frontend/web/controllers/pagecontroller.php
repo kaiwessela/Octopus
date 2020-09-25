@@ -8,7 +8,7 @@ class PageController extends Controller {
 
 	public $errors = [
 		'404' => false
-	]
+	];
 
 	/* @inherited
 	const MODEL;

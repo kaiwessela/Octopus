@@ -65,14 +65,14 @@ abstract class Controller {
 		$model = '\Blog\Backend\Models\\' . $this::MODEL;
 
 		if($this->action == 'new'){
-			$this->objects[0] == new $model();
+			$this->object = new $model();
 			$this->action->set_state('ready');
 
 			if($_POST){
 				try {
-					$this->objects[0]->generate();
-					$this->objects[0]->import($_POST);
-					$this->objects[0]->push();
+					$this->object->generate();
+					$this->object->import($_POST);
+					$this->object->push();
 					$this->action->set_state('completed');
 				} catch(Exception $e){
 					$this->errors[] = $e;
@@ -136,7 +136,7 @@ abstract class Controller {
 				$this->objects = $model::pull_all($limit, $offset);
 				$this->action->set_state('ready');
 			} catch(EmptyResultException $e){
-				$this->objects = [];	
+				$this->objects = [];
 			}
 		}
 	}

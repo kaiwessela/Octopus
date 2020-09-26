@@ -5,6 +5,7 @@
 				kaiwessela:Blog<span class="darkened">/admin</span>
 			</a>
 			<a href="<?= $server->url ?>/admin">Startseite</a>
+			<a href="<?= $server->url ?>/admin/pages">Seiten</a>
 			<a href="<?= $server->url ?>/admin/posts">Posts</a>
 			<a href="<?= $server->url ?>/admin/images">Bilder</a>
 			<a href="<?= $server->url ?>/admin/persons">Personen</a>

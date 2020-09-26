@@ -5,12 +5,12 @@ use \Blog\Frontend\Web\SiteConfig;
 <html lang="de">
 	<head>
 		<?php include COMPONENT_PATH . 'head.comp.php'; ?>
-		<title><?= $StaticController->title ?> – <?= SiteConfig::TITLE ?></title>
+		<title><?= $Page->object->title ?> – <?= SiteConfig::TITLE ?></title>
 	</head>
 	<body>
 		<?php include COMPONENT_PATH . 'header.comp.php'; ?>
 		<main>
-			<?= $StaticController->content ?>
+			<?= $Page->object->parsed_content ?>
 		</main>
 		<?php include COMPONENT_PATH . 'footer.comp.php'; ?>
 		<?php include COMPONENT_PATH . 'scripts.comp.php'; ?>

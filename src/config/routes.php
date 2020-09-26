@@ -54,10 +54,11 @@ class Routes {
 		],
 		[
 			'path' => '@else',
-			'template' => 'static',
+			'template' => 'page',
 			'controllers' => [
 				'Page' => [
-					'name' => '?1'
+					'action' => 'show',
+					'identifier' => '?1'
 				]
 			]
 		],
@@ -82,22 +83,22 @@ class Routes {
 			'auth' => true
 		],
 		[
+			'path' => '/^admin\/[a-z]+\/new$/',
+			'template' => 'admin/?2',
+			'controllers' => [
+				'?2' => [
+					'action' => 'new'
+				]
+			],
+			'auth' => true
+		],
+		[
 			'path' => '/^admin\/[a-z]+\/[^\/]+$/',
 			'template' => 'admin/?2',
 			'controllers' => [
 				'?2' => [
 					'action' => 'show',
 					'identifier' => '?3'
-				]
-			],
-			'auth' => true
-		],
-		[
-			'path' => '/^admin\/[a-z]+\/new$/',
-			'template' => 'admin/?2',
-			'controllers' => [
-				'?2' => [
-					'action' => 'new'
 				]
 			],
 			'auth' => true

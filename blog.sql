@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Erstellungszeit: 26. Aug 2020 um 01:56
--- Server-Version: 10.3.23-MariaDB-1
--- PHP-Version: 7.4.5
+-- Erstellungszeit: 26. Sep 2020 um 16:36
+-- Server-Version: 10.3.24-MariaDB-2
+-- PHP-Version: 7.4.9
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -57,6 +57,19 @@ CREATE TABLE `images` (
 -- --------------------------------------------------------
 
 --
+-- Tabellenstruktur für Tabelle `pages`
+--
+
+CREATE TABLE `pages` (
+  `page_id` varchar(8) NOT NULL,
+  `page_longid` varchar(128) NOT NULL,
+  `page_title` varchar(128) NOT NULL,
+  `page_content` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Tabellenstruktur für Tabelle `persons`
 --
 
@@ -103,6 +116,13 @@ ALTER TABLE `events`
 ALTER TABLE `images`
   ADD PRIMARY KEY (`image_id`),
   ADD UNIQUE KEY `image_longid` (`image_longid`);
+
+--
+-- Indizes für die Tabelle `pages`
+--
+ALTER TABLE `pages`
+  ADD PRIMARY KEY (`page_id`),
+  ADD UNIQUE KEY `page_longid` (`page_longid`);
 
 --
 -- Indizes für die Tabelle `persons`

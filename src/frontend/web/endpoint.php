@@ -65,6 +65,8 @@ class Endpoint {
 					$classaliases = [
 						'post' => 'Post',
 						'posts' => 'Post',
+						'page' => 'Page',
+						'pages' => 'Page'
 					];
 
 					$class = $classaliases[(empty($_GET[$matches[1]])) ? null : $_GET[$matches[1]]];

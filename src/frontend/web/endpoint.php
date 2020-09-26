@@ -2,7 +2,9 @@
 namespace Blog\Frontend\Web;
 use \Blog\Config\Config;
 use \Blog\Config\Routes;
+use \Blog\Config\Controllers;
 use \Blog\Frontend\Web\SiteConfig;
+use \Blog\Frontend\Web\Modules\TimeFormat;
 use \Astronauth\Backend\User;
 use PDO;
 use Exception;
@@ -31,15 +33,9 @@ class Endpoint {
 				$get[(int) $key] = $_GET[$key];
 			}
 		}
-
 		$path = implode('/', $get);
 
 		foreach(Routes::ROUTES as $route){
-			if($route['path'] == '@else'){
-				$else_route = $route;
-				continue;
-			}
-
 			if(preg_match($route['path'], $path)){
 				$this->route = $route;
 				break;
@@ -47,7 +43,7 @@ class Endpoint {
 		}
 
 		if(!$this->route){
-			$this->route = $else_route;
+			$this->return_404();
 		}
 
 		$this->user = new User();
@@ -60,46 +56,38 @@ class Endpoint {
 			}
 		}
 
-		if(!empty($this->route['controllers'])){
-			foreach($this->route['controllers'] as $class => $settings){
-				if(preg_match('/^\?([0-9])$/', $class, $matches)){
-					$classaliases = [
-						'event' => 'Event',
-						'events' => 'Event',
-						'image' => 'Image',
-						'images' => 'Image',
-						'page' => 'Page',
-						'pages' => 'Page',
-						'person' => 'Person',
-						'persons' => 'Person',
-						'post' => 'Post',
-						'posts' => 'Post'
-					];
-
-					$class = $classaliases[(empty($_GET[$matches[1]])) ? null : $_GET[$matches[1]]];
-				}
-
-				$controller_name = '\Blog\Frontend\Web\Controllers\\' . $class . 'Controller';
-				$this->controllers[$class] = new $controller_name();
-				$this->controllers[$class]->prepare($settings);
-
-				try {
-					$this->controllers[$class]->execute();
-				} catch(Exception $e){
-					$this->return_404();
-				}
-
-				$this->controllers[$class]->process();
+		$this->controllers = [];
+		foreach($this->route['controllers'] as $name => $settings){
+			if(preg_match('/^\?([0-9])$/', $name, $matches)){
+				$name = Controllers::ALIASES[$_GET[$matches[1]]];
 			}
+
+			if(!in_array($name, Controllers::REGISTERED)){
+				$this->return_404();
+			}
+
+			$absolute_name = '\Blog\Frontend\Web\Controllers\\' . $name;
+			$this->controllers[$name] = new $absolute_name();
+			$this->controllers[$name]->prepare($settings);
+
+			try {
+				$this->controllers[$name]->execute();
+			} catch(Exception $e){
+				$this->return_404();
+			}
+
+			$this->controllers[$name]->process();
 		}
 	}
 
 	public function handle() {
-		if(!empty($this->controllers)){
-			foreach($this->controllers as $name => $controller){
-				global $$name;
-				$$name = $controller;
-			}
+		foreach($this->controllers as $name => $controller){
+			global $$name;
+			$$name = $controller;
+
+			$shortname = str_replace('Controller', '', $name);
+			global $$shortname;
+			$$shortname = &$$name;
 		}
 
 		global $server;

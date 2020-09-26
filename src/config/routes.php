@@ -7,11 +7,11 @@ class Routes {
 			'path' => '/^$/',
 			'template' => 'index',
 			'controllers' => [
-				'Post' => [
+				'PostController' => [
 					'action' => 'list',
 					'amount' => 5
 				],
-				'Event' => [
+				'EventController' => [
 					'action' => 'list',
 					'amount' => 5
 				]
@@ -21,7 +21,7 @@ class Routes {
 			'path' => '/^posts(\/[0-9]{0,8})?$/',
 			'template' => 'posts',
 			'controllers' => [
-				'Post' => [
+				'PostController' => [
 					'action' => 'list',
 					'amount' => 5,
 					'page' => '?2',
@@ -36,7 +36,7 @@ class Routes {
 			'path' => '/^posts\/.{9,}$/',
 			'template' => 'post',
 			'controllers' => [
-				'Post' => [
+				'PostController' => [
 					'action' => 'show',
 					'identifier' => '?2'
 				]
@@ -46,19 +46,9 @@ class Routes {
 			'path' => '/^p\/.{8}$/',
 			'template' => 'post',
 			'controllers' => [
-				'Post' => [
+				'PostController' => [
 					'action' => 'show',
 					'identifier' => '?2'
-				]
-			]
-		],
-		[
-			'path' => '@else',
-			'template' => 'page',
-			'controllers' => [
-				'Page' => [
-					'action' => 'show',
-					'identifier' => '?1'
 				]
 			]
 		],
@@ -77,7 +67,11 @@ class Routes {
 				'?2' => [
 					'action' => 'list',
 					'amount' => 20,
-					'page' => '?3'
+					'page' => '?3',
+					'pagination' => [
+						'structure' => 'default',
+						'base_path' => 'admin/?2'
+					]
 				]
 			],
 			'auth' => true
@@ -124,6 +118,16 @@ class Routes {
 				]
 			],
 			'auth' => true
+		],
+		[
+			'path' => '/^.$/',
+			'template' => 'page',
+			'controllers' => [
+				'PageController' => [
+					'action' => 'show',
+					'identifier' => '?1'
+				]
+			]
 		]
 	];
 }

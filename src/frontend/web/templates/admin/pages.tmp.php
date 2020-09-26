@@ -18,15 +18,35 @@
 			<h1>Seite löschen</h1>
 			<?php } ?>
 
-			<?php if(!$Page->action == 'list'){ ?>
-			<a href="<?= $server->url ?>/admin/pages" class="button">&laquo; Zurück zu allen Seiten</a>
+			<?php if($Page->action == 'list'){ ?>
+				<a href="<?= $server->url ?>/admin/pages/new" class="button">+ Neue Seite erstellen</a>
+			<?php } else { ?>
+				<a href="<?= $server->url ?>/admin/pages" class="button">&laquo; Zurück zu allen Seiten</a>
 			<?php } ?>
 
 			<?php foreach($Page->errors as $error){ ?>
 			<span class="message error">
-
+				<?= $error->getMessage() ?>
 			</span>
-			<p>Details: <span class="code"></span></p>
+			<?php } ?>
+
+			<?php if($Page->action != 'list' && $Page->action != 'new'){ ?>
+			<div>
+
+				<?php if($Page->action != 'show'){ ?>
+				<a href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>" class="view">Ansehen</a>
+				<?php } ?>
+
+				<a href="<?= $server->url ?>/<?= $Page->object->longid ?>" class="view">Vorschau</a>
+
+				<?php if($Page->action != 'edit'){ ?>
+				<a href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>/edit" class="edit">Bearbeiten</a>
+				<?php } ?>
+
+				<?php if($Page->action != 'delete'){ ?>
+				<a href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>/delete" class="delete">Löschen</a>
+				<?php } ?>
+			</div>
 			<?php } ?>
 
 			<?php if($Page->action == 'list'){ ?>
@@ -40,27 +60,31 @@
 					<p class="longid"><?= $obj->longid ?></p>
 					<h3 class="title"><?= $obj->title ?></h3>
 					<div>
-						<a href="<?= $server->url ?>/admin/pages/<?= $obj->id ?>" class="view">Ansehen</a>
-						<a href="<?= $server->url ?>/admin/pages/<?= $obj->id ?>/edit" class="edit">Bearbeiten</a>
-						<a href="<?= $server->url ?>/admin/pages/<?= $obj->id ?>/delete" class="delete">Löschen</a>
+						<a href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>" class="view">Ansehen</a>
+						<a href="<?= $server->url ?>/<?= $Page->object->longid ?>" class="view">Vorschau</a>
+						<a href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>/edit" class="edit">Bearbeiten</a>
+						<a href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>/delete" class="delete">Löschen</a>
 					</div>
 				</article>
 				<?php }} ?>
 			<?php } ?>
 
 			<?php if($Page->action == 'show'){ ?>
-				<?php $obj = $Page->object; ?>
-				<article class="page">
-					<p>
-						<a href="<?= $server->url ?>/<?= $obj->longid ?>">Blogansicht</a>
-						<a href="<?= $server->url ?>/admin/pages/<?= $obj->id ?>/edit" class="edit">Bearbeiten</a>
-						<a href="<?= $server->url ?>/admin/pages/<?= $obj->id ?>/delete" class="delete">Löschen</a>
-					</p>
-					Blogansicht benutzen.
-				</article>
+				<iframe src="<?= $server->url ?>/<?= $Page->object->longid ?>" width="100%" height="200%"></iframe>
 			<?php } ?>
 
-			<?php if($Page->action == 'edit' && !$Page->action->completed()){ ?>
+			<?php if($Page->action == 'edit'){ ?>
+				<?php if($Page->action->failed()){ ?>
+				<div class="message error">
+					Bearbeiten der Seite fehlgeschlagen.
+				</div>
+				<?php } ?>
+
+				<?php if($Page->action->completed()){ ?>
+				<div class="message success">
+					Seite erfolgreich bearbeitet.
+				</div>
+				<?php } else { ?>
 				<?php $obj = $Page->object; ?>
 				<form action="#" method="post">
 					<input type="hidden" name="id" value="<?= $obj->id ?>">
@@ -88,6 +112,7 @@
 
 					<input type="submit" value="Speichern">
 				</form>
+				<?php } ?>
 			<?php } ?>
 
 			<?php if($Page->action == 'new' && !$Page->action->completed()){ ?>

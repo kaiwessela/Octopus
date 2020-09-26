@@ -35,7 +35,9 @@ abstract class Controller {
 
 
 	function __construct() {
+		$this->errors = [];
 		$this->params = (object) [];
+		$this->objects = [];
 	}
 
 	function __set($name, $value) {

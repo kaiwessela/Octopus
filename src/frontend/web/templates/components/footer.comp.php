@@ -22,6 +22,6 @@
 		</div>
 	</div>
 	<div class="logo">
-		<?= SiteConfig::TITLE ?>
+		<?= $site->title ?>
 	</div>
 </footer>

@@ -20,6 +20,16 @@ class ControllerAction {
 		return $this->name;
 	}
 
+	function __get($name) {
+		if($name == 'method'){
+			if($_POST){
+				return 'POST';
+			} else {
+				return 'GET';
+			}
+		}
+	}
+
 	public function set_state($state) {
 		if($state == self::STATE_READY || $state == self::STATE_COMPLETED || $state == self::STATE_FAILED){
 			$this->state = (int) $state;
@@ -30,7 +40,7 @@ class ControllerAction {
 		} else if($state == 'failed'){
 			$this->state = self::STATE_FAILED;
 		} else {
-			// InvalidArgumentException
+			throw new InvalidArgumentException('$state must be a valid ControllerAction state.');
 		}
 	}
 

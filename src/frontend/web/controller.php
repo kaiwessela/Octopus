@@ -120,7 +120,6 @@ abstract class Controller {
 
 				if($count == 0){
 					$this->objects = [];
-					// error
 				} else {
 					$limit = $this->params->amount;
 					$offset = $this->params->amount * ($this->params->page - 1);
@@ -128,7 +127,7 @@ abstract class Controller {
 					$last_page = ceil($count / $this->params->amount);
 
 					if($this->params->page > $last_page || $this->params->page == 0){
-						// error page not found
+						throw new Exception('page does not exist.');
 					}
 				}
 			}
@@ -136,9 +135,8 @@ abstract class Controller {
 			try {
 				$this->objects = $model::pull_all($limit, $offset);
 				$this->action->set_state('ready');
-			} catch(Exception $e){
-				$this->objects = [];
-				// error
+			} catch(EmptyResultException $e){
+				$this->objects = [];	
 			}
 		}
 	}
@@ -150,14 +148,6 @@ abstract class Controller {
 		foreach($objs as $key => &$obj){
 			$this->objects[$key] = $obj->export();
 		}
-	}
-
-	public function error($code) {
-		return $this->errors[$code] ?? null;
-	}
-
-	public function success($action) {
-		return $this->success[$action] ?? null;
 	}
 }
 ?>

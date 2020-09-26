@@ -24,7 +24,7 @@ use \Blog\Frontend\Web\SiteConfig;
 
 				<?php include COMPONENT_PATH . 'pagination.comp.php'; ?>
 
-				<?php if($Post->error('404')){ ?>
+				<?php if(empty($Post->objects)){ ?>
 				<p>Keine Posts gefunden.</p>
 				<?php } ?>
 

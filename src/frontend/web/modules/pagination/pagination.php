@@ -1,7 +1,7 @@
 <?php
 namespace Blog\Frontend\Web\Modules\Pagination;
 use \Blog\Config\PaginationConfig;
-use \Blog\Frontend\Web\Modules\PaginationItem;
+use \Blog\Frontend\Web\Modules\Pagination\PaginationItem;
 use InvalidArgumentException;
 
 class Pagination {
@@ -12,10 +12,12 @@ class Pagination {
 	#first_object;
 	#last_object;
 
+	public $base_path;
+
 	public $items;
 
 
-	function __construct($current_page, $objects_per_page, $total_objects) {
+	function __construct($current_page, $objects_per_page, $total_objects, $base_path, $structure = null) {
 		if((is_int($current_page) && $current_page > 0) || is_null($current_page)){
 			$this->current_page = (int) $current_page ?? 1;
 		} else {
@@ -33,6 +35,14 @@ class Pagination {
 		} else {
 			throw new InvalidArgumentException('Pagination: total_objects must be a positive integer or 0.');
 		}
+
+		if(is_string($base_path)){
+			$this->base_path = $base_path;
+		} else {
+			throw new InvalidArgumentException('Pagination: base_path must be a valid string.');
+		}
+
+		// TODO structure
 
 		foreach(PaginationConfig::STRUCTURE as $item_settings){
 			$item = new PaginationItem($item_settings, $this);

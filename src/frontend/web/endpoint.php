@@ -23,21 +23,13 @@ class Endpoint {
 			error_reporting(0);
 		}
 
-		$get = [
-			$_GET['1'],
-			$_GET['2'],
-			$_GET['3'],
-			$_GET['4'],
-			$_GET['5'],
-			$_GET['6'],
-			$_GET['7'],
-			$_GET['8'],
-			$_GET['9']
-		];
-
-		$get = array_filter($get, function($var){
-			return strlen($var) != 0;
-		});
+		$get = [];
+		foreach($_GET as $key => $value){
+			if(is_numeric($key) && strlen($value) != 0){
+				$_GET[$key] = str_replace(['/', '\\'], ['', ''], $value);
+				$get[(int) $key] = $_GET[$key];
+			}
+		}
 
 		$path = implode('/', $get);
 
@@ -47,11 +39,10 @@ class Endpoint {
 				continue;
 			}
 
-			if(!preg_match($route['path'], $path)){
-				continue;
+			if(preg_match($route['path'], $path)){
+				$this->route = $route;
+				break;
 			}
-
-			$this->route = $route;
 		}
 
 		if(!$this->route){

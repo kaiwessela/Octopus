@@ -24,7 +24,11 @@ class Routes {
 				'Post' => [
 					'action' => 'list',
 					'amount' => 5,
-					'page' => '?2'
+					'page' => '?2',
+					'pagination' => [
+						'structure' => 'default',
+						'base_path' => 'posts'
+					]
 				]
 			]
 		],

@@ -2,7 +2,7 @@
 namespace Blog\Frontend\Web\Controllers;
 use \Blog\Frontend\Web\Controller;
 use \Blog\Frontend\Web\Modules\Picture;
-use \Blog\Frontend\Web\Modules\Pagination;
+use \Blog\Frontend\Web\Modules\Pagination\Pagination;
 use Parsedown;
 
 
@@ -10,17 +10,24 @@ class PostController extends Controller {
 	const MODEL = 'Post';
 
 	/* @inherited
-	const MODEL;
+	public $action;
+	public $errors;
 
-	private $params;
-	private $models;
+	protected $params;
 
 	public $objects;
-	public $errors;
 	*/
 
 	public $pagination;
 
+
+	public function prepare($parameters) {
+		parent::prepare($parameters);
+
+		if($this->action == 'list' && isset($parameters['pagination'])){
+			$this->params->pagination = (object) $parameters['pagination'];
+		}
+	}
 
 	public function process() {
 		$objs = $this->objects;
@@ -37,8 +44,12 @@ class PostController extends Controller {
 			}
 		}
 
-		if($this->action == 'list'){
-			$this->pagination = new Pagination($this->params->page, $this->params->amount, $this->params->total);
+		if(isset($this->params->pagination)){
+			try {
+				$this->pagination = new Pagination($this->params->page, $this->params->amount, $this->params->total, $this->params->pagination->base_path);
+			} catch(InvalidArgumentException $e){
+				$this->errors[] = $e;
+			}
 		}
 	}
 }

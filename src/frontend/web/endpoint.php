@@ -63,10 +63,16 @@ class Endpoint {
 			foreach($this->route['controllers'] as $class => $settings){
 				if(preg_match('/^\?([0-9])$/', $class, $matches)){
 					$classaliases = [
-						'post' => 'Post',
-						'posts' => 'Post',
+						'event' => 'Event',
+						'events' => 'Event',
+						'image' => 'Image',
+						'images' => 'Image',
 						'page' => 'Page',
-						'pages' => 'Page'
+						'pages' => 'Page',
+						'person' => 'Person',
+						'persons' => 'Person',
+						'post' => 'Post',
+						'posts' => 'Post'
 					];
 
 					$class = $classaliases[(empty($_GET[$matches[1]])) ? null : $_GET[$matches[1]]];
@@ -98,7 +104,8 @@ class Endpoint {
 		global $server;
 		$server = (object) [
 			'url' => Config::SERVER_URL,
-			'lang' => Config::SERVER_LANG
+			'lang' => Config::SERVER_LANG,
+			'dyn_img_path' => Config::DYNAMIC_IMAGE_PATH
 		];
 
 		global $astronauth;

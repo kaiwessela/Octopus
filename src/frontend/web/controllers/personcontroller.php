@@ -2,36 +2,51 @@
 namespace Blog\Frontend\Web\Controllers;
 use \Blog\Frontend\Web\Controller;
 use \Blog\Frontend\Web\Modules\Picture;
-use Parsedown;
+use \Blog\Frontend\Web\Modules\Pagination\Pagination;
 
 
-class PersonController implements Controller {
+class PersonController extends Controller {
 	const MODEL = 'Person';
 
-	public $errors = [
-		'404' => false
-	];
-
 	/* @inherited
-	const MODEL;
+	public $action;
+	public $errors;
 
-	private $params;
-	private $models;
+	protected $params;
 
 	public $objects;
-	public $errors;
 	*/
 
 	public $pagination;
 
-	public function process() {
-		foreach($this->models as $key => &$model){
-			$this->objects[$key] = $model->export();
 
-			$this->objects[$key]->parsed_content = Parsedown::instance()->text($model->content);
+	public function prepare($parameters) {
+		parent::prepare($parameters);
+
+		if($this->action == 'list' && isset($parameters['pagination'])){
+			$this->params->pagination = (object) $parameters['pagination'];
+		}
+	}
+
+	public function process() {
+		$objs = $this->objects;
+		$this->objects = [];
+
+		foreach($objs as $key => $obj){
+			$this->objects[$key] = $obj->export();
 
 			if($this->objects[$key]->image){
-				$this->objects[$key]->picture = new Picture($model->image);
+				$this->objects[$key]->picture = new Picture($obj->image);
+			} else {
+				$this->objects[$key]->picture = null;
+			}
+		}
+
+		if(isset($this->params->pagination)){
+			try {
+				$this->pagination = new Pagination($this->params->page, $this->params->amount, $this->params->total, $this->params->pagination->base_path);
+			} catch(InvalidArgumentException $e){
+				$this->errors[] = $e;
 			}
 		}
 	}

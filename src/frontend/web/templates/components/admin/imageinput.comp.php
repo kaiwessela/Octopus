@@ -1,7 +1,3 @@
-<?php
-use \Blog\Config\Config;
-?>
-
 <template id="iit-basic">
 	<div class="ii-imagebox">
 
@@ -13,7 +9,7 @@ use \Blog\Config\Config;
 </template>
 
 <template id="iit-imagebox-filled">
-	<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH ?>%II.image.longid%/original.%II.image.extension%"
+	<img src="<?= $server->url . $server->dyn_img_path ?>%II.image.longid%/original.%II.image.extension%"
 		alt="[ANZEIGEFEHLER] Hier sollte das Bild angezeigt werden.">
 	<p>Bild-ID: <span class="code">%II.image.longid%</span></p>
 </template>
@@ -81,13 +77,13 @@ use \Blog\Config\Config;
 
 <template id="iit-selectableimage">
 	<article class="image preview">
-		<img src="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH ?>%II.image.longid%/original.%II.image.extension%" alt="[ANZEIGEFEHLER]">
+		<img src="<?= $server->url . $server->dyn_img_path ?>%II.image.longid%/original.%II.image.extension%" alt="[ANZEIGEFEHLER]">
 		<span class="longid">%II.image.longid%</span>
 	</article>
 </template>
 
-<script src="<?= Config::SERVER_URL ?>/resources/js/selectableimage.js"></script>
-<script src="<?= Config::SERVER_URL ?>/resources/js/imageinputpicker.js"></script>
-<script src="<?= Config::SERVER_URL ?>/resources/js/imageinputuploader.js"></script>
-<script src="<?= Config::SERVER_URL ?>/resources/js/imageinput.js"></script>
-<script src="<?= Config::SERVER_URL ?>/resources/js/admin.js"></script>
+<script src="<?= $server->url ?>/resources/js/selectableimage.js"></script>
+<script src="<?= $server->url ?>/resources/js/imageinputpicker.js"></script>
+<script src="<?= $server->url ?>/resources/js/imageinputuploader.js"></script>
+<script src="<?= $server->url ?>/resources/js/imageinput.js"></script>
+<script src="<?= $server->url ?>/resources/js/admin.js"></script>

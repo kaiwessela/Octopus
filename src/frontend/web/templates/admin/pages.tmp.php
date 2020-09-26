@@ -38,7 +38,7 @@
 				<?php } else { foreach($Page->objects as $obj){ ?>
 				<article class="page preview">
 					<p class="longid"><?= $obj->longid ?></p>
-					<h3 class="title"><?= $obj->title ?></p>
+					<h3 class="title"><?= $obj->title ?></h3>
 					<div>
 						<a href="<?= $server->url ?>/admin/pages/<?= $obj->id ?>" class="view">Ansehen</a>
 						<a href="<?= $server->url ?>/admin/pages/<?= $obj->id ?>/edit" class="edit">Bearbeiten</a>

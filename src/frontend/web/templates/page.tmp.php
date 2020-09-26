@@ -1,11 +1,8 @@
-<?php
-use \Blog\Frontend\Web\SiteConfig;
-?>
 <!DOCTYPE html>
 <html lang="de">
 	<head>
 		<?php include COMPONENT_PATH . 'head.comp.php'; ?>
-		<title><?= $Page->object->title ?> – <?= SiteConfig::TITLE ?></title>
+		<title><?= $Page->object->title ?> – <?= $site->title ?></title>
 	</head>
 	<body>
 		<?php include COMPONENT_PATH . 'header.comp.php'; ?>

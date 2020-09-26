@@ -1,13 +1,9 @@
-<?php
-use \Blog\Config\Config;
-use \Blog\Frontend\Web\SiteConfig;
-?>
 <header class="open notransition">
-	<span class="logo" role="banner"><?= SiteConfig::TITLE ?></span>
+	<span class="logo" role="banner"><?= $site->title ?></span>
 	<nav>
 		<ul>
-			<a href="<?= Config::SERVER_URL ?>/"><li>Startseite</li></a>
-			<a href="<?= Config::SERVER_URL ?>/posts/"><li>Artikel</li></a>
+			<a href="<?= $server->url ?>/"><li>Startseite</li></a>
+			<a href="<?= $server->url ?>/posts/"><li>Artikel</li></a>
 		</ul>
 	</nav>
 	<div class="opener">

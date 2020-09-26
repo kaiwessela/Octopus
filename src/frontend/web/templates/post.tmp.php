@@ -1,31 +1,26 @@
-<?php
-use \Blog\Config\Config;
-use \Blog\Frontend\Web\SiteConfig;
-use \Blog\Frontend\Web\Modules\TimeFormat;
-?>
 <!DOCTYPE html>
 <html lang="de">
 	<head>
 		<?php include COMPONENT_PATH . 'head.comp.php'; ?>
-		<title><?= $Post->objects[0]->headline ?> – <?= SiteConfig::TITLE ?></title>
-		<link rel="canonical" href="<?= Config::SERVER_URL ?>/<?= SiteConfig::CANONICAL_URL_PREFIX ?>/<?= $Post->objects[0]->longid ?>">
-		<meta name="author" content="<?= $Post->objects[0]->author ?>">
-		<meta name="description" content="<?= $Post->objects[0]->teaser ?>">
-		<meta name="date" content="<?= TimeFormat::html_time($Post->objects[0]->timestamp) ?>">
+		<title><?= $Post->object->headline ?> – <?= $site->title ?></title>
+		<link rel="canonical" href="<?= $server->url ?>/posts/<?= $Post->object->longid ?>">
+		<meta name="author" content="<?= $Post->object->author ?>">
+		<meta name="description" content="<?= $Post->object->teaser ?>">
+		<meta name="date" content="<?= $timeformat::html_time($Post->object->timestamp) ?>">
 
 		<?php if($Post->objects[0]->picture){ ?>
 			<meta name="twitter:card" content="summary_large_image">
-			<meta property="og:image" content="<?= Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH . $Post->objects[0]->image->longid . '/original.' . $Post->objects[0]->image->extension ?>">
+			<meta property="og:image" content="<?= $server->url . $server->dyn_img_path . $Post->object->image->longid . '/original.' . $Post->object->image->extension ?>">
 		<?php } else { ?>
 			<meta name="twitter:card" content="summary">
 		<?php } ?>
 
-		<meta name="twitter:site" content="<?= SiteConfig::TWITTER_SITE ?>">
+		<meta name="twitter:site" content="<?= $site->twitter ?>">
 
 		<meta property="og:type" content="article">
-		<meta property="og:url" content="<?= Config::SERVER_URL ?>/<?= SiteConfig::CANONICAL_URL_PREFIX ?>/<?= $Post->objects[0]->longid ?>">
-		<meta property="og:title" content="<?= $Post->objects[0]->headline ?>">
-		<meta property="og:description" content="<?= $Post->objects[0]->teaser ?>">
+		<meta property="og:url" content="<?= $server->url ?>/posts/<?= $Post->object->longid ?>">
+		<meta property="og:title" content="<?= $Post->object->headline ?>">
+		<meta property="og:description" content="<?= $Post->object->teaser ?>">
 	</head>
 	<body>
 		<?php include COMPONENT_PATH . 'header.comp.php'; ?>
@@ -33,31 +28,31 @@ use \Blog\Frontend\Web\Modules\TimeFormat;
 			<article class="post">
 				<header>
 
-					<?php if($Post->objects[0]->overline){ ?>
-					<p class="overline"><?= $Post->objects[0]->overline ?></p>
+					<?php if($Post->object->overline){ ?>
+					<p class="overline"><?= $Post->object->overline ?></p>
 					<?php } ?>
 
-					<h1><span><?= $Post->objects[0]->headline ?></span></h1>
+					<h1><span><?= $Post->object->headline ?></span></h1>
 
-					<?php if($Post->objects[0]->subline){ ?>
-					<p class="subline"><?= $Post->objects[0]->subline ?></p>
+					<?php if($Post->object->subline){ ?>
+					<p class="subline"><?= $Post->object->subline ?></p>
 					<?php } ?>
 
 					<p class="author-and-date">
 						<!-- IDEA use address element? -->
-						Von <?= $Post->objects[0]->author ?>, <wbr>veröffentlicht am
-						<time datetime="<?= TimeFormat::html_time($Post->objects[0]->timestamp) ?>">
-							<?= TimeFormat::date($Post->objects[0]->timestamp) ?>
+						Von <?= $Post->object->author ?>, <wbr>veröffentlicht am
+						<time datetime="<?= $timeformat::html_time($Post->object->timestamp) ?>">
+							<?= $timeformat::date($Post->object->timestamp) ?>
 						</time>
 					</p>
 				</header>
 
 				<?php
-				if($Post->objects[0]->picture){
+				if($Post->object->picture){
 					?>
 					<figure>
 						<?php
-						$picture = $Post->objects[0]->picture;
+						$picture = $Post->object->picture;
 						include COMPONENT_PATH . 'picture.comp.php';
 						?>
 						<figcaption><small><?= $picture->image->copyright ?></small></figcaption>
@@ -66,7 +61,7 @@ use \Blog\Frontend\Web\Modules\TimeFormat;
 				}
 				?>
 
-				<?= $Post->objects[0]->parsed_content ?>
+				<?= $Post->object->parsed_content ?>
 			</article>
 		</main>
 		<?php include COMPONENT_PATH . 'footer.comp.php'; ?>

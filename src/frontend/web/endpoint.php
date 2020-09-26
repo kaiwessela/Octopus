@@ -2,6 +2,7 @@
 namespace Blog\Frontend\Web;
 use \Blog\Config\Config;
 use \Blog\Config\Routes;
+use \Blog\Frontend\Web\SiteConfig;
 use \Astronauth\Backend\User;
 use PDO;
 use Exception;
@@ -17,7 +18,7 @@ class Endpoint {
 
 		if(Config::DEBUG_MODE){
 			ini_set('display_errors', '1');
-			error_reporting(\E_ALL);
+			error_reporting(\E_ALL & ~\E_NOTICE);
 		} else {
 			ini_set('display_errors', '0');
 			error_reporting(0);
@@ -107,6 +108,15 @@ class Endpoint {
 			'lang' => Config::SERVER_LANG,
 			'dyn_img_path' => Config::DYNAMIC_IMAGE_PATH
 		];
+
+		global $site;
+		$site = (object) [
+			'title' => SiteConfig::TITLE,
+			'twitter' => SiteConfig::TWITTER_SITE
+		];
+
+		global $timeformat;
+		$timeformat = new TimeFormat;
 
 		global $astronauth;
 		$astronauth = $this->user;

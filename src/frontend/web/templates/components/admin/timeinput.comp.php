@@ -1,10 +1,16 @@
-<template id="ti-basic">
-	<label>Datum: <input type="date" id="ti-date" value=""></label>
-	<label>Uhrzeit: <input type="time" id="ti-time" value=""></label>
-	<input type="hidden" id="ti-value" name="" value="">
-</template>
+<div class="timeinput template">
+	<label for="timeinput-date">
+		<small>Datum:</small>
+		<input type="date" id="timeinput-date">
+	</label>
+	<label for="timeinput-time">
+		<small>Uhrzeit:</small>
+		<input type="time" id="timeinput-time">
+	</label>
+</div>
 
-<script src="<?= $server->url ?>/resources/js/timeinput.js"></script>
+<script src="<?= $server->url ?>/resources/js/admin/timeinput.js"></script>
 <script>
-var ti = new TimeInput(document.getElementById('timeinput'));
+	var timeinput = new TimeInput(document.querySelector('.timeinput'));
+	timeinput.invoke();
 </script>

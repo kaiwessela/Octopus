@@ -1,89 +1,90 @@
-<template id="iit-basic">
-	<div class="ii-imagebox">
+<div class="imageinput template main">
+	<div class="pseudoinput">
+		<template class="empty">
+			<div>Kein Bild ausgewählt.</div>
+		</template>
+		<template class="filled">
+			<img src="<?= $server->url . $server->dyn_img_path ?>{{longid}}/original.{{extension}}"
+				alt="[ANZEIGEFEHLER] Hier sollte das Bild angezeigt werden.">
+			<code>{{longid}}</code>
+		</template>
+		<div class="preview">
 
+		</div>
+		<button type="button" class="red" data-action="clear">entfernen</button>
+		<button type="button" class="blue" data-action="picker">aus Vorhandenen auswählen</button>
+		<button type="button" class="green" data-action="uploader">Neues hochladen</button>
 	</div>
-	<input type="hidden" id="ii-value" name="" value="">
-	<button type="button" id="ii-basic-clear">entfernen</button>
-	<button type="button" id="ii-basic-pick">aus Liste auswählen</button>
-	<button type="button" id="ii-basic-upload">hochladen</button>
-</template>
+</div>
 
-<template id="iit-imagebox-filled">
-	<img src="<?= $server->url . $server->dyn_img_path ?>%II.image.longid%/original.%II.image.extension%"
-		alt="[ANZEIGEFEHLER] Hier sollte das Bild angezeigt werden.">
-	<p>Bild-ID: <span class="code">%II.image.longid%</span></p>
-</template>
-
-<template id="iit-imagebox-empty">
-	<div class="ii-imagebox-empty">Kein Bild ausgewählt.</div>
-</template>
-
-<template id="iit-picker">
+<div class="imageinput template picker">
 	<div class="dialog">
-		<div>
+		<form>
 			<h2>Bild auswählen</h2>
 			<div class="grid">
 
 			</div>
-			<button type="button" id="ii-picker-cancel">Abbrechen</button>
-		</div>
+			<button type="button" class="red" data-action="close">Abbrechen</button>
+			<template>
+				<button type="button" name="{{id}}">
+					<img src="<?= $server->url . $server->dyn_img_path ?>{{longid}}/original.{{extension}}" alt="[ANZEIGEFEHLER]">
+					<code>{{longid}}</code>
+				</button>
+			</template>
+		</form>
 	</div>
-</template>
+</div>
 
-<template id="iit-uploader">
+<div class="imageinput template uploader">
 	<div class="dialog">
 		<form>
 			<h2>Bild hochladen</h2>
-			<label for="ii-uploader-longid">
+			<label for="imageinput-uploader-longid">
 				<span class="name">Bild-ID</span>
-				<span class="requirements">
+				<span class="conditions">
 					erforderlich; 9 bis 128 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
 					Bindestriche (-)
 				</span>
-				<span class="description">
+				<span class="infos">
 					Die Bild-ID wird in der URL verwendet und sollte den Bildinhalt kurz
 					beschreiben.
 				</span>
 			</label>
-			<input type="text" id="ii-uploader-longid" class="longid" name="longid">
-			<label for="ii-uploader-description">
+			<input type="text" id="imageinput-uploader-longid" class="longid" name="longid">
+			<label for="imageinput-uploader-description">
 				<span class="name">Beschreibung</span>
-				<span class="requirements">optional</span>
-				<span class="description">
+				<span class="conditions">optional</span>
+				<span class="infos">
 					Die Beschreibung wird als Alternativtext angezeigt, wenn das Bild nicht geladen
 					werden kann. Sie sollte den Bildinhalt wiedergeben.
 				</span>
 			</label>
-			<input type="text" id="ii-uploader-description" class="description" name="description">
+			<input type="text" id="imageinput-uploader-description" class="description" name="description">
 			<label for="copyright">
 				<span class="name">Urheberrechtshinweis</span>
-				<span class="requirements">optional</span>
-				<span class="description">
+				<span class="conditions">optional</span>
+				<span class="infos">
 					Der Urbeherrechtshinweis kann genutzt werden, um Lizensierungsinformationen zu dem Bild
 					zur Verfügung zu stellen. Er wird normalerweise unterhalb des Bildes angezeigt.
 				</span>
 			</label>
-			<input type="text" id="ii-uploader-copyright" class="copyright" name="copyright">
-			<label for="ii-uploader-file">
+			<input type="text" id="imageinput-uploader-copyright" class="copyright" name="copyright">
+			<label for="imageinput-uploader-file">
 				<span class="name">Datei</span>
-				<span class="requirements">erforderlich; PNG, JPEG oder GIF</span>
+				<span class="conditions">erforderlich; PNG, JPEG oder GIF</span>
 			</label>
-			<input type="file" id="ii-uploader-file" class="file" name="imagefile">
-			<input type="submit" value="Hochladen">
-			<button type="button" id="ii-uploader-cancel">Abbrechen</button>
+			<input type="file" id="imageinput-uploader-file" class="file" name="imagefile">
+			<button type="submit" class="green" data-action="submit">Hochladen</button>
+			<button type="button" class="red" data-action="close">Abbrechen</button>
 		</form>
 	</div>
-</template>
+</div>
 
-<template id="iit-selectableimage">
-	<article class="image preview">
-		<img src="<?= $server->url . $server->dyn_img_path ?>%II.image.longid%/original.%II.image.extension%" alt="[ANZEIGEFEHLER]">
-		<span class="longid">%II.image.longid%</span>
-	</article>
-</template>
-
-<script src="<?= $server->url ?>/resources/js/selectableimage.js"></script>
-<script src="<?= $server->url ?>/resources/js/imageinputpicker.js"></script>
-<script src="<?= $server->url ?>/resources/js/imageinputuploader.js"></script>
-<script src="<?= $server->url ?>/resources/js/imageinput.js"></script>
-<script src="<?= $server->url ?>/resources/js/admin.js"></script>
+<script src="<?= $server->url ?>/resources/js/admin/image.js"></script>
+<script src="<?= $server->url ?>/resources/js/admin/picker.js"></script>
+<script src="<?= $server->url ?>/resources/js/admin/uploader.js"></script>
+<script src="<?= $server->url ?>/resources/js/admin/imageinput.js"></script>
+<script>
+	var imageinput = new ImageInput(document.querySelector('.imageinput'));
+	imageinput.invoke();
+</script>

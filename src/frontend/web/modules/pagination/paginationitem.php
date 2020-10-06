@@ -89,7 +89,7 @@ class PaginationItem {
 			if($this->duplicate_priority < $item->duplicate_priority){
 				return true;
 			} else {
-				return false; # side effect: if both have the same duplicate priority, none must yield
+				continue; # side effect: if both have the same duplicate priority, none must yield
 			}
 		}
 	}

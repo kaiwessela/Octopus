@@ -12,6 +12,7 @@ class Pagination {
 	#first_object;
 	#last_object;
 
+	public $structure;
 	public $base_path;
 
 	public $items;
@@ -37,14 +38,18 @@ class Pagination {
 		}
 
 		if(is_string($base_path)){
-			$this->base_path = $base_path;
+			$this->base_path = str_replace(
+				['?1', '?2', '?3', '?4', '?5', '?6', '?7', '?8', '?9'],
+				[$_GET['1'], $_GET['2'], $_GET['3'], $_GET['4'], $_GET['5'], $_GET['6'], $_GET['7'], $_GET['8'], $_GET['9']],
+				$base_path
+			);
 		} else {
 			throw new InvalidArgumentException('Pagination: base_path must be a valid string.');
 		}
 
-		// TODO structure
+		$this->structure = PaginationConfig::STRUCTURES[$structure] ?? PaginationConfig::STRUCTURES['default'];
 
-		foreach(PaginationConfig::STRUCTURE as $item_settings){
+		foreach($this->structure as $item_settings){
 			$item = new PaginationItem($item_settings, $this);
 
 			if(!$item->exists() && !$item->disabled){
@@ -54,11 +59,9 @@ class Pagination {
 			}
 		}
 
-		foreach($this->items as &$item){
-			if($item->yields()){
-				unset($item);
-			}
-		}
+		$this->items = array_filter($this->items, function($item){
+			return !$item->yields();
+		});
 	}
 
 	function __get($name) {

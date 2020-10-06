@@ -69,7 +69,7 @@ class Routes {
 					'amount' => 20,
 					'page' => '?3',
 					'pagination' => [
-						'structure' => 'default',
+						'structure' => 'admin',
 						'base_path' => 'admin/?2'
 					]
 				]

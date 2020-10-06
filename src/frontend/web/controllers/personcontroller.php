@@ -44,7 +44,13 @@ class PersonController extends Controller {
 
 		if(isset($this->params->pagination)){
 			try {
-				$this->pagination = new Pagination($this->params->page, $this->params->amount, $this->params->total, $this->params->pagination->base_path);
+				$this->pagination = new Pagination(
+					$this->params->page,
+					$this->params->amount,
+					$this->params->total,
+					$this->params->pagination->base_path,
+					$this->params->pagination->structure
+				);
 			} catch(InvalidArgumentException $e){
 				$this->errors[] = $e;
 			}

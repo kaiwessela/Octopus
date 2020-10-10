@@ -19,72 +19,76 @@
 			<?php } ?>
 
 			<?php if($Page->action == 'list'){ ?>
-				<a href="<?= $server->url ?>/admin/pages/new" class="button">+ Neue Seite erstellen</a>
+				<a href="<?= $server->url ?>/admin/pages/new" class="button new green">Neue Seite erstellen</a>
 			<?php } else { ?>
-				<a href="<?= $server->url ?>/admin/pages" class="button">&laquo; Zurück zu allen Seiten</a>
+				<a href="<?= $server->url ?>/admin/pages" class="button back">Zurück zu allen Seiten</a>
 			<?php } ?>
 
 			<?php foreach($Page->errors as $error){ ?>
-			<span class="message error">
+			<div class="message red">
 				<?= $error->getMessage() ?>
-			</span>
+			</div>
 			<?php } ?>
 
 			<?php if($Page->action != 'list' && $Page->action != 'new'){ ?>
 			<div>
 
 				<?php if($Page->action != 'show'){ ?>
-				<a href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>" class="view">Ansehen</a>
+				<a class="button blue" href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>">Ansehen</a>
 				<?php } ?>
 
-				<a href="<?= $server->url ?>/<?= $Page->object->longid ?>" class="view">Vorschau</a>
+				<a class="button blue" href="<?= $server->url ?>/<?= $Page->object->longid ?>">Vorschau</a>
 
 				<?php if($Page->action != 'edit'){ ?>
-				<a href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>/edit" class="edit">Bearbeiten</a>
+				<a class="button yellow" href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>/edit">Bearbeiten</a>
 				<?php } ?>
 
 				<?php if($Page->action != 'delete'){ ?>
-				<a href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>/delete" class="delete">Löschen</a>
+				<a class="button red" href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>/delete">Löschen</a>
 				<?php } ?>
 			</div>
 			<?php } ?>
 
+			<?php if(($Page->action == 'new' || $Page->action == 'edit') && $Page->action->completed()){ ?>
+			<div class="message green">
+				Seite <code><?= $Page->object->longid ?></code> wurde erfolgreich gespeichert.
+			</div>
+			<?php } ?>
+
 			<?php if($Page->action == 'list'){ ?>
+				<?php
+				$pagination = $Page->pagination;
+				include COMPONENT_PATH . 'admin/pagination.comp.php';
+				?>
+
 				<?php if(empty($Page->objects)){ ?>
-				<span class="message warning">
+				<div class="message yellow">
 					Es sind noch keine Seiten vorhanden.
-				</span>
+				</div>
 
 				<?php } else { foreach($Page->objects as $obj){ ?>
-				<article class="page preview">
-					<p class="longid"><?= $obj->longid ?></p>
-					<h3 class="title"><?= $obj->title ?></h3>
+				<article>
+					<code><?= $obj->longid ?></code>
+					<h2><?= $obj->title ?></h2>
 					<div>
-						<a href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>" class="view">Ansehen</a>
-						<a href="<?= $server->url ?>/<?= $Page->object->longid ?>" class="view">Vorschau</a>
-						<a href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>/edit" class="edit">Bearbeiten</a>
-						<a href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>/delete" class="delete">Löschen</a>
+						<a class="button blue" href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>">Ansehen</a>
+						<a class="button yellow" href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>/edit">Bearbeiten</a>
+						<a class="button red" href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>/delete">Löschen</a>
 					</div>
 				</article>
 				<?php }} ?>
 			<?php } ?>
 
 			<?php if($Page->action == 'show'){ ?>
-				<iframe src="<?= $server->url ?>/<?= $Page->object->longid ?>" width="100%" height="200%"></iframe>
+				<?php $obj = $Page->object; ?>
+				<article>
+					<code><?= $obj->longid ?></code>
+					<h1><?= $obj->headline ?></h1>
+					<p><?= $obj->content ?></p>
+				</article>
 			<?php } ?>
 
-			<?php if($Page->action == 'edit'){ ?>
-				<?php if($Page->action->failed()){ ?>
-				<div class="message error">
-					Bearbeiten der Seite fehlgeschlagen.
-				</div>
-				<?php } ?>
-
-				<?php if($Page->action->completed()){ ?>
-				<div class="message success">
-					Seite erfolgreich bearbeitet.
-				</div>
-				<?php } else { ?>
+			<?php if($Page->action == 'edit' && !$Page->action->completed()){ ?>
 				<?php $obj = $Page->object; ?>
 				<form action="#" method="post">
 					<input type="hidden" name="id" value="<?= $obj->id ?>">
@@ -92,27 +96,26 @@
 
 					<label for="title">
 						<span class="name">Titel</span>
-						<span class="requirements">erforderlich, 1 bis 128 Zeichen</span>
-						<span class="description">
+						<span class="conditions">erforderlich, 1 bis 60 Zeichen</span>
+						<span class="infos">
 							Der Titel der Seite steht u.a. im Fenstertitel des Browsers und sollte
 							einen Hinweis auf den Inhalt geben.
 						</span>
 					</label>
-					<input type="text" id="title" class="title" name="title" value="<?= $obj->title ?>" required>
+					<input type="text" id="title" name="title" value="<?= $obj->title ?>" required size="40" maxlength="60">
 
 					<label for="content">
 						<span class="name">Inhalt</span>
-						<span class="requirements">
+						<span class="conditions">
 							optional, HTML und Markdown-Schreibweise möglich
 							(<a href="https://de.wikipedia.org/wiki/Markdown">Wikipedia: Markdown</a>)
 						</span>
-						<span class="description">Der eigentliche Inhalt der Seite.</span>
+						<span class="infos">Der eigentliche Inhalt der Seite.</span>
 					</label>
-					<textarea id="content" class="content" name="content" class="long-text"><?= $obj->content ?></textarea>
+					<textarea id="content" name="content"><?= $obj->content ?></textarea>
 
-					<input type="submit" value="Speichern">
+					<button type="submit" class="blue">Speichern</button>
 				</form>
-				<?php } ?>
 			<?php } ?>
 
 			<?php if($Page->action == 'new' && !$Page->action->completed()){ ?>
@@ -120,55 +123,52 @@
 				<form action="#" method="post">
 					<label for="longid">
 						<span class="name">Seiten-ID</span>
-						<span class="requirements">
-							erforderlich; 9 bis 128 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
+						<span class="conditions">
+							erforderlich; 9 bis 60 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
 							Bindestriche (-)
 						</span>
-						<span class="description">
+						<span class="infos">
 							Die Seiten-ID wird als URL verwendet
-							(https://<?= $server->url ?>/[Seiten-ID]) und entspricht oftmals
-							ungefähr dem Titel.
+							(<code>https://<?= $server->url ?>/[Seiten-ID]</code>) und entspricht
+							oftmals ungefähr dem Titel.
 						</span>
 					</label>
-					<input type="text" id="longid" class="longid" name="longid" required>
+					<input type="text" id="longid" name="longid" size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required autocomplete="off">
 
 					<label for="title">
 						<span class="name">Titel</span>
-						<span class="requirements">erforderlich, 1 bis 128 Zeichen</span>
-						<span class="description">
+						<span class="conditions">erforderlich, 1 bis 60 Zeichen</span>
+						<span class="infos">
 							Der Titel der Seite steht u.a. im Fenstertitel des Browsers und sollte
 							einen Hinweis auf den Inhalt geben.
 						</span>
 					</label>
-					<input type="text" id="title" class="title" name="title" required>
+					<input type="text" id="title" name="title" size="40" maxlength="60" required>
 
 					<label for="content">
 						<span class="name">Inhalt</span>
-						<span class="requirements">
+						<span class="conditions">
 							optional, HTML und Markdown-Schreibweise möglich
 							(<a href="https://de.wikipedia.org/wiki/Markdown">Wikipedia: Markdown</a>)
 						</span>
-						<span class="description">Der eigentliche Inhalt der Seite.</span>
+						<span class="infos">Der eigentliche Inhalt der Seite.</span>
 					</label>
-					<textarea id="content" class="content" name="content"></textarea>
+					<textarea id="content" name="content"></textarea>
 
-					<input type="submit" value="Speichern">
+					<button type="submit" class="green">Speichern</button>
 				</form>
 			<?php } ?>
 
 			<?php if($Page->action == 'delete' && !$Page->action->completed()){ ?>
 				<?php $obj = $Page->object; ?>
-				<p>
-					<a href="<?= $server->url ?>/<?= $obj->longid ?>">Blogansicht</a>
-					<a href="<?= $server->url ?>/admin/pages/<?= $obj->id ?>/edit" class="edit">Bearbeiten</a>
-				</p>
-				<p>Seite <span class="code"><?= $obj->longid ?></span> löschen?</p>
+				<p>Seite <code><?= $obj->longid ?></code> löschen?</p>
 				<form action="#" method="post">
 					<input type="hidden" id="id" name="id" value="<?= $obj->id ?>">
-					<input type="submit" value="Löschen">
+					<button type="submit" class="red">Löschen</button>
 				</form>
 			<?php } ?>
 
+			<script src="<?= $server->url ?>/resources/js/validate.js"></script>
 		</main>
 	</body>
 </html>

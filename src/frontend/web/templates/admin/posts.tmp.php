@@ -18,66 +18,102 @@
 			<h1>Post löschen</h1>
 			<?php } ?>
 
-			<?php if(!$Post->action == 'list'){ ?>
-			<a href="<?= $server->url ?>/admin/posts" class="button">&laquo; Zurück zu allen Posts</a>
+			<?php if($Post->action == 'list'){ ?>
+				<a href="<?= $server->url ?>/admin/posts/new" class="button new green">Neuen Post schreiben</a>
+			<?php } else { ?>
+				<a href="<?= $server->url ?>/admin/posts" class="button back">Zurück zu allen Posts</a>
 			<?php } ?>
 
 			<?php foreach($Post->errors as $error){ ?>
-			<span class="message error">
+			<div class="message red">
+				<?= $error->getMessage(); ?>
+			</div>
+			<?php } ?>
 
-			</span>
-			<p>Details: <span class="code"></span></p>
+			<?php if($Post->action != 'list' && $Post->action != 'new'){ ?>
+			<div>
+
+				<?php if($Post->action != 'show'){ ?>
+				<a class="button blue" href="<?= $server->url ?>/admin/posts/<?= $Post->object->id ?>">Ansehen</a>
+				<?php } ?>
+
+				<a class="button blue" href="<?= $server->url ?>/<?= $Post->object->longid ?>">Vorschau</a>
+
+				<?php if($Post->action != 'edit'){ ?>
+				<a class="button yellow" href="<?= $server->url ?>/admin/posts/<?= $Post->object->id ?>/edit">Bearbeiten</a>
+				<?php } ?>
+
+				<?php if($Post->action != 'delete'){ ?>
+				<a class="button red" href="<?= $server->url ?>/admin/posts/<?= $Post->object->id ?>/delete">Löschen</a>
+				<?php } ?>
+			</div>
+			<?php } ?>
+
+			<?php if(($Post->action == 'new' || $Post->action == 'edit') && $Post->action->completed()){ ?>
+			<div class="message green">
+				Post <code><?= $Post->object->longid ?></code> wurde erfolgreich gespeichert.
+			</div>
 			<?php } ?>
 
 			<?php if($Post->action == 'list'){ ?>
-				<?php foreach($Post->objects as $obj){ ?>
-				<article class="post preview">
-					<p class="longid"><?= $obj->longid ?></p>
-					<p class="overline"><?= $obj->overline ?></p>
-					<h3 class="headline"><?= $obj->headline ?></h3>
-					<p class="subline"><?= $obj->subline ?></p>
-					<p>
-						<span class="author"><?= $obj->author ?></span> –
-						<span class="timestamp"><?= date('d.m.Y, H:i \U\h\r', $obj->timestamp) ?></span>
-					</p>
+				<?php
+				$pagination = $Post->pagination;
+				include COMPONENT_PATH . 'admin/pagination.comp.php';
+				?>
+
+				<?php if(empty($Post->objects)){ ?>
+				<div class="message yellow">
+					Es sind noch keine Posts vorhanden.
+				</div>
+
+				<?php } else { foreach($Post->objects as $obj){ ?>
+				<article>
+					<code><?= $obj->longid ?></code>
+					<h2><?= $obj->headline ?></h2>
+					<strong><?= $obj->subline ?></strong>
+					<small>
+						Von <?= $obj->author ?> –
+						<time datetime="<?= $timeformat::html_time($obj->timestamp) ?>">
+							<?= $timeformat::date_and_time($obj->timestamp) ?>
+						</time>
+					</small>
 					<div>
-						<a href="<?= $server->url ?>/admin/posts/<?= $obj->id ?>" class="view">Ansehen</a>
-						<a href="<?= $server->url ?>/admin/posts/<?= $obj->id ?>/edit" class="edit">Bearbeiten</a>
-						<a href="<?= $server->url ?>/admin/posts/<?= $obj->id ?>/delete" class="delete">Löschen</a>
+						<a class="button blue"
+							href="<?= $server->url ?>/admin/posts/<?= $obj->id ?>">Ansehen</a>
+						<a class="button yellow"
+							href="<?= $server->url ?>/admin/posts/<?= $obj->id ?>/edit">Bearbeiten</a>
+						<a class="button red"
+							href="<?= $server->url ?>/admin/posts/<?= $obj->id ?>/delete">Löschen</a>
 					</div>
-					<p class="teaser"><?= $obj->teaser ?></p>
 				</article>
-				<?php } ?>
+				<?php }} ?>
 			<?php } ?>
 
 			<?php if($Post->action == 'show'){ ?>
 				<?php $obj = $Post->object; ?>
-				<article class="post">
-					<p>
-						<a href="<?= $server->url ?>/posts/<?= $obj->longid ?>">Blogansicht</a>
-						<a href="<?= $server->url ?>/admin/posts/<?= $obj->id ?>/edit" class="edit">Bearbeiten</a>
-						<a href="<?= $server->url ?>/admin/posts/<?= $obj->id ?>/delete" class="delete">Löschen</a>
-					</p>
-					<p class="longid"><?= $obj->longid ?></p>
-					<p class="overline"><?= $obj->overline ?></p>
-					<h1 class="headline"><?= $obj->headline ?></h1>
-					<p class="subline"><?= $obj->subline ?></p>
-					<p class="teaser"><?= $obj->teaser ?></p>
-					<p>
-						Von <span class="author"><?= $obj->author ?></span> –
-						<span class="timestamp"><?= $obj->timestamp ?></span>
-					</p>
+				<article>
+					<code><?= $obj->longid ?></code>
+					<b><?= $obj->overline ?></b>
+					<h1><?= $obj->headline ?></h1>
+					<strong><?= $obj->subline ?></strong>
+					<p><?= $obj->teaser ?></p>
+					<small>
+						Von <?= $obj->author ?> –
+						<time datetime="<?= $timeformat::html_time($obj->timestamp) ?>">
+							<?= $timeformat::date_and_time($obj->timestamp) ?>
+						</time>
+					</small>
 
 					<?php if($obj->image){ ?>
 					<div>
-						Bild: <span class="code"><?= $obj->image->longid ?></span>
+						Bild: <code><?= $obj->image->longid ?></code>
 						<a href="<?= $server->url ?>/admin/images/<?= $obj->image->id ?>">ansehen</a>
-						<img src="<?= $server->url . Config::DYNAMIC_IMAGE_PATH . $obj->image->longid . '/original.'
+						<img src="<?= $server->url . $server->dyn_img_path . $obj->image->longid . '/original.'
 							. $obj->image->extension ?>" alt="<?= $obj->image->description ?>">
 					</div>
 					<?php } ?>
 
-					<p class="content"><?= $obj->content ?></p>
+					<p><?= $obj->content ?></p>
 				</article>
 			<?php } ?>
 
@@ -89,84 +125,83 @@
 
 					<label for="overline">
 						<span class="name">Dachzeile</span>
-						<span class="requirements">optional, bis zu 64 Zeichen</span>
-						<span class="description">
+						<span class="conditions">optional, bis zu 25 Zeichen</span>
+						<span class="infos">
 							Die Dachzeile steht direkt über der Überschrift und beinhaltet meist ein kurzes
 							Stichwort, das das Thema des Artikels angibt.
 						</span>
 					</label>
-					<input type="text" id="overline" class="overline" name="overline" value="<?= $obj->overline ?>">
+					<input type="text" id="overline" name="overline" value="<?= $obj->overline ?>" size="20" maxlength="25">
 
 					<label for="headline">
 						<span class="name">Schlagzeile</span>
-						<span class="requirements">erforderlich, 1 bis 256 Zeichen</span>
-						<span class="description">
+						<span class="conditions">erforderlich, 1 bis 60 Zeichen</span>
+						<span class="infos">
 							Die Schlagzeile ist die Überschrift des Artikels und fasst die Kernaussage prägnant
 							zusammen.
 						</span>
 					</label>
-					<input type="text" id="headline" class="headline" name="headline" value="<?= $obj->headline ?>" required>
+					<input type="text" id="headline" name="headline" value="<?= $obj->headline ?>" size="40" required maxlength="60">
 
 					<label for="subline">
 						<span class="name">Unterzeile</span>
-						<span class="requirements">optional, bis zu 256 Zeichen</span>
-						<span class="description">
+						<span class="conditions">optional, bis zu 40 Zeichen</span>
+						<span class="infos">
 							Die Unterzeile steht unterhalb der Schlagzeile und ergänzt diese um weitere
 							Informationen.
 						</span>
 					</label>
-					<input type="text" id="subline" class="subline" name="subline" value="<?= $obj->subline ?>">
+					<input type="text" id="subline" name="subline" value="<?= $obj->subline ?>" size="30" maxlength="40">
 
 					<label for="teaser">
 						<span class="name">Teaser</span>
-						<span class="requirements">optional</span>
-						<span class="description">
+						<span class="conditions">optional</span>
+						<span class="infos">
 							Der Teaser wird nur in der Artikelvorschau angezeigt. Er fasst den Artikel kurz
 							zusammen und soll zum Weiterlesen anregen.
 						</span>
 					</label>
-					<textarea id="teaser" class="teaser" name="teaser"><?= $obj->teaser ?></textarea>
+					<textarea id="teaser" name="teaser" cols="50" rows="3"><?= $obj->teaser ?></textarea>
 
 					<label for="author">
 						<span class="name">Autor</span>
-						<span class="requirements">erforderlich, 1 bis 128 Zeichen</span>
-						<span class="description">Der Autor des Artikels.</span>
+						<span class="conditions">erforderlich, 1 bis 128 Zeichen</span>
+						<span class="infos">Der Autor des Artikels.</span>
 					</label>
-					<input type="text" id="author" class="author" name="author" required value="<?= $obj->author ?>">
+					<input type="text" id="author" name="author" required size="30" maxlength="50" value="<?= $obj->author ?>">
 
-					<label>
+					<label for="timestamp">
 						<span class="name">Veröffentlichungsdatum und -uhrzeit</span>
-						<span class="requirements">erforderlich</span>
-						<span class="description">
+						<span class="conditions">erforderlich</span>
+						<span class="infos">
 							Datum und Uhrzeit der Veröffentlichung. Hat derzeit nur eine informierende Funktion,
 							Artikel mit Datum in der Zukunft werden trotzdem angezeigt. Es ist aber eine Funktion
 							zur terminierten Veröffentlichung geplant.
 						</span>
 					</label>
-					<div id="timeinput" data-value="<?= $obj->timestamp ?>" data-name="timestamp"></div>
+					<input type="number" class="timeinput" id="timestamp" name="timestamp" required size="10" value="<?= $obj->timestamp ?>">
 
-					<label>
+					<label for="image_id">
 						<span class="name">Artikelbild</span>
-						<span class="requirements">optional</span>
-						<span class="description">
+						<span class="conditions">optional</span>
+						<span class="infos">
 							Das Artikelbild wird prominent zwischen Überschrift und Inhalt sowie in der
 							Artikelvorschau angezeigt.
 						</span>
 					</label>
-					<div id="imageinput" data-value="<?= $obj->image->id ?? '' ?>" data-longid="<?= $obj->image->longid ?? '' ?>" data-name="image_id"
-						data-extension="<?= $obj->image->extension ?? '' ?>"></div>
+					<input type="text" class="imageinput" id="image_id" name="image_id" size="8" minlength="8" maxlength="8" value="<?= $obj->image->id ?>">
 
 					<label for="content">
 						<span class="name">Inhalt</span>
-						<span class="requirements">
+						<span class="conditions">
 							optional, Markdown-Schreibweise möglich
 							(<a href="https://de.wikipedia.org/wiki/Markdown">Wikipedia: Markdown</a>)
 						</span>
-						<span class="description">Der eigentliche Inhalt des Artikels</span>
+						<span class="infos">Der eigentliche Inhalt des Artikels</span>
 					</label>
-					<textarea id="content" class="content" name="content" class="long-text"><?= $obj->content ?></textarea>
+					<textarea id="content" name="content" cols="80" rows="20"><?= $obj->content ?></textarea>
 
-					<input type="submit" value="Speichern">
+					<button type="submit" class="green">Speichern</button>
 				</form>
 			<?php } ?>
 
@@ -175,95 +210,95 @@
 				<form action="#" method="post">
 					<label for="longid">
 						<span class="name">Post-ID</span>
-						<span class="requirements">
-							erforderlich; 9 bis 128 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
+						<span class="conditions">
+							erforderlich; 9 bis 60 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
 							Bindestriche (-)
 						</span>
-						<span class="description">
+						<span class="infos">
 							Die Post-ID wird in der URL verwendet und entspricht oftmals ungefähr der Überschrift.
 						</span>
 					</label>
-					<input type="text" id="longid" class="longid" name="longid" required>
+					<input type="text" id="longid" name="longid" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]$" autocomplete="off">
 
 					<label for="overline">
 						<span class="name">Dachzeile</span>
-						<span class="requirements">optional, bis zu 64 Zeichen</span>
-						<span class="description">
+						<span class="conditions">optional, bis zu 25 Zeichen</span>
+						<span class="infos">
 							Die Dachzeile steht direkt über der Überschrift und beinhaltet meist ein kurzes
 							Stichwort, das das Thema des Artikels angibt.
 						</span>
 					</label>
-					<input type="text" id="overline" class="overline" name="overline">
+					<input type="text" id="overline" name="overline" size="20" maxlength="25">
 
 					<label for="headline">
 						<span class="name">Schlagzeile</span>
-						<span class="requirements">erforderlich, 1 bis 256 Zeichen</span>
-						<span class="description">
+						<span class="conditions">erforderlich, 1 bis 60 Zeichen</span>
+						<span class="infos">
 							Die Schlagzeile ist die Überschrift des Artikels und fasst die Kernaussage prägnant
 							zusammen.
 						</span>
 					</label>
-					<input type="text" id="headline" class="headline" name="headline" required>
+					<input type="text" id="headline" name="headline" required size="40" maxlength="60">
 
 					<label for="subline">
 						<span class="name">Unterzeile</span>
-						<span class="requirements">optional, bis zu 256 Zeichen</span>
-						<span class="description">
+						<span class="conditions">optional, bis zu 40 Zeichen</span>
+						<span class="infos">
 							Die Unterzeile steht unterhalb der Schlagzeile und ergänzt diese um weitere
 							Informationen.
 						</span>
 					</label>
-					<input type="text" id="subline" class="subline" name="subline">
+					<input type="text" id="subline" name="subline" size="30" maxlength="40">
 
 					<label for="teaser">
 						<span class="name">Teaser</span>
-						<span class="requirements">optional</span>
-						<span class="description">
+						<span class="conditions">optional</span>
+						<span class="infos">
 							Der Teaser wird nur in der Artikelvorschau angezeigt. Er fasst den Artikel kurz
 							zusammen und soll zum Weiterlesen anregen.
 						</span>
 					</label>
-					<textarea id="teaser" class="teaser" name="teaser"></textarea>
+					<textarea id="teaser" name="teaser" cols="50" rows="3"></textarea>
 
 					<label for="author">
 						<span class="name">Autor</span>
-						<span class="requirements">erforderlich, 1 bis 128 Zeichen</span>
-						<span class="description">Der Autor des Artikels.</span>
+						<span class="requirements">erforderlich, 1 bis 50 Zeichen</span>
+						<span class="infos">Der Autor des Artikels.</span>
 					</label>
-					<input type="text" id="author" class="author" name="author" required>
+					<input type="text" id="author" name="author" required size="30" maxlength="50">
 
-					<label>
+					<label for="timestamp">
 						<span class="name">Veröffentlichungsdatum und -uhrzeit</span>
-						<span class="requirements">erforderlich</span>
-						<span class="description">
+						<span class="conditions">erforderlich</span>
+						<span class="infos">
 							Datum und Uhrzeit der Veröffentlichung. Hat derzeit nur eine informierende Funktion,
 							Artikel mit Datum in der Zukunft werden trotzdem angezeigt. Es ist aber eine Funktion
 							zur terminierten Veröffentlichung geplant.
 						</span>
 					</label>
-					<div id="timeinput" data-value="" data-name="timestamp"></div>
+					<input type="number" class="timeinput" id="timestamp" name="timestamp" required size="10">
 
-					<label>
+					<label for="image_id">
 						<span class="name">Artikelbild</span>
-						<span class="requirements">optional</span>
-						<span class="description">
+						<span class="conditions">optional</span>
+						<span class="infos">
 							Das Artikelbild wird prominent zwischen Überschrift und Inhalt sowie in der
 							Artikelvorschau angezeigt.
 						</span>
 					</label>
-					<div id="imageinput" data-value="" data-longid="" data-name="image_id"></div>
+					<input type="text" class="imageinput" id="image_id" name="image_id" size="8" minlength="8" maxlength="8">
 
 					<label for="content">
 						<span class="name">Inhalt</span>
-						<span class="requirements">
+						<span class="conditions">
 							optional, Markdown-Schreibweise möglich
 							(<a href="https://de.wikipedia.org/wiki/Markdown">Wikipedia: Markdown</a>)
 						</span>
-						<span class="description">Der eigentliche Inhalt des Artikels</span>
+						<span class="infos">Der eigentliche Inhalt des Artikels</span>
 					</label>
-					<textarea id="content" class="content" name="content"></textarea>
+					<textarea id="content" name="content" cols="80" rows="20"></textarea>
 
-					<input type="submit" value="Speichern">
+					<button type="submit" class="green">Speichern</button>
 				</form>
 			<?php } ?>
 
@@ -276,7 +311,7 @@
 				<p>Post <span class="code"><?= $obj->longid ?></span> löschen?</p>
 				<form action="#" method="post">
 					<input type="hidden" id="id" name="id" value="<?= $obj->id ?>">
-					<input type="submit" value="Löschen">
+					<button type="submit" class="red">Löschen</button>
 				</form>
 			<?php } ?>
 
@@ -285,6 +320,7 @@
 				include COMPONENT_PATH . 'admin/timeinput.comp.php';
 			} ?>
 
+			<script src="<?= $server->url ?>/resources/js/admin/validate.js"></script>
 		</main>
 	</body>
 </html>

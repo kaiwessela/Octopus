@@ -18,32 +18,64 @@
 			<h1>Veranstaltung löschen</h1>
 			<?php } ?>
 
-			<?php if(!$Event->action == 'list'){ ?>
-			<a href="<?= $server->url ?>/admin/pages" class="button">&laquo; Zurück zu allen Veranstaltungen</a>
+			<?php if($Event->action == 'list'){ ?>
+				<a href="<?= $server->url ?>/admin/events/new" class="button new green">Neue Veranstaltung hinzufügen</a>
+			<?php } else { ?>
+				<a href="<?= $server->url ?>/admin/events" class="button back">Zurück zu allen Veranstaltungen</a>
 			<?php } ?>
 
 			<?php foreach($Event->errors as $error){ ?>
-			<span class="message error">
+			<div class="message red">
+				<?= $error->getMessage(); ?>
+			</div>
+			<?php } ?>
 
-			</span>
-			<p>Details: <span class="code"></span></p>
+			<?php if($Event->action != 'list' && $Event->action != 'new'){ ?>
+			<div>
+				<?php if($Event->action != 'show'){ ?>
+				<a class="button blue" href="<?= $server->url ?>/admin/events/<?= $Event->object->id ?>">Ansehen</a>
+				<?php } ?>
+
+				<?php if($Event->action != 'edit'){ ?>
+				<a class="button yellow" href="<?= $server->url ?>/admin/events/<?= $Event->object->id ?>/edit">Bearbeiten</a>
+				<?php } ?>
+
+				<?php if($Event->action != 'delete'){ ?>
+				<a class="button red" href="<?= $server->url ?>/admin/events/<?= $Event->object->id ?>/delete">Löschen</a>
+				<?php } ?>
+			</div>
+			<?php } ?>
+
+			<?php if(($Event->action == 'new' || $Event->action == 'edit') && $Event->action->completed()){ ?>
+			<div class="message green">
+				Veranstaltung <code><?= $Event->object->longid ?></code> wurde erfolgreich gespeichert.
+			</div>
 			<?php } ?>
 
 			<?php if($Event->action == 'list'){ ?>
+				<?php
+				$pagination = $Event->pagination;
+				include COMPONENT_PATH . 'admin/pagination.comp.php';
+				?>
+
 				<?php if(empty($Event->objects)){ ?>
-				<span class="message warning">
+				<div class="message yellow">
 					Es sind noch keine Veranstaltungen vorhanden.
-				</span>
+				</div>
 
 				<?php } else { foreach($Event->objects as $obj){ ?>
-				<article class="event preview">
-					<p class="longid"><?= $obj->longid ?></p>
-					<h3 class="name"><?= $obj->title ?></h3>
-					<p class="timestamp"><?= date('d.m.Y, H:i \U\h\r', $obj->timestamp) ?></p>
+				<article>
+					<code><?= $obj->longid ?></code>
+					<h2><?= $obj->title ?></h2>
+					<small><?= $obj->location ?></small>
+					<small><?= $timeformat->date_and_time($obj->timestamp) ?></small>
 					<div>
-						<a href="<?= $server->url ?>/admin/events/<?= $obj->id ?>" class="view">Ansehen</a>
-						<a href="<?= $server->url ?>/admin/events/<?= $obj->id ?>/edit" class="edit">Bearbeiten</a>
-						<a href="<?= $server->url ?>/admin/events/<?= $obj->id ?>/delete" class="delete">Löschen</a>
+						<a class="button blue"
+							href="<?= $server->url ?>/admin/events/<?= $obj->id ?>">Ansehen</a>
+						<a class="button yellow"
+							href="<?= $server->url ?>/admin/events/<?= $obj->id ?>/edit">Bearbeiten</a>
+						<a class="button red"
+							href="<?= $server->url ?>/admin/events/<?= $obj->id ?>/delete">Löschen</a>
 					</div>
 				</article>
 				<?php }} ?>
@@ -51,15 +83,11 @@
 
 			<?php if($Event->action == 'show'){ ?>
 				<?php $obj = $Event->object; ?>
-				<article class="event">
-					<p>
-						<a href="<?= $server->url ?>/admin/events/<?= $obj->id ?>/edit" class="edit">Bearbeiten</a>
-						<a href="<?= $server->url ?>/admin/events/<?= $obj->id ?>/delete" class="delete">Löschen</a>
-					</p>
-					<p class="longid"><?= $obj->longid ?></p>
-					<h1 class="title"><?= $obj->title ?></h1>
-					<p class="timestamp"><?= $obj->timestamp ?></p>
-					<p class="location"><?= $obj->location ?></p>
+				<article>
+					<code><?= $obj->longid ?></code>
+					<h1><?= $obj->title ?></h1>
+					<p><?= $timeformat->date_and_time_with_day($obj->timestamp) ?></p>
+					<p><?= $obj->location ?></p>
 				</article>
 			<?php } ?>
 
@@ -71,47 +99,47 @@
 
 					<label for="title">
 						<span class="name">Titel</span>
-						<span class="requirements">erforderlich, 1 bis 64 Zeichen</span>
-						<span class="description">Der Titel der Veranstaltung.</span>
+						<span class="conditions">erforderlich, 1 bis 50 Zeichen</span>
+						<span class="infos">Der Titel der Veranstaltung.</span>
 					</label>
-					<input type="text" id="title" class="title" name="title" value="<?= $obj->title ?>" required>
+					<input type="text" id="title" name="title" value="<?= $obj->title ?>" required size="40" maxlength="50">
 
 					<label for="organisation">
 						<span class="name">Organisation</span>
-						<span class="requirements">erforderlich, 1 bis 64 Zeichen</span>
-						<span class="description">Die Organisation, die zur Veranstaltung eingeladen hat.</span>
+						<span class="conditions">erforderlich, 1 bis 40 Zeichen</span>
+						<span class="infos">Die Organisation, die zur Veranstaltung eingeladen hat.</span>
 					</label>
-					<input type="text" id="organisation" class="organisation" name="organisation" value="<?= $obj->organisation ?>" required>
+					<input type="text" id="organisation" name="organisation" value="<?= $obj->organisation ?>" required size="30" maxlength="40">
 
-					<label>
+					<label for="timeinput">
 						<span class="name">Datum und Uhrzeit</span>
-						<span class="requirements">erforderlich</span>
-						<span class="description">Datum und Uhrzeit der Veranstaltung.</span>
+						<span class="conditions">erforderlich</span>
+						<span class="infos">Datum und Uhrzeit der Veranstaltung.</span>
 					</label>
-					<div id="timeinput" data-value="<?= $obj->timestamp ?>" data-name="timestamp"></div>
+					<input type="number" class="timeinput" id="timestamp" name="timestamp" value="<?= $obj->timestamp ?>" required size="10">
 
 					<label for="location">
 						<span class="name">Ort</span>
-						<span class="requirements">optional, bis zu 128 Zeichen</span>
-						<span class="description">Der Ort der Veranstaltung.</span>
+						<span class="conditions">optional, bis zu 60 Zeichen</span>
+						<span class="infos">Der Ort der Veranstaltung.</span>
 					</label>
-					<input type="text" id="location" class="location" name="location" value="<?= $obj->location ?>">
+					<input type="text" id="location" name="location" value="<?= $obj->location ?>" size="40" maxlength="60">
 
 					<label for="description">
 						<span class="name">Beschreibung</span>
-						<span class="requirements">optional</span>
-						<span class="description">Beschreibung der Veranstaltung.</span>
+						<span class="conditions">optional</span>
+						<span class="infos">Beschreibung der Veranstaltung.</span>
 					</label>
-					<textarea id="description" name="description" class="description"><?= $obj->description ?></textarea>
+					<textarea id="description" name="description" rows="5" cols="60"><?= $obj->description ?></textarea>
 
 					<label for="cancelled">
 						<span class="name">Absage</span>
-						<span class="requirements">optional</span>
+						<span class="conditions">optional</span>
 						<span class="description">Ist die Veranstaltung abgesagt?
 					</label>
 					<label class="checkbodge turn-around">
 						<span class="label-field">Ja</span>
-						<input type="checkbox" id="cancelled" name="cancelled" class="cancelled" value="true" <?php if($obj->cancelled){ echo 'checked'; } ?>>
+						<input type="checkbox" id="cancelled" name="cancelled" value="true" <?php if($obj->cancelled){ echo 'checked'; } ?>>
 						<span class="bodgecheckbox">
 							<span class="bodgetick">
 								<span class="bodgetick-down"></span>
@@ -120,7 +148,7 @@
 						</span>
 					</label>
 
-					<input type="submit" value="Speichern">
+					<button type="submit" class="green">Speichern</button>
 				</form>
 			<?php } ?>
 
@@ -129,59 +157,59 @@
 				<form action="#" method="post">
 					<label for="longid">
 						<span class="name">Veranstaltungs-ID</span>
-						<span class="requirements">
-							erforderlich; 9 bis 128 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
+						<span class="conditions">
+							erforderlich; 9 bis 60 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
 							Bindestriche (-)
 						</span>
-						<span class="description">
+						<span class="infos">
 							Die Veranstaltungs-ID wird in der URL verwendet und entspricht meistens dem Titel.
 						</span>
 					</label>
-					<input type="text" id="longid" class="longid" name="longid" required>
+					<input type="text" id="longid" name="longid" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]$" autocomplete="off">
 
 					<label for="title">
 						<span class="name">Titel</span>
-						<span class="requirements">erforderlich, 1 bis 64 Zeichen</span>
-						<span class="description">Der Titel der Veranstaltung.</span>
+						<span class="conditions">erforderlich, 1 bis 50 Zeichen</span>
+						<span class="infos">Der Titel der Veranstaltung.</span>
 					</label>
-					<input type="text" id="title" class="title" name="title" required>
+					<input type="text" id="title" name="title" required size="40" maxlength="50">
 
 					<label for="organisation">
 						<span class="name">Organisation</span>
-						<span class="requirements">erforderlich, 1 bis 64 Zeichen</span>
-						<span class="description">Die Organisation, die zur Veranstaltung eingeladen hat.</span>
+						<span class="conditions">erforderlich, 1 bis 40 Zeichen</span>
+						<span class="infos">Die Organisation, die zur Veranstaltung eingeladen hat.</span>
 					</label>
-					<input type="text" id="organisation" class="organisation" name="organisation" required>
+					<input type="text" id="organisation" name="organisation" required size="30" maxlength="40">
 
-					<label>
+					<label for="timestamp">
 						<span class="name">Datum und Uhrzeit</span>
-						<span class="requirements">erforderlich</span>
-						<span class="description">Datum und Uhrzeit der Veranstaltung.</span>
+						<span class="conditions">erforderlich</span>
+						<span class="infos">Datum und Uhrzeit der Veranstaltung.</span>
 					</label>
-					<div id="timeinput" data-value="" data-name="timestamp"></div>
+					<input type="number" class="timeinput" id="timestamp" name="timestamp" required size="10">
 
 					<label for="location">
 						<span class="name">Ort</span>
-						<span class="requirements">optional, bis zu 128 Zeichen</span>
-						<span class="description">Der Ort der Veranstaltung.</span>
+						<span class="conditions">optional, bis zu 60 Zeichen</span>
+						<span class="infos">Der Ort der Veranstaltung.</span>
 					</label>
-					<input type="text" id="location" class="location" name="location">
+					<input type="text" id="location"  name="location" size="40" maxlength="60">
 
 					<label for="description">
 						<span class="name">Beschreibung</span>
-						<span class="requirements">optional</span>
-						<span class="description">Beschreibung der Veranstaltung.</span>
+						<span class="conditions">optional</span>
+						<span class="infos">Beschreibung der Veranstaltung.</span>
 					</label>
-					<textarea id="description" name="description" class="description"></textarea>
+					<textarea id="description" name="description" rows="5" cols="60"></textarea>
 
 					<label>
 						<span class="name">Absage</span>
-						<span class="requirements">optional</span>
-						<span class="description">Ist die Veranstaltung abgesagt?
+						<span class="conditions">optional</span>
+						<span class="infos">Ist die Veranstaltung abgesagt?
 					</label>
 					<label class="checkbodge turn-around">
 						<span class="label-field">Ja</span>
-						<input type="checkbox" id="cancelled" name="cancelled" class="cancelled" value="true">
+						<input type="checkbox" id="cancelled" name="cancelled" value="true">
 						<span class="bodgecheckbox">
 							<span class="bodgetick">
 								<span class="bodgetick-down"></span>
@@ -190,17 +218,16 @@
 						</span>
 					</label>
 
-
-					<input type="submit" value="Speichern">
+					<button type="submit" class="green">Speichern</button>
 				</form>
 			<?php } ?>
 
 			<?php if($Event->action == 'delete' && !$Event->action->completed()){ ?>
 				<?php $obj = $Event->object; ?>
-				<p>Veranstaltung <span class="code"><?= $obj->longid ?></span> löschen?</p>
+				<p>Veranstaltung <code><?= $obj->longid ?></code> löschen?</p>
 				<form action="#" method="post">
 					<input type="hidden" id="id" name="id" value="<?= $obj->id ?>">
-					<input type="submit" value="Löschen">
+					<button type="submit" class="red">Löschen</button>
 				</form>
 			<?php } ?>
 
@@ -208,6 +235,7 @@
 				include COMPONENT_PATH . 'admin/timeinput.comp.php';
 			} ?>
 
+			<script src="<?= $server->url ?>/resources/js/validate.js"></script>
 		</main>
 	</body>
 </html>

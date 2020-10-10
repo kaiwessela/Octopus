@@ -1,24 +1,22 @@
 <header>
-	<nav>
-		<div>
-			<a href="<?= $server->url ?>" class="logo">
-				kaiwessela:Blog<span class="darkened">/admin</span>
-			</a>
-			<a href="<?= $server->url ?>/admin">Startseite</a>
-			<a href="<?= $server->url ?>/admin/pages">Seiten</a>
-			<a href="<?= $server->url ?>/admin/posts">Posts</a>
-			<a href="<?= $server->url ?>/admin/images">Bilder</a>
-			<a href="<?= $server->url ?>/admin/persons">Personen</a>
-			<a href="<?= $server->url ?>/admin/events">Veranstaltungen</a>
+	<div class="title">
+		<?= $site->title ?><span class="darkened"> – Admin</span>
+	</div>
+	<div class="astronauth">
+		🚀 <span class="darkened">Angemeldet als</span> <?= $astronauth->account->name ?>
+		<div class="expand">
+			<a href="<?= $server->url ?>/astronauth/account" class="button blue">Account verwalten</a>
+			<a href="<?= $server->url ?>/astronauth/signout" class="button red">Abmelden</a>
 		</div>
-		<div class="astronauth">
-			<div class="navline">
-				<span class="icon">🚀</span>
-				<?= $astronauth->account->name ?>
-			</div>
-			<div class="dropdown">
-				<a href="<?= $server->url ?>/astronauth/signout" class="button">Abmelden</a>
-			</div>
-		</div>
-	</nav>
+	</div>
 </header>
+<nav>
+	<ul>
+		<li><a <?php if($server->path == 'admin'){ ?>class="current" <?php } ?>href="<?= $server->url ?>/admin">Startseite</a></li>
+		<li><a <?php if($server->path == 'admin/pages'){ ?>class="current" <?php } ?>href="<?= $server->url ?>/admin/pages">Seiten</a></li>
+		<li><a <?php if($server->path == 'admin/posts'){ ?>class="current" <?php } ?>href="<?= $server->url ?>/admin/posts">Posts</a></li>
+		<li><a <?php if($server->path == 'admin/images'){ ?>class="current" <?php } ?>href="<?= $server->url ?>/admin/images">Bilder</a></li>
+		<li><a <?php if($server->path == 'admin/persons'){ ?>class="current" <?php } ?>href="<?= $server->url ?>/admin/persons">Personen</a></li>
+		<li><a <?php if($server->path == 'admin/events'){ ?>class="current" <?php } ?>href="<?= $server->url ?>/admin/events">Veranstaltungen</a></li>
+	</ul>
+</nav>

@@ -8,8 +8,8 @@ use PDO;
 use Exception;
 
 abstract class Model {
-	public $id;
-	public $longid;
+	public $id;		# String(8)
+	public $longid;	# String(9-60)
 
 	protected $new;
 	protected $empty;

@@ -51,8 +51,34 @@ body {
 header {
 	grid-column: grid-start / grid-end;
 	grid-row: header-start / header-end;
+	display: flex;
+	justify-content: space-between;
 	color: var(--white);
 	background-color: #20202f;
+}
+
+header > div {
+	margin: 0 1rem;
+	line-height: 2.75rem;
+	font-size: 1.1rem;
+}
+
+header .darkened {
+	color: #ffffffaa;
+}
+
+header .astronauth .expand {
+	visibility: hidden;
+	position: absolute;
+	top: 3rem;
+	margin: 0;
+	padding: 0.5rem;
+	background-color: #ffffff66;
+	line-height: normal;
+}
+
+header .astronauth:hover .expand {
+	visibility: visible;
 }
 
 nav {
@@ -203,6 +229,16 @@ div.pseudoinput {
 	max-width: 35rem;
 }
 
+.message {
+	--background-color: var(--shiny-gray);
+	--border-color: var(--gray);
+	margin: 1rem 0;
+	padding: 1rem;
+	border: 0.2rem solid var(--border-color);
+	border-radius: 0.5rem;
+	background-color: var(--background-color);
+}
+
 a,
 a.inline {
 	color: var(--blue);
@@ -220,7 +256,7 @@ a.button {
 	--background-color: var(--shiny-blue);
 	--border-color: var(--blue);
 	display: inline-block;
-	margin: auto;
+	margin: 0.25rem auto;
 	padding: 0.25rem 0.5rem;
 	font-family: 'Open Sans';
 	font-size: 0.9rem;
@@ -246,31 +282,36 @@ button {
 }
 
 a.button.gray,
-button.gray {
+button.gray,
+.message.gray {
 	--background-color: var(--shiny-gray);
 	--border-color: var(--gray);
 }
 
 a.button.blue,
-button.blue {
+button.blue,
+.message.blue {
 	--background-color: var(--shiny-blue);
 	--border-color: var(--blue);
 }
 
 a.button.green,
-button.green {
+button.green,
+.message.green {
 	--background-color: var(--shiny-green);
 	--border-color: var(--green);
 }
 
 a.button.red,
-button.red {
+button.red,
+.message.red {
 	--background-color: var(--shiny-red);
 	--border-color: var(--red);
 }
 
 a.button.yellow,
-button.yellow {
+button.yellow,
+.message.yellow {
 	--background-color: var(--shiny-yellow);
 	--border-color: var(--yellow);
 }
@@ -287,6 +328,16 @@ a.button.back::before {
 	font-weight: 800;
 	padding-right: 0.25em;
 	color: var(--border-color);
+}
+
+.grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	width: 100%;
+}
+
+.grid article {
+	margin: 0.25rem;
 }
 
 .dialog {
@@ -313,12 +364,6 @@ a.button.back::before {
 	visibility: visible;
 }
 
-.dialog .grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr 1fr;
-	width: 100%;
-}
-
 .dialog .grid button {
 	text-transform: none;
 	border: none;
@@ -331,8 +376,103 @@ img {
 	height: auto;
 }
 
-
-
 .template {
 	display: none;
+}
+
+
+
+/* CHECKBODGE */
+.checkbodge {
+	width: 100%;
+	font-size: 0.9rem;
+	line-height: 1.6em;
+	display: inline-flex;
+	margin: 0.5rem 0 1rem;
+}
+
+.checkbodge.turn-around {
+	flex-direction: row-reverse;
+	justify-content: flex-end;
+}
+
+.checkbodge input[type=checkbox] {
+	opacity: 0;
+	position: absolute;
+}
+
+.checkbodge > .label-field {
+	margin-right: 0.5rem;
+	font-size: 1.1em;
+	color: var(--dark-gray);
+}
+
+.checkbodge.turn-around > .label-field {
+	margin-left: 0.5rem;
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+.checkbodge > .bodgecheckbox {
+	display: inline-block;
+	vertical-align: top;
+	width: 1.2em;
+	height: 1.2em;
+	border: 0.2em solid #00000044;
+	border-radius: 0.25em;
+	background-color: var(--white);
+	transition-duration: 0.25s;
+	margin: 0;
+}
+
+input[type=checkbox]:hover ~ .bodgecheckbox,
+input[type=checkbox]:focus ~ .bodgecheckbox,
+.checkbodge:hover > .bodgecheckbox,
+.checkbodge:focus > .bodgecheckbox {
+	border-color: var(--blue);
+}
+
+.checkbodge > .bodgecheckbox > .bodgetick {
+	display: block;
+	position: relative;
+	height: inherit;
+	width: inherit;
+	opacity: 0;
+	transform: rotate(45deg);
+	left: 3%;
+	top: 5%;
+	transition-duration: 0.2s;
+	transition-timing-function: ease-in;
+	margin: 0;
+}
+
+.checkbodge > .bodgecheckbox > .bodgetick > span {
+	display: block;
+	height: 12%;
+	width: 12%;
+	background-color: var(--blue);
+	border-radius: 0.075em;
+	position: absolute;
+	bottom: 20%;
+	right: 44%;
+	box-sizing: border-box;
+	transition-duration: 0.2s;
+	transition-timing-function: ease;
+	margin: 0;
+}
+
+input:checked ~ .bodgecheckbox {
+	border-color: var(--blue);
+}
+
+input:checked ~ .bodgecheckbox > .bodgetick {
+	opacity: 100;
+}
+
+input:checked ~ .bodgecheckbox > .bodgetick > .bodgetick-down {
+	width: 40%;
+}
+
+input:checked ~ .bodgecheckbox > .bodgetick > .bodgetick-up {
+	height: 80%;
 }

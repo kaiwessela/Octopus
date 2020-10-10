@@ -10,11 +10,11 @@ use \Blog\Backend\Exceptions\InvalidInputException;
 use InvalidArgumentException;
 
 class Post extends Model {
-	public $overline;	# String(0-64)
-	public $headline; 	# String(1-256)
-	public $subline;	# String(0-256)
+	public $overline;	# String(0-25)
+	public $headline; 	# String(1-60)
+	public $subline;	# String(0-40)
 	public $teaser;		# String					// IDEA limit length
-	public $author;		# String(1-128)				// IDEA use profile id
+	public $author;		# String(1-50)				// IDEA use profile id
 	public $timestamp;	# Integer[unix timestamp]	// IDEA publishdate, last edited, ... TODO 64bit
 	public $image;		# Image
 	public $content;	# String

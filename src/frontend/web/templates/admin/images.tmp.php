@@ -11,57 +11,87 @@
 			<?php } else if($Image->action == 'show'){ ?>
 			<h1>Bild ansehen</h1>
 			<?php } else if($Image->action == 'new'){ ?>
-			<h1>Neues Bild hinzufügen</h1>
+			<h1>Neues Bild hochladen</h1>
 			<?php } else if($Image->action == 'edit'){ ?>
 			<h1>Bild bearbeiten</h1>
 			<?php } else if($Image->action == 'delete'){ ?>
 			<h1>Bild löschen</h1>
 			<?php } ?>
 
-			<?php if(!$Image->action == 'list'){ ?>
-			<a href="<?= $server->url ?>/admin/images" class="button">&laquo; Zurück zu allen Bildern</a>
+			<?php if($Image->action == 'list'){ ?>
+				<a href="<?= $server->url ?>/admin/images/new" class="button new green">Neues Bild hochladen</a>
+			<?php } else { ?>
+				<a href="<?= $server->url ?>/admin/images" class="button back">Zurück zu allen Bildern</a>
 			<?php } ?>
 
 			<?php foreach($Image->errors as $error){ ?>
-			<span class="message error">
+			<div class="message red">
+				<?= $error->getMessage(); ?>
+			</div>
+			<?php } ?>
 
-			</span>
-			<p>Details: <span class="code"></span></p>
+			<?php if($Image->action != 'list' && $Image->action != 'new'){ ?>
+			<div>
+				<?php if($Image->action != 'show'){ ?>
+				<a class="button blue" href="<?= $server->url ?>/admin/images/<?= $Image->object->id ?>">Ansehen</a>
+				<?php } ?>
+
+				<?php if($Image->action != 'edit'){ ?>
+				<a class="button yellow" href="<?= $server->url ?>/admin/images/<?= $Image->object->id ?>/edit">Bearbeiten</a>
+				<?php } ?>
+
+				<?php if($Image->action != 'delete'){ ?>
+				<a class="button red" href="<?= $server->url ?>/admin/images/<?= $Image->object->id ?>/delete">Löschen</a>
+				<?php } ?>
+			</div>
+			<?php } ?>
+
+			<?php if(($Image->action == 'new' || $Image->action == 'edit') && $Image->action->completed()){ ?>
+			<div class="message green">
+				Bild <code><?= $Image->object->longid ?></code> wurde erfolgreich gespeichert.
+			</div>
 			<?php } ?>
 
 			<?php if($Image->action == 'list'){ ?>
+				<?php
+				$pagination = $Image->pagination;
+				include COMPONENT_PATH . 'admin/pagination.comp.php';
+				?>
+
+				<?php if(empty($Image->objects)){ ?>
+				<div class="message yellow">
+					Es sind noch keine Bilder vorhanden.
+				</div>
+
+				<?php } else { ?>
 				<section class="grid">
-				<?php foreach($Image->objects as $obj){ ?>
-					<article class="image preview">
+					<?php foreach($Image->objects as $obj){ ?>
+					<article>
 						<a href="<?= $server->url ?>/admin/images/<?= $obj->id ?>">
 							<img src="<?= $server->url . $server->dyn_img_path
-								. $obj->longid ?>/original.<?= $obj->extension ?>" alt="<?= $obj->alt ?>">
-							<span class="longid"><?= $obj->longid ?></span>
+								. $obj->longid ?>/original.<?= $obj->extension ?>" alt="<?= $obj->description ?>">
+							<code><?= $obj->longid ?></code>
 						</a>
 					</article>
 					<?php } ?>
 				</section>
+				<?php } ?>
 			<?php } ?>
 
 			<?php if($Image->action == 'show'){ ?>
 				<?php $obj = $Image->object; ?>
-				<article class="image">
-					<p>
-						<a href="<?= $server->url ?>/admin/images/<?= $obj->id ?>/edit" class="edit">Bearbeiten</a>
-						<a href="<?= $server->url ?>/admin/images/<?= $obj->id ?>/delete" class="delete">Löschen</a>
-					</p>
-					<p class="longid"><?= $obj->longid ?></p>
-					<p class="description"><?= $obj->description ?></p>
+				<article>
+					<code><?= $obj->longid ?></code>
+					<p><?= $obj->description ?></p>
 					<figure>
 						<img src="<?= $server->url . $server->dyn_img_path . $obj->longid ?>/original.<?= $obj->extension ?>"
 							alt="[ANZEIGEFEHLER] Hier sollte das Bild angezeigt werden">
-						<figcaption><?= $obj->copyright; ?>
+						<figcaption><small><?= $obj->copyright; ?></small></figcaption>
 					</figure>
 					<p>
 						Verfügbare Größen:
 						<?php foreach($obj->sizes as $size){ ?>
-						<br>
-						<a href="<?= $server->url . $server->dyn_img_path . $obj->longid ?>/<?= $size ?>.<?= $obj->extension ?>">
+						<a href="<?= $server->url . $server->dyn_img_path . $obj->longid ?>/<?= $size ?>.<?= $obj->extension ?>" class="button gray">
 							<?= $size ?>
 						</a>
 						<?php } ?>
@@ -77,27 +107,28 @@
 
 					<label for="description">
 						<span class="name">Beschreibung</span>
-						<span class="requirements">optional, bis zu 256 Zeichen</span>
-						<span class="description">
+						<span class="conditions">optional, bis zu 100 Zeichen</span>
+						<span class="infos">
 							Die Beschreibung wird als Alternativtext angezeigt, wenn das Bild nicht geladen
 							werden kann. Sie sollte den Bildinhalt wiedergeben.
 						</span>
 					</label>
-					<input type="text" id="description" class="description" name="description" value="<?= $obj->description ?>">
+					<input type="text" id="description" name="description" value="<?= $obj->description ?>" size="60" maxlength="100">
 
 					<label for="copyright">
 						<span class="name">Urheberrechtshinweis</span>
-						<span class="requirements">optional, bis zu 256 Zeichen</span>
-						<span class="description">
+						<span class="conditions">optional, bis zu 100 Zeichen</span>
+						<span class="infos">
 							Der Urbeherrechtshinweis kann genutzt werden, um Lizensierungsinformationen zu dem Bild
 							zur Verfügung zu stellen. Er wird normalerweise unterhalb des Bildes angezeigt.
 						</span>
 					</label>
-					<input type="text" id="copyright" class="copyright" name="copyright" value="<?= $obj->copyright ?>">
+					<input type="text" id="copyright" class="copyright" name="copyright" value="<?= $obj->copyright ?>" size="50" maxlength="100">
 
-					<input type="submit" value="Speichern">
+					<button type="submit" class="green">Speichern</button>
 				</form>
 
+				<br>
 				<img src="<?= $server->url . $server->dyn_img_path . "$obj->longid/original.$obj->extension" ?>" alt="[ANZEIGEFEHLER]">
 			<?php } ?>
 
@@ -106,59 +137,59 @@
 				<form action="#" method="post" enctype="multipart/form-data">
 					<label for="longid">
 						<span class="name">Bild-ID</span>
-						<span class="requirements">
-							erforderlich; 9 bis 128 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
+						<span class="conditions">
+							erforderlich; 9 bis 60 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
 							Bindestriche (-)
 						</span>
-						<span class="description">
+						<span class="infos">
 							Die Bild-ID wird in der URL verwendet und sollte den Bildinhalt kurz
 							beschreiben.
 						</span>
 					</label>
-					<input type="text" id="longid" class="longid" name="longid" required>
+					<input type="text" id="longid" name="longid" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]$" autocomplete="off">
 
 					<label for="description">
 						<span class="name">Beschreibung</span>
-						<span class="requirements">optional</span>
-						<span class="description">
+						<span class="conditions">optional, bis zu 100 Zeichen</span>
+						<span class="infos">
 							Die Beschreibung wird als Alternativtext angezeigt, wenn das Bild nicht geladen
 							werden kann. Sie sollte den Bildinhalt wiedergeben.
 						</span>
 					</label>
-					<input type="text" id="description" class="description" name="description">
+					<input type="text" id="description" class="description" name="description" size="60" maxlength="100">
 
 					<label for="copyright">
 						<span class="name">Urheberrechtshinweis</span>
-						<span class="requirements">optional</span>
-						<span class="description">
+						<span class="conditions">optional, bis zu 100 Zeichen</span>
+						<span class="infos">
 							Der Urbeherrechtshinweis kann genutzt werden, um Lizensierungsinformationen zu dem Bild
 							zur Verfügung zu stellen. Er wird normalerweise unterhalb des Bildes angezeigt.
 						</span>
 					</label>
-					<input type="text" id="copyright" class="copyright" name="copyright">
+					<input type="text" id="copyright" class="copyright" name="copyright" size="50" maxlength="100">
 
 					<label for="imagefile">
 						<span class="name">Datei</span>
-						<span class="requirements">erforderlich; PNG, JPEG oder GIF</span>
+						<span class="conditions">erforderlich; PNG, JPEG oder GIF</span>
 					</label>
 					<input type="file" id="imagefile" class="file" name="imagedata" required>
 
-					<input type="submit" value="Hochladen">
+					<button type="submit" class="green">Hochladen</button>
 				</form>
 			<?php } ?>
 
 			<?php if($Image->action == 'delete' && !$Image->action->completed()){ ?>
 				<?php $obj = $Image->object; ?>
-				<p>Bild <span class="code"><?= $obj->longid ?></span> löschen?</p>
-
+				<p>Bild <code><?= $obj->longid ?></code> löschen?</p>
+				<img src="<?= $server->url . $server->dyn_img_path . "$obj->longid/original.$obj->extension" ?>" alt="[ANZEIGEFEHLER]">
 				<form action="<?= $server->url ?>/admin/images/<?= $obj->id ?>/delete" method="post">
 					<input type="hidden" id="id" name="id" value="<?= $obj->id ?>">
-					<input type="submit" value="Löschen">
+					<button type="submit" class="red">Löschen</button>
 				</form>
 
-				<img src="<?= $server->url . $server->dyn_img_path . "$obj->longid/original.$obj->extension" ?>" alt="[ANZEIGEFEHLER]">
 			<?php } ?>
 
+			<script src="<?= $server->url ?>/resources/js/admin/validate.js"></script>
 		</main>
 	</body>
 </html>

@@ -13,6 +13,7 @@ class Endpoint {
 	public $user;
 	public $route;
 	public $controllers;
+	public $path;
 
 
 	function __construct() {
@@ -33,10 +34,10 @@ class Endpoint {
 				$get[(int) $key] = $_GET[$key];
 			}
 		}
-		$path = implode('/', $get);
+		$this->path = implode('/', $get);
 
 		foreach(Routes::ROUTES as $route){
-			if(preg_match($route['path'], $path)){
+			if(preg_match($route['path'], $this->path)){
 				$this->route = $route;
 				break;
 			}
@@ -94,7 +95,8 @@ class Endpoint {
 		$server = (object) [
 			'url' => Config::SERVER_URL,
 			'lang' => Config::SERVER_LANG,
-			'dyn_img_path' => Config::DYNAMIC_IMAGE_PATH
+			'dyn_img_path' => Config::DYNAMIC_IMAGE_PATH,
+			'path' => $this->path
 		];
 
 		global $site;

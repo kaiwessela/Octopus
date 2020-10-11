@@ -202,9 +202,9 @@ class Person extends Model {
 
 	private function import_name($name) {
 		if(!isset($name)){
-			throw new InvalidInputException('name', '.{1,64}');
-		} else if(!preg_match('/^.{1,256}$/', $name)){
-			throw new InvalidInputException('name', '.{1,64}', $name);
+			throw new InvalidInputException('name', '.{1,50}');
+		} else if(!preg_match('/^.{1,50}$/', $name)){
+			throw new InvalidInputException('name', '.{1,50}', $name);
 		} else {
 			$this->name = $name;
 		}
@@ -216,7 +216,7 @@ class Person extends Model {
 				$image = new Image();
 				$image->pull($data['image_id']);
 			} catch(EmptyResultException $e){
-				throw new InvalidInputException('image_id', 'image id; No Image Found', $data['image_id']); // TODO better exc.-> api index.php
+				throw new InvalidInputException('image_id', 'image id; No Image Found', $data['image_id']); // TODO better exc. -> api index.php
 			} catch(DatabaseException $e){
 				throw $e;
 			}

@@ -239,8 +239,8 @@ class Post extends Model {
 	private function import_overline($overline) {
 		if(!isset($overline)){
 			$this->overline = null;
-		} else if(!preg_match('/^.{0,64}$/', $overline)){
-			throw new InvalidInputException('overline', '.{0,64}', $overline);
+		} else if(!preg_match('/^.{0,25}$/', $overline)){
+			throw new InvalidInputException('overline', '.{0,25}', $overline);
 		} else {
 			$this->overline = $overline;
 		}
@@ -248,9 +248,9 @@ class Post extends Model {
 
 	private function import_headline($headline) {
 		if(!isset($headline)){
-			throw new InvalidInputException('headline', '.{1,256}');
-		} else if(!preg_match('/^.{1,256}$/', $headline)){
-			throw new InvalidInputException('headline', '.{1,256}', $headline);
+			throw new InvalidInputException('headline', '.{1,60}');
+		} else if(!preg_match('/^.{1,60}$/', $headline)){
+			throw new InvalidInputException('headline', '.{1,60}', $headline);
 		} else {
 			$this->headline = $headline;
 		}
@@ -259,8 +259,8 @@ class Post extends Model {
 	private function import_subline($subline) {
 		if(!isset($subline)){
 			$this->subline = null;
-		} else if(!preg_match('/^.{0,256}$/', $subline)){
-			throw new InvalidInputException('subline', '.{0,256}', $subline);
+		} else if(!preg_match('/^.{0,40}$/', $subline)){
+			throw new InvalidInputException('subline', '.{0,40}', $subline);
 		} else {
 			$this->subline = $subline;
 		}
@@ -272,9 +272,9 @@ class Post extends Model {
 
 	private function import_author($author) {
 		if(!isset($author)){
-			throw new InvalidInputException('author', '.{1,128}');
-		} else if(!preg_match('/^.{1,128}$/', $author)){
-			throw new InvalidInputException('author', '.{1,128}', $author);
+			throw new InvalidInputException('author', '.{1,50}');
+		} else if(!preg_match('/^.{1,50}$/', $author)){
+			throw new InvalidInputException('author', '.{1,50}', $author);
 		} else {
 			$this->author = $author;
 		}
@@ -300,7 +300,7 @@ class Post extends Model {
 				$image = new Image();
 				$image->pull($data['image_id']);
 			} catch(EmptyResultException $e){
-				throw new InvalidInputException('image_id', 'image id; No Image Found', $data['image_id']); // TODO better exc.-> api index.php
+				throw new InvalidInputException('image_id', 'image id; No Image Found', $data['image_id']); // TODO better exc. -> api index.php
 			} catch(DatabaseException $e){
 				throw $e;
 			}

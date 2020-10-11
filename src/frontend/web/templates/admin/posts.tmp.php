@@ -165,7 +165,7 @@
 
 					<label for="author">
 						<span class="name">Autor</span>
-						<span class="conditions">erforderlich, 1 bis 128 Zeichen</span>
+						<span class="conditions">erforderlich, 1 bis 50 Zeichen</span>
 						<span class="infos">Der Autor des Artikels.</span>
 					</label>
 					<input type="text" id="author" name="author" required size="30" maxlength="50" value="<?= $obj->author ?>">

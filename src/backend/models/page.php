@@ -191,9 +191,9 @@ class Page extends Model {
 
 	private function import_title($title) {
 		if(!isset($title)){
-			throw new InvalidInputException('title', '.{1,128}');
-		} else if(!preg_match('/^.{1,128}$/', $title)){
-			throw new InvalidInputException('title', '.{1,128}', $title);
+			throw new InvalidInputException('title', '.{1,60}');
+		} else if(!preg_match('/^.{1,60}$/', $title)){
+			throw new InvalidInputException('title', '.{1,60}', $title);
 		} else {
 			$this->title = $title;
 		}

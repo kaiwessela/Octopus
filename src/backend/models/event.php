@@ -233,9 +233,9 @@ class Event extends Model {
 
 	public function import_title($title) {
 		if(!isset($title)){
-			throw new InvalidInputException('title', '.{1,64}');
-		} else if(!preg_match('/^.{1,64}$/', $title)){
-			throw new InvalidInputException('title', '.{1,64}', $title);
+			throw new InvalidInputException('title', '.{1,50}');
+		} else if(!preg_match('/^.{1,50}$/', $title)){
+			throw new InvalidInputException('title', '.{1,50}', $title);
 		} else {
 			$this->title = $title;
 		}
@@ -243,9 +243,9 @@ class Event extends Model {
 
 	public function import_organisation($organisation) {
 		if(!isset($organisation)){
-			throw new InvalidInputException('organisation', '.{1,64}');
-		} else if(!preg_match('/^.{1,64}$/', $organisation)){
-			throw new InvalidInputException('organisation', '.{1,64}', $organisation);
+			throw new InvalidInputException('organisation', '.{1,40}');
+		} else if(!preg_match('/^.{1,40}$/', $organisation)){
+			throw new InvalidInputException('organisation', '.{1,40}', $organisation);
 		} else {
 			$this->organisation = $organisation;
 		}
@@ -264,8 +264,8 @@ class Event extends Model {
 	public function import_location($location) {
 		if(!isset($location)){
 			$this->location = null;
-		} else if(!preg_match('/^.{0,128}$/', $location)){
-			throw new InvalidInputException('location', '.{0,128}', $location);
+		} else if(!preg_match('/^.{0,60}$/', $location)){
+			throw new InvalidInputException('location', '.{0,60}', $location);
 		} else {
 			$this->location = $location;
 		}

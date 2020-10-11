@@ -215,8 +215,8 @@ class Image extends Model {
 	private function import_description($description) {
 		if(!isset($description)){
 			$this->description = null;
-		} else if(!preg_match('/^.{0,256}$/', $description)){
-			throw new InvalidInputException('description', '.{0,256}', $description);
+		} else if(!preg_match('/^.{0,100}$/', $description)){
+			throw new InvalidInputException('description', '.{0,100}', $description);
 		} else {
 			$this->description = $description;
 		}
@@ -225,8 +225,8 @@ class Image extends Model {
 	private function import_copyright($copyright) {
 		if(!isset($copyright)){
 			$this->copyright = null;
-		} else if(!preg_match('/^.{0,256}$/', $copyright)){
-			throw new InvalidInputException('copyright', '.{0,256}', $copyright);
+		} else if(!preg_match('/^.{0,100}$/', $copyright)){
+			throw new InvalidInputException('copyright', '.{0,100}', $copyright);
 		} else {
 			$this->copyright = $copyright;
 		}

@@ -1,6 +1,19 @@
 <?php
 namespace Blog\Config;
 
+/*
+REGEX REWRITER
+
+"/^…$/" remains the same
+
+"…" => /^…$/
+"/" => /^$/
+"*" => /^.+$/
+/ => \/
+# => [0-9] (+ except if next char is +, ?, * or {)
+* => [\/] (+ except if next char is +, ?, * or {)
+*/
+
 class Routes {
 	const ROUTES = [
 		[
@@ -120,7 +133,7 @@ class Routes {
 			'auth' => true
 		],
 		[
-			'path' => '/^.$/',
+			'path' => '/^.+$/',
 			'template' => 'page',
 			'controllers' => [
 				'PageController' => [

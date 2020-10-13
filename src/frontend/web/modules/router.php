@@ -37,24 +37,25 @@ REGEX SYNTAX:
 /^\/\^.*\$\/$/
 
 PATHPATTERN SYNTAX:
-/^([A-Za-z0-9-]+|[\*#](\+|\?|\*|{[0-9]+,?[0-9]*})?)(\/([A-Za-z0-9-]+|[\*#](\+|\?|\*|{[0-9]+,?[0-9]*})?))*$/
+/^([A-Za-z0-9-]+|[\*#]({[0-9]+,?[0-9]*})?)(\/([A-Za-z0-9-]+|[\*#]({[0-9]+,?[0-9]*})?))*([\*#]*\??)?$/
 
 
 
 PATHPATTERN REWRITING:
--- use leading and ending /
-*/	  /*=>	[^/]+/				recursion 1
-#/		=>	[0-9]+/
-/*		=>	/[^/]				recursion 2
-/#		=>	/[0-9]
-/		=>	\/					recursion 3
--- remove leading and ending \/
+*{		=>	[^/]{				recursion 1
+#{		=>	[0-9]{
+/*?		=>	(/[^/]+)?			recursion 2
+/#?		=>	(/[0-9]+)?
+*		=>	[^/]+				recursion 3
+#		=>	[0-9]+
+/		=>	\/					recursion 4
+
 -- add /^ and $/
 
 
 PATH WILDCARDS:
-"/"		=>	/^$/		[END]
-"*"		=>	/^.*$/		[END]
+"/"		=>	/^$/		(empty wildcard)
+"*"		=>	/^.*$/		(any wildcard)
 
 
 PLACEHOLDER SYNTAX:
@@ -65,40 +66,37 @@ PLACEHOLDER SYNTAX:
 
 	function __construct() {
 		$this->path = trim($_SERVER['REQUEST_URI'], '/');
-		//echo 'requested path: ' . $this->path . \PHP_EOL . \PHP_EOL;
+		// echo 'requested path: ' . $this->path . \PHP_EOL . \PHP_EOL;
 
 		$routes = json_decode(file_get_contents(__DIR__ . '/../../../config/routes.json'), true);
 
 		foreach($routes as $path => $route){
-			//echo '=== ROUTE ===' . \PHP_EOL;
-			//echo 'route path: ' . $path . \PHP_EOL;
+			// echo '=== ROUTE ===' . \PHP_EOL;
+			// echo 'route path: ' . $path . \PHP_EOL;
 
 			if($path == '/'){ # path wildcards
 				$matchpath = '/^$/';
-				//echo 'is "empty" wildcard; rewritten to: ' . $matchpath . \PHP_EOL;
+				// echo 'is "empty" wildcard; rewritten to: ' . $matchpath . \PHP_EOL;
 			} else if($path == '*'){
 				$matchpath = '/^.*$/';
-				//echo 'is "any" wildcard; rewritten to: ' . $matchpath . \PHP_EOL;
+				// echo 'is "any" wildcard; rewritten to: ' . $matchpath . \PHP_EOL;
 			} else if(preg_match('/^\/\^.*\$\/$/', $path)){
 				# path is a regex
 				$matchpath = $path;
-				//echo 'is already a regex: ' . $matchpath . \PHP_EOL;
-			} else if(preg_match('/^([A-Za-z0-9-]+|[\*#](\+|\?|\*|{[0-9]+,?[0-9]*})?)(\/([A-Za-z0-9-]+|[\*#](\+|\?|\*|{[0-9]+,?[0-9]*})?))*$/', $path)){
+				// echo 'is already a regex: ' . $matchpath . \PHP_EOL;
+			} else if(preg_match('/^([A-Za-z0-9-]+|[\*#]({[0-9]+,?[0-9]*})?)(\/([A-Za-z0-9-]+|[\*#]({[0-9]+,?[0-9]*})?))*([\*#]*\??)?$/', $path)){
 				# path is a pathpattern
-				$path = '/' . $path . '/';
-				$path = str_replace(
-					['*/',     '#/',      '/*',    '/#',     '/' ],
-					['[^/]+/', '[0-9]+/', '/[^/]', '/[0-9]', '\/'],
+				$matchpath = '/^' . str_replace(
+					['*{',		'#{',		'/*?',			'/#?',			'*',		'#',		'/'		],
+					['[^/]{',	'[0-9]{',	'(/[^/]+)?',	'(/[0-9]+)?',	'[^/]+',	'[0-9]+',	'\/'	],
 					$path
-				);
-				$path = trim($path, '\/');
-				$matchpath = '/^' . $path . '$/';
-				//echo 'is a pathpattern; rewritten to: ' . $matchpath . \PHP_EOL;
+				) . '$/';
+				// echo 'is a pathpattern; rewritten to: ' . $matchpath . \PHP_EOL;
 			} else {
 				# error (path invalid)
 			}
 
-			//echo \PHP_EOL;
+			// echo \PHP_EOL;
 
 			if(preg_match($matchpath, $this->path)){
 				$this->route = $route;

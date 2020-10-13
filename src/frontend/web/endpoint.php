@@ -1,19 +1,18 @@
 <?php
 namespace Blog\Frontend\Web;
 use \Blog\Config\Config;
-use \Blog\Config\Routes;
 use \Blog\Config\Controllers;
 use \Blog\Frontend\Web\SiteConfig;
 use \Blog\Frontend\Web\Modules\TimeFormat;
+use \Blog\Frontend\Web\Modules\Router;
 use \Astronauth\Backend\User;
 use PDO;
 use Exception;
 
 class Endpoint {
 	public $user;
-	public $route;
+	public $router;
 	public $controllers;
-	public $path;
 
 
 	function __construct() {
@@ -27,30 +26,16 @@ class Endpoint {
 			error_reporting(0);
 		}
 
-		$get = [];
-		foreach($_GET as $key => $value){
-			if(is_numeric($key) && strlen($value) != 0){
-				$_GET[$key] = str_replace(['/', '\\'], ['', ''], $value);
-				$get[(int) $key] = $_GET[$key];
-			}
-		}
-		$this->path = implode('/', $get);
+		$this->router = new Router();
 
-		foreach(Routes::ROUTES as $route){
-			if(preg_match($route['path'], $this->path)){
-				$this->route = $route;
-				break;
-			}
-		}
-
-		if(!$this->route){
+		if(!$this->router->route){
 			$this->return_404();
 		}
 
 		$this->user = new User();
 		$this->user->authenticate();
 
-		if($this->route['auth'] ?? false == true){
+		if($this->router->route['auth'] ?? false == true){
 			if(!$this->user->is_authenticated()){
 				header('Location: ' . Config::SERVER_URL . '/astronauth/signin');
 				exit;
@@ -58,9 +43,11 @@ class Endpoint {
 		}
 
 		$this->controllers = [];
-		foreach($this->route['controllers'] as $name => $settings){
-			if(preg_match('/^\?([0-9])$/', $name, $matches)){
-				$name = Controllers::ALIASES[$_GET[$matches[1]]];
+		foreach($this->router->route['controllers'] as $name => $settings){
+			$name = $this->router->path_resolve($name);
+
+			if(!in_array($name, Controllers::REGISTERED)){
+				$name = Controllers::ALIASES[$name];
 			}
 
 			if(!in_array($name, Controllers::REGISTERED)){
@@ -68,7 +55,7 @@ class Endpoint {
 			}
 
 			$absolute_name = '\Blog\Frontend\Web\Controllers\\' . $name;
-			$this->controllers[$name] = new $absolute_name();
+			$this->controllers[$name] = new $absolute_name($this);
 			$this->controllers[$name]->prepare($settings);
 
 			try {
@@ -96,7 +83,7 @@ class Endpoint {
 			'url' => Config::SERVER_URL,
 			'lang' => Config::SERVER_LANG,
 			'dyn_img_path' => Config::DYNAMIC_IMAGE_PATH,
-			'path' => $this->path
+			'path' => $this->router->path
 		];
 
 		global $site;
@@ -111,17 +98,7 @@ class Endpoint {
 		global $astronauth;
 		$astronauth = $this->user;
 
-		$template = $this->route['template'];
-
-		$template = str_replace(
-			['?1', '?2', '?3', '?4', '?5', '?6', '?7', '?8', '?9'],
-			[$_GET['1'], $_GET['2'], $_GET['3'], $_GET['4'], $_GET['5'], $_GET['6'], $_GET['7'], $_GET['8'], $_GET['9']],
-			$template
-		);
-
-		$template = __DIR__ . '/templates/' . $template . '.tmp.php';
-
-		include $template;
+		include __DIR__ . '/templates/' . $this->router->path_resolve($this->router->route['template']) . '.tmp.php';
 	}
 
 	function return_404() {

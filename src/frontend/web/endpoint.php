@@ -44,16 +44,6 @@ class Endpoint {
 
 		$this->controllers = [];
 		foreach($this->router->route['controllers'] as $name => $settings){
-			$name = $this->router->path_resolve($name);
-
-			if(!in_array($name, Controllers::REGISTERED)){
-				$name = Controllers::ALIASES[$name];
-			}
-
-			if(!in_array($name, Controllers::REGISTERED)){
-				$this->return_404();
-			}
-
 			$absolute_name = '\Blog\Frontend\Web\Controllers\\' . $name;
 			$this->controllers[$name] = new $absolute_name($this);
 			$this->controllers[$name]->prepare($settings);

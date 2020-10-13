@@ -11,7 +11,7 @@ REGEX REWRITER
 "*" => /^.+$/
 / => \/
 # => [0-9] (+ except if next char is +, ?, * or {)
-* => [\/] (+ except if next char is +, ?, * or {)
+* => [^\/] (+ except if next char is +, ?, * or {)
 */
 
 class Routes {

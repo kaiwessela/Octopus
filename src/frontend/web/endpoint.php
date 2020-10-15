@@ -58,6 +58,8 @@ class Endpoint {
 		}
 	}
 
+	// TODO close PDO and disable any file and database access for following procedures
+
 	public function handle() {
 		foreach($this->controllers as $name => $controller){
 			global $$name;

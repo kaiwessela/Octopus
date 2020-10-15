@@ -1,43 +1,15 @@
 <?php
 namespace Blog\Frontend\Web;
-use \Blog\Frontend\Web\ControllerModules;
-use \Blog\Frontend\Web\Controllers\Exceptions\InvalidParameterException;
-use \Blog\Backend\Exceptions\EmptyResultException;
-
-/*# IDEA:
-[
-	action: 'list' | 'show' | 'new' | 'edit' | 'delete'
-
-	#for action=list
-	amount: int(>0)
-	page: int(>0)
-
-	#for action=show||edit||delete
-	identifier: string, required
-]
-
-BUG: Pagination cannot use relative paths. There must be a way to provide an absolute path for the
-pagination links.
-
-*/# ---
 
 abstract class Controller {
-	const MODEL = null;
-
-	public $action;
-	public $errors;
-
-	protected $params;
-
+	private $request;
+	public $status;
 	public $objects;
 
-	use ControllerModules;
 
-
-	function __construct() {
-		$this->errors = [];
-		$this->params = (object) [];
-		$this->objects = [];
+	function __construct($request) {
+		$this->request = $request;
+		$this->status = 102;
 	}
 
 	function __set($name, $value) {
@@ -52,104 +24,174 @@ abstract class Controller {
 		}
 	}
 
-	public function prepare($parameters) {
-		$this->prepare_action($parameters);
-
-		if($this->action == 'list'){
-			$this->prepare_amount($parameters);
-			$this->prepare_page($parameters);
-		} else if($this->action == 'show' || $this->action == 'edit' || $this->action == 'delete'){
-			$this->prepare_identifier($parameters);
-		}
-	}
-
 	public function execute() {
 		$model = '\Blog\Backend\Models\\' . $this::MODEL;
 
-		if($this->action == 'new'){
+		if($this->request->action == 'new'){
 			$this->object = new $model();
-			$this->action->set_state('ready');
 
-			if($_POST){
+			if($this->request->method == 'post'){
 				try {
 					$this->object->generate();
-					$this->object->import($_POST);
+					$this->object->import($this->request->data);
 					$this->object->push();
-					$this->action->set_state('completed');
+					$this->status = 21;
+				} catch(InvalidInputException $e){
+					$this->status = 41;
+					return;
 				} catch(Exception $e){
-					$this->errors[] = $e;
-					$this->action->set_state('failed');
+					$this->status = 50;
+					return;
 				}
+			} else {
+				$this->status = 24;
 			}
-		}
 
-		if($this->action == 'show' || $this->action == 'edit' || $this->action == 'delete'){
+		} else if($this->request->action == 'show' || $this->request->action == 'edit' || $this->request->action == 'delete'){
 			try {
-				$this->objects[0] = new $model();
-				$this->objects[0]->pull($this->params->identifier);
-				$this->action->set_state('ready');
+				$this->object = new $model();
+				$this->object->pull($this->request->identifier);
+				$this->status = 20;
+			} catch(EmptyResultException $e){
+				$this->status = 44;
+				return;
 			} catch(Exception $e){
-				$this->errors[] = $e;
+				$this->status = 50;
+				return;
 			}
 
-			if($this->action == 'edit' && $_POST){
+			if($this->request->action == 'edit' && $this->request->method == 'post'){
 				try {
-					$this->objects[0]->import($_POST);
-					$this->objects[0]->push();
-					$this->action->set_state('completed');
+					$this->object->import($this->request->data);
+					$this->object->push();
+					$this->status = 22;
+				} catch(InvalidInputException $e){
+					$this->status = 41;
+					return;
 				} catch(Exception $e){
-					$this->errors[] = $e;
-					$this->action->set_state('failed');
+					$this->status = 50;
+					return;
 				}
-			} else if($this->action == 'delete' && $_POST){
+			} else if($this->request->action == 'delete' && $this->request->method == 'post'){
 				try {
-					$this->objects[0]->delete();
-					$this->action->set_state('completed');
+					$this->object->delete();
+					$this->status = 23;
 				} catch(Exception $e){
-					$this->errors[] = $e;
-					$this->action->set_state('failed');
+					$this->status = 50;
+					return;
 				}
 			}
-		}
 
-		if($this->action == 'list'){
-			if($this->params->page == null){
-				$limit = $this->params->amount;
+		} else if($this->request->action == 'list'){
+			$limit = $this->request->amount;
+
+			if($this->request->page == null){
 				$offset = null;
 			} else {
-				$count = $model::count();
-				$this->params->total = $count;
+				try {
+					$count = $model::count();
+				} catch(DatabaseException $e){
+					$this->status = 50;
+					return;
+				}
 
 				if($count == 0){
 					$this->objects = [];
+					$this->status = 24;
+					return;
 				} else {
-					$limit = $this->params->amount;
-					$offset = $this->params->amount * ($this->params->page - 1);
+					$offset = $this->request->amount * ($this->request->page - 1);
+					$last_page = ceil($count / $this->request->amount);
 
-					$last_page = ceil($count / $this->params->amount);
-
-					if($this->params->page > $last_page || $this->params->page == 0){
-						throw new Exception('page does not exist.');
+					if($this->request->page > $last_page || $this->request->page == 0){
+						$this->status = 44;
+						return;
 					}
 				}
 			}
 
 			try {
 				$this->objects = $model::pull_all($limit, $offset);
-				$this->action->set_state('ready');
+				$this->status = 20;
 			} catch(EmptyResultException $e){
-				$this->objects = [];
+				$this->status = 24;
+				return;
+			} catch(Exception $e){
+				$this->status = 50;
+				return;
 			}
 		}
 	}
 
-	public function process() {
-		$objs = $this->objects;
-		$this->objects = [];
 
-		foreach($objs as $key => &$obj){
-			$this->objects[$key] = $obj->export();
-		}
+
+	public function status(int $status) {
+		return $this->status == $status;
 	}
+
+	public function processing() {			# INFO status
+		return $this->status == 10;
+	}
+
+	public function found() {				# SUCCESS status
+		return $this->status == 20;
+	}
+
+	public function created() {
+		return $this->status == 21;
+	}
+
+	public function edited() {
+		return $this->status == 22;
+	}
+
+	public function deleted() {
+		return $this->status == 23;
+	}
+
+	public function empty() {
+		return $this->status == 24;
+	}
+
+	public function bad_request() {			# CLIENT ERROR status
+		return $this->status == 40;
+	}
+
+	public function unprocessable() {
+		return $this->status == 41;
+	}
+
+	public function forbidden() {
+		return $this->status == 43;
+	}
+
+	public function not_found() {
+		return $this->status == 44;
+	}
+
+	public function internal_error() {		# SERVER ERROR status
+		return $this->status == 50;
+	}
+
+/* ================================
+
+STATUS:
+
+10 Processing
+
+20 Found
+21 Created
+22 Edited
+23 Deleted
+24 Empty
+
+40 Bad Request
+41 Unprocessable
+43 Forbidden
+44 Not Found
+
+50 Internal Error
+
+   ================================ */
 }
 ?>

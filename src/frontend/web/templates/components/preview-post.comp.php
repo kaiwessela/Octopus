@@ -2,7 +2,7 @@
 	<a href="<?= $server->url ?>/posts/<?= $post->longid ?>">
 
 <?php
-if($post->picture){
+if($post->image->id){
 	$picture = $post->picture;
 	include COMPONENT_PATH . 'picture.comp.php';
 }

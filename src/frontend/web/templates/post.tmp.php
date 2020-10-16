@@ -8,9 +8,9 @@
 		<meta name="description" content="<?= $Post->object->teaser ?>">
 		<meta name="date" content="<?= $Post->object->timestamp->iso ?>">
 
-		<?php if($Post->objects[0]->picture){ ?>
+		<?php if($Post->object->image->id){ // BUG not a nice solution to check if an object is empty ?>
 			<meta name="twitter:card" content="summary_large_image">
-			<meta property="og:image" content="<?= $server->url . $server->dyn_img_path . $Post->object->image->longid . '/original.' . $Post->object->image->extension ?>">
+			<meta property="og:image" content="<?= $Post->object->image->source_original ?>">
 		<?php } else { ?>
 			<meta name="twitter:card" content="summary">
 		<?php } ?>
@@ -48,11 +48,11 @@
 				</header>
 
 				<?php
-				if($Post->object->picture){
+				if($Post->object->image->id){
 					?>
 					<figure>
 						<?php
-						$picture = $Post->object->picture;
+						$picture = $Post->object->image;
 						include COMPONENT_PATH . 'picture.comp.php';
 						?>
 						<figcaption><small><?= $picture->image->copyright ?></small></figcaption>
@@ -61,7 +61,7 @@
 				}
 				?>
 
-				<?= $Post->object->parsed_content ?>
+				<?= $Post->object->content->parsed ?>
 			</article>
 		</main>
 		<?php include COMPONENT_PATH . 'footer.comp.php'; ?>

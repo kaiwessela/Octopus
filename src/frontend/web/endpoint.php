@@ -12,7 +12,7 @@ use Exception;
 class Endpoint {
 	public $user;
 	public $router;
-	public $controllers;
+	public $controllers = [];
 
 
 	function __construct() {
@@ -26,35 +26,45 @@ class Endpoint {
 			error_reporting(0);
 		}
 
-		$this->router = new Router();
-
-		if(!$this->router->route){
-			$this->return_404();
+		if(substr($_SERVER['REQUEST_URI'].'/', 0, 6) == '/admin/'){
+			$routes_json = file_get_contents(__DIR__ . '/../../config/adminroutes.json');
+		} else {
+			$routes_json = file_get_contents(__DIR__ . '/../../config/routes.json');
 		}
+
+		$this->router = new Router($routes_json);
 
 		$this->user = new User();
 		$this->user->authenticate();
 
-		if($this->router->route['auth'] ?? false == true){
+		if($this->router->auth == true){
 			if(!$this->user->is_authenticated()){
 				header('Location: ' . Config::SERVER_URL . '/astronauth/signin');
 				exit;
 			}
 		}
 
-		$this->controllers = [];
-		foreach($this->router->route['controllers'] as $name => $settings){
-			$absolute_name = '\Blog\Frontend\Web\Controllers\\' . $name;
-			$this->controllers[$name] = new $absolute_name($this);
-			$this->controllers[$name]->prepare($settings);
+		foreach($this->router->controller_requests as $request){
+			$class = '\Blog\Frontend\Web\Controllers\\' . $request->class;
+			$this->controllers[$request->class] = new $class($request);
+		}
 
-			try {
-				$this->controllers[$name]->execute();
-			} catch(Exception $e){
-				$this->return_404();
+		foreach($this->controllers as &$controller){
+			$controller->execute();
+
+			if($controller->status == 44){
+				// TEMP
+				foreach($controller->exceptions as $e){
+					throw $e;
+				}
+			} else if($controller->status == 50){
+				// TEMP
+				foreach($controller->exceptions as $e){
+					throw $e;
+				}
+			} else {
+				$controller->process();
 			}
-
-			$this->controllers[$name]->process();
 		}
 	}
 
@@ -84,13 +94,10 @@ class Endpoint {
 			'twitter' => SiteConfig::TWITTER_SITE
 		];
 
-		global $timeformat;
-		$timeformat = new TimeFormat;
-
 		global $astronauth;
 		$astronauth = $this->user;
 
-		include __DIR__ . '/templates/' . $this->router->path_resolve($this->router->route['template']) . '.tmp.php';
+		include __DIR__ . '/templates/' . $this->router->template . '.tmp.php';
 	}
 
 	function return_404() {

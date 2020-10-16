@@ -1,15 +1,19 @@
 <?php
 namespace Blog\Frontend\Web\Modules;
+use Blog\Frontend\Web\Router\Exceptions\InvalidNotationException;
+use Blog\Frontend\Web\Router\Exceptions\InvalidRouteAttributeException;
 use Blog\Frontend\Web\Router\Exceptions\InvalidRoutingTableException;
 use Blog\Frontend\Web\Router\Exceptions\RouteNotFoundException;
+use Blog\Frontend\Web\ControllerRequest;
 
 class Router {
 	public $path;
 	public $template;
 	public $auth;
-	public $controller_requests;
+	public $controller_requests = [];
 
 	private $routes;
+	private $route;
 
 
 	function __construct(string $routes_json) {
@@ -21,7 +25,7 @@ class Router {
 		$this->routes = json_decode($routes_json, true, \JSON_THROW_ON_ERROR);
 
 		# check if routing table is an array
-		if(!is_array($this->routes){
+		if(!is_array($this->routes)){
 			throw new InvalidRoutingTableException($this->routes);
 		}
 
@@ -35,69 +39,23 @@ class Router {
 			# check if path regex corresponds to requested path
 			if(preg_match($regex, $this->path)){
 				# it does; set this route and break the loop
-				$route = $settings;
+				$this->route = $settings;
 				break;
 			}
 		}
 
 		# check if a route was found at all
-		if(!$route){
+		if(!$this->route){
 			throw new NoRouteFoundException();
 		}
 
-		$this->set_template($route['template']);
-		$this->set_auth($route['auth']);
+		$this->set_template($this->route['template']);
+		$this->set_auth($this->route['auth']);
 
-		foreach($route['controllers'] as $name => $parameters){
-			
-		}
+		foreach($this->route['controllers'] as $class => $settings){
+			$class = $this->resolve_substitutions($class);
 
-		foreach($this->route['controllers'] as $name => $settings){
-			$controller = [];
-
-			if(!is_string($name)){
-				// exception
-			} else if(in_array($name, Controllers::REGISTERED)){
-				$name = $name;
-			} else if(in_array(Controllers::ALIASES[$name], Controllers::REGISTERED)){
-				$name = Controllers::ALIASES[$name];
-			} else {
-				// exception
-			}
-
-			if(!is_string($settings['action'])){
-				// exception
-			} else {
-				$controller['action'] = $settings['action'];
-			}
-
-			if($settings['action'] == 'list'){
-				if(!isset($settings['amount'])){
-					$controller['amount'] = 5;
-				} else if(is_int($settings['amount'] && $settings['amount'] > 0)){
-					$controller['amount'] = $settings['amount'];
-				} else {
-					// exception
-				}
-
-				if(!isset($settings['page'])){
-					$controller['page'] = 5;
-				} else if(is_int($settings['page'] && $settings['page'] > 0)){
-					$controller['page'] = $settings['page'];
-				} else if(is_string($settings['page']) && (int) $this->path_resolve($settings['page']) > 0){
-					$controller['page'] = (int) $this->path_resolve($settings['page']);
-				} else {
-					// exception
-				}
-			} else if($settings['action'] == 'show' || $settings['action'] == 'edit' || $settings['action'] == 'delete'){
-				if(is_string($settings['identifier'])){
-					$controller['identifier'] = $this->path_resolve($settings['identifier']);
-				} else {
-					// exception
-				}
-			}
-
-			$this->params['controllers'][$name] = $controller;
+			$this->controller_requests[] = new ControllerRequest($this, $class, $settings);
 		}
 	}
 
@@ -106,11 +64,11 @@ class Router {
 		if(!is_string($raw_template)){
 			throw new InvalidRouteAttributeException();
 		} else {
-			$template = $this->resolve_substitutions($this->raw_template);
+			$template = $this->resolve_substitutions($raw_template);
 
 			# check if template contains any forbidden directory segments, such as /../
 			# template files may only sit in template dir or a child of that
-			if(preg_match('/(\.\.\/|\/\.\.)/'), $template){
+			if(preg_match('/(\.\.\/|\/\.\.)/', $template)){
 				throw new InvalidRouteAttributeException();
 			} else {
 				# there was no problem, set template as router template attribute
@@ -130,13 +88,13 @@ class Router {
 		}
 	}
 
-	private function resolve_substitutions($string) {
+	public function resolve_substitutions($string) {
 		$segments = explode('/', $this->path); # create a segment list from path
 
 		# match the string, ?n => $matches[1] = n
 		return preg_replace_callback('/\?([0-9]+)/', function($matches) use ($segments){
 			# -1 because arrays count from 0 but path segments from 1
-			return $segments[$matches[1] - 1];
+			return $segments[$matches[1] - 1] ?? null;
 		}, $string);
 	}
 

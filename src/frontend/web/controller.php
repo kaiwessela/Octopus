@@ -2,14 +2,18 @@
 namespace Blog\Frontend\Web;
 
 abstract class Controller {
-	private $request;
+	protected $request;
 	public $status;
 	public $objects;
+	public $exceptions;
+
+	const MODEL = '';
 
 
 	function __construct($request) {
 		$this->request = $request;
-		$this->status = 102;
+		$this->status = 10;
+		$this->exceptions = [];
 	}
 
 	function __set($name, $value) {
@@ -38,9 +42,11 @@ abstract class Controller {
 					$this->status = 21;
 				} catch(InvalidInputException $e){
 					$this->status = 41;
+					$this->exceptions[] = $e;
 					return;
 				} catch(Exception $e){
 					$this->status = 50;
+					$this->exceptions[] = $e;
 					return;
 				}
 			} else {
@@ -54,9 +60,11 @@ abstract class Controller {
 				$this->status = 20;
 			} catch(EmptyResultException $e){
 				$this->status = 44;
+				$this->exceptions[] = $e;
 				return;
 			} catch(Exception $e){
 				$this->status = 50;
+				$this->exceptions[] = $e;
 				return;
 			}
 
@@ -67,9 +75,11 @@ abstract class Controller {
 					$this->status = 22;
 				} catch(InvalidInputException $e){
 					$this->status = 41;
+					$this->exceptions[] = $e;
 					return;
 				} catch(Exception $e){
 					$this->status = 50;
+					$this->exceptions[] = $e;
 					return;
 				}
 			} else if($this->request->action == 'delete' && $this->request->method == 'post'){
@@ -78,6 +88,7 @@ abstract class Controller {
 					$this->status = 23;
 				} catch(Exception $e){
 					$this->status = 50;
+					$this->exceptions[] = $e;
 					return;
 				}
 			}
@@ -92,6 +103,7 @@ abstract class Controller {
 					$count = $model::count();
 				} catch(DatabaseException $e){
 					$this->status = 50;
+					$this->exceptions[] = $e;
 					return;
 				}
 
@@ -115,12 +127,22 @@ abstract class Controller {
 				$this->status = 20;
 			} catch(EmptyResultException $e){
 				$this->status = 24;
+				$this->exceptions[] = $e;
 				return;
 			} catch(Exception $e){
 				$this->status = 50;
+				$this->exceptions[] = $e;
 				return;
 			}
 		}
+	}
+
+	public function process() {
+		$objs = [];
+		foreach($this->objects as $object){
+			$objs[] = $object->export();
+		}
+		$this->objects = $objs;
 	}
 
 

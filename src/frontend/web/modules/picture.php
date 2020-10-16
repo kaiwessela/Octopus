@@ -1,41 +1,55 @@
 <?php
 namespace Blog\Frontend\Web\Modules;
-use Blog\Backend\Models\Image;
-use Blog\Backend\ImageManager;
-use Blog\Config\Config;
+use \Blog\Backend\Models\Image;
+use \Blog\Backend\ImageManager;
+use \Blog\Config\Config;
 
 class Picture {
-	public $image;
-	public $original_src;
-	public $show_source;
-	public $srcset;
-	public $alt;
-	//public $width; // TODO maybe add later if necessary
-	//public $height;
+	public $id;
+	public $longid;
+	public $extension;
+	public $description;
+	public $copyright;
+	public $sizes;
+
+	public $sources;
+	public $source_original;
 
 
-	function __construct(Image $image) {
-		$this->image = $image;
-		$path_base = Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH . $image->longid . '/';
+	function __construct($image) {
+		if(!$image instanceof Image){
+			$image = new Image();
+		}
 
-		$this->original_src = $path_base . 'original.' . $image->extension;
-		$this->alt = $image->description;
+		$this->id = $image->id;
+		$this->longid = $image->longid;
+		$this->extension = $image->extension;
+		$this->description = $image->description;
+		$this->copyright = $image->copyright;
+		$this->sizes = $image->sizes;
 
-		foreach($this->image->sizes as $size){
+		$this->original_src = $this->url('original');
+
+		foreach($this->sizes as $size){
 			if($size == 'original'){
 				continue;
 			}
 
-			$this->srcset[] = $path_base . $size . '.' . $this->image->extension . ' '
-				. ImageManager::DIMENSIONS[$size][1] . 'w';
+			$this->sources[] = $this->url($size) . ' ' . ImageManager::DIMENSIONS[$size][1] . 'w';
 		}
 
-		if(count($this->srcset) == 0){
-			$this->show_source = false;
+		if(count($this->sources) == 0){
+			$this->sources = $this->source_original;
 		} else {
-			$this->show_source = true;
-			$this->srcset = implode(', ', $this->srcset);
+			$this->sources = implode(', ', $this->sources);
 		}
 	}
+
+	private function url($size) {
+		if(empty($this->longid)){
+			return null;
+		}
+
+		return Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH . $this->longid . '/' . $size . '.' . $this->extension;
+	}
 }
-?>

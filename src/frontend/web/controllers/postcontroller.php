@@ -2,59 +2,53 @@
 namespace Blog\Frontend\Web\Controllers;
 use \Blog\Frontend\Web\Controller;
 use \Blog\Frontend\Web\Modules\Picture;
+use \Blog\Frontend\Web\Modules\Timestamp;
 use \Blog\Frontend\Web\Modules\Pagination\Pagination;
-use Parsedown;
+use InvalidArgumentException;
 
 
 class PostController extends Controller {
 	const MODEL = 'Post';
 
-	/* @inherited
-	public $action;
-	public $errors;
-
-	protected $params;
-
-	public $objects;
-	*/
-
 	public $pagination;
 
+	/* @inherited
+	protected $request;
+	public $status;
+	public $objects;
+	public $exceptions;
 
-	public function prepare($parameters) {
-		parent::prepare($parameters);
+	protected $count;
+	*/
 
-		if($this->action == 'list' && isset($parameters['pagination'])){
-			$this->params->pagination = (object) $parameters['pagination'];
-		}
-	}
 
 	public function process() {
-		$objs = $this->objects;
-		$this->objects = [];
+		$objs = [];
+		foreach($this->objects as $object){
+			$obj = $object->export();
+			
+			$obj->timestamp = new Timestamp($object->timestamp);
+			$obj->content = new MarkdownContent($object->content);
 
-		foreach($objs as $key => $obj){
-			$this->objects[$key] = $obj->export();
-			$this->objects[$key]->parsed_content = Parsedown::instance()->text($obj->content);
-
-			if($this->objects[$key]->image){
-				$this->objects[$key]->picture = new Picture($obj->image);
-			} else {
-				$this->objects[$key]->picture = null;
+			if(!$object->image->is_empty()){
+				$obj->image = new Picture($object->image);
 			}
-		}
 
-		if(isset($this->params->pagination)){
+			$objs[] = $obj;
+		}
+		$this->objects = $objs;
+
+		if(isset($this->request->custom['pagination_structure']) && $this->request->action == 'list'){
 			try {
 				$this->pagination = new Pagination(
-					$this->params->page,
-					$this->params->amount,
-					$this->params->total,
-					$this->params->pagination->base_path,
-					$this->params->pagination->structure
+					$this->request->page,
+					$this->request->amount,
+					$this->count,
+					'base_path',
+					$this->request->custom['pagination_structure']
 				);
 			} catch(InvalidArgumentException $e){
-				$this->errors[] = $e;
+				$this->exceptions[] = $e;
 			}
 		}
 	}

@@ -7,40 +7,32 @@ use \Blog\Frontend\Web\Modules\Pagination\Pagination;
 class EventController extends Controller {
 	const MODEL = 'Event';
 
-	/* @inherited
-	public $action;
-	public $errors;
-
-	protected $params;
-
-	public $objects;
-	*/
-
 	public $pagination;
 
+	/* @inherited
+	protected $request;
+	public $status;
+	public $objects;
+	public $exceptions;
 
-	public function prepare($parameters) {
-		parent::prepare($parameters);
+	protected $count;
+	*/
 
-		if($this->action == 'list' && isset($parameters['pagination'])){
-			$this->params->pagination = (object) $parameters['pagination'];
-		}
-	}
 
 	public function process() {
 		parent::process();
 
-		if(isset($this->params->pagination)){
+		if(isset($this->request->custom['pagination_structure']) && $this->request->action == 'list'){
 			try {
 				$this->pagination = new Pagination(
-					$this->params->page,
-					$this->params->amount,
-					$this->params->total,
-					$this->params->pagination->base_path,
-					$this->params->pagination->structure
+					$this->request->page,
+					$this->request->amount,
+					$this->count,
+					'base_path',
+					$this->request->custom['pagination_structure']
 				);
 			} catch(InvalidArgumentException $e){
-				$this->errors[] = $e;
+				$this->exceptions[] = $e;
 			}
 		}
 	}

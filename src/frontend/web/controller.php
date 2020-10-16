@@ -7,6 +7,8 @@ abstract class Controller {
 	public $objects;
 	public $exceptions;
 
+	protected $count;
+
 	const MODEL = '';
 
 
@@ -100,20 +102,20 @@ abstract class Controller {
 				$offset = null;
 			} else {
 				try {
-					$count = $model::count();
+					$this->count = $model::count();
 				} catch(DatabaseException $e){
 					$this->status = 50;
 					$this->exceptions[] = $e;
 					return;
 				}
 
-				if($count == 0){
+				if($this->count == 0){
 					$this->objects = [];
 					$this->status = 24;
 					return;
 				} else {
 					$offset = $this->request->amount * ($this->request->page - 1);
-					$last_page = ceil($count / $this->request->amount);
+					$last_page = ceil($this->count / $this->request->amount);
 
 					if($this->request->page > $last_page || $this->request->page == 0){
 						$this->status = 44;

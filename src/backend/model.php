@@ -86,11 +86,11 @@ abstract class Model {
 	}
 
 
-	protected function is_empty() {
+	public function is_empty() {
 		return $this->empty;
 	}
 
-	protected function is_new() {
+	public function is_new() {
 		return $this->new;
 	}
 }

@@ -6,7 +6,7 @@
 		<link rel="canonical" href="<?= $server->url ?>/posts/<?= $Post->object->longid ?>">
 		<meta name="author" content="<?= $Post->object->author ?>">
 		<meta name="description" content="<?= $Post->object->teaser ?>">
-		<meta name="date" content="<?= $timeformat::html_time($Post->object->timestamp) ?>">
+		<meta name="date" content="<?= $Post->object->timestamp->iso ?>">
 
 		<?php if($Post->objects[0]->picture){ ?>
 			<meta name="twitter:card" content="summary_large_image">
@@ -41,8 +41,8 @@
 					<p class="author-and-date">
 						<!-- IDEA use address element? -->
 						Von <?= $Post->object->author ?>, <wbr>veröffentlicht am
-						<time datetime="<?= $timeformat::html_time($Post->object->timestamp) ?>">
-							<?= $timeformat::date($Post->object->timestamp) ?>
+						<time datetime="<?= $Post->object->timestamp->iso ?>">
+							<?= $Post->object->timestamp->date ?>
 						</time>
 					</p>
 				</header>

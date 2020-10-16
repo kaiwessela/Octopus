@@ -12,8 +12,8 @@ if($post->picture){
 		<h3><span><?= $post->headline ?></span></h3>
 		<p class="subline"><?= $post->subline ?></p>
 		<p class="teaser">
-			<time datetime="<?= $timeformat::html_time($post->timestamp) ?>">
-				<?= $timeformat::date($post->timestamp) ?> –
+			<time datetime="<?= $post->timestamp->iso ?>">
+				<?= $post->timestamp->date ?> –
 			</time>
 			<?= $post->teaser ?>
 		</p>

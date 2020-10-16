@@ -21,6 +21,21 @@ class Timestamp {
 		return $this->unix;
 	}
 
+	function __get($name) {
+		switch($name){
+			case 'date_short': 		return $this->format(Timestamp::DATE_SHORT);
+			case 'date': 			return $this->format(Timestamp::DATE);
+			case 'date_long': 		return $this->format(Timestamp::DATE_LONG);
+			case 'datetime_short': 	return $this->format(Timestamp::DATETIME_SHORT);
+			case 'datetime': 		return $this->format(Timestamp::DATETIME);
+			case 'datetime_long': 	return $this->format(Timestamp::DATETIME_LONG);
+			case 'time': 			return $this->format(Timestamp::TIME);
+			case 'iso': 			return $this->iso();
+			case 'rfc2822': 		return $this->rfc2822();
+			default: break;
+		}
+	}
+
 	public function unix() {
 		return $this->unix;
 	}
@@ -39,34 +54,6 @@ class Timestamp {
 
 	public static function now() {
 		return new Timestamp(time());
-	}
-
-	public function date_short() {
-		return $this->format(Timestamp::DATE_SHORT);
-	}
-
-	public function date() {
-		return $this->format(Timestamp::DATE);
-	}
-
-	public function date_long() {
-		return $this->format(Timestamp::DATE_LONG);
-	}
-
-	public function datetime_short() {
-		return $this->format(Timestamp::DATETIME_SHORT);
-	}
-
-	public function datetime() {
-		return $this->format(Timestamp::DATETIME);
-	}
-
-	public function datetime_long() {
-		return $this->format(Timestamp::DATETIME_LONG);
-	}
-
-	public function time() {
-		return $this->format(Timestamp::TIME);
 	}
 }
 ?>

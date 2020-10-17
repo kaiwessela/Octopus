@@ -8,7 +8,7 @@
 		<meta name="description" content="<?= $Post->object->teaser ?>">
 		<meta name="date" content="<?= $Post->object->timestamp->iso ?>">
 
-		<?php if($Post->object->image->id){ // BUG not a nice solution to check if an object is empty ?>
+		<?php if(!empty($Post->object->image)){ ?>
 			<meta name="twitter:card" content="summary_large_image">
 			<meta property="og:image" content="<?= $Post->object->image->source_original ?>">
 		<?php } else { ?>
@@ -48,14 +48,14 @@
 				</header>
 
 				<?php
-				if($Post->object->image->id){
+				if(!empty($Post->object->image)){
 					?>
 					<figure>
 						<?php
 						$picture = $Post->object->image;
 						include COMPONENT_PATH . 'picture.comp.php';
 						?>
-						<figcaption><small><?= $picture->image->copyright ?></small></figcaption>
+						<figcaption><small><?= $picture->copyright ?></small></figcaption>
 					</figure>
 					<?php
 				}

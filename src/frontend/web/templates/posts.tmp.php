@@ -21,8 +21,8 @@
 
 				<?php include COMPONENT_PATH . 'pagination.comp.php'; ?>
 
-				<?php if(empty($Post->objects)){ ?>
-				<p>Keine Posts gefunden.</p>
+				<?php if($Post->empty())){ ?>
+				<p>Keine Artikel gefunden.</p>
 				<?php } ?>
 
 <?php

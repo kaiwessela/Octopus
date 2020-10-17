@@ -13,7 +13,7 @@ class Pagination {
 	#last_object;
 
 	public $structure;
-	public $base_path;
+	public $base_path; // TODO we need to find a way to provide a base path
 
 	public $items;
 

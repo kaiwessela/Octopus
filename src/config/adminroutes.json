@@ -1,0 +1,60 @@
+{
+	"admin": {
+		"template": "admin/main",
+		"controllers": {},
+		"auth": true
+	},
+	"admin/*/#?": {
+		"template": "admin/?2",
+		"controllers": {
+			"?2": {
+				"action": "list",
+				"amount": 20,
+				"page": "?3",
+				"custom": {
+					"pagination_structure": "admin"
+				}
+			}
+		},
+		"auth": true
+	},
+	"admin/*/new": {
+		"template": "admin/?2",
+		"controllers": {
+			"?2": {
+				"action": "new"
+			}
+		},
+		"auth": true
+	},
+	"admin/*/*": {
+		"template": "admin/?2",
+		"controllers": {
+			"?2": {
+				"action": "show",
+				"identifier": "?3"
+			}
+		},
+		"auth": true
+	},
+	"admin/*/*/edit": {
+		"template": "admin/?2",
+		"controllers": {
+			"?2": {
+				"action": "edit",
+				"identifier": "?3"
+			}
+		},
+		"auth": true
+	},
+	"admin/*/*/delete": {
+		"template": "admin/?2",
+		"controllers": {
+			"?2": {
+				"action": "delete",
+				"identifier": "?3"
+			}
+		},
+		"auth": true
+	}
+}

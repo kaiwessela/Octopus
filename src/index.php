@@ -11,7 +11,7 @@ spl_autoload_register(function($name){
 });
 
 define('TEMPLATE_PATH', __DIR__ . '/frontend/web/templates/');
-define('COMPONENT_PATH', __DIR__ . '/frontend/web/components/');
+define('COMPONENT_PATH', __DIR__ . '/frontend/web/templates/components/');
 
 require_once 'libs/parsedown/Parsedown.php';
 

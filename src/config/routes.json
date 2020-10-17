@@ -1,0 +1,55 @@
+{
+	"/": {
+		"template": "index",
+		"controllers": {
+			"PostController": {
+				"action": "list",
+				"amount": 5
+			},
+			"EventController": {
+				"action": "list",
+				"amount": 5
+			}
+		}
+	},
+	"posts/#?": {
+		"template": "posts",
+		"controllers": {
+			"PostController": {
+				"action": "list",
+				"amount": 5,
+				"page": "?2",
+				"custom": {
+					"pagination_structure": "default"
+				}
+			}
+		}
+	},
+	"posts/*{9,}": {
+		"template": "post",
+		"controllers": {
+			"PostController": {
+				"action": "show",
+				"identifier": "?2"
+			}
+		}
+	},
+	"p/*{8}": {
+		"template": "post",
+		"controllers": {
+			"PostController": {
+				"action": "show",
+				"identifier": "?2"
+			}
+		}
+	},
+	"*": {
+		"template": "page",
+		"controllers": {
+			"PageController": {
+				"action": "show",
+				"identifier": "?1"
+			}
+		}
+	}
+}

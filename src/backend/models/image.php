@@ -10,39 +10,24 @@ use \Blog\Backend\Exceptions\EmptyResultException;
 use \Blog\Backend\Exceptions\InvalidInputException;
 use InvalidArgumentException;
 
-class Image implements Model {
-	public $id;
-	public $longid;
+class Image extends Model {
 	public $extension;		# String(1-4)[filename extension]
 	public $description;	# String(1-256)
 	public $copyright;
 	public $sizes;
 
+	/* @inherited
+	public $id;
+	public $longid;
+
 	private $new;
 	private $empty;
+	*/
 
 	const EXTENSION_PNG = 'png';
 	const EXTENSION_JPG = 'jpg';
 	const EXTENSION_GIF = 'gif';
 
-	use ModelTrait;
-
-
-	function __construct() {
-		$this->new = false;
-		$this->empty = true;
-	}
-
-	public function generate() {
-		if(!$this->is_empty()){
-			throw new WrongObjectStateException('empty');
-		}
-
-		$this->generate_id();
-
-		$this->new = true;
-		$this->empty = false;
-	}
 
 	public function pull($identifier) {
 		$pdo = self::open_pdo();
@@ -206,6 +191,23 @@ class Image implements Model {
 		}
 	}
 
+	public function export() {
+		if($this->is_empty()){
+			return null;
+		}
+
+		$obj = (object) [];
+
+		$obj->id = $this->id;
+		$obj->longid = $this->longid;
+		$obj->extension = $this->extension;
+		$obj->description = $this->description;
+		$obj->copyright = $this->copyright;
+		$obj->sizes = $this->sizes;
+
+		return $obj;
+	}
+
 	public function has_size($size) {
 		return in_array($size, $this->sizes);
 	}
@@ -213,8 +215,8 @@ class Image implements Model {
 	private function import_description($description) {
 		if(!isset($description)){
 			$this->description = null;
-		} else if(!preg_match('/^.{0,256}$/', $description)){
-			throw new InvalidInputException('description', '.{0,256}', $description);
+		} else if(!preg_match('/^.{0,100}$/', $description)){
+			throw new InvalidInputException('description', '.{0,100}', $description);
 		} else {
 			$this->description = $description;
 		}
@@ -223,8 +225,8 @@ class Image implements Model {
 	private function import_copyright($copyright) {
 		if(!isset($copyright)){
 			$this->copyright = null;
-		} else if(!preg_match('/^.{0,256}$/', $copyright)){
-			throw new InvalidInputException('copyright', '.{0,256}', $copyright);
+		} else if(!preg_match('/^.{0,100}$/', $copyright)){
+			throw new InvalidInputException('copyright', '.{0,100}', $copyright);
 		} else {
 			$this->copyright = $copyright;
 		}

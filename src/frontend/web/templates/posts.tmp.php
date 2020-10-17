@@ -1,11 +1,8 @@
-<?php
-use \Blog\Frontend\Web\SiteConfig;
-?>
 <!DOCTYPE html>
 <html lang="de">
 	<head>
 		<?php include COMPONENT_PATH . 'head.comp.php'; ?>
-		<title>Alle Artikel – <?= SiteConfig::TITLE ?></title>
+		<title>Alle Artikel – <?= $site->title ?></title>
 	</head>
 	<body>
 		<?php include COMPONENT_PATH . 'header.comp.php'; ?>
@@ -14,19 +11,22 @@ use \Blog\Frontend\Web\SiteConfig;
 				<header class="highlighted">
 					<h1>Alle Artikel</h1>
 				</header>
-				<div>
-					<b>Seite <?= $PostListController->pagination->current_page ?> von <?= $PostListController->pagination->page_count ?></b>
-					– Angezeigt werden Artikel <?= $PostListController->pagination->get_first_object_number() ?> bis
-					<?= $PostListController->pagination->get_last_object_number() ?> von insgesamt <?= $PostListController->pagination->object_count ?> Artikeln
-				</div>
-				<?php $PostListController->pagination->display(); ?>
 
-				<?php if($PostListController->show_no_posts_found){ ?>
-				<p>Keine Posts gefunden.</p>
+				<?php $pagination = $Post->pagination; ?>
+				<div>
+					<b>Seite <?= $pagination->current_page ?> von <?= $pagination->total_pages ?></b>
+					– Angezeigt werden Artikel <?= $pagination->first_object ?> bis
+					<?= $pagination->last_object ?> von insgesamt <?= $pagination->total_objects ?> Artikeln
+				</div>
+
+				<?php include COMPONENT_PATH . 'pagination.comp.php'; ?>
+
+				<?php if($Post->empty())){ ?>
+				<p>Keine Artikel gefunden.</p>
 				<?php } ?>
 
 <?php
-foreach($PostListController->posts as $post){
+foreach($Post->objects as $post){
 	include COMPONENT_PATH . 'preview-post.comp.php';
 }
 ?>

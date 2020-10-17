@@ -9,9 +9,7 @@ use \Blog\Backend\Exceptions\EmptyResultException;
 use \Blog\Backend\Exceptions\InvalidInputException;
 use InvalidArgumentException;
 
-class Event implements Model {
-	public $id;
-	public $longid;
+class Event extends Model {
 	public $title;
 	public $organisation;
 	public $timestamp;
@@ -19,27 +17,14 @@ class Event implements Model {
 	public $description;
 	public $cancelled;
 
+	/* @inherited
+	public $id;
+	public $longid;
+
 	private $new;
 	private $empty;
+	*/
 
-	use ModelTrait;
-
-
-	function __construct() {
-		$this->new = false;
-		$this->empty = true;
-	}
-
-	public function generate() {
-		if(!$this->is_empty()){
-			throw new WrongObjectStateException('empty');
-		}
-
-		$this->generate_id();
-
-		$this->new = true;
-		$this->empty = false;
-	}
 
 	public function pull($identifier) {
 		$pdo = self::open_pdo();
@@ -227,11 +212,30 @@ class Event implements Model {
 		}
 	}
 
+	public function export() {
+		if($this->is_empty()){
+			return null;
+		}
+
+		$obj = (object) [];
+
+		$obj->id = $this->id;
+		$obj->longid = $this->longid;
+		$obj->title = $this->title;
+		$obj->organisation = $this->organisation;
+		$obj->timestamp = $this->timestamp;
+		$obj->location = $this->location;
+		$obj->description = $this->description;
+		$obj->cancelled = $this->cancelled;
+
+		return $obj;
+	}
+
 	public function import_title($title) {
 		if(!isset($title)){
-			throw new InvalidInputException('title', '.{1,64}');
-		} else if(!preg_match('/^.{1,64}$/', $title)){
-			throw new InvalidInputException('title', '.{1,64}', $title);
+			throw new InvalidInputException('title', '.{1,50}');
+		} else if(!preg_match('/^.{1,50}$/', $title)){
+			throw new InvalidInputException('title', '.{1,50}', $title);
 		} else {
 			$this->title = $title;
 		}
@@ -239,9 +243,9 @@ class Event implements Model {
 
 	public function import_organisation($organisation) {
 		if(!isset($organisation)){
-			throw new InvalidInputException('organisation', '.{1,64}');
-		} else if(!preg_match('/^.{1,64}$/', $organisation)){
-			throw new InvalidInputException('organisation', '.{1,64}', $organisation);
+			throw new InvalidInputException('organisation', '.{1,40}');
+		} else if(!preg_match('/^.{1,40}$/', $organisation)){
+			throw new InvalidInputException('organisation', '.{1,40}', $organisation);
 		} else {
 			$this->organisation = $organisation;
 		}
@@ -260,8 +264,8 @@ class Event implements Model {
 	public function import_location($location) {
 		if(!isset($location)){
 			$this->location = null;
-		} else if(!preg_match('/^.{0,128}$/', $location)){
-			throw new InvalidInputException('location', '.{0,128}', $location);
+		} else if(!preg_match('/^.{0,60}$/', $location)){
+			throw new InvalidInputException('location', '.{0,60}', $location);
 		} else {
 			$this->location = $location;
 		}

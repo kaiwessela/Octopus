@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Erstellungszeit: 26. Aug 2020 um 01:56
--- Server-Version: 10.3.23-MariaDB-1
--- PHP-Version: 7.4.5
+-- Erstellungszeit: 10. Okt 2020 um 22:42
+-- Server-Version: 10.3.24-MariaDB-2
+-- PHP-Version: 7.4.10
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -30,11 +30,11 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `events` (
   `event_id` varchar(8) NOT NULL,
-  `event_longid` varchar(128) NOT NULL,
-  `event_title` varchar(64) NOT NULL,
-  `event_organisation` varchar(64) NOT NULL,
+  `event_longid` varchar(60) NOT NULL,
+  `event_title` varchar(50) NOT NULL,
+  `event_organisation` varchar(40) NOT NULL,
   `event_timestamp` bigint(20) NOT NULL,
-  `event_location` varchar(128) DEFAULT NULL,
+  `event_location` varchar(60) DEFAULT NULL,
   `event_description` text DEFAULT NULL,
   `event_cancelled` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -47,11 +47,24 @@ CREATE TABLE `events` (
 
 CREATE TABLE `images` (
   `image_id` varchar(8) NOT NULL,
-  `image_longid` varchar(128) NOT NULL,
+  `image_longid` varchar(60) NOT NULL,
   `image_extension` varchar(4) NOT NULL,
-  `image_description` varchar(256) DEFAULT NULL,
-  `image_copyright` varchar(256) NOT NULL,
-  `image_sizes` varchar(128) NOT NULL
+  `image_description` varchar(100) DEFAULT NULL,
+  `image_copyright` varchar(100) DEFAULT NULL,
+  `image_sizes` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `pages`
+--
+
+CREATE TABLE `pages` (
+  `page_id` varchar(8) NOT NULL,
+  `page_longid` varchar(60) NOT NULL,
+  `page_title` varchar(60) NOT NULL,
+  `page_content` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -62,8 +75,8 @@ CREATE TABLE `images` (
 
 CREATE TABLE `persons` (
   `person_id` varchar(8) NOT NULL,
-  `person_longid` varchar(128) NOT NULL,
-  `person_name` varchar(64) NOT NULL,
+  `person_longid` varchar(60) NOT NULL,
+  `person_name` varchar(50) NOT NULL,
   `person_image_id` varchar(8) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -75,12 +88,12 @@ CREATE TABLE `persons` (
 
 CREATE TABLE `posts` (
   `post_id` varchar(8) NOT NULL,
-  `post_longid` varchar(128) NOT NULL,
-  `post_overline` varchar(64) DEFAULT NULL,
-  `post_headline` varchar(256) NOT NULL,
-  `post_subline` varchar(256) DEFAULT NULL,
+  `post_longid` varchar(60) NOT NULL,
+  `post_overline` varchar(25) DEFAULT NULL,
+  `post_headline` varchar(60) NOT NULL,
+  `post_subline` varchar(40) DEFAULT NULL,
   `post_teaser` text DEFAULT NULL,
-  `post_author` varchar(128) NOT NULL,
+  `post_author` varchar(50) NOT NULL,
   `post_timestamp` bigint(20) NOT NULL,
   `post_image_id` varchar(8) DEFAULT NULL,
   `post_content` text DEFAULT NULL
@@ -103,6 +116,13 @@ ALTER TABLE `events`
 ALTER TABLE `images`
   ADD PRIMARY KEY (`image_id`),
   ADD UNIQUE KEY `image_longid` (`image_longid`);
+
+--
+-- Indizes für die Tabelle `pages`
+--
+ALTER TABLE `pages`
+  ADD PRIMARY KEY (`page_id`),
+  ADD UNIQUE KEY `page_longid` (`page_longid`);
 
 --
 -- Indizes für die Tabelle `persons`

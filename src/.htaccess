@@ -1,3 +1,1 @@
-RewriteEngine on
-RewriteRule ^([^\/.]+)(\/?)$ index.php?page=$1 [QSA]
-RewriteRule ^([^\/.]+)/([^\/]+)(\/?)$ index.php?page=$1&post=$2 [QSA]
+FallbackResource /index.php

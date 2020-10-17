@@ -1,28 +1,57 @@
 <?php
 namespace Blog\Frontend\Web\Controllers;
-use \Blog\Frontend\Web\Controllers\Controller;
-use \Blog\Frontend\Web\Modules\TimeFormat;
+use \Blog\Frontend\Web\Controller;
 use \Blog\Frontend\Web\Modules\Picture;
-use \Blog\Backend\Models\Post;
-use Parsedown;
-
-class PostController implements Controller {
-	public $post;
-	public $picture;
-	public $parsed;
-	public $show_picture = false;
+use \Blog\Frontend\Web\Modules\Timestamp;
+use \Blog\Frontend\Web\Modules\MarkdownContent;
+use \Blog\Frontend\Web\Modules\Pagination\Pagination;
+use InvalidArgumentException;
 
 
-	public function __construct($route, $settings) {
-		$this->post = new Post();
-		$this->post->pull($_GET['post']);
+class PostController extends Controller {
+	const MODEL = 'Post';
 
-		if(!$this->post->image->is_empty()){
-			$this->show_picture = true;
-			$this->picture = new Picture($this->post->image);
+	public $pagination;
+
+	/* @inherited
+	protected $request;
+	public $status;
+	public $objects;
+	public $exceptions;
+
+	protected $count;
+	*/
+
+
+	public function process() {
+		$objs = [];
+		foreach($this->objects as $object){
+			$obj = $object->export();
+
+			$obj->timestamp = new Timestamp($object->timestamp);
+			$obj->content = new MarkdownContent($object->content);
+
+			if(!$object->image->is_empty()){
+				$obj->image = new Picture($object->image);
+			}
+
+			$objs[] = $obj;
 		}
+		$this->objects = $objs;
 
-		$this->parsed = Parsedown::instance()->text($this->post->content);
+		if(isset($this->request->custom['pagination_structure']) && $this->request->action == 'list'){
+			try {
+				$this->pagination = new Pagination(
+					$this->request->page,
+					$this->request->amount,
+					$this->count,
+					'base_path',
+					$this->request->custom['pagination_structure']
+				);
+			} catch(InvalidArgumentException $e){
+				$this->exceptions[] = $e;
+			}
+		}
 	}
 }
 ?>

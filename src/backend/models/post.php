@@ -9,39 +9,28 @@ use \Blog\Backend\Exceptions\EmptyResultException;
 use \Blog\Backend\Exceptions\InvalidInputException;
 use InvalidArgumentException;
 
-class Post implements Model {
-	public $id;
-	public $longid;
-	public $overline;	# String(0-64)
-	public $headline; 	# String(1-256)
-	public $subline;	# String(0-256)
+class Post extends Model {
+	public $overline;	# String(0-25)
+	public $headline; 	# String(1-60)
+	public $subline;	# String(0-40)
 	public $teaser;		# String					// IDEA limit length
-	public $author;		# String(1-128)				// IDEA use profile id
+	public $author;		# String(1-50)				// IDEA use profile id
 	public $timestamp;	# Integer[unix timestamp]	// IDEA publishdate, last edited, ... TODO 64bit
 	public $image;		# Image
 	public $content;	# String
 
+	/* @inherited
+	public $id;
+	public $longid;
+
 	private $new;
 	private $empty;
-
-	use ModelTrait;
+	*/
 
 
 	function __construct() {
-		$this->new = false;
-		$this->empty = true;
+		parent::__construct();
 		$this->image = new Image();
-	}
-
-	public function generate() {
-		if(!$this->is_empty()){
-			throw new WrongObjectStateException('empty');
-		}
-
-		$this->generate_id();
-
-		$this->new = true;
-		$this->empty = false;
 	}
 
 	public function pull($identifier) {
@@ -226,11 +215,32 @@ class Post implements Model {
 		}
 	}
 
+	public function export() {
+		if($this->is_empty()){
+			return null;
+		}
+
+		$obj = (object) [];
+
+		$obj->id = $this->id;
+		$obj->longid = $this->longid;
+		$obj->overline = $this->overline;
+		$obj->headline = $this->headline;
+		$obj->subline = $this->subline;
+		$obj->teaser = $this->teaser;
+		$obj->author = $this->author;
+		$obj->timestamp = $this->timestamp;
+		$obj->content = $this->content;
+		$obj->image = $this->image->export();
+
+		return $obj;
+	}
+
 	private function import_overline($overline) {
 		if(!isset($overline)){
 			$this->overline = null;
-		} else if(!preg_match('/^.{0,64}$/', $overline)){
-			throw new InvalidInputException('overline', '.{0,64}', $overline);
+		} else if(!preg_match('/^.{0,25}$/', $overline)){
+			throw new InvalidInputException('overline', '.{0,25}', $overline);
 		} else {
 			$this->overline = $overline;
 		}
@@ -238,9 +248,9 @@ class Post implements Model {
 
 	private function import_headline($headline) {
 		if(!isset($headline)){
-			throw new InvalidInputException('headline', '.{1,256}');
-		} else if(!preg_match('/^.{1,256}$/', $headline)){
-			throw new InvalidInputException('headline', '.{1,256}', $headline);
+			throw new InvalidInputException('headline', '.{1,60}');
+		} else if(!preg_match('/^.{1,60}$/', $headline)){
+			throw new InvalidInputException('headline', '.{1,60}', $headline);
 		} else {
 			$this->headline = $headline;
 		}
@@ -249,8 +259,8 @@ class Post implements Model {
 	private function import_subline($subline) {
 		if(!isset($subline)){
 			$this->subline = null;
-		} else if(!preg_match('/^.{0,256}$/', $subline)){
-			throw new InvalidInputException('subline', '.{0,256}', $subline);
+		} else if(!preg_match('/^.{0,40}$/', $subline)){
+			throw new InvalidInputException('subline', '.{0,40}', $subline);
 		} else {
 			$this->subline = $subline;
 		}
@@ -262,9 +272,9 @@ class Post implements Model {
 
 	private function import_author($author) {
 		if(!isset($author)){
-			throw new InvalidInputException('author', '.{1,128}');
-		} else if(!preg_match('/^.{1,128}$/', $author)){
-			throw new InvalidInputException('author', '.{1,128}', $author);
+			throw new InvalidInputException('author', '.{1,50}');
+		} else if(!preg_match('/^.{1,50}$/', $author)){
+			throw new InvalidInputException('author', '.{1,50}', $author);
 		} else {
 			$this->author = $author;
 		}
@@ -290,7 +300,7 @@ class Post implements Model {
 				$image = new Image();
 				$image->pull($data['image_id']);
 			} catch(EmptyResultException $e){
-				throw new InvalidInputException('image_id', 'image id; No Image Found', $data['image_id']); // TODO better exc.-> api index.php
+				throw new InvalidInputException('image_id', 'image id; No Image Found', $data['image_id']); // TODO better exc. -> api index.php
 			} catch(DatabaseException $e){
 				throw $e;
 			}

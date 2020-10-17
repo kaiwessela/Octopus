@@ -9,33 +9,22 @@ use \Blog\Backend\Exceptions\EmptyResultException;
 use \Blog\Backend\Exceptions\InvalidInputException;
 use InvalidArgumentException;
 
-class Person implements Model {
-	public $id;
-	public $longid;
+class Person extends Model {
 	public $name;
 	public $image;
 
+	/* @inherited
+	public $id;
+	public $longid;
+
 	private $new;
 	private $empty;
-
-	use ModelTrait;
+	*/
 
 
 	function __construct() {
-		$this->new = false;
-		$this->empty = true;
+		parent::__construct();
 		$this->image = new Image();
-	}
-
-	public function generate() {
-		if(!$this->is_empty()){
-			throw new WrongObjectStateException('empty');
-		}
-
-		$this->generate_id();
-
-		$this->new = true;
-		$this->empty = false;
 	}
 
 	public function pull($identifier) {
@@ -196,11 +185,26 @@ class Person implements Model {
 		}
 	}
 
+	public function export() {
+		if($this->is_empty()){
+			return null;
+		}
+
+		$obj = (object) [];
+
+		$obj->id = $this->id;
+		$obj->longid = $this->longid;
+		$obj->name = $this->name;
+		$obj->image = $this->image->export();
+
+		return $obj;
+	}
+
 	private function import_name($name) {
 		if(!isset($name)){
-			throw new InvalidInputException('name', '.{1,64}');
-		} else if(!preg_match('/^.{1,256}$/', $name)){
-			throw new InvalidInputException('name', '.{1,64}', $name);
+			throw new InvalidInputException('name', '.{1,50}');
+		} else if(!preg_match('/^.{1,50}$/', $name)){
+			throw new InvalidInputException('name', '.{1,50}', $name);
 		} else {
 			$this->name = $name;
 		}
@@ -212,7 +216,7 @@ class Person implements Model {
 				$image = new Image();
 				$image->pull($data['image_id']);
 			} catch(EmptyResultException $e){
-				throw new InvalidInputException('image_id', 'image id; No Image Found', $data['image_id']); // TODO better exc.-> api index.php
+				throw new InvalidInputException('image_id', 'image id; No Image Found', $data['image_id']); // TODO better exc. -> api index.php
 			} catch(DatabaseException $e){
 				throw $e;
 			}

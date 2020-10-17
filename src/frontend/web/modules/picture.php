@@ -28,7 +28,7 @@ class Picture {
 		$this->copyright = $image->copyright;
 		$this->sizes = $image->sizes;
 
-		$this->original_src = $this->url('original');
+		$this->source_original = $this->url('original');
 
 		foreach($this->sizes as $size){
 			if($size == 'original'){

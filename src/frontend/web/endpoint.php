@@ -26,7 +26,7 @@ class Endpoint {
 			error_reporting(0);
 		}
 
-		if(substr($_SERVER['REQUEST_URI'].'/', 0, 6) == '/admin/'){
+		if(substr($_SERVER['REQUEST_URI'].'/', 0, 7) == '/admin/'){
 			$routes_json = file_get_contents(__DIR__ . '/../../config/adminroutes.json');
 		} else {
 			$routes_json = file_get_contents(__DIR__ . '/../../config/routes.json');
@@ -62,7 +62,7 @@ class Endpoint {
 				foreach($controller->exceptions as $e){
 					throw $e;
 				}
-			} else {
+			} else if(!$controller->empty()){
 				$controller->process();
 			}
 		}
@@ -82,6 +82,7 @@ class Endpoint {
 
 		global $server;
 		$server = (object) [
+			'version' => Config::VERSION,
 			'url' => Config::SERVER_URL,
 			'lang' => Config::SERVER_LANG,
 			'dyn_img_path' => Config::DYNAMIC_IMAGE_PATH,

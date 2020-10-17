@@ -2,7 +2,7 @@
 namespace Blog\Frontend\Web;
 
 abstract class Controller {
-	protected $request;
+	public $request;
 	public $status;
 	public $objects;
 	public $exceptions;

@@ -8,6 +8,8 @@ class ControllerRequest {
 	private $router;
 
 	public $class;
+	public $method;
+	public $data;
 
 	public $action;
 
@@ -20,6 +22,8 @@ class ControllerRequest {
 
 	function __construct(Router &$router, string $class, array $settings = []) {
 		$this->router = &$router;
+		$this->method = strtolower($_SERVER['REQUEST_METHOD']);
+		$this->data = $_POST;
 
 		if(in_array($class, Controllers::REGISTERED)){
 			$this->class = $class;

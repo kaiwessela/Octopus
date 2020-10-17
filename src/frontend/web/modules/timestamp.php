@@ -18,7 +18,7 @@ class Timestamp {
 	}
 
 	function __toString() {
-		return $this->unix;
+		return (string) $this->unix;
 	}
 
 	function __get($name) {

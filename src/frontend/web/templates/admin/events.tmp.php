@@ -6,69 +6,78 @@
 	<body>
 		<?php include COMPONENT_PATH . 'admin/header.comp.php'; ?>
 		<main>
-			<?php if($Event->action == 'list'){ ?>
+			<?php if($Event->request->action == 'list'){ ?>
 			<h1>Alle Veranstaltungen</h1>
-			<?php } else if($Event->action == 'show'){ ?>
+			<?php } else if($Event->request->action == 'show'){ ?>
 			<h1>Veranstaltung ansehen</h1>
-			<?php } else if($Event->action == 'new'){ ?>
+			<?php } else if($Event->request->action == 'new'){ ?>
 			<h1>Neue Veranstaltung erstellen</h1>
-			<?php } else if($Event->action == 'edit'){ ?>
+			<?php } else if($Event->request->action == 'edit'){ ?>
 			<h1>Veranstaltung bearbeiten</h1>
-			<?php } else if($Event->action == 'delete'){ ?>
+			<?php } else if($Event->request->action == 'delete'){ ?>
 			<h1>Veranstaltung löschen</h1>
 			<?php } ?>
 
-			<?php if($Event->action == 'list'){ ?>
+			<?php if($Event->request->action == 'list'){ ?>
 				<a href="<?= $server->url ?>/admin/events/new" class="button new green">Neue Veranstaltung hinzufügen</a>
 			<?php } else { ?>
 				<a href="<?= $server->url ?>/admin/events" class="button back">Zurück zu allen Veranstaltungen</a>
 			<?php } ?>
 
-			<?php foreach($Event->errors as $error){ ?>
-			<div class="message red">
-				<?= $error->getMessage(); ?>
-			</div>
+			<?php if($Event->created()){ ?>
+				<div class="message green">
+					Veranstaltung <code><?= $Event->object->longid ?></code> wurde erfolgreich hinzugefügt.
+				</div>
+			<?php } else if($Event->edited()){ ?>
+				<div class="message green">
+					Veranstaltung <code><?= $Event->object->longid ?></code> wurde erfolgreich bearbeitet.
+				</div>
+			<?php } else if($Event->deleted()){ ?>
+				<div class="message green">
+					Veranstaltung <code><?= $Event->object->longid ?></code> wurde erfolgreich gelöscht.
+				</div>
+			<?php } else if($Event->empty() && $Event->request->action == 'list'){ ?>
+				<div class="message yellow">
+					Es sind noch keine Veranstaltungen vorhanden.
+				</div>
+			<?php } else if($Event->unprocessable()){ ?>
+				<div class="message red">
+					Die hochgeladenen Daten sind fehlerhaft.
+				</div>
+			<?php } else if($Event->internal_error()){ ?>
+				<div class="message red">
+					Es ist ein interner Serverfehler aufgetreten.
+				</div>
 			<?php } ?>
 
-			<?php if($Event->action != 'list' && $Event->action != 'new'){ ?>
+			<?php if($Event->request->action != 'list' && $Event->request->action != 'new'){ ?>
 			<div>
-				<?php if($Event->action != 'show'){ ?>
+				<?php if($Event->request->action != 'show'){ ?>
 				<a class="button blue" href="<?= $server->url ?>/admin/events/<?= $Event->object->id ?>">Ansehen</a>
 				<?php } ?>
 
-				<?php if($Event->action != 'edit'){ ?>
+				<?php if($Event->request->action != 'edit'){ ?>
 				<a class="button yellow" href="<?= $server->url ?>/admin/events/<?= $Event->object->id ?>/edit">Bearbeiten</a>
 				<?php } ?>
 
-				<?php if($Event->action != 'delete'){ ?>
+				<?php if($Event->request->action != 'delete'){ ?>
 				<a class="button red" href="<?= $server->url ?>/admin/events/<?= $Event->object->id ?>/delete">Löschen</a>
 				<?php } ?>
 			</div>
 			<?php } ?>
 
-			<?php if(($Event->action == 'new' || $Event->action == 'edit') && $Event->action->completed()){ ?>
-			<div class="message green">
-				Veranstaltung <code><?= $Event->object->longid ?></code> wurde erfolgreich gespeichert.
-			</div>
-			<?php } ?>
-
-			<?php if($Event->action == 'list'){ ?>
+			<?php if($Event->request->action == 'list' && $Event->found()){ ?>
 				<?php
 				$pagination = $Event->pagination;
 				include COMPONENT_PATH . 'admin/pagination.comp.php';
 				?>
 
-				<?php if(empty($Event->objects)){ ?>
-				<div class="message yellow">
-					Es sind noch keine Veranstaltungen vorhanden.
-				</div>
-
-				<?php } else { foreach($Event->objects as $obj){ ?>
+				<?php foreach($Event->objects as $obj){ ?>
 				<article>
 					<code><?= $obj->longid ?></code>
 					<h2><?= $obj->title ?></h2>
 					<small><?= $obj->location ?></small>
-					<small><?= $timeformat->date_and_time($obj->timestamp) ?></small>
+					<small><?= $obj->timestamp->datetime_long ?></small>
 					<div>
 						<a class="button blue"
 							href="<?= $server->url ?>/admin/events/<?= $obj->id ?>">Ansehen</a>
@@ -78,20 +87,20 @@
 							href="<?= $server->url ?>/admin/events/<?= $obj->id ?>/delete">Löschen</a>
 					</div>
 				</article>
-				<?php }} ?>
+				<?php } ?>
 			<?php } ?>
 
-			<?php if($Event->action == 'show'){ ?>
+			<?php if($Event->request->action == 'show' && $Event->found()){ ?>
 				<?php $obj = $Event->object; ?>
 				<article>
 					<code><?= $obj->longid ?></code>
 					<h1><?= $obj->title ?></h1>
-					<p><?= $timeformat->date_and_time_with_day($obj->timestamp) ?></p>
+					<p><?= $obj->timestamp->datetime_long ?></p>
 					<p><?= $obj->location ?></p>
 				</article>
 			<?php } ?>
 
-			<?php if($Event->action == 'edit' && !$Event->action->completed()){ ?>
+			<?php if($Event->request->action == 'edit' && !$Event->edited()){ ?>
 				<?php $obj = $Event->object; ?>
 				<form action="#" method="post">
 					<input type="hidden" name="id" value="<?= $obj->id ?>">
@@ -152,7 +161,7 @@
 				</form>
 			<?php } ?>
 
-			<?php if($Event->action == 'new' && !$Event->action->completed()){ ?>
+			<?php if($Event->request->action == 'new' && !$Event->created()){ ?>
 				<?php $obj = $Event->object; ?>
 				<form action="#" method="post">
 					<label for="longid">
@@ -222,7 +231,7 @@
 				</form>
 			<?php } ?>
 
-			<?php if($Event->action == 'delete' && !$Event->action->completed()){ ?>
+			<?php if($Event->request->action == 'delete' && !$Event->deleted()){ ?>
 				<?php $obj = $Event->object; ?>
 				<p>Veranstaltung <code><?= $obj->longid ?></code> löschen?</p>
 				<form action="#" method="post">
@@ -231,11 +240,13 @@
 				</form>
 			<?php } ?>
 
-			<?php if($Event->action == 'new' || $Event->action == 'edit'){
-				include COMPONENT_PATH . 'admin/timeinput.comp.php';
-			} ?>
-
-			<script src="<?= $server->url ?>/resources/js/validate.js"></script>
 		</main>
+		<?php include COMPONENT_PATH . 'admin/footer.comp.php'; ?>
+
+		<?php if($Event->request->action == 'new' || $Event->request->action == 'edit'){
+			include COMPONENT_PATH . 'admin/timeinput.comp.php';
+		} ?>
+
+		<script src="<?= $server->url ?>/resources/js/validate.js"></script>
 	</body>
 </html>

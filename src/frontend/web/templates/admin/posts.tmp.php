@@ -6,75 +6,83 @@
 	<body>
 		<?php include COMPONENT_PATH . 'admin/header.comp.php'; ?>
 		<main>
-			<?php if($Post->action == 'list'){ ?>
+			<?php if($Post->request->action == 'list'){ ?>
 			<h1>Alle Posts</h1>
-			<?php } else if($Post->action == 'show'){ ?>
+			<?php } else if($Post->request->action == 'show'){ ?>
 			<h1>Post ansehen</h1>
-			<?php } else if($Post->action == 'new'){ ?>
+			<?php } else if($Post->request->action == 'new'){ ?>
 			<h1>Neuen Post schreiben</h1>
-			<?php } else if($Post->action == 'edit'){ ?>
+			<?php } else if($Post->request->action == 'edit'){ ?>
 			<h1>Post bearbeiten</h1>
-			<?php } else if($Post->action == 'delete'){ ?>
+			<?php } else if($Post->request->action == 'delete'){ ?>
 			<h1>Post löschen</h1>
 			<?php } ?>
 
-			<?php if($Post->action == 'list'){ ?>
+			<?php if($Post->request->action == 'list'){ ?>
 				<a href="<?= $server->url ?>/admin/posts/new" class="button new green">Neuen Post schreiben</a>
 			<?php } else { ?>
 				<a href="<?= $server->url ?>/admin/posts" class="button back">Zurück zu allen Posts</a>
 			<?php } ?>
 
-			<?php foreach($Post->errors as $error){ ?>
-			<div class="message red">
-				<?= $error->getMessage(); ?>
-			</div>
+			<?php if($Post->created()){ ?>
+				<div class="message green">
+					Post <code><?= $Post->object->longid ?></code> wurde erfolgreich hinzugefügt.
+				</div>
+			<?php } else if($Post->edited()){ ?>
+				<div class="message green">
+					Post <code><?= $Post->object->longid ?></code> wurde erfolgreich bearbeitet.
+				</div>
+			<?php } else if($Post->deleted()){ ?>
+				<div class="message green">
+					Post <code><?= $Post->object->longid ?></code> wurde erfolgreich gelöscht.
+				</div>
+			<?php } else if($Post->empty() && $Post->request->action == 'list'){ ?>
+				<div class="message yellow">
+					Es sind noch keine Posts vorhanden.
+				</div>
+			<?php } else if($Post->unprocessable()){ ?>
+				<div class="message red">
+					Die hochgeladenen Daten sind fehlerhaft.
+				</div>
+			<?php } else if($Post->internal_error()){ ?>
+				<div class="message red">
+					Es ist ein interner Serverfehler aufgetreten.
+				</div>
 			<?php } ?>
 
-			<?php if($Post->action != 'list' && $Post->action != 'new'){ ?>
+			<?php if($Post->request->action != 'list' && $Post->request->action != 'new'){ ?>
 			<div>
-
-				<?php if($Post->action != 'show'){ ?>
+				<?php if($Post->request->action != 'show'){ ?>
 				<a class="button blue" href="<?= $server->url ?>/admin/posts/<?= $Post->object->id ?>">Ansehen</a>
 				<?php } ?>
 
-				<a class="button blue" href="<?= $server->url ?>/<?= $Post->object->longid ?>">Vorschau</a>
+				<a class="button blue" href="<?= $server->url ?>/artikel/<?= $Post->object->longid ?>">Vorschau</a>
 
-				<?php if($Post->action != 'edit'){ ?>
+				<?php if($Post->request->action != 'edit'){ ?>
 				<a class="button yellow" href="<?= $server->url ?>/admin/posts/<?= $Post->object->id ?>/edit">Bearbeiten</a>
 				<?php } ?>
 
-				<?php if($Post->action != 'delete'){ ?>
+				<?php if($Post->request->action != 'delete'){ ?>
 				<a class="button red" href="<?= $server->url ?>/admin/posts/<?= $Post->object->id ?>/delete">Löschen</a>
 				<?php } ?>
 			</div>
 			<?php } ?>
 
-			<?php if(($Post->action == 'new' || $Post->action == 'edit') && $Post->action->completed()){ ?>
-			<div class="message green">
-				Post <code><?= $Post->object->longid ?></code> wurde erfolgreich gespeichert.
-			</div>
-			<?php } ?>
-
-			<?php if($Post->action == 'list'){ ?>
+			<?php if($Post->request->action == 'list' && $Post->found()){ ?>
 				<?php
 				$pagination = $Post->pagination;
 				include COMPONENT_PATH . 'admin/pagination.comp.php';
 				?>
 
-				<?php if(empty($Post->objects)){ ?>
-				<div class="message yellow">
-					Es sind noch keine Posts vorhanden.
-				</div>
-
-				<?php } else { foreach($Post->objects as $obj){ ?>
+				<?php foreach($Post->objects as $obj){ ?>
 				<article>
 					<code><?= $obj->longid ?></code>
 					<h2><?= $obj->headline ?></h2>
 					<strong><?= $obj->subline ?></strong>
 					<small>
 						Von <?= $obj->author ?> –
-						<time datetime="<?= $timeformat::html_time($obj->timestamp) ?>">
-							<?= $timeformat::date_and_time($obj->timestamp) ?>
+						<time datetime="<?= $obj->timestamp->iso ?>">
+							<?= $obj->timestamp->datetime ?>
 						</time>
 					</small>
 					<div>
@@ -86,10 +94,10 @@
 							href="<?= $server->url ?>/admin/posts/<?= $obj->id ?>/delete">Löschen</a>
 					</div>
 				</article>
-				<?php }} ?>
+				<?php } ?>
 			<?php } ?>
 
-			<?php if($Post->action == 'show'){ ?>
+			<?php if($Post->request->action == 'show' && $Post->found()){ ?>
 				<?php $obj = $Post->object; ?>
 				<article>
 					<code><?= $obj->longid ?></code>
@@ -99,8 +107,8 @@
 					<p><?= $obj->teaser ?></p>
 					<small>
 						Von <?= $obj->author ?> –
-						<time datetime="<?= $timeformat::html_time($obj->timestamp) ?>">
-							<?= $timeformat::date_and_time($obj->timestamp) ?>
+						<time datetime="<?= $obj->timestamp->iso ?>">
+							<?= $obj->timestamp->datetime ?>
 						</time>
 					</small>
 
@@ -117,7 +125,7 @@
 				</article>
 			<?php } ?>
 
-			<?php if($Post->action == 'edit' && !$Post->action->completed()){ ?>
+			<?php if($Post->request->action == 'edit' && !$Post->edited()){ ?>
 				<?php $obj = $Post->object; ?>
 				<form action="#" method="post">
 					<input type="hidden" name="id" value="<?= $obj->id ?>">
@@ -205,7 +213,7 @@
 				</form>
 			<?php } ?>
 
-			<?php if($Post->action == 'new' && !$Post->action->completed()){ ?>
+			<?php if($Post->request->action == 'new' && !$Post->created()){ ?>
 				<?php $obj = $Post->object; ?>
 				<form action="#" method="post">
 					<label for="longid">
@@ -302,25 +310,22 @@
 				</form>
 			<?php } ?>
 
-			<?php if($Post->action == 'delete' && !$Post->action->completed()){ ?>
+			<?php if($Post->request->action == 'delete' && !$Post->deleted()){ ?>
 				<?php $obj = $Post->object; ?>
-				<p>
-					<a href="<?= $server->url ?>/posts/<?= $obj->longid ?>">Blogansicht</a>
-					<a href="<?= $server->url ?>/admin/posts/<?= $obj->id ?>/edit" class="edit">Bearbeiten</a>
-				</p>
-				<p>Post <span class="code"><?= $obj->longid ?></span> löschen?</p>
+				<p>Post <code><?= $obj->longid ?></code> löschen?</p>
 				<form action="#" method="post">
 					<input type="hidden" id="id" name="id" value="<?= $obj->id ?>">
 					<button type="submit" class="red">Löschen</button>
 				</form>
 			<?php } ?>
 
-			<?php if($Post->action == 'new' || $Post->action == 'edit'){
-				include COMPONENT_PATH . 'admin/imageinput.comp.php';
-				include COMPONENT_PATH . 'admin/timeinput.comp.php';
-			} ?>
-
-			<script src="<?= $server->url ?>/resources/js/admin/validate.js"></script>
 		</main>
+		<?php include COMPONENT_PATH . 'admin/footer.comp.php'; ?>
+
+		<?php if($Post->request->action == 'new' || $Post->request->action == 'edit'){
+			include COMPONENT_PATH . 'admin/imageinput.comp.php';
+			include COMPONENT_PATH . 'admin/timeinput.comp.php';
+		} ?>
+		<script src="<?= $server->url ?>/resources/js/admin/validate.js"></script>
 	</body>
 </html>

@@ -41,7 +41,7 @@ html {
 body {
 	display: grid;
 	grid-template-columns: [grid-start nav-start] 12rem [nav-end content-start] 60rem [content-end] 1fr [grid-end];
-	grid-template-rows: [grid-start header-start] 3rem [header-end] auto [grid-end];
+	grid-template-rows: [grid-start header-start] 3rem [header-end] auto auto [grid-end];
 	min-height: 100vh;
 	margin: 0;
 	padding: 0;
@@ -119,7 +119,15 @@ nav ul a:focus {
 
 main {
 	grid-column: content-start / content-end;
-	padding: 0 1rem 2rem;
+	padding: 0 1rem 10rem;
+}
+
+footer {
+	grid-column: grid-start / grid-end;
+	padding: 0 1rem;
+	font-size: 0.8rem;
+	color: var(--dark-gray);
+	background-color: #20202f08;
 }
 
 article {

@@ -6,64 +6,73 @@
 	<body>
 		<?php include COMPONENT_PATH . 'admin/header.comp.php'; ?>
 		<main>
-			<?php if($Person->action == 'list'){ ?>
+			<?php if($Person->request->action == 'list'){ ?>
 			<h1>Alle Personen</h1>
-			<?php } else if($Person->action == 'show'){ ?>
+			<?php } else if($Person->request->action == 'show'){ ?>
 			<h1>Person ansehen</h1>
-			<?php } else if($Person->action == 'new'){ ?>
+			<?php } else if($Person->request->action == 'new'){ ?>
 			<h1>Neue Person hinzufügen</h1>
-			<?php } else if($Person->action == 'edit'){ ?>
+			<?php } else if($Person->request->action == 'edit'){ ?>
 			<h1>Person bearbeiten</h1>
-			<?php } else if($Person->action == 'delete'){ ?>
+			<?php } else if($Person->request->action == 'delete'){ ?>
 			<h1>Person löschen</h1>
 			<?php } ?>
 
-			<?php if($Person->action == 'list'){ ?>
+			<?php if($Person->request->action == 'list'){ ?>
 				<a href="<?= $server->url ?>/admin/persons/new" class="button new green">Neue Person hinzufügen</a>
 			<?php } else { ?>
 				<a href="<?= $server->url ?>/admin/persons" class="button back">Zurück zu allen Personen</a>
 			<?php } ?>
 
-			<?php foreach($Person->errors as $error){ ?>
-			<div class="message red">
-				<?= $error->getMessage(); ?>
-			</div>
+			<?php if($Person->created()){ ?>
+				<div class="message green">
+					Person <code><?= $Person->object->longid ?></code> wurde erfolgreich hinzugefügt.
+				</div>
+			<?php } else if($Person->edited()){ ?>
+				<div class="message green">
+					Person <code><?= $Person->object->longid ?></code> wurde erfolgreich bearbeitet.
+				</div>
+			<?php } else if($Person->deleted()){ ?>
+				<div class="message green">
+					Person <code><?= $Person->object->longid ?></code> wurde erfolgreich gelöscht.
+				</div>
+			<?php } else if($Person->empty() && $Person->request->action == 'list'){ ?>
+				<div class="message yellow">
+					Es sind noch keine Personen vorhanden.
+				</div>
+			<?php } else if($Person->unprocessable()){ ?>
+				<div class="message red">
+					Die hochgeladenen Daten sind fehlerhaft.
+				</div>
+			<?php } else if($Person->internal_error()){ ?>
+				<div class="message red">
+					Es ist ein interner Serverfehler aufgetreten.
+				</div>
 			<?php } ?>
 
-			<?php if($Person->action != 'list' && $Person->action != 'new'){ ?>
+			<?php if($Person->request->action != 'list' && $Person->request->action != 'new'){ ?>
 			<div>
-				<?php if($Person->action != 'show'){ ?>
+				<?php if($Person->request->action != 'show'){ ?>
 				<a class="button blue" href="<?= $server->url ?>/admin/persons/<?= $Person->object->id ?>">Ansehen</a>
 				<?php } ?>
 
-				<?php if($Person->action != 'edit'){ ?>
+				<?php if($Person->request->action != 'edit'){ ?>
 				<a class="button yellow" href="<?= $server->url ?>/admin/persons/<?= $Person->object->id ?>/edit">Bearbeiten</a>
 				<?php } ?>
 
-				<?php if($Person->action != 'delete'){ ?>
+				<?php if($Person->request->action != 'delete'){ ?>
 				<a class="button red" href="<?= $server->url ?>/admin/persons/<?= $Person->object->id ?>/delete">Löschen</a>
 				<?php } ?>
 			</div>
 			<?php } ?>
 
-			<?php if(($Person->action == 'new' || $Person->action == 'edit') && $Person->action->completed()){ ?>
-			<div class="message green">
-				Person <code><?= $Person->object->longid ?></code> wurde erfolgreich gespeichert.
-			</div>
-			<?php } ?>
-
-			<?php if($Person->action == 'list'){ ?>
+			<?php if($Person->request->action == 'list' && $Person->found()){ ?>
 				<?php
 				$pagination = $Person->pagination;
 				include COMPONENT_PATH . 'admin/pagination.comp.php';
 				?>
 
-				<?php if(empty($Person->objects)){ ?>
-				<div class="message yellow">
-					Es sind noch keine Personen vorhanden.
-				</div>
-
-				<?php } else { foreach($Person->objects as $obj){ ?>
+				<?php foreach($Person->objects as $obj){ ?>
 				<article>
 					<code><?= $obj->longid ?></code>
 					<h2><?= $obj->name ?></h2>
@@ -76,10 +85,10 @@
 							href="<?= $server->url ?>/admin/persons/<?= $obj->id ?>/delete">Löschen</a>
 					</div>
 				</article>
-				<?php }} ?>
+				<?php } ?>
 			<?php } ?>
 
-			<?php if($Person->action == 'show'){ ?>
+			<?php if($Person->request->action == 'show' && $Person->found()){ ?>
 				<?php $obj = $Person->object; ?>
 				<article>
 					<code><?= $obj->longid ?></code>
@@ -96,7 +105,7 @@
 				</article>
 			<?php } ?>
 
-			<?php if($Person->action == 'edit' && !$Person->action->completed()){ ?>
+			<?php if($Person->request->action == 'edit' && !$Person->edited()){ ?>
 				<?php $obj = $Person->object; ?>
 				<form action="#" method="post">
 					<input type="hidden" name="id" value="<?= $obj->id ?>">
@@ -124,7 +133,7 @@
 				</form>
 			<?php } ?>
 
-			<?php if($Person->action == 'new' && !$Person->action->completed()){ ?>
+			<?php if($Person->request->action == 'new' && !$Person->created()){ ?>
 				<?php $obj = $Person->object; ?>
 				<form action="#" method="post">
 					<label for="longid">
@@ -161,12 +170,8 @@
 				</form>
 			<?php } ?>
 
-			<?php if($Person->action == 'delete' && !$Person->action->completed()){ ?>
+			<?php if($Person->request->action == 'delete' && !$Person->deleted()){ ?>
 				<?php $obj = $Person->object; ?>
-				<p>
-					<a href="<?= $server->url ?>/posts/<?= $obj->longid ?>">Blogansicht</a>
-					<a href="<?= $server->url ?>/admin/posts/<?= $obj->id ?>/edit" class="edit">Bearbeiten</a>
-				</p>
 				<p>Person <code><?= $obj->longid ?></code> löschen?</p>
 				<form action="#" method="post">
 					<input type="hidden" id="id" name="id" value="<?= $obj->id ?>">
@@ -174,11 +179,13 @@
 				</form>
 			<?php } ?>
 
-			<?php if($Person->action == 'new' || $Person->action == 'edit'){
-				include COMPONENT_PATH . 'admin/imageinput.comp.php';
-			} ?>
-
-			<script src="<?= $server->url ?>/resources/js/admin/validate.js"></script>
 		</main>
+		<?php include COMPONENT_PATH . 'admin/footer.comp.php'; ?>
+
+		<?php if($Person->request->action == 'new' || $Person->request->action == 'edit'){
+			include COMPONENT_PATH . 'admin/imageinput.comp.php';
+		} ?>
+
+		<script src="<?= $server->url ?>/resources/js/admin/validate.js"></script>
 	</body>
 </html>

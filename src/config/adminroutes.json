@@ -4,16 +4,15 @@
 		"controllers": {},
 		"auth": true
 	},
-	"admin/*(/#)": {
+	"admin/*/#?": {
 		"template": "admin/?2",
 		"controllers": {
 			"?2": {
 				"action": "list",
 				"amount": 20,
 				"page": "?3",
-				"pagination": {
-					"structure": "admin",
-					"base_path": "admin/?2"
+				"custom": {
+					"pagination_structure": "admin"
 				}
 			}
 		},
@@ -33,7 +32,7 @@
 		"controllers": {
 			"?2": {
 				"action": "show",
-				"identfier": "?3"
+				"identifier": "?3"
 			}
 		},
 		"auth": true

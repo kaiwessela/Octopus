@@ -6,67 +6,75 @@
 	<body>
 		<?php include COMPONENT_PATH . 'admin/header.comp.php'; ?>
 		<main>
-			<?php if($Page->action == 'list'){ ?>
+			<?php if($Page->request->action == 'list'){ ?>
 			<h1>Alle Seiten</h1>
-			<?php } else if($Page->action == 'show'){ ?>
+			<?php } else if($Page->request->action == 'show'){ ?>
 			<h1>Seite ansehen</h1>
-			<?php } else if($Page->action == 'new'){ ?>
+			<?php } else if($Page->request->action == 'new'){ ?>
 			<h1>Neue Seite erstellen</h1>
-			<?php } else if($Page->action == 'edit'){ ?>
+			<?php } else if($Page->request->action == 'edit'){ ?>
 			<h1>Seite bearbeiten</h1>
-			<?php } else if($Page->action == 'delete'){ ?>
+			<?php } else if($Page->request->action == 'delete'){ ?>
 			<h1>Seite löschen</h1>
 			<?php } ?>
 
-			<?php if($Page->action == 'list'){ ?>
+			<?php if($Page->request->action == 'list'){ ?>
 				<a href="<?= $server->url ?>/admin/pages/new" class="button new green">Neue Seite erstellen</a>
 			<?php } else { ?>
 				<a href="<?= $server->url ?>/admin/pages" class="button back">Zurück zu allen Seiten</a>
 			<?php } ?>
 
-			<?php foreach($Page->errors as $error){ ?>
-			<div class="message red">
-				<?= $error->getMessage() ?>
-			</div>
+			<?php if($Page->created()){ ?>
+				<div class="message green">
+					Seite <code><?= $Page->object->longid ?></code> wurde erfolgreich hinzugefügt.
+				</div>
+			<?php } else if($Page->edited()){ ?>
+				<div class="message green">
+					Seite <code><?= $Page->object->longid ?></code> wurde erfolgreich bearbeitet.
+				</div>
+			<?php } else if($Page->deleted()){ ?>
+				<div class="message green">
+					Seite <code><?= $Page->object->longid ?></code> wurde erfolgreich gelöscht.
+				</div>
+			<?php } else if($Page->empty() && $Page->request->action == 'list'){ ?>
+				<div class="message yellow">
+					Es sind noch keine Seiten vorhanden.
+				</div>
+			<?php } else if($Page->unprocessable()){ ?>
+				<div class="message red">
+					Die hochgeladenen Daten sind fehlerhaft.
+				</div>
+			<?php } else if($Page->internal_error()){ ?>
+				<div class="message red">
+					Es ist ein interner Serverfehler aufgetreten.
+				</div>
 			<?php } ?>
 
-			<?php if($Page->action != 'list' && $Page->action != 'new'){ ?>
+			<?php if($Page->request->action != 'list' && $Page->request->action != 'new'){ ?>
 			<div>
-
-				<?php if($Page->action != 'show'){ ?>
+				<?php if($Page->request->action != 'show'){ ?>
 				<a class="button blue" href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>">Ansehen</a>
 				<?php } ?>
 
 				<a class="button blue" href="<?= $server->url ?>/<?= $Page->object->longid ?>">Vorschau</a>
 
-				<?php if($Page->action != 'edit'){ ?>
+				<?php if($Page->request->action != 'edit'){ ?>
 				<a class="button yellow" href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>/edit">Bearbeiten</a>
 				<?php } ?>
 
-				<?php if($Page->action != 'delete'){ ?>
+				<?php if($Page->request->action != 'delete'){ ?>
 				<a class="button red" href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>/delete">Löschen</a>
 				<?php } ?>
 			</div>
 			<?php } ?>
 
-			<?php if(($Page->action == 'new' || $Page->action == 'edit') && $Page->action->completed()){ ?>
-			<div class="message green">
-				Seite <code><?= $Page->object->longid ?></code> wurde erfolgreich gespeichert.
-			</div>
-			<?php } ?>
-
-			<?php if($Page->action == 'list'){ ?>
+			<?php if($Page->request->action == 'list' && $Page->found()){ ?>
 				<?php
 				$pagination = $Page->pagination;
 				include COMPONENT_PATH . 'admin/pagination.comp.php';
 				?>
 
-				<?php if(empty($Page->objects)){ ?>
-				<div class="message yellow">
-					Es sind noch keine Seiten vorhanden.
-				</div>
-
-				<?php } else { foreach($Page->objects as $obj){ ?>
+				<?php foreach($Page->objects as $obj){ ?>
 				<article>
 					<code><?= $obj->longid ?></code>
 					<h2><?= $obj->title ?></h2>
@@ -76,10 +84,10 @@
 						<a class="button red" href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>/delete">Löschen</a>
 					</div>
 				</article>
-				<?php }} ?>
+				<?php } ?>
 			<?php } ?>
 
-			<?php if($Page->action == 'show'){ ?>
+			<?php if($Page->request->action == 'show' && $Page->found()){ ?>
 				<?php $obj = $Page->object; ?>
 				<article>
 					<code><?= $obj->longid ?></code>
@@ -88,7 +96,7 @@
 				</article>
 			<?php } ?>
 
-			<?php if($Page->action == 'edit' && !$Page->action->completed()){ ?>
+			<?php if($Page->request->action == 'edit' && !$Page->edited()){ ?>
 				<?php $obj = $Page->object; ?>
 				<form action="#" method="post">
 					<input type="hidden" name="id" value="<?= $obj->id ?>">
@@ -112,13 +120,13 @@
 						</span>
 						<span class="infos">Der eigentliche Inhalt der Seite.</span>
 					</label>
-					<textarea id="content" name="content"><?= $obj->content ?></textarea>
+					<textarea id="content" name="content" cols="80" rows="20"><?= $obj->content ?></textarea>
 
 					<button type="submit" class="blue">Speichern</button>
 				</form>
 			<?php } ?>
 
-			<?php if($Page->action == 'new' && !$Page->action->completed()){ ?>
+			<?php if($Page->request->action == 'new' && !$Page->created()){ ?>
 				<?php $obj = $Page->object; ?>
 				<form action="#" method="post">
 					<label for="longid">
@@ -129,7 +137,7 @@
 						</span>
 						<span class="infos">
 							Die Seiten-ID wird als URL verwendet
-							(<code>https://<?= $server->url ?>/[Seiten-ID]</code>) und entspricht
+							(<code><?= $server->url ?>/[Seiten-ID]</code>) und entspricht
 							oftmals ungefähr dem Titel.
 						</span>
 					</label>
@@ -153,13 +161,13 @@
 						</span>
 						<span class="infos">Der eigentliche Inhalt der Seite.</span>
 					</label>
-					<textarea id="content" name="content"></textarea>
+					<textarea id="content" name="content" cols="80" rows="20"></textarea>
 
 					<button type="submit" class="green">Speichern</button>
 				</form>
 			<?php } ?>
 
-			<?php if($Page->action == 'delete' && !$Page->action->completed()){ ?>
+			<?php if($Page->request->action == 'delete' && !$Page->deleted()){ ?>
 				<?php $obj = $Page->object; ?>
 				<p>Seite <code><?= $obj->longid ?></code> löschen?</p>
 				<form action="#" method="post">
@@ -168,7 +176,9 @@
 				</form>
 			<?php } ?>
 
-			<script src="<?= $server->url ?>/resources/js/validate.js"></script>
 		</main>
+		<?php include COMPONENT_PATH . 'admin/footer.comp.php'; ?>
+
+		<script src="<?= $server->url ?>/resources/js/validate.js"></script>
 	</body>
 </html>

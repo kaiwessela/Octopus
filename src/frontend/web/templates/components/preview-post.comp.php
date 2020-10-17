@@ -2,8 +2,8 @@
 	<a href="<?= $server->url ?>/posts/<?= $post->longid ?>">
 
 <?php
-if($post->image->id){
-	$picture = $post->picture;
+if(!empty($post->image->id)){
+	$picture = $post->image;
 	include COMPONENT_PATH . 'picture.comp.php';
 }
 ?>

@@ -3,6 +3,7 @@ namespace Blog\Frontend\Web\Controllers;
 use \Blog\Frontend\Web\Controller;
 use \Blog\Frontend\Web\Modules\Picture;
 use \Blog\Frontend\Web\Modules\Timestamp;
+use \Blog\Frontend\Web\Modules\MarkdownContent;
 use \Blog\Frontend\Web\Modules\Pagination\Pagination;
 use InvalidArgumentException;
 
@@ -26,7 +27,7 @@ class PostController extends Controller {
 		$objs = [];
 		foreach($this->objects as $object){
 			$obj = $object->export();
-			
+
 			$obj->timestamp = new Timestamp($object->timestamp);
 			$obj->content = new MarkdownContent($object->content);
 

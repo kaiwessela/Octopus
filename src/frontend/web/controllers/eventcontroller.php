@@ -2,6 +2,7 @@
 namespace Blog\Frontend\Web\Controllers;
 use \Blog\Frontend\Web\Controller;
 use \Blog\Frontend\Web\Modules\Pagination\Pagination;
+use \Blog\Frontend\Web\Modules\Timestamp;
 
 
 class EventController extends Controller {
@@ -20,7 +21,15 @@ class EventController extends Controller {
 
 
 	public function process() {
-		parent::process();
+		$objs = [];
+		foreach($this->objects as $object){
+			$obj = $object->export();
+
+			$obj->timestamp = new Timestamp($object->timestamp);
+
+			$objs[] = $obj;
+		}
+		$this->objects = $objs;
 
 		if(isset($this->request->custom['pagination_structure']) && $this->request->action == 'list'){
 			try {

@@ -5,7 +5,7 @@ use \Blog\Config\Controllers;
 use Exception;
 
 class ControllerRequest {
-	private $router;
+	public $router;
 
 	public $class;
 	public $method;

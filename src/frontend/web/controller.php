@@ -1,5 +1,6 @@
 <?php
 namespace Blog\Frontend\Web;
+use \Blog\Frontend\Web\Modules\Pagination\Pagination;
 
 abstract class Controller {
 	public $request;
@@ -7,6 +8,7 @@ abstract class Controller {
 	public $objects;
 	public $exceptions;
 
+	public $pagination;
 	protected $count;
 
 	const MODEL = '';
@@ -142,9 +144,35 @@ abstract class Controller {
 	public function process() {
 		$objs = [];
 		foreach($this->objects as $object){
-			$objs[] = $object->export();
+			$obj = $object->export();
+			$this->process_each($object, $obj);
+			$objs[] = $obj;
 		}
 		$this->objects = $objs;
+
+		if($this->request->action == 'list' && isset($this->request->custom['pagination_structure'])){
+			$current_page = $this->request->page;
+			$objects_per_page = $this->request->amount;
+			$total_objects = $this->count;
+			$base_path = $this->request->router->resolve_substitutions($this->request->custom['pagination_base']);
+			$structure = $this->request->custom['pagination_structure'];
+
+			try {
+				$this->pagination = new Pagination($current_page, $objects_per_page, $total_objects, $base_path, $structure);
+			} catch(InvalidArgumentException $e){
+				$this->exceptions[] = $e;
+			}
+		}
+
+		$this->process_all($this->objects);
+	}
+
+	protected function process_all(&$objects) {
+		return;
+	}
+
+	protected function process_each(&$object, &$obj) {
+		return;
 	}
 
 

@@ -12,7 +12,8 @@
 				"amount": 20,
 				"page": "?3",
 				"custom": {
-					"pagination_structure": "admin"
+					"pagination_structure": "admin",
+					"pagination_base": "admin/?2"
 				}
 			}
 		},

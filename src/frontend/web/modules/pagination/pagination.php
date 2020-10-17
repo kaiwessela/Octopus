@@ -13,7 +13,7 @@ class Pagination {
 	#last_object;
 
 	public $structure;
-	public $base_path; // TODO we need to find a way to provide a base path
+	public $base_path;
 
 	public $items;
 
@@ -38,7 +38,7 @@ class Pagination {
 		}
 
 		if(is_string($base_path)){
-			$this->base_path = $base_path; // TEMP
+			$this->base_path = $base_path;
 		} else {
 			throw new InvalidArgumentException('Pagination: base_path must be a valid string.');
 		}

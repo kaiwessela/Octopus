@@ -4,8 +4,6 @@ use \Astronauth\Backend\User;
 use \Blog\Config\Config;
 use \Blog\Frontend\API\v1\APIRequest;
 use \Blog\Frontend\API\v1\APIResponse;
-use \Blog\Backend\Models\Post;
-use \Blog\Backend\Models\Image;
 use \Blog\Backend\Exceptions\EmptyResultException;
 use \Blog\Backend\Exceptions\DatabaseException;
 use \Blog\Backend\Exceptions\InvalidInputException;
@@ -80,6 +78,9 @@ class Endpoint {
 		} else if($this->request->class == 'events'){
 			# class Event requested
 			$backend_class = new \Blog\Backend\Models\Event;
+		} else if($this->request->class == 'pages'){
+			# class Page requested
+			$backend_class = new \Blog\Backend\Models\Page;
 		} else {
 			# invalid class requested, answer with error
 			$this->response->set_response_code(400);

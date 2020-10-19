@@ -1,6 +1,16 @@
 <?php
 /* ################################
 
+ROUTES:
+/										GET		- welcome
+/[class](?limit=[int](&offset=[int]))	GET		- list all (or some) instances of class
+/[class]/new							POST	- create new instance of class
+/[class]/count							GET		- count all instances of class
+/[class]/[id|longid]					GET		- show requested instance of class
+/[class]/[id|longid]/edit				POST	- edit requested instance of class
+/[class]/[id|longid]/delete				POST	- delete requested instance of class
+
+
 VALID ROUTES:
 /
 /posts (?limit=[int](&offset=[int]))

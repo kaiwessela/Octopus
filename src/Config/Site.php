@@ -1,7 +1,7 @@
 <?php
 namespace Blog\Frontend\Web;
 
-class SiteConfig {
+class Site {
 	const TITLE = 'Kai Florian Wessela';
 
 	const TWITTER_SITE = '@KaiWessela';

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="de">
 	<head>
-		<?php include COMPONENT_PATH . 'admin/head.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'admin/head.php'; ?>
 	</head>
 	<body>
-		<?php include COMPONENT_PATH . 'admin/header.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'admin/header.php'; ?>
 		<main>
 			<?php if($Event->request->action == 'list'){ ?>
 			<h1>Alle Veranstaltungen</h1>
@@ -69,7 +69,7 @@
 			<?php if($Event->request->action == 'list' && $Event->found()){ ?>
 				<?php
 				$pagination = $Event->pagination;
-				include COMPONENT_PATH . 'admin/pagination.comp.php';
+				include COMPONENT_PATH . 'admin/pagination.php';
 				?>
 
 				<?php foreach($Event->objects as $obj){ ?>
@@ -241,10 +241,10 @@
 			<?php } ?>
 
 		</main>
-		<?php include COMPONENT_PATH . 'admin/footer.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'admin/footer.php'; ?>
 
 		<?php if($Event->request->action == 'new' || $Event->request->action == 'edit'){
-			include COMPONENT_PATH . 'admin/timeinput.comp.php';
+			include COMPONENT_PATH . 'admin/timeinput.php';
 		} ?>
 
 		<script src="<?= $server->url ?>/resources/js/validate.js"></script>

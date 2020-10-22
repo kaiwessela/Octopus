@@ -1,5 +1,5 @@
 <?php
-namespace Blog\Frontend\Web\Modules;
+namespace Blog\Controller\Processors;
 use Parsedown;
 
 class MarkdownContent {

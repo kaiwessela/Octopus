@@ -1,21 +1,21 @@
 #! /bin/bash
 
-# clear build folder
 rm -rf build
 
-# create new build folder and subfolders
-mkdir build
-mkdir build/libs
+cp -r web/. build
 
-# copy
-cp -r src/. build
+mkdir build/Blog
+
+cp -r src/. build/Blog
 
 # copy parsedown
-mkdir build/libs/parsedown
+mkdir -p build/libs/parsedown
 cp libs/parsedown/Parsedown.php build/libs/parsedown/Parsedown.php
 
 # copy astronauth
+mkdir -p build/libs/astronauth
+
 cd libs/astronauth
 ./build.sh
 cd ../..
-cp -r libs/astronauth/build/. build/astronauth
+cp -r libs/astronauth/build/. build/libs/astronauth

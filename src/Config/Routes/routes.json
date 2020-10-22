@@ -20,7 +20,8 @@
 				"amount": 5,
 				"page": "?2",
 				"custom": {
-					"pagination_structure": "default"
+					"pagination_structure": "default",
+					"pagination_base": "posts"
 				}
 			}
 		}

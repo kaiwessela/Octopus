@@ -1,17 +1,17 @@
 <?php
-namespace Blog\Frontend\API\v1;
-use \Astronauth\Backend\User;
+namespace Blog;
 use \Blog\Config\Config;
-use \Blog\Frontend\API\v1\APIRequest;
-use \Blog\Frontend\API\v1\APIResponse;
-use \Blog\Backend\Exceptions\EmptyResultException;
-use \Blog\Backend\Exceptions\DatabaseException;
-use \Blog\Backend\Exceptions\InvalidInputException;
+use \Blog\Controller\API\Request;
+use \Blog\Controller\API\Response;
+use \Blog\Model\Exceptions\DatabaseException;
+use \Blog\Model\Exceptions\EmptyResultException;
+use \Blog\Model\Exceptions\InvalidInputException;
+use \Astronauth\User;
 use PDO;
 use PDOException;
 use InvalidArgumentException;
 
-class Endpoint {
+class APIEndpointHandler {
 	private $pdo;
 	private $request;
 	private $response;
@@ -28,8 +28,8 @@ class Endpoint {
 			error_reporting(0);
 		}
 
-		$this->request = new APIRequest();
-		$this->response = new APIResponse();
+		$this->request = new Request();
+		$this->response = new Response();
 
 		# set default response values
 		$this->response->set_api_status('kaiwessela/blog API v1 – running.');

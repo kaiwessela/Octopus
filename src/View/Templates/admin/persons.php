@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="de">
 	<head>
-		<?php include COMPONENT_PATH . 'admin/head.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'admin/head.php'; ?>
 	</head>
 	<body>
-		<?php include COMPONENT_PATH . 'admin/header.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'admin/header.php'; ?>
 		<main>
 			<?php if($Person->request->action == 'list'){ ?>
 			<h1>Alle Personen</h1>
@@ -69,7 +69,7 @@
 			<?php if($Person->request->action == 'list' && $Person->found()){ ?>
 				<?php
 				$pagination = $Person->pagination;
-				include COMPONENT_PATH . 'admin/pagination.comp.php';
+				include COMPONENT_PATH . 'admin/pagination.php';
 				?>
 
 				<?php foreach($Person->objects as $obj){ ?>
@@ -180,10 +180,10 @@
 			<?php } ?>
 
 		</main>
-		<?php include COMPONENT_PATH . 'admin/footer.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'admin/footer.php'; ?>
 
 		<?php if($Person->request->action == 'new' || $Person->request->action == 'edit'){
-			include COMPONENT_PATH . 'admin/imageinput.comp.php';
+			include COMPONENT_PATH . 'admin/imageinput.php';
 		} ?>
 
 		<script src="<?= $server->url ?>/resources/js/admin/validate.js"></script>

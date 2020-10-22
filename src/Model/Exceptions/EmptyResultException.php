@@ -1,5 +1,5 @@
 <?php
-namespace Blog\Backend\Exceptions;
+namespace Blog\Model\Exceptions;
 use Exception;
 
 class EmptyResultException extends Exception {

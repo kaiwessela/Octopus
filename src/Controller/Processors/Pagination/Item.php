@@ -1,7 +1,7 @@
 <?php
-namespace Blog\Frontend\Web\Modules\Pagination;
+namespace Blog\Controller\Processors\Pagination;
 
-class PaginationItem {
+class Item {
 	public $disabled;
 	public $target; # former absolute_number
 	public $steps;  # former relative_number

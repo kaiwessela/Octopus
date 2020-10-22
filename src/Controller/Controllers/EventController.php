@@ -1,8 +1,8 @@
 <?php
-namespace Blog\Frontend\Web\Controllers;
-use \Blog\Frontend\Web\Controller;
-use \Blog\Frontend\Web\Modules\Pagination\Pagination;
-use \Blog\Frontend\Web\Modules\Timestamp;
+namespace Blog\Controller\Controllers;
+use \Blog\Controller\Controller;
+use \Blog\Controller\Processors\Pagination\Pagination;
+use \Blog\Controller\Processors\Timestamp;
 
 
 class EventController extends Controller {

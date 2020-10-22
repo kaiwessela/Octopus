@@ -1,7 +1,7 @@
 <?php
-namespace Blog\Frontend\API\v1;
+namespace Blog\Controller\API;
 
-class APIResponse {
+class Response {
 	# APIResponse class – container and handler for response information
 
 	public $response = [			# response to be sent as json

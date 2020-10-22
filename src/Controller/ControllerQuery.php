@@ -1,10 +1,10 @@
 <?php
-namespace Blog\Frontend\Web;
-use \Blog\Frontend\Web\Modules\Router;
+namespace Blog\Controller;
+use \Blog\Controller\Router;
 use \Blog\Config\Controllers;
 use Exception;
 
-class ControllerRequest {
+class ControllerQuery {
 	public $router;
 
 	public $class;

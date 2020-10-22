@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 	<head>
-		<?php include COMPONENT_PATH . 'head.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'head.php'; ?>
 		<title><?= $Post->object->headline ?> – <?= $site->title ?></title>
 		<link rel="canonical" href="<?= $server->url ?>/posts/<?= $Post->object->longid ?>">
 		<meta name="author" content="<?= $Post->object->author ?>">
@@ -23,7 +23,7 @@
 		<meta property="og:description" content="<?= $Post->object->teaser ?>">
 	</head>
 	<body>
-		<?php include COMPONENT_PATH . 'header.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'header.php'; ?>
 		<main>
 			<article class="post">
 				<header>
@@ -53,7 +53,7 @@
 					<figure>
 						<?php
 						$picture = $Post->object->image;
-						include COMPONENT_PATH . 'picture.comp.php';
+						include COMPONENT_PATH . 'picture.php';
 						?>
 						<figcaption><small><?= $picture->copyright ?></small></figcaption>
 					</figure>
@@ -64,7 +64,7 @@
 				<?= $Post->object->content->parsed ?>
 			</article>
 		</main>
-		<?php include COMPONENT_PATH . 'footer.comp.php'; ?>
-		<?php include COMPONENT_PATH . 'scripts.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'footer.php'; ?>
+		<?php include COMPONENT_PATH . 'scripts.php'; ?>
 	</body>
 </html>

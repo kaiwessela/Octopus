@@ -1,13 +1,13 @@
 <?php
-namespace Blog\Backend;
-use \Blog\Backend\Exceptions\InvalidInputException;
-use \Blog\Backend\Exceptions\DatabaseException;
-use \Blog\Backend\Exceptions\WrongObjectStateException;
+namespace Blog\Model;
+use \Blog\Model\Exceptions\InvalidInputException;
+use \Blog\Model\Exceptions\DatabaseException;
+use \Blog\Model\Exceptions\WrongObjectStateException;
 use \Blog\Config\Config;
 use PDO;
 use Exception;
 
-abstract class Model {
+abstract class DatabaseObject {
 	public $id;		# String(8)
 	public $longid;	# String(9-60)
 

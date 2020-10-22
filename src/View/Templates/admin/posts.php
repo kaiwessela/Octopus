@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="de">
 	<head>
-		<?php include COMPONENT_PATH . 'admin/head.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'admin/head.php'; ?>
 	</head>
 	<body>
-		<?php include COMPONENT_PATH . 'admin/header.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'admin/header.php'; ?>
 		<main>
 			<?php if($Post->request->action == 'list'){ ?>
 			<h1>Alle Posts</h1>
@@ -71,7 +71,7 @@
 			<?php if($Post->request->action == 'list' && $Post->found()){ ?>
 				<?php
 				$pagination = $Post->pagination;
-				include COMPONENT_PATH . 'admin/pagination.comp.php';
+				include COMPONENT_PATH . 'admin/pagination.php';
 				?>
 
 				<?php foreach($Post->objects as $obj){ ?>
@@ -320,11 +320,11 @@
 			<?php } ?>
 
 		</main>
-		<?php include COMPONENT_PATH . 'admin/footer.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'admin/footer.php'; ?>
 
 		<?php if($Post->request->action == 'new' || $Post->request->action == 'edit'){
-			include COMPONENT_PATH . 'admin/imageinput.comp.php';
-			include COMPONENT_PATH . 'admin/timeinput.comp.php';
+			include COMPONENT_PATH . 'admin/imageinput.php';
+			include COMPONENT_PATH . 'admin/timeinput.php';
 		} ?>
 		<script src="<?= $server->url ?>/resources/js/admin/validate.js"></script>
 	</body>

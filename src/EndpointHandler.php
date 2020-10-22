@@ -1,15 +1,11 @@
 <?php
-namespace Blog\Frontend\Web;
+namespace Blog;
 use \Blog\Config\Config;
-use \Blog\Config\Controllers;
-use \Blog\Frontend\Web\SiteConfig;
-use \Blog\Frontend\Web\Modules\TimeFormat;
-use \Blog\Frontend\Web\Modules\Router;
+use \Blog\Config\Site;
+use \Blog\Controller\Router;
 use \Astronauth\Backend\User;
-use PDO;
-use Exception;
 
-class Endpoint {
+class EndpointHandler {
 	public $user;
 	public $router;
 	public $controllers = [];
@@ -27,9 +23,9 @@ class Endpoint {
 		}
 
 		if(substr($_SERVER['REQUEST_URI'].'/', 0, 7) == '/admin/'){
-			$routes_json = file_get_contents(__DIR__ . '/../../config/adminroutes.json');
+			$routes_json = file_get_contents(__DIR__ . '/Config/Routes/adminroutes.json');
 		} else {
-			$routes_json = file_get_contents(__DIR__ . '/../../config/routes.json');
+			$routes_json = file_get_contents(__DIR__ . '/Config/Routes/routes.json');
 		}
 
 		$this->router = new Router($routes_json);
@@ -45,7 +41,7 @@ class Endpoint {
 		}
 
 		foreach($this->router->controller_requests as $request){
-			$class = '\Blog\Frontend\Web\Controllers\\' . $request->class;
+			$class = '\Blog\Controller\Controllers\\' . $request->class;
 			$this->controllers[$request->class] = new $class($request);
 		}
 
@@ -91,19 +87,19 @@ class Endpoint {
 
 		global $site;
 		$site = (object) [
-			'title' => SiteConfig::TITLE,
-			'twitter' => SiteConfig::TWITTER_SITE
+			'title' => Site::TITLE,
+			'twitter' => Site::TWITTER_SITE
 		];
 
 		global $astronauth;
 		$astronauth = $this->user;
 
-		include __DIR__ . '/templates/' . $this->router->template . '.tmp.php';
+		include __DIR__ . '/View/Templates/' . $this->router->template . '.php';
 	}
 
 	function return_404() {
 		http_response_code(404);
-		include 'templates/404.tmp.php';
+		include 'View/Templates/404.tmp.php';
 		exit;
 	}
 }

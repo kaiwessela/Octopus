@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="de">
 	<head>
-		<?php include COMPONENT_PATH . 'head.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'head.php'; ?>
 		<title>Fehler 404 – <?= $site->title ?></title>
 	</head>
 	<body>
-		<?php include COMPONENT_PATH . 'header.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'header.php'; ?>
 		<main>
 			<section>
 				<header class="highlighted">
@@ -19,7 +19,7 @@
 				</p>
 			</section>
 		</main>
-		<?php include COMPONENT_PATH . 'footer.comp.php'; ?>
-		<?php include COMPONENT_PATH . 'scripts.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'footer.php'; ?>
+		<?php include COMPONENT_PATH . 'scripts.php'; ?>
 	</body>
 </html>

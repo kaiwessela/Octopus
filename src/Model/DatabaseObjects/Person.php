@@ -1,15 +1,14 @@
 <?php
-namespace Blog\Backend\Models;
-use \Blog\Backend\Model;
-use \Blog\Backend\ModelTrait;
-use \Blog\Backend\Models\Image;
-use \Blog\Backend\Exceptions\WrongObjectStateException;
-use \Blog\Backend\Exceptions\DatabaseException;
-use \Blog\Backend\Exceptions\EmptyResultException;
-use \Blog\Backend\Exceptions\InvalidInputException;
+namespace Blog\Model\DatabaseObjects;
+use \Blog\Model\DatabaseObject;
+use \Blog\Model\DatabaseObjects\Image;
+use \Blog\Model\Exceptions\WrongObjectStateException;
+use \Blog\Model\Exceptions\DatabaseException;
+use \Blog\Model\Exceptions\EmptyResultException;
+use \Blog\Model\Exceptions\InvalidInputException;
 use InvalidArgumentException;
 
-class Person extends Model {
+class Person extends DatabaseObject {
 	public $name;
 	public $image;
 

@@ -1,7 +1,7 @@
 <?php
 namespace Blog\Config;
 
-class PaginationConfig {
+class Pagination { # as PaginationConfig
 	const STRUCTURES = [
 		'default' => [
 			[

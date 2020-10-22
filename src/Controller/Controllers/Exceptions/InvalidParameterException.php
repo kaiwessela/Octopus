@@ -1,5 +1,5 @@
 <?php
-namespace Blog\Frontend\Web\Controllers\Exceptions;
+namespace Blog\Controller\Controllers\Exceptions;
 
 class InvalidParameterException extends Exception {
 	public $parameters;

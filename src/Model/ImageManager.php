@@ -1,8 +1,8 @@
 <?php
 // BUG: permissions of the uploaded files
-namespace Blog\Backend;
-use \Blog\Backend\Models\Image;
-use \Blog\Backend\Exceptions\ImageManagerException;
+namespace Blog\Model;
+use \Blog\Model\DatabaseObjects\Image;
+use \Blog\Model\Exceptions\ImageManagerException;
 use InvalidArgumentException;
 
 class ImageManager {

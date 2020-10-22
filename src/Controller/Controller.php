@@ -1,6 +1,6 @@
 <?php
-namespace Blog\Frontend\Web;
-use \Blog\Frontend\Web\Modules\Pagination\Pagination;
+namespace Blog\Controller;
+use \Blog\Controller\Processors\Pagination\Pagination;
 
 abstract class Controller {
 	public $request;
@@ -33,7 +33,7 @@ abstract class Controller {
 	}
 
 	public function execute() {
-		$model = '\Blog\Backend\Models\\' . $this::MODEL;
+		$model = '\Blog\Model\DatabaseObjects\\' . $this::MODEL;
 
 		if($this->request->action == 'new'){
 			$this->object = new $model();

@@ -1,5 +1,5 @@
 <?php
-namespace Blog\Frontend\Web\Modules;
+namespace Blog\Controller\Processors;
 
 class Timestamp {
 	public $unix;

@@ -1,7 +1,7 @@
 <?php
-namespace Blog\Frontend\Web\Modules\Pagination;
-use \Blog\Config\PaginationConfig;
-use \Blog\Frontend\Web\Modules\Pagination\PaginationItem;
+namespace Blog\Controller\Processors\Pagination;
+use \Blog\Config\Pagination as PaginationConfig;
+use \Blog\Controller\Processors\Pagination\Item;
 use InvalidArgumentException;
 
 class Pagination {
@@ -43,10 +43,10 @@ class Pagination {
 			throw new InvalidArgumentException('Pagination: base_path must be a valid string.');
 		}
 
-		$this->structure = PaginationConfig::STRUCTURES[$structure] ?? PaginationConfig::STRUCTURES['default'];
+		$this->structure = PaginationConfig::STRUCTURES[$structure] ?? Config::STRUCTURES['default'];
 
 		foreach($this->structure as $item_settings){
-			$item = new PaginationItem($item_settings, $this);
+			$item = new Item($item_settings, $this);
 
 			if(!$item->exists() && !$item->disabled){
 				continue;

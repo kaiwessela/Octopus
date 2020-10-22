@@ -1,16 +1,15 @@
 <?php
-namespace Blog\Backend\Models;
+namespace Blog\Model\DatabaseObjects;
 use \Blog\Config\Config;
-use \Blog\Backend\Model;
-use \Blog\Backend\ModelTrait;
-use \Blog\Backend\ImageManager;
-use \Blog\Backend\Exceptions\WrongObjectStateException;
-use \Blog\Backend\Exceptions\DatabaseException;
-use \Blog\Backend\Exceptions\EmptyResultException;
-use \Blog\Backend\Exceptions\InvalidInputException;
+use \Blog\Model\DatabaseObject;
+use \Blog\Model\ImageManager;
+use \Blog\Model\Exceptions\WrongObjectStateException;
+use \Blog\Model\Exceptions\DatabaseException;
+use \Blog\Model\Exceptions\EmptyResultException;
+use \Blog\Model\Exceptions\InvalidInputException;
 use InvalidArgumentException;
 
-class Image extends Model {
+class Image extends DatabaseObject {
 	public $extension;		# String(1-4)[filename extension]
 	public $description;	# String(1-256)
 	public $copyright;

@@ -4,7 +4,7 @@
 <?php
 if(!empty($post->image)){
 	$picture = $post->image;
-	include COMPONENT_PATH . 'picture.comp.php';
+	include COMPONENT_PATH . 'picture.php';
 }
 ?>
 

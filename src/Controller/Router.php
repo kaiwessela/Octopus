@@ -1,10 +1,10 @@
 <?php
-namespace Blog\Frontend\Web\Modules;
-use Blog\Frontend\Web\Router\Exceptions\InvalidNotationException;
-use Blog\Frontend\Web\Router\Exceptions\InvalidRouteAttributeException;
-use Blog\Frontend\Web\Router\Exceptions\InvalidRoutingTableException;
-use Blog\Frontend\Web\Router\Exceptions\RouteNotFoundException;
-use Blog\Frontend\Web\ControllerRequest;
+namespace Blog\Controller;
+use \Blog\Controller\Exceptions\InvalidNotationException;
+use \Blog\Controller\Exceptions\InvalidRouteAttributeException;
+use \Blog\Controller\Exceptions\InvalidRoutingTableException;
+use \Blog\Controller\Exceptions\RouteNotFoundException;
+use \Blog\Controller\ControllerQuery;
 
 class Router {
 	public $path;
@@ -55,7 +55,7 @@ class Router {
 		foreach($this->route['controllers'] as $class => $settings){
 			$class = $this->resolve_substitutions($class);
 
-			$this->controller_requests[] = new ControllerRequest($this, $class, $settings);
+			$this->controller_requests[] = new ControllerQuery($this, $class, $settings);
 		}
 	}
 

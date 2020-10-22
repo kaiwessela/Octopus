@@ -1,8 +1,8 @@
 <?php
-namespace Blog\Frontend\Web\Controllers;
-use \Blog\Frontend\Web\Controller;
-use \Blog\Frontend\Web\Modules\MarkdownContent;
-use \Blog\Frontend\Web\Modules\Pagination\Pagination;
+namespace Blog\Controller\Controllers;
+use \Blog\Controller\Controller;
+use \Blog\Controller\Processors\MarkdownContent;
+use \Blog\Controller\Processors\Pagination\Pagination;
 
 
 class PageController extends Controller {

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="de">
 	<head>
-		<?php include COMPONENT_PATH . 'admin/head.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'admin/head.php'; ?>
 	</head>
 	<body>
-		<?php include COMPONENT_PATH . 'admin/header.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'admin/header.php'; ?>
 		<main>
 			<?php if($Page->request->action == 'list'){ ?>
 			<h1>Alle Seiten</h1>
@@ -71,7 +71,7 @@
 			<?php if($Page->request->action == 'list' && $Page->found()){ ?>
 				<?php
 				$pagination = $Page->pagination;
-				include COMPONENT_PATH . 'admin/pagination.comp.php';
+				include COMPONENT_PATH . 'admin/pagination.php';
 				?>
 
 				<?php foreach($Page->objects as $obj){ ?>
@@ -177,7 +177,7 @@
 			<?php } ?>
 
 		</main>
-		<?php include COMPONENT_PATH . 'admin/footer.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'admin/footer.php'; ?>
 
 		<script src="<?= $server->url ?>/resources/js/validate.js"></script>
 	</body>

@@ -1,7 +1,7 @@
 <?php
-namespace Blog\Frontend\API\v1;
+namespace Blog\Controller\API;
 
-class APIRequest {
+class Request {
 	# APIRequest class – container for request information
 
 	public $method;			# HTTP Request-Method

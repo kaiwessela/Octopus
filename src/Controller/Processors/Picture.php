@@ -1,7 +1,7 @@
 <?php
-namespace Blog\Frontend\Web\Modules;
-use \Blog\Backend\Models\Image;
-use \Blog\Backend\ImageManager;
+namespace Blog\Controller\Processors;
+use \Blog\Model\DatabaseObjects\Image;
+use \Blog\Model\ImageManager;
 use \Blog\Config\Config;
 
 class Picture {

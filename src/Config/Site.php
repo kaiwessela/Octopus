@@ -1,5 +1,5 @@
 <?php
-namespace Blog\Frontend\Web;
+namespace Blog\Config;
 
 class Site {
 	const TITLE = 'Kai Florian Wessela';

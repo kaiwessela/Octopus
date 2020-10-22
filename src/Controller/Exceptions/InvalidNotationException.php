@@ -1,5 +1,5 @@
 <?php
-namespace Blog\Frontend\Web\Router\Exceptions;
+namespace Blog\Controller\Exceptions;
 use Exception;
 
 class InvalidNotationException extends Exception {

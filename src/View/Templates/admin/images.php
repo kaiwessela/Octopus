@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="de">
 	<head>
-		<?php include COMPONENT_PATH . 'admin/head.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'admin/head.php'; ?>
 	</head>
 	<body>
-		<?php include COMPONENT_PATH . 'admin/header.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'admin/header.php'; ?>
 		<main>
 			<?php if($Image->request->action == 'list'){ ?>
 			<h1>Alle Bilder</h1>
@@ -69,7 +69,7 @@
 			<?php if($Image->request->action == 'list' && $Image->found()){ ?>
 				<?php
 				$pagination = $Image->pagination;
-				include COMPONENT_PATH . 'admin/pagination.comp.php';
+				include COMPONENT_PATH . 'admin/pagination.php';
 				?>
 
 				<section class="grid">
@@ -195,7 +195,7 @@
 			<?php } ?>
 
 		</main>
-		<?php include COMPONENT_PATH . 'admin/footer.comp.php'; ?>
+		<?php include COMPONENT_PATH . 'admin/footer.php'; ?>
 
 		<script src="<?= $server->url ?>/resources/js/admin/validate.js"></script>
 	</body>

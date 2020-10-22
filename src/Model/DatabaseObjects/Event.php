@@ -1,15 +1,14 @@
 <?php
-namespace Blog\Backend\Models;
+namespace Blog\Model\DatabaseObjects;
 use \Blog\Config\Config;
-use \Blog\Backend\Model;
-use \Blog\Backend\ModelTrait;
-use \Blog\Backend\Exceptions\WrongObjectStateException;
-use \Blog\Backend\Exceptions\DatabaseException;
-use \Blog\Backend\Exceptions\EmptyResultException;
-use \Blog\Backend\Exceptions\InvalidInputException;
+use \Blog\Model\DatabaseObject;
+use \Blog\Model\Exceptions\WrongObjectStateException;
+use \Blog\Model\Exceptions\DatabaseException;
+use \Blog\Model\Exceptions\EmptyResultException;
+use \Blog\Model\Exceptions\InvalidInputException;
 use InvalidArgumentException;
 
-class Event extends Model {
+class Event extends DatabaseObject {
 	public $title;
 	public $organisation;
 	public $timestamp;

@@ -6,7 +6,7 @@ use \Blog\Controller\API\Response;
 use \Blog\Model\Exceptions\DatabaseException;
 use \Blog\Model\Exceptions\EmptyResultException;
 use \Blog\Model\Exceptions\InvalidInputException;
-use \Astronauth\User;
+use \Astronauth\Backend\User;
 use PDO;
 use PDOException;
 use InvalidArgumentException;
@@ -60,7 +60,7 @@ class APIEndpointHandler {
 	}
 
 	public function handle() {
-
+		
 		# CLASS HANDLING MODULE
 		if(!isset($this->request->class)){
 			# no class requested, answer only with api status
@@ -68,19 +68,19 @@ class APIEndpointHandler {
 			$this->response->send();
 		} else if($this->request->class == 'posts'){
 			# class Post requested
-			$backend_class = new \Blog\Backend\Models\Post;
+			$backend_class = new \Blog\Model\DatabaseObjects\Post;
 		} else if($this->request->class == 'images'){
 			# class Image requested
-			$backend_class = new \Blog\Backend\Models\Image;
+			$backend_class = new \Blog\Model\DatabaseObjects\Image;
 		} else if($this->request->class == 'persons'){
 			# class Person requested
-			$backend_class = new \Blog\Backend\Models\Person;
+			$backend_class = new \Blog\Model\DatabaseObjects\Person;
 		} else if($this->request->class == 'events'){
 			# class Event requested
-			$backend_class = new \Blog\Backend\Models\Event;
+			$backend_class = new \Blog\Model\DatabaseObjects\Event;
 		} else if($this->request->class == 'pages'){
 			# class Page requested
-			$backend_class = new \Blog\Backend\Models\Page;
+			$backend_class = new \Blog\Model\DatabaseObjects\Page;
 		} else {
 			# invalid class requested, answer with error
 			$this->response->set_response_code(400);

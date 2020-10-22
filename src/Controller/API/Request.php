@@ -19,9 +19,12 @@ class Request {
 	function __construct() {
 		$this->method = $_SERVER['REQUEST_METHOD'];
 
-		$this->class = $_GET['class'] ?? null;
-		$this->identifier = $_GET['identifier'] ?? null;
-		$this->action = $_GET['action'] ?? null;
+		$path = trim($_SERVER['REQUEST_URI'], '/');
+		$segments = explode('/', $path);
+
+		$this->class = $segments[2] ?? null;
+		$this->identifier = $segments[3] ?? null;
+		$this->action = $segments[4] ?? null;
 
 		$this->query_string = $_GET;
 

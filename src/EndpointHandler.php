@@ -49,58 +49,70 @@ class EndpointHandler {
 			$controller->execute();
 
 			if($controller->status == 44){
-				// TEMP
-				foreach($controller->exceptions as $e){
-					throw $e;
-				}
+				$this->handle(404);
+				exit;
 			} else if($controller->status == 50){
-				// TEMP
-				foreach($controller->exceptions as $e){
-					throw $e;
-				}
+				$this->handle(500);
+				exit;
 			} else if(!$controller->empty()){
 				$controller->process();
 			}
 		}
+
+		$this->handle();
 	}
 
 	// TODO close PDO and disable any file and database access for following procedures
 
-	public function handle() {
-		foreach($this->controllers as $name => $controller){
-			global $$name;
-			$$name = $controller;
+	private function handle(int $response_code = 200) {
+		if($response_code == 200){
+			$template = __DIR__ . '/View/Templates/' . $this->router->template . '.php';
+		} else if($response_code == 404){
+			$template = __DIR__ . '/View/Templates/404.php';
+		} else if($response_code == 500){
+			$template = __DIR__ . '/View/Templates/500.php';
+		} else {
+			$this->handle(500);
+		}
 
+		http_response_code($response_code);
+
+		foreach($this->controllers as $name => $controller){
 			$shortname = str_replace('Controller', '', $name);
+
+			global $$name;
 			global $$shortname;
+			$$name 		= $controller;
 			$$shortname = &$$name;
 		}
 
+
 		global $server;
-		$server = (object) [
-			'version' => Config::VERSION,
-			'url' => Config::SERVER_URL,
-			'lang' => Config::SERVER_LANG,
-			'dyn_img_path' => Config::DYNAMIC_IMAGE_PATH,
-			'path' => $this->router->path
-		];
-
 		global $site;
-		$site = (object) [
-			'title' => Site::TITLE,
-			'twitter' => Site::TWITTER_SITE
+		global $astronauth;
+
+		$server 	= (object)[
+			'version' 		=> Config::VERSION,
+			'url' 			=> Config::SERVER_URL,
+			'lang' 			=> Config::SERVER_LANG,
+			'dyn_img_path' 	=> Config::DYNAMIC_IMAGE_PATH,
+			'path' 			=> $this->router->path
 		];
 
-		global $astronauth;
+		$site 		= (object)[
+			'title' 	=> Site::TITLE,
+			'twitter' 	=> Site::TWITTER_SITE
+		];
+
 		$astronauth = $this->user;
 
-		include __DIR__ . '/View/Templates/' . $this->router->template . '.php';
-	}
-
-	function return_404() {
-		http_response_code(404);
-		include 'View/Templates/404.tmp.php';
-		exit;
+		if(file_exists($template)){
+			include $template;
+		} else if($response_code == 500){
+			echo '<h1>500 Internal Server Error</h1><p>Error: error template not found</p>';
+		} else {
+			$this->handle(500);
+		}
 	}
 }
 ?>

@@ -1,6 +1,53 @@
 # Blog
 Mein persönliches Blog-System
 
+## Einführung
+### Für wen ist Blog gemacht?
+Blog ist ein kleines, leichtgewichtiges Content-Management-System, das für Menschen geeignet ist,
+die bereits Erfahrung mit HTML und CSS haben und die Freiheit und Möglichkeiten dieser Sprachen
+bei der Gestaltung ihrer Seite voll ausnutzen möchten, andererseits aber nicht auf die Verwaltung
+ihrer Inhalte durch ein ordentliches CMS verzichten können.
+
+Die meisten bekannten Content-Management-Systeme sind mittlerweile völlig überladen. Wer eine
+Website mit Wordpress erstellen möchte, hat die Wahl zwischen vorhandenen Themes, die leider fast
+immer gleich aussehen – wer Ahnung hat, erkennt eine Wordpress-Seite oft schon auf den ersten
+Blick – und oftmals auch qualitativ zu Wünschen übrig lassen, oder man erstellt sein eigenes Theme
+und arbeitet sich in eine komplizierte und undurchsichtige Templating-Sprache ein – die aber am
+Ende auch nur zu HTML geparst wird. Warum nicht direkt HTML und CSS benutzen?
+
+Aus diesem Wunsch heraus entstand Blog. Mein Ziel war und ist es, ein System zu entwickeln, mit dem
+man mit geringer Einarbeitungszeit und bekannten Werkzeugen eine selbstgeschriebene Website mit
+einer funktionalen, einfach zu bedienenden Inhaltsverwaltung kombinieren kann.
+
+### Prinzipien
+#### Trennung von Logik und Darstellung
+Blog ist nach dem bekannten und bewährten
+[Model-View-Controller](https://de.wikipedia.org/Model_View_Controller)-Modell aufgebaut. Dieses
+Modell teilt ein Programm in drei Schichten ein: Die Datenbankschicht *(Model)*, die sich um die
+Kommunikation mit der Datenbank kümmert, die Logikschicht *(Controller)*, in der die eigentlichen
+Berechnungen ausgeführt werden, und die Darstellungsschicht *(View)*, die sich ausschließlich um
+die Darstellung kümmert.
+
+Die Darstellungsschicht besteht in Blog aus den Templates. Die Trennung von Logik und Darstellung
+bedeutet, dass in den Templates nichts mehr programmiert wird, sondern nur die im Controller
+berechneten Inhalte und Variablen eingefügt werden. Dadurch bleiben die Templates aufgeräumt und
+einfach zu verstehen.
+
+#### Benutzung bekannter Techniken
+Blog zwingt den Benutzer nicht, irgendeine unnötige neue Templating-Sprache zu erlernen oder sich
+in komplizierte Texteditoren einzuarbeiten, sondern setzt lediglich Kenntnisse in HTML, CSS,
+Markdown und ein Minimum an PHP voraus (letzteres ist im Zweifelsfall in einer halben Stunde
+erlernbar).
+
+Neue Blogeinträge oder ähnliches schreibt man ganz einfach in Markdown oder wahlweise in HTML und
+muss sich nicht auf einen komplizierten WYSIWYG-Editor einstellen, bei dem man oft genug eben nicht
+das bekommt, was man sieht (oder zumindest nicht was man möchte).
+
+Die Templates verwenden, ganz klassisch, HTML mit Inline-PHP. Durch die Trennung von Logik und
+Darstellung muss man nicht mehr PHP beherrschen als einfache, einteilige `if`-Abfragen,
+`foreach`-Schleifen, `include`-Anweisungen (für Untertemplates) und die Inline-Ausgabe-Syntax
+`<?= $variable ?>` zum Ausgeben des Variablenwertes. Das ist wirklich schon alles.
+
 ## Grundaufbau
 ### Objekte und Klassen
 Datensätze, z.B. Blogeinträge, Seiten und Termine, werden als Objekte gespeichert. Es gibt
@@ -145,6 +192,13 @@ fast absolute Freiheit in der Gestaltung ihrer Pfadkonfiguration.
 Sie beginnen mit `/^`, was den Anfang des Pfades kennzeichnet, und enden mit `$/` für das Ende.
 Dazwischen können alle bekannten RegEx-Suchmuster eingesetzt werden.
 
+Zur Prüfung wird ausschließlich der Pfadabschnitt der URL herangezogen, also nicht der Host, nicht
+der Query-String (`?xy=z`) und auch nicht das Fragment (`#abc`). Außerdem werden eventuell
+vorhandene Schrägstriche an Anfang und Ende abgeschnitten. Der RegEx prüft aus der URL
+`https://example.org/artikel/mein-erster-artikel/?queryString=true#kapitel-2` also nur den
+Abschnitt `artikel/mein-erster-artikel`. Bei der Pfadnotation mittels RegEx sollte dies bedacht
+werden. 
+
 __Wichtig:__ Die Schrägstriche (`/`), die die Pfadsegmente trennen, müssen doppelt mit Backslashes (`\`)
 escapt werden, einmal weil sie durch den JSON-Parser laufen, zum Zweiten, weil sie sonst als
 RegEx-Endzeichen missinterpretiert würden.
@@ -190,3 +244,48 @@ es auch zwischen anderen Zeichen stehen, `"template": "seite-?2"` wäre also auc
 *Übrigens:* Dass im Falle von https://example.org/artikel das zweite Pfadsegment fehlt, ist kein
 Problem. Der Router setzt für das `page`-Attribut automatisch den Wert `1` ein, falls das
 Pfadsegment leer ist.
+
+## Templating
+Wie schon beschrieben, benutzt Blog ausschließlich HTML mit Inline-PHP, um Templates zu erstellen.
+Es ist nicht nötig, eine neue und komplizierte Templating-Sprache zu erlernen, die am Ende sowieso
+wieder zu HTML geparst wird.
+
+Grundsätzlich gilt die Regel »Eine Route – Ein Template«. Für jede Route (also für jede
+unterschiedliche Seitenstruktur) soll es auch ein eigenes Template geben. Ein einfaches Template
+sieht vielleicht folgendermaßen aus:
+
+	<!DOCTYPE html>
+	<html lang="de">
+		<head>
+			<meta charset="utf-8">
+			<title><?= $site->title ?></title>
+			<link rel="stylesheet" type="text/css" href="<?= $server->url ?>/resources/css/style.css">
+		</head>
+		<body>
+			<header>
+				…
+			</header>
+			<main>
+				<h1>Herzlich Willkommen</h1>
+				<section>
+					<h2>Neueste Blogeinträge</h2>
+
+					<?php foreach($Post->objects as $post){ ?>
+						<article>
+							<h3><?= $post->headline ?></h3>
+							<p><?= $post->author ?></p>
+							<p><?= $post->teaser ?></p>
+							<a href="<?= $server->url ?>/posts/<?= $post->longid ?>">weiterlesen</a>
+						</article>
+					<?php } ?>
+
+				</section>
+			</main>
+			<footer>
+				…
+			</footer>
+		</body>
+	</html>
+
+Dieses Template könnte die Startseite sein, auf der die neuesten Blogartikel angezeigt werden. Man
+sieht bereits, dass ein Blog-Template eigentlich keine komplizierte Sache ist.

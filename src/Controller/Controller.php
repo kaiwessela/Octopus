@@ -1,7 +1,7 @@
 <?php
 namespace Blog\Controller;
 use \Blog\Controller\Processors\Pagination\Pagination;
-use \Blog\Model\Exceptions\InvalidInputException;
+use \Blog\Model\Exceptions\InputFailedException;
 use \Blog\Model\Exceptions\EmptyResultException;
 use \Blog\Model\Exceptions\DatabaseException;
 use InvalidArgumentException;
@@ -11,7 +11,7 @@ abstract class Controller {
 	public $request;
 	public $status;
 	public $objects;
-	public $exceptions;
+	public $errors;
 
 	public $pagination;
 	protected $count;
@@ -22,7 +22,7 @@ abstract class Controller {
 	function __construct($request) {
 		$this->request = $request;
 		$this->status = 10;
-		$this->exceptions = [];
+		$this->errors = [];
 	}
 
 	function __set($name, $value) {
@@ -49,13 +49,13 @@ abstract class Controller {
 					$this->object->import($this->request->data);
 					$this->object->push();
 					$this->status = 21;
-				} catch(InvalidInputException $e){
+				} catch(InputFailedException $e){
 					$this->status = 41;
-					$this->exceptions[] = $e;
+					$this->errors[] = $e;
 					return;
 				} catch(Exception $e){
 					$this->status = 50;
-					$this->exceptions[] = $e;
+					throw $e;
 					return;
 				}
 			} else {
@@ -69,11 +69,10 @@ abstract class Controller {
 				$this->status = 20;
 			} catch(EmptyResultException $e){
 				$this->status = 44;
-				$this->exceptions[] = $e;
 				return;
 			} catch(Exception $e){
 				$this->status = 50;
-				$this->exceptions[] = $e;
+				throw $e;
 				return;
 			}
 
@@ -82,13 +81,13 @@ abstract class Controller {
 					$this->object->import($this->request->data);
 					$this->object->push();
 					$this->status = 22;
-				} catch(InvalidInputException $e){
+				} catch(InputFailedException $e){
 					$this->status = 41;
-					$this->exceptions[] = $e;
+					$this->errors[] = $e;
 					return;
 				} catch(Exception $e){
 					$this->status = 50;
-					$this->exceptions[] = $e;
+					throw $e;
 					return;
 				}
 			} else if($this->request->action == 'delete' && $this->request->method == 'post'){
@@ -97,7 +96,7 @@ abstract class Controller {
 					$this->status = 23;
 				} catch(Exception $e){
 					$this->status = 50;
-					$this->exceptions[] = $e;
+					throw $e;
 					return;
 				}
 			}
@@ -112,7 +111,7 @@ abstract class Controller {
 					$this->count = $model::count();
 				} catch(DatabaseException $e){
 					$this->status = 50;
-					$this->exceptions[] = $e;
+					throw $e;
 					return;
 				}
 
@@ -136,11 +135,10 @@ abstract class Controller {
 				$this->status = 20;
 			} catch(EmptyResultException $e){
 				$this->status = 24;
-				$this->exceptions[] = $e;
 				return;
 			} catch(Exception $e){
 				$this->status = 50;
-				$this->exceptions[] = $e;
+				throw $e;
 				return;
 			}
 		}

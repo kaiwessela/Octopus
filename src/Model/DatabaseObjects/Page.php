@@ -4,7 +4,8 @@ use \Blog\Model\DatabaseObject;
 use \Blog\Model\Exceptions\WrongObjectStateException;
 use \Blog\Model\Exceptions\DatabaseException;
 use \Blog\Model\Exceptions\EmptyResultException;
-use \Blog\Model\Exceptions\InvalidInputException;
+use \Blog\Model\Exceptions\InputFailedException;
+use \Blog\Model\Exceptions\InputException;
 use InvalidArgumentException;
 
 class Page extends DatabaseObject {
@@ -141,14 +142,36 @@ class Page extends DatabaseObject {
 	}
 
 	public function import($data) {
+		$errorlist = new InputFailedException();
+
 		if($this->is_new()){
-			$this->import_longid($data['longid']);
+			try {
+				$this->import_longid($data['longid']);
+			} catch(InputException $e){
+				$errorlist->push($e);
+			}
 		} else {
-			$this->import_check_id_and_longid($data['id'], $data['longid']);
+			try {
+				$this->import_check_id_and_longid($data['id'], $data['longid']);
+			} catch(InputException $e){
+				$errorlist->push($e);
+			}
 		}
 
-		$this->import_title($data['title']);
-		$this->import_content($data['content']);
+		$importconfig = [
+			'title' => [
+				'required' => true,
+				'pattern' => '^.{1,60}$'
+			]
+		];
+
+		$this->import_standardized($data, $importconfig, $errorlist);
+
+		$this->content = $data['content'];
+
+		if(!$errorlist->is_empty()){
+			throw $errorlist;
+		}
 
 		$this->empty = false;
 	}
@@ -187,20 +210,6 @@ class Page extends DatabaseObject {
 		$obj->content = $this->content;
 
 		return $obj;
-	}
-
-	private function import_title($title) {
-		if(!isset($title)){
-			throw new InvalidInputException('title', '.{1,60}');
-		} else if(!preg_match('/^.{1,60}$/', $title)){
-			throw new InvalidInputException('title', '.{1,60}', $title);
-		} else {
-			$this->title = $title;
-		}
-	}
-
-	private function import_content($content) {
-		$this->content = $content;
 	}
 }
 ?>

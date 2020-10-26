@@ -5,7 +5,10 @@ use \Blog\Model\DatabaseObject;
 use \Blog\Model\Exceptions\WrongObjectStateException;
 use \Blog\Model\Exceptions\DatabaseException;
 use \Blog\Model\Exceptions\EmptyResultException;
-use \Blog\Model\Exceptions\InvalidInputException;
+use \Blog\Model\Exceptions\InputFailedException;
+use \Blog\Model\Exceptions\InputException;
+use \Blog\Model\Exceptions\MissingValueException;
+use \Blog\Model\Exceptions\IllegalValueException;
 use InvalidArgumentException;
 
 class Event extends DatabaseObject {
@@ -173,18 +176,55 @@ class Event extends DatabaseObject {
 	}
 
 	public function import($data) {
+		$errorlist = new InputFailedException();
+
 		if($this->is_new()){
-			$this->import_longid($data['longid']);
+			try {
+				$this->import_longid($data['longid']);
+			} catch(InputException $e){
+				$errorlist->push($e);
+			}
 		} else {
-			$this->import_check_id_and_longid($data['id'], $data['longid']);
+			try {
+				$this->import_check_id_and_longid($data['id'], $data['longid']);
+			} catch(InputException $e){
+				$errorlist->push($e);
+			}
 		}
 
-		$this->import_title($data['title']);
-		$this->import_organisation($data['organisation']);
+		$importconfig = [
+			'title' => [
+				'required' => true,
+				'pattern' => '^.{1,50}$'
+			],
+			'organisation' => [
+				'required' => true,
+				'pattern' => '^.{1,40}$'
+			],
+			'location' => [
+				'required' => false,
+				'pattern' => '^.{0,60}$'
+			]
+		];
+
+		$this->import_standardized($data, $importconfig, $errorlist);
+
+		$this->description = $data['description'];
+
 		$this->import_timestamp($data['timestamp']);
-		$this->import_location($data['location']);
-		$this->import_description($data['description']);
-		$this->import_cancelled($data['cancelled'] ?? false);
+		$this->import_cancelled($data['cancelled']);
+
+		try {
+			$this->import_image($data);
+		} catch(InputFailedException $e){
+			$errorlist->merge($e, 'image');
+		} catch(InputException $e){
+			$errorlist->push($e);
+		}
+
+		if(!$errorlist->is_empty()){
+			throw $errorlist;
+		}
 
 		$this->empty = false;
 	}
@@ -230,57 +270,19 @@ class Event extends DatabaseObject {
 		return $obj;
 	}
 
-	public function import_title($title) {
-		if(!isset($title)){
-			throw new InvalidInputException('title', '.{1,50}');
-		} else if(!preg_match('/^.{1,50}$/', $title)){
-			throw new InvalidInputException('title', '.{1,50}', $title);
-		} else {
-			$this->title = $title;
-		}
-	}
-
-	public function import_organisation($organisation) {
-		if(!isset($organisation)){
-			throw new InvalidInputException('organisation', '.{1,40}');
-		} else if(!preg_match('/^.{1,40}$/', $organisation)){
-			throw new InvalidInputException('organisation', '.{1,40}', $organisation);
-		} else {
-			$this->organisation = $organisation;
-		}
-	}
-
-	public function import_timestamp($timestamp) {
-		if(!isset($timestamp)){
-			throw new InvalidInputException('timestamp', '[unix timestamp]');
+	private function import_timestamp($timestamp) {
+		if(empty($timestamp)){
+			throw new MissingValueException('timestamp', 'unix timestamp');
 		} else if(!is_numeric($timestamp)){
-			throw new InvalidInputException('timestmap', '[unix timestamp]', $timestamp);
+			throw new IllegalValueException('timestamp', $timestamp, 'unix timestamp');
 		} else {
 			$this->timestamp = (int) $timestamp;
 		}
 	}
 
-	public function import_location($location) {
-		if(!isset($location)){
-			$this->location = null;
-		} else if(!preg_match('/^.{0,60}$/', $location)){
-			throw new InvalidInputException('location', '.{0,60}', $location);
-		} else {
-			$this->location = $location;
-		}
-	}
-
-	public function import_description($description) {
-		$this->description = $description;
-	}
-
-	public function import_cancelled($cancelled = false) { // TEMP TEMP TEMP
-		if(isset($cancelled)){
-			if($cancelled == true){
-				$this->cancelled = true;
-			} else {
-				$this->cancelled = false;
-			}
+	private function import_cancelled($cancelled = false) {
+		if(!empty($cancelled)){
+			$this->cancelled = (bool) $cancelled;
 		} else {
 			$this->cancelled = false;
 		}

@@ -123,9 +123,15 @@
 	src: url('../fonts/Catamaran/black.woff2') format('woff2'), local('Catamaran Black');
 }
 
+@font-face {
+	font-family: 'Fira Code';
+	src: url('../fonts/Fira_Code/regular.woff2') format('woff2'), local('Fira Code Regular');
+}
+
 :root {
 	--font-primary: 'Open Sans';
 	--font-secondary: 'Catamaran';
+	--font-monospace: 'Fira Code';
 	--color-bg: #ffffff;
 	--color-text: #000000;
 	--color-text-dark: #222222;
@@ -519,6 +525,14 @@ article.preview img {
 
 article.preview .teaser time {
 	color: var(--color-text-darker);
+}
+
+code {
+	font-family: var(--font-monospace);
+	font-size: 0.9em;
+	padding: 0.1rem;
+	background-color: #00000022;
+	border-radius: 0.1rem;
 }
 
 .pagination {

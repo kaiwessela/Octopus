@@ -9,6 +9,7 @@ class EndpointHandler {
 	public $user;
 	public $router;
 	public $controllers = [];
+	public $exception;
 
 
 	function __construct() {
@@ -22,6 +23,11 @@ class EndpointHandler {
 			error_reporting(0);
 		}
 
+		set_exception_handler(function($e){
+			$this->exception = $e;
+			$this->handle(500);
+		});
+
 		if(substr($_SERVER['REQUEST_URI'].'/', 0, 7) == '/admin/'){
 			$routes_json = file_get_contents(__DIR__ . '/Config/Routes/adminroutes.json');
 		} else {
@@ -33,11 +39,10 @@ class EndpointHandler {
 		$this->user = new User();
 		$this->user->authenticate();
 
-		if($this->router->auth == true){
-			if(!$this->user->is_authenticated()){
-				header('Location: ' . Config::SERVER_URL . '/astronauth/signin');
-				exit;
-			}
+		if($this->router->auth == true && !$this->user->is_authenticated()){
+			http_response_code(403);
+			header('Location: ' . Config::SERVER_URL . '/astronauth/signin');
+			exit;
 		}
 
 		foreach($this->router->controller_requests as $request){
@@ -90,6 +95,7 @@ class EndpointHandler {
 		global $server;
 		global $site;
 		global $astronauth;
+		global $exception;
 
 		$server 	= (object)[
 			'version' 		=> Config::VERSION,
@@ -105,11 +111,13 @@ class EndpointHandler {
 		];
 
 		$astronauth = $this->user;
+		$exception = $this->exception;
 
 		if(file_exists($template)){
 			include $template;
 		} else if($response_code == 500){
-			echo '<h1>500 Internal Server Error</h1><p>Error: error template not found</p>';
+			echo '<h1>500 Internal Server Error</h1><p>Error: error template not found.</p>';
+			throw $this->exception;
 		} else {
 			$this->handle(500);
 		}

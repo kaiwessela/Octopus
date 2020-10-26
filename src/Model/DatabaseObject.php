@@ -1,8 +1,11 @@
 <?php
 namespace Blog\Model;
-use \Blog\Model\Exceptions\InvalidInputException;
 use \Blog\Model\Exceptions\DatabaseException;
 use \Blog\Model\Exceptions\WrongObjectStateException;
+use \Blog\Model\Exceptions\MissingValueException;
+use \Blog\Model\Exceptions\IllegalValueException;
+use \Blog\Model\Exceptions\IdentifierCollisionException;
+use \Blog\Model\Exceptions\IdentifierMismatchException;
 use \Blog\Config\Config;
 use PDO;
 use Exception;
@@ -41,34 +44,55 @@ abstract class DatabaseObject {
 	}
 
 	protected function import_check_id_and_longid($id, $longid) {
-		if($id != $this->id || $longid != $this->longid){
-			throw new InvalidInputException('id/longid', 'original id and longid', $data['id'] . ' ' . $data['longid']);
+		if($id != $this->id){
+			throw new IdentifierMismatchException('id', $id, $this);
+		}
+
+		if($longid != $this->longid){
+			throw new IdentifierMismatchException('longid', $longid, $this);
 		}
 	}
 
 	protected function import_longid($longid) {
-		if(!isset($longid)){
-			throw new InvalidInputException('longid', '[a-z0-9-]{9,128}');
+		$pattern = '^[a-z0-9-]{9,128}$';
+
+		if(empty($longid)){
+			throw new MissingValueException('longid', $pattern);
 		}
 
-		if(!preg_match('/^[a-z0-9-]{9,128}$/', $longid)){
-			throw new InvalidInputException('longid', '[a-z0-9-]{9,128}', $longid);
+		if(!preg_match("/$pattern/", $longid)){
+			throw new IllegalValueException('longid', $longid, $pattern);
 		}
 
 		try {
-			$test = $this->pull($longid);
-		} catch(Exception $e){ // TODO rewrite this
-			if($e instanceof DatabaseException){
-				throw $e;
-			}
-
-			$not_found = true;
+			$existing = clone $this;
+			$existing->pull($longid);
+			$found = true;
+		} catch(EmptyResultException $e){
+			$found = false;
 		}
 
-		if($not_found){
-			$this->longid = $longid;
+		if($found){
+			throw new IdentifierCollisionException($longid, $existing);
 		} else {
-			throw new InvalidInputException('longid', ';already-exists', $longid); // TODO to special exception
+			$this->longid = $longid;
+		}
+	}
+
+	protected function import_standardized($data, $config, &$errorlist) {
+		foreach($config as $field => $settings){
+			$required = $settings['required'];
+			$pattern = $settings['pattern'];
+
+			if(empty($data[$field]) && !$required){
+				$this->$field = null;
+			} else if(empty($data[$field] && $required)){
+				$errorlist->push(new MissingValueException($field, $pattern));
+			} else if(!preg_match("/$pattern/", $data[$field])){
+				$errorlist->push(new IllegalValueException($field, $data[$field], $pattern));
+			} else {
+				$this->$field = $data[$field];
+			}
 		}
 	}
 
@@ -84,7 +108,6 @@ abstract class DatabaseObject {
 	protected function generate_id() {
 		$this->id = bin2hex(random_bytes(4));
 	}
-
 
 	public function is_empty() {
 		return $this->empty;

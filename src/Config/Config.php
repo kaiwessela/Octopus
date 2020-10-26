@@ -24,7 +24,7 @@ class Config {
 	const DB_HOST = 'localhost'; # the hostname / url of your database server
 	const DB_NAME = 'blog'; # name of your database
 	const DB_USER = 'user'; # username of your database user
-	const DB_PASSWORD = 'password'; # password of your database user
+	const DB_PASSWORD = 'passworrd'; # password of your database user
 
 	# WEBSITE CONFIGURATION
 	const DYNAMIC_IMAGE_PATH = '/resources/images/dynamic/';

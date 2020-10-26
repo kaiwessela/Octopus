@@ -5,7 +5,9 @@ use \Blog\Model\DatabaseObjects\Image;
 use \Blog\Model\Exceptions\WrongObjectStateException;
 use \Blog\Model\Exceptions\DatabaseException;
 use \Blog\Model\Exceptions\EmptyResultException;
-use \Blog\Model\Exceptions\InvalidInputException;
+use \Blog\Model\Exceptions\InputFailedException;
+use \Blog\Model\Exceptions\InputException;
+use \Blog\Model\Exceptions\RelationNonexistentException;
 use InvalidArgumentException;
 
 class Person extends DatabaseObject {
@@ -150,14 +152,42 @@ class Person extends DatabaseObject {
 	}
 
 	public function import($data) {
+		$errorlist = new InputFailedException();
+
 		if($this->is_new()){
-			$this->import_longid($data['longid']);
+			try {
+				$this->import_longid($data['longid']);
+			} catch(InputException $e){
+				$errorlist->push($e);
+			}
 		} else {
-			$this->import_check_id_and_longid($data['id'], $data['longid']);
+			try {
+				$this->import_check_id_and_longid($data['id'], $data['longid']);
+			} catch(InputException $e){
+				$errorlist->push($e);
+			}
 		}
 
-		$this->import_name($data['name']);
-		$this->import_image($data);
+		$importconfig = [
+			'name' => [
+				'required' => true,
+				'pattern' => '^.{1,50}$'
+			]
+		];
+
+		$this->import_standardized($data, $importconfig, $errorlist);
+
+		try {
+			$this->import_image($data);
+		} catch(InputFailedException $e){
+			$errorlist->merge($e, 'image');
+		} catch(InputException $e){
+			$errorlist->push($e);
+		}
+
+		if(!$errorlist->is_empty()){
+			throw $errorlist;
+		}
 
 		$this->empty = false;
 	}
@@ -199,40 +229,23 @@ class Person extends DatabaseObject {
 		return $obj;
 	}
 
-	private function import_name($name) {
-		if(!isset($name)){
-			throw new InvalidInputException('name', '.{1,50}');
-		} else if(!preg_match('/^.{1,50}$/', $name)){
-			throw new InvalidInputException('name', '.{1,50}', $name);
-		} else {
-			$this->name = $name;
-		}
-	}
-
 	private function import_image($data) {
-		if($data['image_id']){
+		$image = new Image();
+
+		if(isset($data['image_id'])){
 			try {
-				$image = new Image();
 				$image->pull($data['image_id']);
 			} catch(EmptyResultException $e){
-				throw new InvalidInputException('image_id', 'image id; No Image Found', $data['image_id']); // TODO better exc. -> api index.php
-			} catch(DatabaseException $e){
-				throw $e;
+				throw new RelationNonexistentException('image_id', $data['image_id'], 'Image');
 			}
 
 			$this->image = $image;
 		} else if(isset($data['image'])){
-			try {
-				$image = new Image();
-				$image->generate();
-				$image->import($data['image']);
-				$image->push();
-			} catch(Exception $e){
-				throw new InvalidInputException('image', 'wrong exception but look in php', 'will be changed later'); // TODO
-				// TODO exception handling with and in images
-			}
-
+			$image->generate();
+			$image->import($data['image']);
+			$image->push();
 			$this->image = $image;
+			// TODO improve this
 		}
 	}
 }

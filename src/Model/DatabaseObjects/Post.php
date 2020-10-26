@@ -5,7 +5,11 @@ use \Blog\Model\DatabaseObjects\Image;
 use \Blog\Model\Exceptions\WrongObjectStateException;
 use \Blog\Model\Exceptions\DatabaseException;
 use \Blog\Model\Exceptions\EmptyResultException;
-use \Blog\Model\Exceptions\InvalidInputException;
+use \Blog\Model\Exceptions\InputFailedException;
+use \Blog\Model\Exceptions\InputException;
+use \Blog\Model\Exceptions\MissingValueException;
+use \Blog\Model\Exceptions\IllegalValueException;
+use \Blog\Model\Exceptions\RelationNonexistentException;
 use InvalidArgumentException;
 
 class Post extends DatabaseObject {
@@ -174,20 +178,63 @@ class Post extends DatabaseObject {
 	}
 
 	public function import($data) {
+		$errorlist = new InputFailedException();
+
 		if($this->is_new()){
-			$this->import_longid($data['longid']);
+			try {
+				$this->import_longid($data['longid']);
+			} catch(InputException $e){
+				$errorlist->push($e);
+			}
 		} else {
-			$this->import_check_id_and_longid($data['id'], $data['longid']);
+			try {
+				$this->import_check_id_and_longid($data['id'], $data['longid']);
+			} catch(InputException $e){
+				$errorlist->push($e);
+			}
 		}
 
-		$this->import_overline($data['overline']);
-		$this->import_headline($data['headline']);
-		$this->import_subline($data['subline']);
-		$this->import_teaser($data['teaser']);
-		$this->import_author($data['author']);
-		$this->import_timestamp($data['timestamp'] ?? time());
-		$this->import_content($data['content']);
-		$this->import_image($data);
+		$importconfig = [
+			'overline' => [
+				'required' => false,
+				'pattern' => '^.{0,25}$'
+			],
+			'headline' => [
+				'required' => true,
+				'pattern' => '^.{1,60}$'
+			],
+			'subline' => [
+				'required' => false,
+				'pattern' => '^.{0,40}$'
+			],
+			'author' => [
+				'required' => true,
+				'pattern' => '^.{1,50}$'
+			]
+		];
+
+		$this->import_standardized($data, $importconfig, $errorlist);
+
+		$this->teaser = $data['teaser'];
+		$this->content = $data['content'];
+
+		try {
+			$this->import_timestamp($data['timestamp']);
+		} catch(InputException $e){
+			$errorlist->push($e);
+		}
+
+		try {
+			$this->import_image($data);
+		} catch(InputFailedException $e){
+			$errorlist->merge($e, 'image');
+		} catch(InputException $e){
+			$errorlist->push($e);
+		}
+
+		if(!$errorlist->is_empty()){
+			throw $errorlist;
+		}
 
 		$this->empty = false;
 	}
@@ -235,88 +282,33 @@ class Post extends DatabaseObject {
 		return $obj;
 	}
 
-	private function import_overline($overline) {
-		if(!isset($overline)){
-			$this->overline = null;
-		} else if(!preg_match('/^.{0,25}$/', $overline)){
-			throw new InvalidInputException('overline', '.{0,25}', $overline);
-		} else {
-			$this->overline = $overline;
-		}
-	}
-
-	private function import_headline($headline) {
-		if(!isset($headline)){
-			throw new InvalidInputException('headline', '.{1,60}');
-		} else if(!preg_match('/^.{1,60}$/', $headline)){
-			throw new InvalidInputException('headline', '.{1,60}', $headline);
-		} else {
-			$this->headline = $headline;
-		}
-	}
-
-	private function import_subline($subline) {
-		if(!isset($subline)){
-			$this->subline = null;
-		} else if(!preg_match('/^.{0,40}$/', $subline)){
-			throw new InvalidInputException('subline', '.{0,40}', $subline);
-		} else {
-			$this->subline = $subline;
-		}
-	}
-
-	private function import_teaser($teaser) {
-		$this->teaser = $teaser;
-	}
-
-	private function import_author($author) {
-		if(!isset($author)){
-			throw new InvalidInputException('author', '.{1,50}');
-		} else if(!preg_match('/^.{1,50}$/', $author)){
-			throw new InvalidInputException('author', '.{1,50}', $author);
-		} else {
-			$this->author = $author;
-		}
-	}
-
-	public function import_timestamp($timestamp) {
-		if(!isset($timestamp)){
-			throw new InvalidInputException('timestamp', '[unix timestamp]');
+	private function import_timestamp($timestamp) {
+		if(empty($timestamp)){
+			throw new MissingValueException('timestamp', 'unix timestamp');
 		} else if(!is_numeric($timestamp)){
-			throw new InvalidInputException('timestmap', '[unix timestamp]', $timestamp);
+			throw new IllegalValueException('timestamp', $timestamp, 'unix timestamp');
 		} else {
 			$this->timestamp = (int) $timestamp;
 		}
 	}
 
-	private function import_content($content) {
-		$this->content = $content;
-	}
-
 	private function import_image($data) {
-		if($data['image_id']){
+		$image = new Image();
+
+		if(isset($data['image_id'])){
 			try {
-				$image = new Image();
 				$image->pull($data['image_id']);
 			} catch(EmptyResultException $e){
-				throw new InvalidInputException('image_id', 'image id; No Image Found', $data['image_id']); // TODO better exc. -> api index.php
-			} catch(DatabaseException $e){
-				throw $e;
+				throw new RelationNonexistentException('image_id', $data['image_id'], 'Image');
 			}
 
 			$this->image = $image;
 		} else if(isset($data['image'])){
-			try {
-				$image = new Image();
-				$image->generate();
-				$image->import($data['image']);
-				$image->push();
-			} catch(Exception $e){
-				throw new InvalidInputException('image', 'wrong exception but look in php', 'will be changed later'); // TODO
-				// TODO exception handling with and in images
-			}
-
+			$image->generate();
+			$image->import($data['image']);
+			$image->push();
 			$this->image = $image;
+			// TODO improve this
 		}
 	}
 }

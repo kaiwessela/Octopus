@@ -6,7 +6,8 @@ use \Blog\Model\ImageManager;
 use \Blog\Model\Exceptions\WrongObjectStateException;
 use \Blog\Model\Exceptions\DatabaseException;
 use \Blog\Model\Exceptions\EmptyResultException;
-use \Blog\Model\Exceptions\InvalidInputException;
+use \Blog\Model\Exceptions\InputFailedException;
+use \Blog\Model\Exceptions\InputException;
 use InvalidArgumentException;
 
 class Image extends DatabaseObject {
@@ -150,17 +151,44 @@ class Image extends DatabaseObject {
 	}
 
 	public function import($data) {
-		$imagemanager = new ImageManager(Config::DYNAMIC_IMAGE_PATH);
+		$errorlist = new InputFailedException();
 
 		if($this->is_new()){
-			$this->import_longid($data['longid']);
-			$imagemanager->receive_upload($this);
+			try {
+				$this->import_longid($data['longid']);
+			} catch(InputException $e){
+				$errorlist->push($e);
+			}
+
+			try {
+				$imagemanager->receive_upload($this);
+			} catch(Exception $e){
+				// TODO
+			}
 		} else {
-			$this->import_check_id_and_longid($data['id'], $data['longid']);
+			try {
+				$this->import_check_id_and_longid($data['id'], $data['longid']);
+			} catch(InputException $e){
+				$errorlist->push($e);
+			}
 		}
 
-		$this->import_description($data['description']);
-		$this->import_copyright($data['copyright']);
+		$importconfig = [
+			'description' => [
+				'required' => false,
+				'pattern' => '^.{0,100}$'
+			],
+			'copyright' => [
+				'required' => false,
+				'pattern' => '^.{0,100}$'
+			]
+		];
+
+		$this->import_standardized($data, $importconfig, $errorlist);
+
+		if(!$errorlist->is_empty()){
+			throw $errorlist;
+		}
 
 		$this->empty = false;
 	}
@@ -209,26 +237,6 @@ class Image extends DatabaseObject {
 
 	public function has_size($size) {
 		return in_array($size, $this->sizes);
-	}
-
-	private function import_description($description) {
-		if(!isset($description)){
-			$this->description = null;
-		} else if(!preg_match('/^.{0,100}$/', $description)){
-			throw new InvalidInputException('description', '.{0,100}', $description);
-		} else {
-			$this->description = $description;
-		}
-	}
-
-	private function import_copyright($copyright) {
-		if(!isset($copyright)){
-			$this->copyright = null;
-		} else if(!preg_match('/^.{0,100}$/', $copyright)){
-			throw new InvalidInputException('copyright', '.{0,100}', $copyright);
-		} else {
-			$this->copyright = $copyright;
-		}
 	}
 }
 ?>

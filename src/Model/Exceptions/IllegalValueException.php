@@ -24,5 +24,14 @@ class IllegalValueException extends InputException {
 
 		$this->message = "Input value '$field' invalid. Given '$input', Expected format: '$expected'.";
 	}
+
+	public function export() {
+		return [
+			'type' => 'IllegalValue',
+			'field' => $this->field,
+			'input' => $this->input,
+			'expected' => $this->expected
+		];
+	}
 }
 ?>

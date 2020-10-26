@@ -29,7 +29,7 @@ class Request {
 		$this->query_string = $_GET;
 
 		if($this->method == 'POST'){
-			$this->content_type = $_SERVER['CONTENT_TYPE'];
+			$this->content_type = $_SERVER['CONTENT_TYPE'] ?? 'multipart/form-data';
 
 			# if data is received as json, the default php $_POST variable does not work
 			if($this->content_type == 'application/json'){

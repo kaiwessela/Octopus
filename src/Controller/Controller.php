@@ -4,6 +4,7 @@ use \Blog\Controller\Processors\Pagination\Pagination;
 use \Blog\Model\Exceptions\InputFailedException;
 use \Blog\Model\Exceptions\EmptyResultException;
 use \Blog\Model\Exceptions\DatabaseException;
+use \Blog\Model\Exportable;
 use InvalidArgumentException;
 use Exception;
 
@@ -153,6 +154,15 @@ abstract class Controller {
 		}
 		$this->objects = $objs;
 
+		$errs = [];
+		foreach($this->errors as $error){
+			if($error instanceof Exportable){
+				$err = $error->export();
+				$errs[$error->export_name] = $err;
+			}
+		}
+		$this->errors = $errs;
+
 		if($this->request->action == 'list' && isset($this->request->custom['pagination_structure'])){
 			$current_page = $this->request->page;
 			$objects_per_page = $this->request->amount;
@@ -166,7 +176,6 @@ abstract class Controller {
 				$this->exceptions[] = $e;
 			}
 		}
-
 		$this->process_all($this->objects);
 	}
 

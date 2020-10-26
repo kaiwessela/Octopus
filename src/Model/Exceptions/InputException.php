@@ -15,5 +15,7 @@ RelationNonexistentException	- if i.e. a new post object references an image obj
 abstract class InputException extends Exception {
 	public $field;
 	public $input;
+
+	abstract public function export();
 }
 ?>

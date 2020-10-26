@@ -26,5 +26,14 @@ class IdentifierCollisionException extends InputException {
 
 		$this->message = "Identifier Collision: longid '$input' is already assigned to object '$existing->id'.";
 	}
+
+	public function export() {
+		return [
+			'type' => 'IdentifierCollision',
+			'field' => $this->field,
+			'input' => $this->input,
+			'existing_id' => $this->existing->id
+		];
+	}
 }
 ?>

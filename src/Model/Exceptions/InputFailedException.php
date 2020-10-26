@@ -1,13 +1,16 @@
 <?php
 namespace Blog\Model\Exceptions;
 use Exception;
+use \Blog\Model\Exportable;
 
-class InputFailedException extends Exception { // TODO rename to ImportFailedException
+class InputFailedException extends Exception implements Exportable { // TODO rename to ImportFailedException
 	public $exceptions;
+	public $export_name;
 
 
 	function __construct() {
 		$this->exceptions = [];
+		$this->export_name = 'import';
 	}
 
 	public function push(InputException $exception) {
@@ -20,12 +23,12 @@ class InputFailedException extends Exception { // TODO rename to ImportFailedExc
 		}
 	}
 
-	public function msg() { // TEMP
-		$msg;
+	public function export() {
+		$exlist = [];
 		foreach($this->exceptions as $exception){
-			$msg .= $exception->getMessage() . \PHP_EOL;
+			$exlist[$exception->field] = $exception->export();
 		}
-		return $msg;
+		return $exlist;
 	}
 
 	public function is_empty() {

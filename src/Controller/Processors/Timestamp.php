@@ -13,7 +13,7 @@ class Timestamp {
 	const TIME = '%k.%M&nbsp;Uhr'; # 7.45 Uhr
 
 
-	function __construct(int $unix) {
+	function __construct($unix) {
 		$this->unix = $unix;
 	}
 

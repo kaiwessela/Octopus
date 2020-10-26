@@ -25,5 +25,15 @@ class IdentifierMismatchException extends InputException {
 
 		$this->message = "Identifier Mismatch: $field '$input' does not match with existing Object id '$object->id' (longid: '$object->longid').";
 	}
+
+	public function export() {
+		return [
+			'type' => 'IdentifierMismatch',
+			'field' => $this->field,
+			'input' => $this->input,
+			'existing_id' => $this->object->id,
+			'existing_longid' => $this->object->longid
+		];
+	}
 }
 ?>

@@ -7,7 +7,7 @@ class MarkdownContent {
 	public $parsed;
 
 
-	function __construct(string $raw) {
+	function __construct($raw) {
 		$this->raw = $raw;
 		$this->parsed = Parsedown::instance()->text($this->raw);
 	}

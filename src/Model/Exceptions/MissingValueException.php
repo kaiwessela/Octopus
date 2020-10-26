@@ -24,5 +24,14 @@ class MissingValueException extends InputException {
 
 		$this->message = "Required input value '$field' missing. Expected format '$expected'.";
 	}
+
+	public function export() {
+		return [
+			'type' => 'MissingValue',
+			'field' => $this->field,
+			'input' => $this->input,
+			'expected' => $this->expected
+		];
+	}
 }
 ?>

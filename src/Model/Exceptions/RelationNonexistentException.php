@@ -26,5 +26,14 @@ class RelationNonexistentException extends InputException {
 
 		$this->message = "Relation Nonexistent: Object '$input' of class '$class' specified in '$field' does not exist.";
 	}
+
+	public function export() {
+		return [
+			'type' => 'RelationNonexistent',
+			'field' => $this->field,
+			'input' => $this->input,
+			'class' => $this->class
+		];
+	}
 }
 ?>

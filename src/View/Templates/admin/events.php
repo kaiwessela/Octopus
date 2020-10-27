@@ -44,6 +44,11 @@
 				<div class="message red">
 					Die hochgeladenen Daten sind fehlerhaft.
 				</div>
+				<ul>
+				<?php foreach($Post->errors['import'] as $error){ ?>
+					<li><code><?= $error['field'] ?></code>: <?= $error['type'] ?></li>
+				<?php } ?>
+				</ul>
 			<?php } else if($Event->internal_error()){ ?>
 				<div class="message red">
 					Es ist ein interner Serverfehler aufgetreten.
@@ -100,11 +105,26 @@
 				</article>
 			<?php } ?>
 
-			<?php if($Event->request->action == 'edit' && !$Event->edited()){ ?>
+			<?php if(($Event->request->action == 'edit' && !$Event->edited()) || ($Event->request->action == 'new' && !$Event->created())){ ?>
 				<?php $obj = $Event->object; ?>
 				<form action="#" method="post">
+
+					<?php if($Event->request->action == 'new'){ ?>
+					<label for="longid">
+						<span class="name">Veranstaltungs-ID</span>
+						<span class="conditions">
+							erforderlich; 9 bis 60 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
+							Bindestriche (-)
+						</span>
+						<span class="infos">
+							Die Veranstaltungs-ID wird in der URL verwendet und entspricht meistens dem Titel.
+						</span>
+					</label>
+					<input type="text" id="longid" name="longid" value="<?= $obj->longid ?>" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]{9,60}$" autocomplete="off">
+					<?php } else { ?>
 					<input type="hidden" name="id" value="<?= $obj->id ?>">
 					<input type="hidden" name="longid" value="<?= $obj->longid ?>">
+					<?php } ?>
 
 					<label for="title">
 						<span class="name">Titel</span>
@@ -149,76 +169,6 @@
 					<label class="checkbodge turn-around">
 						<span class="label-field">Ja</span>
 						<input type="checkbox" id="cancelled" name="cancelled" value="true" <?php if($obj->cancelled){ echo 'checked'; } ?>>
-						<span class="bodgecheckbox">
-							<span class="bodgetick">
-								<span class="bodgetick-down"></span>
-								<span class="bodgetick-up"></span>
-							</span>
-						</span>
-					</label>
-
-					<button type="submit" class="green">Speichern</button>
-				</form>
-			<?php } ?>
-
-			<?php if($Event->request->action == 'new' && !$Event->created()){ ?>
-				<?php $obj = $Event->object; ?>
-				<form action="#" method="post">
-					<label for="longid">
-						<span class="name">Veranstaltungs-ID</span>
-						<span class="conditions">
-							erforderlich; 9 bis 60 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
-							Bindestriche (-)
-						</span>
-						<span class="infos">
-							Die Veranstaltungs-ID wird in der URL verwendet und entspricht meistens dem Titel.
-						</span>
-					</label>
-					<input type="text" id="longid" name="longid" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]$" autocomplete="off">
-
-					<label for="title">
-						<span class="name">Titel</span>
-						<span class="conditions">erforderlich, 1 bis 50 Zeichen</span>
-						<span class="infos">Der Titel der Veranstaltung.</span>
-					</label>
-					<input type="text" id="title" name="title" required size="40" maxlength="50">
-
-					<label for="organisation">
-						<span class="name">Organisation</span>
-						<span class="conditions">erforderlich, 1 bis 40 Zeichen</span>
-						<span class="infos">Die Organisation, die zur Veranstaltung eingeladen hat.</span>
-					</label>
-					<input type="text" id="organisation" name="organisation" required size="30" maxlength="40">
-
-					<label for="timestamp">
-						<span class="name">Datum und Uhrzeit</span>
-						<span class="conditions">erforderlich</span>
-						<span class="infos">Datum und Uhrzeit der Veranstaltung.</span>
-					</label>
-					<input type="number" class="timeinput" id="timestamp" name="timestamp" required size="10">
-
-					<label for="location">
-						<span class="name">Ort</span>
-						<span class="conditions">optional, bis zu 60 Zeichen</span>
-						<span class="infos">Der Ort der Veranstaltung.</span>
-					</label>
-					<input type="text" id="location"  name="location" size="40" maxlength="60">
-
-					<label for="description">
-						<span class="name">Beschreibung</span>
-						<span class="conditions">optional</span>
-						<span class="infos">Beschreibung der Veranstaltung.</span>
-					</label>
-					<textarea id="description" name="description" rows="5" cols="60"></textarea>
-
-					<label>
-						<span class="name">Absage</span>
-						<span class="conditions">optional</span>
-						<span class="infos">Ist die Veranstaltung abgesagt?
-					</label>
-					<label class="checkbodge turn-around">
-						<span class="label-field">Ja</span>
-						<input type="checkbox" id="cancelled" name="cancelled" value="true">
 						<span class="bodgecheckbox">
 							<span class="bodgetick">
 								<span class="bodgetick-down"></span>

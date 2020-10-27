@@ -44,6 +44,11 @@
 				<div class="message red">
 					Die hochgeladenen Daten sind fehlerhaft.
 				</div>
+				<ul>
+				<?php foreach($Post->errors['import'] as $error){ ?>
+					<li><code><?= $error['field'] ?></code>: <?= $error['type'] ?></li>
+				<?php } ?>
+				</ul>
 			<?php } else if($Image->internal_error()){ ?>
 				<div class="message red">
 					Es ist ein interner Serverfehler aufgetreten.
@@ -105,11 +110,27 @@
 				</article>
 			<?php } ?>
 
-			<?php if($Image->request->action == 'edit' && !$Image->edited()){ ?>
+			<?php if(($Image->request->action == 'edit' && !$Image->edited()) || ($Image->request->action == 'new' && !$Image->created())){ ?>
 				<?php $obj = $Image->object; ?>
 				<form action="#" method="post">
+
+					<?php if($Image->request->action == 'new'){ ?>
+					<label for="longid">
+						<span class="name">Bild-ID</span>
+						<span class="conditions">
+							erforderlich; 9 bis 60 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
+							Bindestriche (-)
+						</span>
+						<span class="infos">
+							Die Bild-ID wird in der URL verwendet und sollte den Bildinhalt kurz
+							beschreiben.
+						</span>
+					</label>
+					<input type="text" id="longid" name="longid" value="<?= $obj->longid ?>" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]{9,60}$" autocomplete="off">
+					<?php } else { ?>
 					<input type="hidden" id="id" name="id" value="<?= $obj->id ?>">
 					<input type="hidden" id="longid" name="longid" value="<?= $obj->longid ?>">
+					<?php } ?>
 
 					<label for="description">
 						<span class="name">Beschreibung</span>
@@ -131,57 +152,21 @@
 					</label>
 					<input type="text" id="copyright" class="copyright" name="copyright" value="<?= $obj->copyright ?>" size="50" maxlength="100">
 
-					<button type="submit" class="green">Speichern</button>
-				</form>
-
-				<br>
-				<img src="<?= $server->url . $server->dyn_img_path . "$obj->longid/original.$obj->extension" ?>" alt="[ANZEIGEFEHLER]">
-			<?php } ?>
-
-			<?php if($Image->request->action == 'new' && !$Image->created()){ ?>
-				<?php $obj = $Image->object; ?>
-				<form action="#" method="post" enctype="multipart/form-data">
-					<label for="longid">
-						<span class="name">Bild-ID</span>
-						<span class="conditions">
-							erforderlich; 9 bis 60 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
-							Bindestriche (-)
-						</span>
-						<span class="infos">
-							Die Bild-ID wird in der URL verwendet und sollte den Bildinhalt kurz
-							beschreiben.
-						</span>
-					</label>
-					<input type="text" id="longid" name="longid" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]$" autocomplete="off">
-
-					<label for="description">
-						<span class="name">Beschreibung</span>
-						<span class="conditions">optional, bis zu 100 Zeichen</span>
-						<span class="infos">
-							Die Beschreibung wird als Alternativtext angezeigt, wenn das Bild nicht geladen
-							werden kann. Sie sollte den Bildinhalt wiedergeben.
-						</span>
-					</label>
-					<input type="text" id="description" class="description" name="description" size="60" maxlength="100">
-
-					<label for="copyright">
-						<span class="name">Urheberrechtshinweis</span>
-						<span class="conditions">optional, bis zu 100 Zeichen</span>
-						<span class="infos">
-							Der Urbeherrechtshinweis kann genutzt werden, um Lizensierungsinformationen zu dem Bild
-							zur Verfügung zu stellen. Er wird normalerweise unterhalb des Bildes angezeigt.
-						</span>
-					</label>
-					<input type="text" id="copyright" class="copyright" name="copyright" size="50" maxlength="100">
-
+					<?php if($Image->request->action == 'new'){ // TODO TODO TODO see in backend how invalid image requests are handled ?>
 					<label for="imagefile">
 						<span class="name">Datei</span>
 						<span class="conditions">erforderlich; PNG, JPEG oder GIF</span>
 					</label>
 					<input type="file" id="imagefile" class="file" name="imagedata" required>
+					<?php } ?>
 
-					<button type="submit" class="green">Hochladen</button>
+					<button type="submit" class="green">Speichern</button>
 				</form>
+
+				<?php if($Image->request->action == 'edit'){ ?>
+				<br>
+				<img src="<?= $server->url . $server->dyn_img_path . "$obj->longid/original.$obj->extension" ?>" alt="[ANZEIGEFEHLER]">
+				<?php } ?>
 			<?php } ?>
 
 			<?php if($Image->request->action == 'delete' && !$Image->deleted()){ ?>

@@ -44,6 +44,11 @@
 				<div class="message red">
 					Die hochgeladenen Daten sind fehlerhaft.
 				</div>
+				<ul>
+				<?php foreach($Post->errors['import'] as $error){ ?>
+					<li><code><?= $error['field'] ?></code>: <?= $error['type'] ?></li>
+				<?php } ?>
+				</ul>
 			<?php } else if($Page->internal_error()){ ?>
 				<div class="message red">
 					Es ist ein interner Serverfehler aufgetreten.
@@ -96,11 +101,28 @@
 				</article>
 			<?php } ?>
 
-			<?php if($Page->request->action == 'edit' && !$Page->edited()){ ?>
+			<?php if(($Page->request->action == 'edit' && !$Page->edited()) || ($Page->request->action == 'new' && !$Page->created())){ ?>
 				<?php $obj = $Page->object; ?>
 				<form action="#" method="post">
+
+					<?php if($Page->request->action == 'new'){ ?>
+					<label for="longid">
+						<span class="name">Seiten-ID</span>
+						<span class="conditions">
+							erforderlich; 9 bis 60 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
+							Bindestriche (-)
+						</span>
+						<span class="infos">
+							Die Seiten-ID wird als URL verwendet
+							(<code><?= $server->url ?>/[Seiten-ID]</code>) und entspricht
+							oftmals ungefähr dem Titel.
+						</span>
+					</label>
+					<input type="text" id="longid" name="longid" value="<?= $obj->longid ?>" size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]{9,60}$" required autocomplete="off">
+					<?php } else { ?>
 					<input type="hidden" name="id" value="<?= $obj->id ?>">
 					<input type="hidden" name="longid" value="<?= $obj->longid ?>">
+					<?php } ?>
 
 					<label for="title">
 						<span class="name">Titel</span>
@@ -123,47 +145,6 @@
 					<textarea id="content" name="content" cols="80" rows="20"><?= $obj->content ?></textarea>
 
 					<button type="submit" class="blue">Speichern</button>
-				</form>
-			<?php } ?>
-
-			<?php if($Page->request->action == 'new' && !$Page->created()){ ?>
-				<?php $obj = $Page->object; ?>
-				<form action="#" method="post">
-					<label for="longid">
-						<span class="name">Seiten-ID</span>
-						<span class="conditions">
-							erforderlich; 9 bis 60 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
-							Bindestriche (-)
-						</span>
-						<span class="infos">
-							Die Seiten-ID wird als URL verwendet
-							(<code><?= $server->url ?>/[Seiten-ID]</code>) und entspricht
-							oftmals ungefähr dem Titel.
-						</span>
-					</label>
-					<input type="text" id="longid" name="longid" size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required autocomplete="off">
-
-					<label for="title">
-						<span class="name">Titel</span>
-						<span class="conditions">erforderlich, 1 bis 60 Zeichen</span>
-						<span class="infos">
-							Der Titel der Seite steht u.a. im Fenstertitel des Browsers und sollte
-							einen Hinweis auf den Inhalt geben.
-						</span>
-					</label>
-					<input type="text" id="title" name="title" size="40" maxlength="60" required>
-
-					<label for="content">
-						<span class="name">Inhalt</span>
-						<span class="conditions">
-							optional, HTML und Markdown-Schreibweise möglich
-							(<a href="https://de.wikipedia.org/wiki/Markdown">Wikipedia: Markdown</a>)
-						</span>
-						<span class="infos">Der eigentliche Inhalt der Seite.</span>
-					</label>
-					<textarea id="content" name="content" cols="80" rows="20"></textarea>
-
-					<button type="submit" class="green">Speichern</button>
 				</form>
 			<?php } ?>
 

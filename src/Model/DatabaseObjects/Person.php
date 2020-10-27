@@ -232,7 +232,7 @@ class Person extends DatabaseObject {
 	private function import_image($data) {
 		$image = new Image();
 
-		if(isset($data['image_id'])){
+		if(!empty($data['image_id'])){
 			try {
 				$image->pull($data['image_id']);
 			} catch(EmptyResultException $e){
@@ -240,7 +240,7 @@ class Person extends DatabaseObject {
 			}
 
 			$this->image = $image;
-		} else if(isset($data['image'])){
+		} else if(!empty($data['image'])){
 			$image->generate();
 			$image->import($data['image']);
 			$image->push();

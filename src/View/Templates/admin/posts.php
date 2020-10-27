@@ -44,6 +44,11 @@
 				<div class="message red">
 					Die hochgeladenen Daten sind fehlerhaft.
 				</div>
+				<ul>
+				<?php foreach($Post->errors['import'] as $error){ ?>
+					<li><code><?= $error['field'] ?></code>: <?= $error['type'] ?></li>
+				<?php } ?>
+				</ul>
 			<?php } else if($Post->internal_error()){ ?>
 				<div class="message red">
 					Es ist ein interner Serverfehler aufgetreten.
@@ -125,11 +130,26 @@
 				</article>
 			<?php } ?>
 
-			<?php if($Post->request->action == 'edit' && !$Post->edited()){ ?>
+			<?php if(($Post->request->action == 'edit' && !$Post->edited()) || ($Post->request->action == 'new' && !$Post->created())){ ?>
 				<?php $obj = $Post->object; ?>
 				<form action="#" method="post">
+
+					<?php if($Post->request->action == 'new'){ ?>
+					<label for="longid">
+						<span class="name">Post-ID</span>
+						<span class="conditions">
+							erforderlich; 9 bis 60 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
+							Bindestriche (-)
+						</span>
+						<span class="infos">
+							Die Post-ID wird in der URL verwendet und entspricht oftmals ungefähr der Überschrift.
+						</span>
+					</label>
+					<input type="text" id="longid" name="longid" value="<?= $obj->longid ?>" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]{9,60}$" autocomplete="off">
+					<?php } else { ?>
 					<input type="hidden" name="id" value="<?= $obj->id ?>">
 					<input type="hidden" name="longid" value="<?= $obj->longid ?>">
+					<?php } ?>
 
 					<label for="overline">
 						<span class="name">Dachzeile</span>
@@ -208,103 +228,6 @@
 						<span class="infos">Der eigentliche Inhalt des Artikels</span>
 					</label>
 					<textarea id="content" name="content" cols="80" rows="20"><?= $obj->content ?></textarea>
-
-					<button type="submit" class="green">Speichern</button>
-				</form>
-			<?php } ?>
-
-			<?php if($Post->request->action == 'new' && !$Post->created()){ ?>
-				<?php $obj = $Post->object; ?>
-				<form action="#" method="post">
-					<label for="longid">
-						<span class="name">Post-ID</span>
-						<span class="conditions">
-							erforderlich; 9 bis 60 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
-							Bindestriche (-)
-						</span>
-						<span class="infos">
-							Die Post-ID wird in der URL verwendet und entspricht oftmals ungefähr der Überschrift.
-						</span>
-					</label>
-					<input type="text" id="longid" name="longid" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]$" autocomplete="off">
-
-					<label for="overline">
-						<span class="name">Dachzeile</span>
-						<span class="conditions">optional, bis zu 25 Zeichen</span>
-						<span class="infos">
-							Die Dachzeile steht direkt über der Überschrift und beinhaltet meist ein kurzes
-							Stichwort, das das Thema des Artikels angibt.
-						</span>
-					</label>
-					<input type="text" id="overline" name="overline" size="20" maxlength="25">
-
-					<label for="headline">
-						<span class="name">Schlagzeile</span>
-						<span class="conditions">erforderlich, 1 bis 60 Zeichen</span>
-						<span class="infos">
-							Die Schlagzeile ist die Überschrift des Artikels und fasst die Kernaussage prägnant
-							zusammen.
-						</span>
-					</label>
-					<input type="text" id="headline" name="headline" required size="40" maxlength="60">
-
-					<label for="subline">
-						<span class="name">Unterzeile</span>
-						<span class="conditions">optional, bis zu 40 Zeichen</span>
-						<span class="infos">
-							Die Unterzeile steht unterhalb der Schlagzeile und ergänzt diese um weitere
-							Informationen.
-						</span>
-					</label>
-					<input type="text" id="subline" name="subline" size="30" maxlength="40">
-
-					<label for="teaser">
-						<span class="name">Teaser</span>
-						<span class="conditions">optional</span>
-						<span class="infos">
-							Der Teaser wird nur in der Artikelvorschau angezeigt. Er fasst den Artikel kurz
-							zusammen und soll zum Weiterlesen anregen.
-						</span>
-					</label>
-					<textarea id="teaser" name="teaser" cols="50" rows="3"></textarea>
-
-					<label for="author">
-						<span class="name">Autor</span>
-						<span class="requirements">erforderlich, 1 bis 50 Zeichen</span>
-						<span class="infos">Der Autor des Artikels.</span>
-					</label>
-					<input type="text" id="author" name="author" required size="30" maxlength="50">
-
-					<label for="timestamp">
-						<span class="name">Veröffentlichungsdatum und -uhrzeit</span>
-						<span class="conditions">erforderlich</span>
-						<span class="infos">
-							Datum und Uhrzeit der Veröffentlichung. Hat derzeit nur eine informierende Funktion,
-							Artikel mit Datum in der Zukunft werden trotzdem angezeigt. Es ist aber eine Funktion
-							zur terminierten Veröffentlichung geplant.
-						</span>
-					</label>
-					<input type="number" class="timeinput" id="timestamp" name="timestamp" required size="10">
-
-					<label for="image_id">
-						<span class="name">Artikelbild</span>
-						<span class="conditions">optional</span>
-						<span class="infos">
-							Das Artikelbild wird prominent zwischen Überschrift und Inhalt sowie in der
-							Artikelvorschau angezeigt.
-						</span>
-					</label>
-					<input type="text" class="imageinput" id="image_id" name="image_id" size="8" minlength="8" maxlength="8">
-
-					<label for="content">
-						<span class="name">Inhalt</span>
-						<span class="conditions">
-							optional, Markdown-Schreibweise möglich
-							(<a href="https://de.wikipedia.org/wiki/Markdown">Wikipedia: Markdown</a>)
-						</span>
-						<span class="infos">Der eigentliche Inhalt des Artikels</span>
-					</label>
-					<textarea id="content" name="content" cols="80" rows="20"></textarea>
 
 					<button type="submit" class="green">Speichern</button>
 				</form>

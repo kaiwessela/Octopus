@@ -44,6 +44,11 @@
 				<div class="message red">
 					Die hochgeladenen Daten sind fehlerhaft.
 				</div>
+				<ul>
+				<?php foreach($Post->errors['import'] as $error){ ?>
+					<li><code><?= $error['field'] ?></code>: <?= $error['type'] ?></li>
+				<?php } ?>
+				</ul>
 			<?php } else if($Person->internal_error()){ ?>
 				<div class="message red">
 					Es ist ein interner Serverfehler aufgetreten.
@@ -105,11 +110,26 @@
 				</article>
 			<?php } ?>
 
-			<?php if($Person->request->action == 'edit' && !$Person->edited()){ ?>
+			<?php if(($Person->request->action == 'edit' && !$Person->edited()) || ($Person->request->action == 'new' && !$Person->created())){ ?>
 				<?php $obj = $Person->object; ?>
 				<form action="#" method="post">
+
+					<?php if($Person->request->action == 'new'){ ?>
+					<label for="longid">
+						<span class="name">Personen-ID</span>
+						<span class="conditions">
+							erforderlich; 9 bis 60 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
+							Bindestriche (-)
+						</span>
+						<span class="infos">
+							Die Personen-ID wird in der URL verwendet und entspricht meistens dem Namen.
+						</span>
+					</label>
+					<input type="text" id="longid" name="longid" value="<?= $obj->longid ?>" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]{9,60}$" autocomplete="off">
+					<?php } else { ?>
 					<input type="hidden" name="id" value="<?= $obj->id ?>">
 					<input type="hidden" name="longid" value="<?= $obj->longid ?>">
+					<?php } ?>
 
 					<label for="name">
 						<span class="name">Name</span>
@@ -128,43 +148,6 @@
 						</span>
 					</label>
 					<input type="text" class="imageinput" id="image_id" name="image_id" value="<?= $obj->image->id ?? '' ?>" size="8" minlength="8" maxlength="8">
-
-					<button type="submit" class="green">Speichern</button>
-				</form>
-			<?php } ?>
-
-			<?php if($Person->request->action == 'new' && !$Person->created()){ ?>
-				<?php $obj = $Person->object; ?>
-				<form action="#" method="post">
-					<label for="longid">
-						<span class="name">Personen-ID</span>
-						<span class="conditions">
-							erforderlich; 9 bis 60 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
-							Bindestriche (-)
-						</span>
-						<span class="infos">
-							Die Personen-ID wird in der URL verwendet und entspricht meistens dem Namen.
-						</span>
-					</label>
-					<input type="text" id="longid" name="longid" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]$" autocomplete="off">
-
-					<label for="name">
-						<span class="name">Name</span>
-						<span class="conditions">erforderlich, 1 bis 50 Zeichen</span>
-						<span class="infos">
-							Der vollständige Name der Person.
-						</span>
-					</label>
-					<input type="text" id="name" class="name" name="name" required size="30" maxlength="50">
-
-					<label>
-						<span class="name">Profilbild</span>
-						<span class="conditions">optional</span>
-						<span class="infos">
-							Das Profilbild sollte ein Portrait der Person sein.
-						</span>
-					</label>
-					<input type="text" class="imageinput" id="image_id" name="image_id" size="8" minlength="8" maxlength="8">
 
 					<button type="submit" class="green">Speichern</button>
 				</form>

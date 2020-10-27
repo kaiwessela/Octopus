@@ -17,7 +17,7 @@ class Config {
 	# DEBUG MODE
 	# enabling this mode will turn on php error reporting. use it for debugging, if you only see a
 	# blank page or if you see any other bugs
-	const DEBUG_MODE = true; # true = debug mode, false = normal/production mode
+	const DEBUG_MODE = false; # true = debug mode, false = normal/production mode
 
 	# MYSQL DATABASE CONFIGURATION
 	# authentication credentials for your mysql database which stores your posts and other site data

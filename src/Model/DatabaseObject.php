@@ -65,7 +65,7 @@ abstract class DatabaseObject {
 		}
 
 		try {
-			$existing = clone $this;
+			$existing = new $this;
 			$existing->pull($longid);
 			$found = true;
 		} catch(EmptyResultException $e){
@@ -86,7 +86,7 @@ abstract class DatabaseObject {
 
 			if(empty($data[$field]) && !$required){
 				$this->$field = null;
-			} else if(empty($data[$field] && $required)){
+			} else if(empty($data[$field]) && $required){
 				$errorlist->push(new MissingValueException($field, $pattern));
 			} else if(!preg_match("/$pattern/", $data[$field])){
 				$errorlist->push(new IllegalValueException($field, $data[$field], $pattern));

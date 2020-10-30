@@ -12,6 +12,14 @@ class Timestamp {
 	const DATETIME_LONG = '%A,&nbsp;%e.&nbsp;%B&nbsp;%Y,&nbsp;%k.%M&nbsp;Uhr'; # Montag, 9. Januar 2020, 7.45 Uhr
 	const TIME = '%k.%M&nbsp;Uhr'; # 7.45 Uhr
 
+	const WEEKDAY = '%A';
+	const DAY = '%d';
+	const MONTH = '%e';
+	const MONTHNAME = '%B';
+	const YEAR = '%Y';
+	const HOUR = '%k';
+	const MINUTE = '%M';
+
 
 	function __construct($unix) {
 		$this->unix = $unix;
@@ -30,6 +38,13 @@ class Timestamp {
 			case 'datetime': 		return $this->format(Timestamp::DATETIME);
 			case 'datetime_long': 	return $this->format(Timestamp::DATETIME_LONG);
 			case 'time': 			return $this->format(Timestamp::TIME);
+			case 'weekday': 		return $this->format(Timestamp::WEEKDAY);
+			case 'day': 			return $this->format(Timestamp::DAY);
+			case 'month': 			return $this->format(Timestamp::MONTH);
+			case 'monthname': 		return $this->format(Timestamp::MONTHNAME);
+			case 'year': 			return $this->format(Timestamp::YEAR);
+			case 'hour': 			return $this->format(Timestamp::HOUR);
+			case 'minute': 			return $this->format(Timestamp::MINUTE);
 			case 'iso': 			return $this->iso();
 			case 'rfc2822': 		return $this->rfc2822();
 			default: break;

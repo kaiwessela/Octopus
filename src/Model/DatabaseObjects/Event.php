@@ -214,14 +214,6 @@ class Event extends DatabaseObject {
 		$this->import_timestamp($data['timestamp']);
 		$this->import_cancelled($data['cancelled']);
 
-		try {
-			$this->import_image($data);
-		} catch(InputFailedException $e){
-			$errorlist->merge($e, 'image');
-		} catch(InputException $e){
-			$errorlist->push($e);
-		}
-
 		if(!$errorlist->is_empty()){
 			throw $errorlist;
 		}

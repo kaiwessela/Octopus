@@ -1,5 +1,6 @@
 <?php
 namespace Blog\Model;
+use \Blog\Model\Exceptions\EmptyResultException;
 use \Blog\Model\Exceptions\DatabaseException;
 use \Blog\Model\Exceptions\WrongObjectStateException;
 use \Blog\Model\Exceptions\MissingValueException;

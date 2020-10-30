@@ -13,6 +13,7 @@
 			<meta property="og:image" content="<?= $Post->object->image->source_original ?>">
 		<?php } else { ?>
 			<meta name="twitter:card" content="summary">
+			<!-- TODO add og:image -->
 		<?php } ?>
 
 		<meta name="twitter:site" content="<?= $site->twitter ?>">

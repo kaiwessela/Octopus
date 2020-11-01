@@ -120,7 +120,7 @@
 							Die Veranstaltungs-ID wird in der URL verwendet und entspricht meistens dem Titel.
 						</span>
 					</label>
-					<input type="text" id="longid" name="longid" value="<?= $obj->longid ?>" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]{9,60}$" autocomplete="off">
+					<input type="text" id="longid" name="longid" value="<?= $obj->longid ?>" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" autocomplete="off">
 					<?php } else { ?>
 					<input type="hidden" name="id" value="<?= $obj->id ?>">
 					<input type="hidden" name="longid" value="<?= $obj->longid ?>">
@@ -197,6 +197,6 @@
 			include COMPONENT_PATH . 'admin/timeinput.php';
 		} ?>
 
-		<script src="<?= $server->url ?>/resources/js/validate.js"></script>
+		<script src="<?= $server->url ?>/resources/js/admin/validate.js"></script>
 	</body>
 </html>

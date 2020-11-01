@@ -118,7 +118,7 @@
 							oftmals ungefähr dem Titel.
 						</span>
 					</label>
-					<input type="text" id="longid" name="longid" value="<?= $obj->longid ?>" size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]{9,60}$" required autocomplete="off">
+					<input type="text" id="longid" name="longid" value="<?= $obj->longid ?>" size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required autocomplete="off">
 					<?php } else { ?>
 					<input type="hidden" name="id" value="<?= $obj->id ?>">
 					<input type="hidden" name="longid" value="<?= $obj->longid ?>">
@@ -160,6 +160,6 @@
 		</main>
 		<?php include COMPONENT_PATH . 'admin/footer.php'; ?>
 
-		<script src="<?= $server->url ?>/resources/js/validate.js"></script>
+		<script src="<?= $server->url ?>/resources/js/admin/validate.js"></script>
 	</body>
 </html>

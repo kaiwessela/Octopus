@@ -50,7 +50,7 @@
 					beschreiben.
 				</span>
 			</label>
-			<input type="text" id="imageinput-uploader-longid" class="longid" name="longid">
+			<input type="text" id="imageinput-uploader-longid" class="longid" name="longid" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" autocomplete="off">
 			<label for="imageinput-uploader-description">
 				<span class="name">Beschreibung</span>
 				<span class="conditions">optional</span>
@@ -59,7 +59,7 @@
 					werden kann. Sie sollte den Bildinhalt wiedergeben.
 				</span>
 			</label>
-			<input type="text" id="imageinput-uploader-description" class="description" name="description">
+			<input type="text" id="imageinput-uploader-description" class="description" name="description" size="60" maxlength="100">
 			<label for="copyright">
 				<span class="name">Urheberrechtshinweis</span>
 				<span class="conditions">optional</span>
@@ -68,7 +68,7 @@
 					zur Verfügung zu stellen. Er wird normalerweise unterhalb des Bildes angezeigt.
 				</span>
 			</label>
-			<input type="text" id="imageinput-uploader-copyright" class="copyright" name="copyright">
+			<input type="text" id="imageinput-uploader-copyright" class="copyright" name="copyright" size="50" maxlength="100">
 			<label for="imageinput-uploader-file">
 				<span class="name">Datei</span>
 				<span class="conditions">erforderlich; PNG, JPEG oder GIF</span>

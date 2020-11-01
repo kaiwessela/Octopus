@@ -126,7 +126,7 @@
 							beschreiben.
 						</span>
 					</label>
-					<input type="text" id="longid" name="longid" value="<?= $obj->longid ?>" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]{9,60}$" autocomplete="off">
+					<input type="text" id="longid" name="longid" value="<?= $obj->longid ?>" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" autocomplete="off">
 					<?php } else { ?>
 					<input type="hidden" id="id" name="id" value="<?= $obj->id ?>">
 					<input type="hidden" id="longid" name="longid" value="<?= $obj->longid ?>">

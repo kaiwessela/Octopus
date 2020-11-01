@@ -125,7 +125,7 @@
 							Die Personen-ID wird in der URL verwendet und entspricht meistens dem Namen.
 						</span>
 					</label>
-					<input type="text" id="longid" name="longid" value="<?= $obj->longid ?>" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]{9,60}$" autocomplete="off">
+					<input type="text" id="longid" name="longid" value="<?= $obj->longid ?>" required size="40" minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" autocomplete="off">
 					<?php } else { ?>
 					<input type="hidden" name="id" value="<?= $obj->id ?>">
 					<input type="hidden" name="longid" value="<?= $obj->longid ?>">

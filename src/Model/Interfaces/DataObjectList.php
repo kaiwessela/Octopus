@@ -11,7 +11,7 @@ abstract class DataObjectList {
 	abstract private static function load_each($data);
 
 
-	public function pull(/*int|null*/ $limit = null, /*int|null*/ $offset = null) {
+	public function pull(/*int*/$limit = null, /*int*/$offset = null) {
 #	@action:
 #	  - select multiple objects from the database
 #	  - call this->load to assign the received data to this->objects

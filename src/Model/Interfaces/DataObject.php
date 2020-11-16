@@ -1,7 +1,7 @@
 <?php
 
 
-abstract class DataObject {
+abstract class DataObjectContainer {
 
 #			NAME		TYPE	REQUIRED	PATTERN				DB NAME		DB VALUE
 	public $id;		#	str		*			[a-f0-9]{8}			=			=
@@ -10,6 +10,13 @@ abstract class DataObject {
 	private $new;
 	private $empty;
 
+	private $relationlist;
+
+	const IGNORE_PULL_LIMIT = false;
+
+
+	use DataObjectTrait;
+
 
 	abstract public function load($data);
 	abstract public function export();
@@ -17,72 +24,11 @@ abstract class DataObject {
 	abstract private function push_children();
 
 
-	public function pull(string $identifier) {
-#	@action:
-#	  - select one object from the database
-#	  - call this->load to assign the received data to this object
-#	@params:
-#	  - $identifier: the id or longid of the requested object
+	function __construct() {
+		$this->set_new(false);
+		$this->set_empty();
 
-		$pdo = self::open_pdo();
-		$this->req('empty');
-
-		$query = $this::PULL_QUERY;
-		$values = ['id' => $identifier];
-
-		$s = $pdo->prepare($query);
-		if(!$s->execute($values)){
-			throw new DatabaseException($s);
-		} else if($s->rowCount() != 1){
-			throw new EmptyResultException($query, $values);
-		} else {
-			$this->load($s->fetch());
-		}
-	}
-
-
-	public function push() {
-#	@action:
-#	  - upload (insert/update) this object to the database
-#	  - set this->new to false
-
-		$pdo = self::open_pdo();
-		$this->req('not empty');
-
-		$this->push_children();
-
-		if($this->is_new()){
-			$s = $pdo->prepare($this::INSERT_QUERY);
-		} else {
-			$s = $pdo->prepare($this::UPDATE_QUERY);
-		}
-
-		if(!$s->execute($this->db_export())){
-			throw new DatabaseException($s);
-		} else {
-			$this->set_new(false);
-		}
-	}
-
-
-	public function delete() {
-#	@action:
-#	  - delete this object in database
-#	  - set this->new to true
-
-		$pdo = self::open_pdo();
-		$this->req('not empty');
-		$this->req('not new');
-
-		$query = $this::DELETE_QUERY;
-		$values = ['id' => $this->id];
-
-		$s = $pdo->prepare($query);
-		if(!$s->execute($values)){
-			throw new DatabaseException($s);
-		} else {
-			$this->set_new();
-		}
+		$this->relationlist = new
 	}
 
 
@@ -96,36 +42,132 @@ abstract class DataObject {
 		$this->req('empty');
 		$this->generate_id();
 		$this->set_new();
-		$this->set_empty(false);
+		$this->set_empty();
 	}
 
 
-	protected function generate_id() {
+	public function count() {
+#	@requirements:
+#	  - this object must be configured to contain a list of DatabaseObjects, else return null
 #	@action:
-#	  - generate a new id
-#	  - assign the newly generated id to this object
+#	  - return the number of objects of this type stored in the database
+#	@return: integer
 
-		$this->id = bin2hex(random_bytes(4));
+		$this->req('not empty');
+
+		if(empty($this::COUNT_QUERY)){
+			return null;
+		}
+
+		$pdo = self::open_pdo();
+
+		$s = $pdo->prepare($this::COUNT_QUERY);
+		if(!$s->execute(['id' => $this->id])){
+			throw new DatabaseException($s);
+		} else {
+			return (int) $s->fetch()[0];
+		}
+	}
+
+
+	public function pull(string $identifier, /*int*/$limit = null, /*int*/$offset = null) {
+#	@action:
+#	  - select one object from the database
+#	  - call this->load to assign the received data to this object
+#	@params:
+#	  - $identifier: the id or longid of the requested object
+#	  - $limit: the amount of objects to be selected
+#	  - $offset: the amount of objects to be skipped at the beginning; ignored if $limit == null
+
+		$this->req('empty');
+		$pdo = self::open_pdo();
+
+		$query = $this::PULL_QUERY;
+		$values = ['identifier' => $identifier];
+
+		if($limit != null && !$this::IGNORE_PULL_LIMIT){
+			if(!is_int($limit)){
+				throw new InvalidArgumentException('Invalid argument: limit must be an integer.');
+			}
+
+			if($offset != null){
+				if(!is_int($offset)){
+					throw new InvalidArgumentException('Invalid argument: offset must be an integer.');
+				}
+
+				$query .= " LIMIT $offset, $limit";
+			} else {
+				$query .= " LIMIT $limit";
+			}
+		}
+
+		$s = $pdo->prepare($query);
+
+		if(!$s->execute([])){
+			throw new DatabaseException($s);
+		} else if($s->rowCount() == 0){
+			throw new EmptyResultException($query);
+		} else {
+			$this->load($s->fetchAll());
+		}
+	}
+
+
+	public function push() {
+#	@action:
+#	  - upload (insert/update) this object and all its children to the database
+#	  - set this->new to false
+
+		$this->req('not empty');
+		$pdo = self::open_pdo();
+
+		if($this->is_new()){
+			$s = $pdo->prepare($this::INSERT_QUERY);
+		} else {
+			$s = $pdo->prepare($this::UPDATE_QUERY);
+		}
+
+		if(!$s->execute($this->db_export())){
+			throw new DatabaseException($s);
+		} else {
+			$this->set_new(false);
+		}
+
+		$this->push_children();
+		$this->relationlist->push();
+	}
+
+
+	public function delete() {
+#	@action:
+#	  - delete this object in the database
+#	  - set this->new to true
+
+		$this->req('not empty');
+		$this->req('not new');
+		$pdo = self::open_pdo();
+
+		$s = $pdo->prepare($this::DELETE_QUERY);
+		if(!$s->execute(['id' => $this->id])){
+			throw new DatabaseException($s);
+		} else {
+			$this->set_new();
+		}
 	}
 
 
 	public function import($data) {
-#
+#	@action:
+#	  - import data received as array
+#	@params:
+#	  - data: array containing the data
 
 		$errors = new InputFailedException();
 
-		if($this->is_new()){
-			try {
-				$this->import_longid($data['longid']);
-			} catch(InputException $e){
-				$errors->push($e);
-			}
-		} else {
-			try {
-				$this->import_check_id_and_longid($data['id'], $data['longid']);
-			} catch(InputException $e){
-				$errorlist->push($e);
-			}
+		try {
+			$this->import_id_and_longid($data['id'], $data['longid']);
+		} catch(InputFailedException $e){
+			$errors->merge($e);
 		}
 
 		foreach($this::FIELDS as $fieldname => $fielddef){
@@ -143,7 +185,7 @@ abstract class DataObject {
 					try {
 						$obj->pull($id);
 					} catch(EmpyResultException $e){
-						$error->push(new RelationNonexistentException($fieldname, $id, get_class($obj)));
+						$errors->push(new RelationNonexistentException($fieldname, $id, get_class($obj)));
 						continue;
 					}
 
@@ -164,13 +206,8 @@ abstract class DataObject {
 					continue;
 				}
 
-				$this->fieldname = $obj;
+				$this->$fieldname = $obj;
 				continue;
-
-			} else if($type === 'array' && $fielddef['object_type'] instanceof DataObjectContainer){
-				foreach($value as $val){
-
-				}
 			}
 
 			if(empty($value) && !$required){
@@ -202,6 +239,17 @@ abstract class DataObject {
 
 			} else if($type === 'boolean'){
 				$this->$fieldname = (bool) $value;
+				continue;
+
+			} else if($type === 'relationlist'){
+				try {
+					$this->relationlist->import($value); // TODO do not forget to push
+				} catch(InputFailedException $e){
+					$errors->merge($e, $fieldname);
+					continue;
+				}
+
+				$this->$fieldname = $this->relationlist->get_objects();
 				continue;
 
 			} else if($type === 'custom'){

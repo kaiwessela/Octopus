@@ -123,7 +123,17 @@ abstract class DataObjectRelationList {
 		}
 	}
 
-	private object_ids() {
+	private get_objects() {
+		$objects = [];
+
+		foreach($this->relations as $relation){
+			$objects[] = $relation->object;
+		}
+
+		return $objects;
+	}
+
+	private get_object_ids() {
 		$id_list = [];
 
 		foreach($this->relations as $relation){

@@ -4,14 +4,6 @@ use Blog\Config\Config;
 use PDO;
 
 trait DataObjectTrait {
-	public $new;
-	public $empty;
-
-
-	function __construct() {
-		$this->new = false;
-		$this->empty = true;
-	}
 
 	protected static function open_pdo() {
 		return new PDO(
@@ -20,6 +12,56 @@ trait DataObjectTrait {
 			Config::DB_PASSWORD,
 			[PDO::ATTR_PERSISTENT => true]
 		);
+	}
+
+	protected function import_id_and_longid($id, $longid) {
+		$errors = new InputFailedException();
+
+		if($this->is_new()){
+			$pattern = '^[a-z0-9-]{9,128}$';
+
+			if(empty($longid)){
+				$errors->push(new MissingValueException('longid', $pattern));
+			}
+
+			if(!preg_match("/$pattern/", $longid)){
+				$errors->push(new IllegalValueException('longid', $longid, $pattern));
+			}
+
+			try {
+				$existing = new $this;
+				$existing->pull($longid);
+				$found = true;
+			} catch(EmptyResultException $e){
+				$found = false;
+			}
+
+			if($found){
+				$errors->push(new IdentifierCollisionException($longid, $existing));
+			} else {
+				$this->longid = $longid;
+			}
+		} else {
+			if($id != $this->id){
+				$errors->push(new IdentifierMismatchException('id', $id, $this));
+			}
+
+			if($longid != $this->longid){
+				$errors->push(new IdentifierMismatchException('longid', $longid, $this));
+			}
+		}
+
+		if(!$errors->is_empty()){
+			throw $errors;
+		}
+	}
+
+	protected function generate_id() {
+#	@action:
+#	  - generate a new id
+#	  - assign the newly generated id to this object
+
+		$this->id = bin2hex(random_bytes(4));
 	}
 
 	public function is_new() {

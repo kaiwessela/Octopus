@@ -15,7 +15,6 @@ class Column extends DataObjectContainer {
 #
 #	private $relationlist;
 
-
 	const FIELDS = [
 		'name' => [
 			'type' => 'string',
@@ -45,7 +44,7 @@ class Column extends DataObjectContainer {
 
 			$relation = new PostColumnRelation();
 			$relation->load(&$this, &$post, $postdata);
-			$relations[] = $relation;
+			$relations[$relation->id] = $relation;
 		}
 
 		$this->relationlist->load($relations);

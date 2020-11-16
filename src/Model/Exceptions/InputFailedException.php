@@ -19,7 +19,7 @@ class InputFailedException extends Exception implements Exportable { // TODO ren
 
 	public function merge(ImportFailedException $exception, $prefix) {
 		foreach($exception->exceptions as $e){
-			$this->exceptions[$prefix . '_' . $e->field] = $e;
+			$this->exceptions[$prefix . ':' . $e->field] = $e;
 		}
 	}
 

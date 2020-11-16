@@ -19,9 +19,13 @@ class Post extends DataObject {
 #	@inherited
 #	public $id;
 #	public $longid;
-
+#
 #	private $new;
 #	private $empty;
+#
+#	private $relationlist;
+
+	const IGNORE_PULL_LIMIT = true;
 
 	const FIELDS = [
 		'overline' => [
@@ -57,6 +61,9 @@ class Post extends DataObject {
 		],
 		'content' => [
 			'type' => 'string'
+		],
+		'columns' => [
+			'type' => 'relationlist'
 		]
 	];
 
@@ -66,7 +73,8 @@ class Post extends DataObject {
 		$this->image = new Image();
 	}
 
-	public function load($data) {
+
+	public function load($data, $block_recursion = false) {
 		$this->req('empty');
 
 		$this->id = $data['post_id'];
@@ -84,15 +92,56 @@ class Post extends DataObject {
 
 		$this->content = $data['post_content'];
 
+		if(!$block_recursion){
+			$relations = [];
+			foreach($data as $columndata){
+				$column = new Column();
+				$column->load($columndata, true);
+				$this->columns[] = $column;
+
+				$relation = new PostColumnRelation();
+				$relation->load(&$column, &$this, $columndata);
+				$relations[$relation->id] = $relation;
+			}
+
+			$this->relationlist->load($relations);
+		}
+
 		$this->set_new(false);
 		$this->set_empty(false);
 	}
 
-	private function push_children() {
-		if($this->image->is_new()){
-			$this->image->push();
+
+	public function export($block_recursion = false) {
+		if($this->is_empty()){
+			return null;
 		}
+
+		$obj = (object) [];
+
+		$obj->id = $this->id;
+		$obj->longid = $this->longid;
+		$obj->overline = $this->overline;
+		$obj->headline = $this->headline;
+		$obj->subline = $this->subline;
+		$obj->teaser = $this->teaser;
+		$obj->author = $this->author;
+		$obj->timestamp = $this->timestamp;
+		$obj->content = $this->content;
+		$obj->image = $this->image->export();
+
+		if(!$block_recursion){
+			$obj->columns = [];
+			foreach($this->columns as $column){
+				$obj->columns[] = $column->export(true);
+			}
+		}
+
+		$obj->relations = $this->relationlist->export();
+
+		return $obj;
 	}
+
 
 	private function db_export() {
 		$values = [
@@ -117,25 +166,11 @@ class Post extends DataObject {
 		}
 	}
 
-	public function export() {
-		if($this->is_empty()){
-			return null;
+
+	private function push_children() {
+		if($this->image->is_new()){
+			$this->image->push();
 		}
-
-		$obj = (object) [];
-
-		$obj->id = $this->id;
-		$obj->longid = $this->longid;
-		$obj->overline = $this->overline;
-		$obj->headline = $this->headline;
-		$obj->subline = $this->subline;
-		$obj->teaser = $this->teaser;
-		$obj->author = $this->author;
-		$obj->timestamp = $this->timestamp;
-		$obj->content = $this->content;
-		$obj->image = $this->image->export();
-
-		return $obj;
 	}
 
 
@@ -145,10 +180,7 @@ LEFT JOIN images ON image_id = post_image_id
 WHERE post_id = :id OR post_longid = :id;
 SQL; #---|
 
-	const DELETE_QUERY = <<<SQL
-DELETE FROM posts
-WHERE post_id = :id
-SQL; #---|
+	const COUNT_QUERY = null;
 
 	const INSERT_QUERY = <<<SQL
 INSERT INTO posts (
@@ -186,6 +218,11 @@ UPDATE posts SET
 	post_timestamp = :timestamp,
 	post_image_id = :image_id,
 	post_content = :content
+WHERE post_id = :id
+SQL; #---|
+
+	const DELETE_QUERY = <<<SQL
+DELETE FROM posts
 WHERE post_id = :id
 SQL; #---|
 

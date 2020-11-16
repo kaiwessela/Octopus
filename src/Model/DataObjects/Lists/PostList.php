@@ -11,7 +11,6 @@ class PostList extends DataObjectList {
 #	private $new;
 #	private $empty;
 
-
 	const OBJECTS_ALIAS = 'posts';
 
 

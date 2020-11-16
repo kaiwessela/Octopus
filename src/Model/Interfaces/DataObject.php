@@ -1,7 +1,7 @@
 <?php
 
 
-abstract class DataObjectContainer {
+abstract class DataObject {
 
 #			NAME		TYPE	REQUIRED	PATTERN				DB NAME		DB VALUE
 	public $id;		#	str		*			[a-f0-9]{8}			=			=

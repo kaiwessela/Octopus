@@ -71,6 +71,7 @@ class Post extends DataObject {
 	function __construct() {
 		parent::__construct();
 		$this->image = new Image();
+		$this->relationlist = new PostColumnRelationList();
 	}
 
 
@@ -164,6 +165,8 @@ class Post extends DataObject {
 		if($this->is_new()){
 			$values['longid'] = $this->longid;
 		}
+
+		return $values;
 	}
 
 
@@ -177,7 +180,7 @@ class Post extends DataObject {
 	const PULL_QUERY = <<<SQL
 SELECT * FROM post
 LEFT JOIN images ON image_id = post_image_id
-WHERE post_id = :id OR post_longid = :id;
+WHERE post_id = :id OR post_longid = :id
 SQL; #---|
 
 	const COUNT_QUERY = null;

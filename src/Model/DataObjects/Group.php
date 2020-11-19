@@ -1,10 +1,12 @@
 <?php
-class Column extends DataObject {
+namespace Blog\Model\DataObjects;
+
+class Group extends DataObject {
 
 #			NAME				TYPE		REQUIRED	PATTERN		DB NAME		DB VALUE
 	public $name;			#	str			*			.{1,30}		=			=
 	public $description;	#	str						.*			=			=
-	public $posts;			#	arr[Post]
+	public $persons;		#	arr[Person]
 
 #	@inherited
 #	public $id;
@@ -17,6 +19,7 @@ class Column extends DataObject {
 #
 #	const IGNORE_PULL_LIMIT = false;
 
+
 	const FIELDS = [
 		'name' => [
 			'type' => 'string',
@@ -26,7 +29,7 @@ class Column extends DataObject {
 		'description' => [
 			'type' => 'string'
 		],
-		'posts' => [
+		'persons' => [
 			'type' => 'relationlist'
 		]
 	];
@@ -35,18 +38,18 @@ class Column extends DataObject {
 	public function load($data, $block_recursion = false) {
 		$this->req('empty');
 
-		$this->name = $data[0]['column_name'];
-		$this->description = $data[0]['column_description'];
+		$this->name = $data[0]['group_name'];
+		$this->description = $data[0]['group_description'];
 
 		if(!$block_recursion){
 			$relations = [];
-			foreach($data as $postdata){
-				$post = new Post();
-				$post->load($postdata, true);
-				$this->posts[] = $post;
+			foreach($data as $persondata){
+				$person = new Person();
+				$person->load($persondata, true);
+				$this->persons[] = $person;
 
-				$relation = new PostColumnRelation();
-				$relation->load(&$this, &$post, $postdata);
+				$relation = new PersonGroupRelation();
+				$relation->load(&$this, &$person, $persondata);
 				$relations[$relation->id] = $relation;
 			}
 
@@ -65,9 +68,9 @@ class Column extends DataObject {
 		$obj->description = $this->description;
 
 		if(!$block_recursion){
-			$obj->posts = [];
-			foreach($this->posts as $post){
-				$obj->posts[] = $post->export(true);
+			$obj->persons = [];
+			foreach($this->persons as $person){
+				$obj->persons[] = $person->export(true);
 			}
 		}
 
@@ -93,38 +96,38 @@ class Column extends DataObject {
 
 
 	const PULL_QUERY = <<<SQL
-SELECT * FROM columns
-LEFT JOIN postcoluumnrelations ON postcolumnrelation_column_id = column_id
-LEFT JOIN posts ON post_id = postcolumnrelation_post_id
-LEFT JOIN images ON image_id = post_image_id
-WHERE column_id = :identifier OR column_longid = :identifier
-ORDER BY post_timestamp DESC
-SQL; #---|
+SELECT * FROM groups
+LEFT JOIN persongrouprelations ON persongrouprelation_group_id = group_id
+LEFT JOIN persons ON person_id = persongrouprelation_person_id
+LEFT JOIN images ON image_id = person_image_id
+WHERE group_id = :id OR group_longid = :id
+ORDER BY persongrouprelation_number
+SQL;
 
 
 	const COUNT_QUERY = <<<SQL
-SELECT COUNT(*) FROM postcolumnrelations WHERE postcolumnrelation_column_id = :id
+SELECT COUNT(*) FROM persongrouprelations WHERE persongrouprelation_group_id = :id
 SQL; #---|
 
 
 	const INSERT_QUERY = <<<SQL
-INSERT INTO columns
-	(column_id, column_longid, column_name, column_description)
+INSERT INTO groups
+	(group_id, group_longid, group_name, group_description)
 VALUES
 	(:id, :longid, :name, :description)
 SQL; #---|
 
 
 	const UPDATE_QUERY = <<<SQL
-UPDATE columns SET
-	column_name = :name,
-	column_description = :description
-WHERE column_id = :id
+UPDATE groups SET
+	group_name = :name,
+	group_description = :description
+WHERE group_id = :id
 SQL; #---|
 
 
 	const DELETE_QUERY = <<<SQL
-DELETE FROM columns WHERE column_id = :id
+DELETE FROM groups WHERE group_id = :id
 SQL; #---|
 
 }

@@ -1,8 +1,7 @@
 <?php
-
+namespace Blog\Model\DataObjects\Relations;
 
 class PostColumnRelation extends DataObjectRelation {
-
 #	@inherited
 #	public $id;
 #	public $primary_object;

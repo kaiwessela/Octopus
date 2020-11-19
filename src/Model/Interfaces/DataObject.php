@@ -21,7 +21,6 @@ abstract class DataObject {
 	abstract public function load($data);
 	abstract public function export();
 	abstract private function db_export();
-	abstract private function push_children();
 
 
 	function __construct() {
@@ -138,6 +137,14 @@ abstract class DataObject {
 	}
 
 
+	protected function push_children() {
+#	@action:
+#	  - placeholder function to be used by objects to push their children
+
+		return;
+	}
+
+
 	public function delete() {
 #	@action:
 #	  - delete this object in the database
@@ -210,7 +217,7 @@ abstract class DataObject {
 				continue;
 			}
 
-			if(empty($value) && !$required){
+			if(empty($value) && !$required && !$type === 'custom'){
 				continue;
 
 			} else if(empty($value) && $required){

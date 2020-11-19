@@ -1,5 +1,14 @@
 <?php
-
+namespace Blog\Model\Abstract;
+use Blog\Model\DataObjectTrait;
+use Blog\Model\Abstract\DataObject;
+use Blog\Model\Exceptions\DatabaseException;
+use Blog\Model\Exceptions\EmptyResultException;
+use Blog\Model\Exceptions\InputFailedException;
+use Blog\Model\Exceptions\IdentifierMismatchException;
+use Blog\Model\Exceptions\IllegalValueException;
+use Blog\Model\Exceptions\MissingValueException;
+use Blog\Model\Exceptions\RelationNonexistentException;
 
 abstract class DataObjectRelation {
 	public $id;
@@ -10,6 +19,8 @@ abstract class DataObjectRelation {
 	private $empty;
 
 	const UNIQUE = true;
+
+	use DataObjectTrait;
 
 
 	function __construct() {

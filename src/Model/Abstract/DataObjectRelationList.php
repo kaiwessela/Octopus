@@ -1,5 +1,8 @@
 <?php
-
+namespace Blog\Model\Abstract;
+use Blog\Model\Abstract\DataObject;
+use Blog\Model\Abstract\DataObjectRelation;
+use Blog\Model\Exceptions\InputFailedException;
 
 abstract class DataObjectRelationList {
 	public $relations;
@@ -105,8 +108,6 @@ abstract class DataObjectRelationList {
 
 		return $this->relations;
 	}
-
-	public function old_import($data) { // DEPRECATED
 #	@params
 #	  - data:
 #		[
@@ -131,69 +132,8 @@ abstract class DataObjectRelationList {
 #			]
 #		];
 
-		$errors = new InputFailedException();
 
-		foreach($data as $key => $field){
-			$action = $field['action'];
-			$relation_id = $field['relation_id'];
-
-			if($action == 'new'){
-				$relation = new DataObjectRelation();
-
-				try {
-					$relation->generate($this->container);
-					$relation->import($field);
-				} catch(InputFailedException $e){
-					$errors->merge($e, $key);
-					continue;
-				}
-
-				// TODO check for unique
-
-				$this->relations[$relation->id] = $relation;
-				$this->insertions[$relation->id] = $relation;
-				continue;
-
-			} else {
-				if(empty($relation_id)){
-					$errors->push(new MissingValueException('relation_id', 'PostColumnRelation->id'));
-					continue;
-				}
-
-				$relation = $this->relations[$relation_id];
-
-				if(!$relation instanceof DataObjectRelation){
-					$errors->push(new RelationNonexistentException('relation_id', $relation_id, 'PostColumnRelation'));
-					continue;
-				}
-
-				if($action == 'edit'){
-					try {
-						$relation->import($field);
-					} catch(InputFailedException $e){
-						$errors->merge($e, $key);
-						continue;
-					}
-
-					$this->relations[$relation->id] = $relation;
-					$this->updates[$relation->id] = $relation;
-					continue;
-
-				} else if($action == 'delete'){
-					$this->deletions[$relation->id] = $relation;
-					$this->updates[$relation->id] = $relation;
-					continue;
-
-				}
-			}
-		}
-
-		if(!$errors->is_empty()){
-			throw $errors;
-		}
-	}
-
-	private get_objects() {
+	private get_objects() { // DEPRECATED
 		$objects = [];
 
 		foreach($this->relations as $relation){
@@ -203,7 +143,7 @@ abstract class DataObjectRelationList {
 		return $objects;
 	}
 
-	private get_object_ids() {
+	private get_object_ids() { // DEPRECATED
 		$id_list = [];
 
 		foreach($this->relations as $relation){

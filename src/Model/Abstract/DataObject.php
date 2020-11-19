@@ -1,5 +1,13 @@
 <?php
-
+namespace Blog\Model\Abstract;
+use Blog\Model\DataObjectTrait;
+use Blog\Model\Exceptions\DatabaseException;
+use Blog\Model\Exceptions\EmptyResultException;
+use Blog\Model\Exceptions\InputFailedException;
+use Blog\Model\Exceptions\IllegalValueException;
+use Blog\Model\Exceptions\MissingValueException;
+use Blog\Model\Exceptions\RelationNonexistentException;
+use InvalidArgumentException;
 
 abstract class DataObject {
 
@@ -26,8 +34,6 @@ abstract class DataObject {
 	function __construct() {
 		$this->set_new(false);
 		$this->set_empty();
-
-		$this->relationlist = new
 	}
 
 
@@ -163,6 +169,9 @@ abstract class DataObject {
 	}
 
 
+	abstract protected function import_custom(); // TODO
+
+
 	public function import($data) {
 #	@action:
 #	  - import data received as array
@@ -256,7 +265,7 @@ abstract class DataObject {
 					continue;
 				}
 
-				$this->$fieldname = $this->relationlist->get_objects();
+				$this->$fieldname = $this->relationlist->get_objects(); // TODO this does not work
 				continue;
 
 			} else if($type === 'custom'){

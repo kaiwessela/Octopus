@@ -1,5 +1,9 @@
 <?php
-
+namespace Blog\Model\Abstract;
+use Blog\Model\DataObjectTrait;
+use Blog\Model\Exceptions\DatabaseException;
+use Blog\Model\Exceptions\EmptyResultException;
+use InvalidArgumentException;
 
 abstract class DataObjectList {
 	public $objects;
@@ -7,6 +11,7 @@ abstract class DataObjectList {
 	private $new;
 	private $empty;
 
+	use DataObjectTrait;
 
 	abstract private static function load_each($data);
 

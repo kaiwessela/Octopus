@@ -11,28 +11,25 @@ class PostColumnRelationList extends DataObjectRelationList {
 #	private $deletions;
 #	private $updates;
 
-	const CONTAINER_ALIAS = 'column'; // IDEA maybe this is not necessary
+	const RELATION_PROTOTYPE = new PostColumnRelation();
+	
 
+	public function import($data, DataObject $object) {
+		$errors = new InputFailedException();
 
-	private function insert_pair() {
-		$query = 'INSERT INTO postcolumnrelations (postcolumnrelation_id, postcolumnrelation_column_id, postcolumnrelation_post_id) VALUES ';
-		$values = [];
+		foreach($data as $key => $value){
+			$relation = new PostColumnRelation();
 
-		$queries = [];
-		foreach($this->insertions as $i => $insertion){
-			$queries[$i] = "(:${i}_id, :${i}_column_id, :${i}_post_id)";
-			$values[$i . '_id'] = $insertion->id;
-			$values[$i . '_column_id'] = $insertion->container->id;
-			$values[$i . '_post_id'] = $insertion->object->id;
+			if($value['action'] == 'new'){
+				$relation->generate($object);
+			}
 		}
 
-		return [
-			'query' => $query . implode(', ', $queries),
-			'values' => $values
-		];
+		if(!$errors->is_empty()){
+			throw $errors;
+		}
 	}
 
-	private function update_pair() {
-		$query = 'INSERT INTO postcolumnrelations (postcolumnrelation_id, postcolumnrelation_column_id, postcolumnrelation_post_id) VALUES ';
-	}
+
+
 }

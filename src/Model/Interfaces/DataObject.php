@@ -103,7 +103,7 @@ abstract class DataObject {
 
 		$s = $pdo->prepare($query);
 
-		if(!$s->execute([])){
+		if(!$s->execute($values)){
 			throw new DatabaseException($s);
 		} else if($s->rowCount() == 0){
 			throw new EmptyResultException($query);

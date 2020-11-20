@@ -7,6 +7,7 @@ class PostList extends DataObjectList {
 
 #	@inherited
 #	public $objects;	{alias $posts}
+#	public $count;
 #
 #	private $new;
 #	private $empty;

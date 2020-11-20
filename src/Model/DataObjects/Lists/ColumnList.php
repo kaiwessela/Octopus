@@ -5,6 +5,7 @@ class ColumnList extends DataObjectList {
 
 	#	@inherited
 	#	public $objects;	{alias $columns}
+	#	public $count;
 	#
 	#	private $new;
 	#	private $empty;

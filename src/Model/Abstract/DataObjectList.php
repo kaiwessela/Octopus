@@ -7,6 +7,7 @@ use InvalidArgumentException;
 
 abstract class DataObjectList {
 	public $objects;
+	public $count;
 
 	private $new;
 	private $empty;
@@ -91,6 +92,7 @@ abstract class DataObjectList {
 	public function count() {
 #	@action:
 #	  - return the number of objects of this type stored in the database
+#	  - store this number in this->count
 #	@return:
 #		integer
 
@@ -100,7 +102,8 @@ abstract class DataObjectList {
 		if(!$s->execute([])){
 			throw new DatabaseException($s);
 		} else {
-			return (int) $s->fetch()[0];
+			$this->count = (int) $s->fetch()[0];
+			return $this->count;
 		}
 	}
 

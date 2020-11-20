@@ -8,9 +8,11 @@ class ControllerQuery {
 	public $router;
 
 	public $class;
+	public $alias;
 	public $method;
 	public $data;
 
+	public $mode;
 	public $action;
 
 	public $identifier;
@@ -33,8 +35,24 @@ class ControllerQuery {
 			throw new Exception(); // exception
 		}
 
+		if(!empty($settings['alias']) && is_string($settings['alias'])){
+			if(!in_array($settings['alias'], ['server', 'site', 'astronauth', 'exception'])){
+				$this->alias = $settings['alias'];
+			} else {
+				throw new Exception(); // exception
+			}
+		} else {
+			$this->name = str_replace('Controller', '', $this->class);
+		}
+
 		if(in_array($settings['action'], ['new', 'show', 'edit', 'delete', 'list'])){
 			$this->action = $settings['action'];
+
+			if($this->action == 'list'){
+				$this->mode = 'multi';
+			} else {
+				$this->mode = 'single';
+			}
 		} else {
 			throw new Exception(); // exception
 		}

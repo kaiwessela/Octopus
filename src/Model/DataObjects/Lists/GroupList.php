@@ -5,6 +5,7 @@ class GroupList extends DataObjectList {
 
 	#	@inherited
 	#	public $objects;	{alias $groups}
+	#	public $count;
 	#
 	#	private $new;
 	#	private $empty;

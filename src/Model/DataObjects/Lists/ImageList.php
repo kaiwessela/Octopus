@@ -5,6 +5,7 @@ class ImageList extends DataObjectList {
 
 #	@inherited
 #	public $objects;	{alias $images}
+#	public $count;
 #
 #	private $new;
 #	private $empty;

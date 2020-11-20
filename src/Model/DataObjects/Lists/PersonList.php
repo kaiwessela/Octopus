@@ -5,6 +5,7 @@ class Person extends DataObjectList {
 
 #	@inherited
 #	public $objects;	{alias $persons}
+#	public $count;
 #
 #	private $new;
 #	private $empty;

@@ -1,5 +1,9 @@
 <?php
 namespace Blog\Model\DataObjects\Relations;
+use \Blog\Model\Abstracts\DataObjectRelation;
+use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\DataObjects\Post;
+use \Blog\Model\DataObjects\Column;
 
 class PostColumnRelation extends DataObjectRelation {
 #	@inherited
@@ -15,13 +19,10 @@ class PostColumnRelation extends DataObjectRelation {
 	const PRIMARY_ALIAS = 'post';
 	const SECONDARY_ALIAS = 'column';
 
-	const PRIMARY_PROTOTYPE = new Post();
-	const SECONDARY_PROTOTYPE = new Column();
-
 	const FIELDS = [];
 
 
-	private function set_object(DataObject $object) {
+	protected function set_object(DataObject $object) {
 		if($object instanceof Post){
 			$this->primary_object = $object;
 			return;
@@ -31,6 +32,14 @@ class PostColumnRelation extends DataObjectRelation {
 			$this->secondary_object = $object;
 			return;
 		}
+	}
+
+	protected function get_primary_prototype() {
+		return new Post();
+	}
+
+	protected function get_secondary_prototype() {
+		return new Column();
 	}
 
 }

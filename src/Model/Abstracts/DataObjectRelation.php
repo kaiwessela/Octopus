@@ -1,7 +1,7 @@
 <?php
-namespace Blog\Model\Abstract;
+namespace Blog\Model\Abstracts;
 use Blog\Model\DataObjectTrait;
-use Blog\Model\Abstract\DataObject;
+use Blog\Model\Abstracts\DataObject;
 use Blog\Model\Exceptions\DatabaseException;
 use Blog\Model\Exceptions\EmptyResultException;
 use Blog\Model\Exceptions\InputFailedException;
@@ -185,6 +185,20 @@ abstract class DataObjectRelation {
 		if(!$errors->is_empty()){
 			throw $errors;
 		}
+	}
+
+
+	public function export() { // TODO add description
+		$export = [
+			'id' => $this->id,
+			'primary_id' => $this->primary_object->id,
+			'secondary_id' => $this->secondary_object->id
+		];
+
+		$export[$this::PRIMARY_ALIAS . '_id'] = $this->primary_object->id;
+		$export[$this::SECONDARY_ALIAS . '_id'] = $this->secondary_object->id;
+
+		return $export;
 	}
 
 

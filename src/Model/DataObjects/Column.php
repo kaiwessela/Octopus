@@ -1,4 +1,10 @@
 <?php
+namespace Blog\Model\DataObjects;
+use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\DataObjects\Post;
+use \Blog\Model\DataObjects\Relations\PostColumnRelation;
+use \Blog\Model\DataObjects\Relations\Lists\PostColumnRelationList;
+
 class Column extends DataObject {
 
 #			NAME				TYPE		REQUIRED	PATTERN		DB NAME		DB VALUE
@@ -32,6 +38,12 @@ class Column extends DataObject {
 	];
 
 
+	function __construct() {
+		parent::__construct();
+		$this->relationlist = new PostColumnRelationList();
+	}
+
+
 	public function load($data, $block_recursion = false) {
 		$this->req('empty');
 
@@ -46,7 +58,7 @@ class Column extends DataObject {
 				$this->posts[] = $post;
 
 				$relation = new PostColumnRelation();
-				$relation->load(&$this, &$post, $postdata);
+				$relation->load($this, $post, $postdata);
 				$relations[$relation->id] = $relation;
 			}
 
@@ -77,7 +89,7 @@ class Column extends DataObject {
 	}
 
 
-	private function db_export() {
+	protected function db_export() {
 		$export = [
 			'id' => $this->id,
 			'name' => $this->name,
@@ -94,10 +106,10 @@ class Column extends DataObject {
 
 	const PULL_QUERY = <<<SQL
 SELECT * FROM columns
-LEFT JOIN postcoluumnrelations ON postcolumnrelation_column_id = column_id
+LEFT JOIN postcolumnrelations ON postcolumnrelation_column_id = column_id
 LEFT JOIN posts ON post_id = postcolumnrelation_post_id
 LEFT JOIN images ON image_id = post_image_id
-WHERE column_id = :identifier OR column_longid = :identifier
+WHERE column_id = :id OR column_longid = :id
 ORDER BY post_timestamp DESC
 SQL; #---|
 

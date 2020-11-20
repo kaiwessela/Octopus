@@ -22,7 +22,7 @@ class Config {
 	# MYSQL DATABASE CONFIGURATION
 	# authentication credentials for your mysql database which stores your posts and other site data
 	const DB_HOST = 'localhost'; # the hostname / url of your database server
-	const DB_NAME = 'blog'; # name of your database
+	const DB_NAME = 'blog_new'; # name of your database
 	const DB_USER = 'user'; # username of your database user
 	const DB_PASSWORD = 'password'; # password of your database user
 

@@ -1,5 +1,5 @@
 <?php
-namespace Blog\Model\Abstract;
+namespace Blog\Model\Abstracts;
 use Blog\Model\DataObjectTrait;
 use Blog\Model\Exceptions\DatabaseException;
 use Blog\Model\Exceptions\EmptyResultException;

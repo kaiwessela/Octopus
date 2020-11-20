@@ -7,7 +7,8 @@ class Controllers {
 		'ImageController',
 		'PageController',
 		'PersonController',
-		'PostController'
+		'PostController',
+		'ColumnController'
 	];
 
 	const ALIASES = [

@@ -35,6 +35,15 @@
 			}
 		}
 	},
+	"columns/*{9,}": {
+		"template": "column",
+		"controllers": {
+			"ColumnController": {
+				"action": "show",
+				"identifier": "?2"
+			}
+		}
+	},
 	"p/*{8}": {
 		"template": "post",
 		"controllers": {

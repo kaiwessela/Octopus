@@ -1,6 +1,6 @@
 <?php
-namespace Blog\Model\DataObjects\Image;
-
+namespace Blog\Model\DataObjects;
+use \Blog\Model\Abstracts\DataObject;
 
 class Image extends DataObject {
 
@@ -38,7 +38,10 @@ class Image extends DataObject {
 		]
 	];
 
-	private function import_custom();
+	protected function import_custom() {
+		// TODO
+		return;
+	}
 
 	public function load($data, $block_recursion = false) {
 		$this->req('empty');
@@ -72,7 +75,7 @@ class Image extends DataObject {
 	}
 
 
-	private function db_export() {
+	protected function db_export() {
 		$values = [
 			'id' => $this->id,
 			'description' => $this->description,

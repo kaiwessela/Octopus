@@ -49,7 +49,7 @@ class Group extends DataObject {
 				$this->persons[] = $person;
 
 				$relation = new PersonGroupRelation();
-				$relation->load(&$this, &$person, $persondata);
+				$relation->load($this, $person, $persondata);
 				$relations[$relation->id] = $relation;
 			}
 

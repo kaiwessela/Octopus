@@ -1,5 +1,9 @@
 <?php
 namespace Blog\Model\DataObjects\Relations\Lists;
+use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\Abstracts\DataObjectRelationList;
+use \Blog\Model\DataObjects\Relations\PostColumnRelation;
+use \Blog\Model\Exceptions\InputFailedException;
 
 class PostColumnRelationList extends DataObjectRelationList {
 
@@ -11,8 +15,6 @@ class PostColumnRelationList extends DataObjectRelationList {
 #	private $deletions;
 #	private $updates;
 
-	const RELATION_PROTOTYPE = new PostColumnRelation();
-	
 
 	public function import($data, DataObject $object) {
 		$errors = new InputFailedException();
@@ -28,6 +30,10 @@ class PostColumnRelationList extends DataObjectRelationList {
 		if(!$errors->is_empty()){
 			throw $errors;
 		}
+	}
+
+	protected function get_relation_prototype() {
+		return new PostColumnRelation();
 	}
 
 

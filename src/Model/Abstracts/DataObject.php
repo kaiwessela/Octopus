@@ -1,12 +1,12 @@
 <?php
-namespace Blog\Model\Abstract;
-use Blog\Model\DataObjectTrait;
-use Blog\Model\Exceptions\DatabaseException;
-use Blog\Model\Exceptions\EmptyResultException;
-use Blog\Model\Exceptions\InputFailedException;
-use Blog\Model\Exceptions\IllegalValueException;
-use Blog\Model\Exceptions\MissingValueException;
-use Blog\Model\Exceptions\RelationNonexistentException;
+namespace Blog\Model\Abstracts;
+use \Blog\Model\DataObjectTrait;
+use \Blog\Model\Exceptions\DatabaseException;
+use \Blog\Model\Exceptions\EmptyResultException;
+use \Blog\Model\Exceptions\InputFailedException;
+use \Blog\Model\Exceptions\IllegalValueException;
+use \Blog\Model\Exceptions\MissingValueException;
+use \Blog\Model\Exceptions\RelationNonexistentException;
 use InvalidArgumentException;
 
 abstract class DataObject {
@@ -28,7 +28,7 @@ abstract class DataObject {
 
 	abstract public function load($data);
 	abstract public function export();
-	abstract private function db_export();
+	abstract protected function db_export();
 
 
 	function __construct() {
@@ -88,7 +88,7 @@ abstract class DataObject {
 		$pdo = self::open_pdo();
 
 		$query = $this::PULL_QUERY;
-		$values = ['identifier' => $identifier];
+		$values = ['id' => $identifier];
 
 		if($limit != null && !$this::IGNORE_PULL_LIMIT){
 			if(!is_int($limit)){
@@ -169,7 +169,9 @@ abstract class DataObject {
 	}
 
 
-	abstract protected function import_custom(); // TODO
+	protected function import_custom() {
+		return;
+	} // TODO
 
 
 	public function import($data) {
@@ -192,41 +194,8 @@ abstract class DataObject {
 			$pattern = $fielddef['pattern'];
 			$type = $fielddef['type'];
 
-			if($type instanceof DataObject){
-				$obj = $type;
 
-				if(!empty($data[$fieldname . '_id']) || !empty($data[$fieldname]['id'])){
-					$id = $data[$fieldname . '_id'] ?? $data[$fieldname]['id'];
-
-					try {
-						$obj->pull($id);
-					} catch(EmpyResultException $e){
-						$errors->push(new RelationNonexistentException($fieldname, $id, get_class($obj)));
-						continue;
-					}
-
-					$this->$fieldname = $obj;
-					continue;
-				}
-
-				if(empty($value) && $required){
-					$errors->push(new MissingValueException($fieldname, get_class($obj)));
-					continue;
-				}
-
-				try {
-					$obj->generate();
-					$obj->import($data);
-				} catch(InputFailedException $e){
-					$errors->merge($e, $fieldname);
-					continue;
-				}
-
-				$this->$fieldname = $obj;
-				continue;
-			}
-
-			if(empty($value) && !$required && !$type === 'custom'){
+			if(empty($value) && !$required && $type !== 'custom'){
 				continue;
 
 			} else if(empty($value) && $required){
@@ -269,10 +238,45 @@ abstract class DataObject {
 				continue;
 
 			} else if($type === 'custom'){
-				$this->import_custom($fieldname, $data, &$errors); // TODO is this way of error handling the best one or should we use a try-catch?
+				$this->import_custom($fieldname, $data, $errors); // TODO is this way of error handling the best one or should we use a try-catch?
 				continue;
 
 			} else {
+				try {
+					$class = '\Blog\Model\DataObjects\\' . $type;
+					$obj = new $class();
+				} catch(Exception $e){
+					continue;
+				}
+
+				if(!empty($data[$fieldname . '_id']) || !empty($data[$fieldname]['id'])){
+					$id = $data[$fieldname . '_id'] ?? $data[$fieldname]['id'];
+
+					try {
+						$obj->pull($id);
+					} catch(EmpyResultException $e){
+						$errors->push(new RelationNonexistentException($fieldname, $id, get_class($obj)));
+						continue;
+					}
+
+					$this->$fieldname = $obj;
+					continue;
+				}
+
+				if(empty($value) && $required){
+					$errors->push(new MissingValueException($fieldname, get_class($obj)));
+					continue;
+				}
+
+				try {
+					$obj->generate();
+					$obj->import($data);
+				} catch(InputFailedException $e){
+					$errors->merge($e, $fieldname);
+					continue;
+				}
+
+				$this->$fieldname = $obj;
 				continue;
 			}
 		}

@@ -1,7 +1,10 @@
 <?php
-namespace Blog\Model\DatabaseObjects;
-use \Blog\Model\DataObject;
-use \Blog\Model\DatabaseObjects\Image;
+namespace Blog\Model\DataObjects;
+use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\DataObjects\Image;
+use \Blog\Model\DataObjects\Column;
+use \Blog\Model\DataObjects\Relations\PostColumnRelation;
+use \Blog\Model\DataObjects\Relations\Lists\PostColumnRelationList;
 
 class Post extends DataObject {
 
@@ -56,7 +59,7 @@ class Post extends DataObject {
 			'required' => true
 		],
 		'image' => [
-			'type' => new Image(),
+			'type' => 'Image',
 			'required' => false
 		],
 		'content' => [
@@ -101,7 +104,7 @@ class Post extends DataObject {
 				$this->columns[] = $column;
 
 				$relation = new PostColumnRelation();
-				$relation->load(&$column, &$this, $columndata);
+				$relation->load($column, $this, $columndata);
 				$relations[$relation->id] = $relation;
 			}
 
@@ -144,7 +147,7 @@ class Post extends DataObject {
 	}
 
 
-	private function db_export() {
+	protected function db_export() {
 		$values = [
 			'id' => $this->id,
 			'overline' => $this->overline,
@@ -170,7 +173,7 @@ class Post extends DataObject {
 	}
 
 
-	private function push_children() {
+	protected function push_children() {
 		if($this->image->is_new()){
 			$this->image->push();
 		}
@@ -181,7 +184,7 @@ class Post extends DataObject {
 SELECT * FROM posts
 LEFT JOIN images ON image_id = post_image_id
 LEFT JOIN postcolumnrelations ON postcolumnrelation_post_id = post_id
-LEFT JOIN columns ON column_id = postcolumnrelation_column_id 
+LEFT JOIN columns ON column_id = postcolumnrelation_column_id
 WHERE post_id = :id OR post_longid = :id
 SQL; #---|
 

@@ -1,8 +1,8 @@
 <?php
-namespace Blog\Model\Abstract;
-use Blog\Model\Abstract\DataObject;
-use Blog\Model\Abstract\DataObjectRelation;
-use Blog\Model\Exceptions\InputFailedException;
+namespace Blog\Model\Abstracts;
+use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\Abstracts\DataObjectRelation;
+use \Blog\Model\Exceptions\InputFailedException;
 
 abstract class DataObjectRelationList {
 	public $relations;
@@ -19,7 +19,7 @@ abstract class DataObjectRelationList {
 	}
 
 	public function load($relations) {
-		$this->relations[$relation->id] = $relations;
+		$this->relations = $relations;
 	}
 
 	public function push() {
@@ -45,6 +45,14 @@ abstract class DataObjectRelationList {
 		}
 	}
 
+	public function export() {
+		$export = [];
+		foreach($this->relations as $relation){
+			$export[] = $relation->export();
+		}
+		return $export;
+	}
+
 	public function import($data, DataObject $object) {
 
 
@@ -56,8 +64,7 @@ abstract class DataObjectRelationList {
 			$action = $relationdata['action'];
 
 			if($action == 'new'){
-				$relation = $this::RELATION_PROTOTYPE;
-				$relation = new $relation();
+				$relation = $this->get_relation_prototype();
 
 				try {
 					$relation->generate($object);
@@ -133,7 +140,7 @@ abstract class DataObjectRelationList {
 #		];
 
 
-	private get_objects() { // DEPRECATED
+	private function get_objects() { // DEPRECATED
 		$objects = [];
 
 		foreach($this->relations as $relation){
@@ -143,7 +150,7 @@ abstract class DataObjectRelationList {
 		return $objects;
 	}
 
-	private get_object_ids() { // DEPRECATED
+	private function get_object_ids() { // DEPRECATED
 		$id_list = [];
 
 		foreach($this->relations as $relation){

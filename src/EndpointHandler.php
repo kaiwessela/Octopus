@@ -82,14 +82,16 @@ class EndpointHandler {
 
 		http_response_code($response_code);
 
-		foreach($this->controllers as $name => $controller){
-			$controller_name = $controller->request->name . 'Controller';
-			$result_name = $controller->request->name;
+		if($response_code == 200){
+			foreach($this->controllers as $name => $controller){
+				$controller_name = $controller->request->name . 'Controller';
+				$result_name = $controller->request->name;
 
-			global $$controller_name;
-			global $$result_name;
-			$$controller_name = $controller;
-			$$result_name = $controller->export();
+				global $$controller_name;
+				global $$result_name;
+				$$controller_name = $controller;
+				$$result_name = $controller->export();
+			}
 		}
 
 

@@ -1,7 +1,9 @@
 <?php
 namespace Blog\Model\DataObjects\Lists;
+use \Blog\Model\Abstracts\DataObjectList;
+use \Blog\Model\DataObjects\Person;
 
-class Person extends DataObjectList {
+class PersonList extends DataObjectList {
 
 #	@inherited
 #	public $objects;	{alias $persons}
@@ -13,7 +15,7 @@ class Person extends DataObjectList {
 	const OBJECTS_ALIAS = 'persons';
 
 
-	private static function load_each($data){
+	protected static function load_each($data){
 		$obj = new Person();
 		$obj->load($data);
 		return $obj;
@@ -23,6 +25,8 @@ class Person extends DataObjectList {
 	const SELECT_QUERY = <<<SQL
 SELECT * FROM persons
 LEFT JOIN images ON image_id = person_image_id
+LEFT JOIN persongrouprelations ON persongrouprelation_person_id = person_id
+LEFT JOIN groups ON group_id = persongrouprelation_group_id
 ORDER BY person_name
 SQL; #---|
 

@@ -1,5 +1,7 @@
 <?php
 namespace Blog\Model\DataObjects\Lists;
+use \Blog\Model\Abstracts\DataObjectList;
+use \Blog\Model\DataObjects\Image;
 
 class ImageList extends DataObjectList {
 
@@ -13,7 +15,7 @@ class ImageList extends DataObjectList {
 	const OBJECTS_ALIAS = 'images';
 
 
-	private static function load_each($data){
+	protected static function load_each($data){
 		$obj = new Image();
 		$obj->load($data);
 		return $obj;

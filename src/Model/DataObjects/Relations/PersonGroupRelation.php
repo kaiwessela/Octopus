@@ -1,11 +1,15 @@
 <?php
 namespace Blog\Model\DataObjects\Relations;
+use \Blog\Model\Abstracts\DataObjectRelation;
+use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\DataObjects\Person;
+use \Blog\Model\DataObjects\Group;
 
 class PersonGroupRelation extends DataObjectRelation {
 
 	public $number;
 	public $role;
-	
+
 #	@inherited
 #	public $id;
 #	public $primary_object;
@@ -18,9 +22,6 @@ class PersonGroupRelation extends DataObjectRelation {
 
 	const PRIMARY_ALIAS = 'person';
 	const SECONDARY_ALIAS = 'group';
-
-	const PRIMARY_PROTOTYPE = new Person();
-	const SECONDARY_PROTOTYPE = new Group();
 
 	const FIELDS = [
 		'number' => [
@@ -35,6 +36,14 @@ class PersonGroupRelation extends DataObjectRelation {
 	];
 
 
+	public function load(DataObject $object1, DataObject $object2, $data = []) {
+		parent::load($object1, $object2, $data);
+
+		$this->id = $data['persongrouprelation_id'];
+		$this->number = (int) $data['persongrouprelation_number'];
+		$this->role = (int) $data['persongrouprelation_role'];
+	}
+
 	private function set_object(DataObject $object) {
 		if($object instanceof Person){
 			$this->primary_object = $object;
@@ -45,6 +54,14 @@ class PersonGroupRelation extends DataObjectRelation {
 			$this->secondary_object = $object;
 			return;
 		}
+	}
+
+	protected function get_primary_prototype() {
+		return new Person();
+	}
+
+	protected function get_secondary_prototype() {
+		return new Group();
 	}
 
 }

@@ -1,5 +1,10 @@
 <?php
 namespace Blog\Model\DataObjects;
+use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\DataObjects\Image;
+use \Blog\Model\DataObjects\Column;
+use \Blog\Model\DataObjects\Relations\PersonGroupRelation;
+use \Blog\Model\DataObjects\Relations\Lists\PersonGroupRelationList;
 
 class Person extends DataObject {
 
@@ -26,7 +31,7 @@ class Person extends DataObject {
 			'pattern' => '.{1,50}'
 		],
 		'image' => [
-			'type' => new Image(),
+			'type' => 'Image',
 			'required' => false
 		],
 		'groups' => [
@@ -42,7 +47,27 @@ class Person extends DataObject {
 	}
 
 
-	public function load($data, $block_recursion = false) {
+	public function load($data) {
+		$this->req('empty');
+
+		$this->load_single($data[0]);
+
+		$relations = [];
+		foreach($data as $groupdata){
+			$group = new Group();
+			$group->load_single($groupdata, true);
+			$this->groups[] = $group;
+
+			$relation = new PersonGroupRelation();
+			$relation->load($group, $this, $groupdata);
+			$relations[$relation->id] = $relation;
+		}
+
+		$this->relationlist->load($relations);
+	}
+
+
+	public function load_single($data) {
 		$this->req('empty');
 
 		$this->id = $data['person_id'];
@@ -51,21 +76,6 @@ class Person extends DataObject {
 
 		if(!empty($data['image_id'])){
 			$this->image->load($data);
-		}
-
-		if(!$block_recursion){
-			$relations = [];
-			foreach($data as $groupdata){
-				$group = new Group();
-				$group->load($groupdata, true);
-				$this->groups[] = $group;
-
-				$relation = new PersonGroupRelation();
-				$relation->load($group, $this, $groupdata);
-				$relations[$relation->id] = $relation;
-			}
-
-			$this->relationlist->load($relations);
 		}
 
 		$this->set_new(false);
@@ -98,7 +108,7 @@ class Person extends DataObject {
 	}
 
 
-	private function db_export() {
+	protected function db_export() {
 		$values = [
 			'id' => $this->id,
 			'name' => $this->name
@@ -118,7 +128,7 @@ class Person extends DataObject {
 	}
 
 
-	private function push_children() {
+	protected function push_children() {
 		if($this->image->is_new()){
 			$this->image->push();
 		}
@@ -128,6 +138,8 @@ class Person extends DataObject {
 	const PULL_QUERY = <<<SQL
 SELECT * FROM persons
 LEFT JOIN images ON image_id = person_image_id
+LEFT JOIN persongrouprelations ON persongrouprelation_person_id = person_id
+LEFT JOIN groups ON group_id = persongrouprelation_group_id
 WHERE person_id = :id OR person_longid = :id
 SQL; #---|
 
@@ -153,5 +165,6 @@ SQL; #---|
 DELETE FROM persons
 WHERE person_id = :id
 SQL; #---|
+
 }
 ?>

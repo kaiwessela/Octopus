@@ -2,10 +2,10 @@
 namespace Blog\Model\DataObjects\Relations\Lists;
 use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\Abstracts\DataObjectRelationList;
-use \Blog\Model\DataObjects\Relations\PostColumnRelation;
+use \Blog\Model\DataObjects\Relations\PersonGroupRelation;
 use \Blog\Model\Exceptions\InputFailedException;
 
-class PostColumnRelationList extends DataObjectRelationList {
+class PersonGroupRelationList extends DataObjectRelationList {
 
 #	@inherited
 #	public $container;
@@ -20,7 +20,7 @@ class PostColumnRelationList extends DataObjectRelationList {
 		$errors = new InputFailedException();
 
 		foreach($data as $key => $value){
-			$relation = new PostColumnRelation();
+			$relation = new PersonGroupRelation();
 
 			if($value['action'] == 'new'){
 				$relation->generate($object);
@@ -33,7 +33,7 @@ class PostColumnRelationList extends DataObjectRelationList {
 	}
 
 	protected function get_relation_prototype() {
-		return new PostColumnRelation();
+		return new PersonGroupRelation();
 	}
-
 }
+?>

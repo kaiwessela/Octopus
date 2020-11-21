@@ -172,7 +172,7 @@ abstract class DataObject {
 	}
 
 
-	protected function import_custom() {
+	protected function import_custom($fieldname, $data, $errors) {
 		return;
 	} // TODO
 

@@ -63,6 +63,7 @@ class Column extends DataObject {
 		$this->relationlist->load($relations);
 	}
 
+
 	public function load_single($data) {
 		$this->req('empty');
 

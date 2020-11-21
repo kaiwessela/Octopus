@@ -6,79 +6,79 @@
 	<body>
 		<?php include COMPONENT_PATH . 'admin/header.php'; ?>
 		<main>
-			<?php if($Image->request->action == 'list'){ ?>
+			<?php if($ImageController->request->action == 'list'){ ?>
 			<h1>Alle Bilder</h1>
-			<?php } else if($Image->request->action == 'show'){ ?>
+			<?php } else if($ImageController->request->action == 'show'){ ?>
 			<h1>Bild ansehen</h1>
-			<?php } else if($Image->request->action == 'new'){ ?>
+			<?php } else if($ImageController->request->action == 'new'){ ?>
 			<h1>Neues Bild hochladen</h1>
-			<?php } else if($Image->request->action == 'edit'){ ?>
+			<?php } else if($ImageController->request->action == 'edit'){ ?>
 			<h1>Bild bearbeiten</h1>
-			<?php } else if($Image->request->action == 'delete'){ ?>
+			<?php } else if($ImageController->request->action == 'delete'){ ?>
 			<h1>Bild löschen</h1>
 			<?php } ?>
 
-			<?php if($Image->request->action == 'list'){ ?>
+			<?php if($ImageController->request->action == 'list'){ ?>
 				<a href="<?= $server->url ?>/admin/images/new" class="button new green">Neues Bild hochladen</a>
 			<?php } else { ?>
 				<a href="<?= $server->url ?>/admin/images" class="button back">Zurück zu allen Bildern</a>
 			<?php } ?>
 
-			<?php if($Image->created()){ ?>
+			<?php if($ImageController->created()){ ?>
 				<div class="message green">
-					Bild <code><?= $Image->object->longid ?></code> wurde erfolgreich hinzugefügt.
+					Bild <code><?= $Image->longid ?></code> wurde erfolgreich hinzugefügt.
 				</div>
-			<?php } else if($Image->edited()){ ?>
+			<?php } else if($ImageController->edited()){ ?>
 				<div class="message green">
-					Bild <code><?= $Image->object->longid ?></code> wurde erfolgreich bearbeitet.
+					Bild <code><?= $Image->longid ?></code> wurde erfolgreich bearbeitet.
 				</div>
-			<?php } else if($Image->deleted()){ ?>
+			<?php } else if($ImageController->deleted()){ ?>
 				<div class="message green">
-					Bild <code><?= $Image->object->longid ?></code> wurde erfolgreich gelöscht.
+					Bild <code><?= $Image->longid ?></code> wurde erfolgreich gelöscht.
 				</div>
-			<?php } else if($Image->empty() && $Image->request->action == 'list'){ ?>
+			<?php } else if($ImageController->empty() && $ImageController->request->action == 'list'){ ?>
 				<div class="message yellow">
 					Es sind noch keine Bilder vorhanden.
 				</div>
-			<?php } else if($Image->unprocessable()){ ?>
+			<?php } else if($ImageController->unprocessable()){ ?>
 				<div class="message red">
 					Die hochgeladenen Daten sind fehlerhaft.
 				</div>
 				<ul>
-				<?php foreach($Post->errors['import'] as $error){ ?>
+				<?php foreach($ImageController->errors['import'] as $error){ ?>
 					<li><code><?= $error['field'] ?></code>: <?= $error['type'] ?></li>
 				<?php } ?>
 				</ul>
-			<?php } else if($Image->internal_error()){ ?>
+			<?php } else if($ImageController->internal_error()){ ?>
 				<div class="message red">
 					Es ist ein interner Serverfehler aufgetreten.
 				</div>
 			<?php } ?>
 
-			<?php if($Image->request->action != 'list' && $Image->request->action != 'new'){ ?>
+			<?php if($ImageController->request->action != 'list' && $ImageController->request->action != 'new'){ ?>
 			<div>
-				<?php if($Image->request->action != 'show'){ ?>
-				<a class="button blue" href="<?= $server->url ?>/admin/images/<?= $Image->object->id ?>">Ansehen</a>
+				<?php if($ImageController->request->action != 'show'){ ?>
+				<a class="button blue" href="<?= $server->url ?>/admin/images/<?= $Image->id ?>">Ansehen</a>
 				<?php } ?>
 
-				<?php if($Image->request->action != 'edit'){ ?>
-				<a class="button yellow" href="<?= $server->url ?>/admin/images/<?= $Image->object->id ?>/edit">Bearbeiten</a>
+				<?php if($ImageController->request->action != 'edit'){ ?>
+				<a class="button yellow" href="<?= $server->url ?>/admin/images/<?= $Image->id ?>/edit">Bearbeiten</a>
 				<?php } ?>
 
-				<?php if($Image->request->action != 'delete'){ ?>
-				<a class="button red" href="<?= $server->url ?>/admin/images/<?= $Image->object->id ?>/delete">Löschen</a>
+				<?php if($ImageController->request->action != 'delete'){ ?>
+				<a class="button red" href="<?= $server->url ?>/admin/images/<?= $Image->id ?>/delete">Löschen</a>
 				<?php } ?>
 			</div>
 			<?php } ?>
 
-			<?php if($Image->request->action == 'list' && $Image->found()){ ?>
+			<?php if($ImageController->request->action == 'list' && $ImageController->found()){ ?>
 				<?php
-				$pagination = $Image->pagination;
+				$pagination = $ImageController->pagination;
 				include COMPONENT_PATH . 'admin/pagination.php';
 				?>
 
 				<section class="grid">
-					<?php foreach($Image->objects as $obj){ ?>
+					<?php foreach($Image as $obj){ ?>
 					<article>
 						<a href="<?= $server->url ?>/admin/images/<?= $obj->id ?>">
 							<img src="<?= $obj->source_original ?>" alt="<?= $obj->description ?>">
@@ -89,8 +89,8 @@
 				</section>
 			<?php } ?>
 
-			<?php if($Image->request->action == 'show' && $Image->found()){ ?>
-				<?php $obj = $Image->object; ?>
+			<?php if($ImageController->request->action == 'show' && $ImageController->found()){ ?>
+				<?php $obj = $Image; ?>
 				<article>
 					<code><?= $obj->longid ?></code>
 					<p><?= $obj->description ?></p>
@@ -110,11 +110,11 @@
 				</article>
 			<?php } ?>
 
-			<?php if(($Image->request->action == 'edit' && !$Image->edited()) || ($Image->request->action == 'new' && !$Image->created())){ ?>
-				<?php $obj = $Image->object; ?>
+			<?php if(($ImageController->request->action == 'edit' && !$ImageController->edited()) || ($ImageController->request->action == 'new' && !$ImageController->created())){ ?>
+				<?php $obj = $Image; ?>
 				<form action="#" method="post">
 
-					<?php if($Image->request->action == 'new'){ ?>
+					<?php if($ImageController->request->action == 'new'){ ?>
 					<label for="longid">
 						<span class="name">Bild-ID</span>
 						<span class="conditions">
@@ -152,7 +152,7 @@
 					</label>
 					<input type="text" id="copyright" class="copyright" name="copyright" value="<?= $obj->copyright ?>" size="50" maxlength="100">
 
-					<?php if($Image->request->action == 'new'){ // TODO TODO TODO see in backend how invalid image requests are handled ?>
+					<?php if($ImageController->request->action == 'new'){ // TODO TODO TODO see in backend how invalid image requests are handled ?>
 					<label for="imagefile">
 						<span class="name">Datei</span>
 						<span class="conditions">erforderlich; PNG, JPEG oder GIF</span>
@@ -163,14 +163,14 @@
 					<button type="submit" class="green">Speichern</button>
 				</form>
 
-				<?php if($Image->request->action == 'edit'){ ?>
+				<?php if($ImageController->request->action == 'edit'){ ?>
 				<br>
 				<img src="<?= $server->url . $server->dyn_img_path . "$obj->longid/original.$obj->extension" ?>" alt="[ANZEIGEFEHLER]">
 				<?php } ?>
 			<?php } ?>
 
-			<?php if($Image->request->action == 'delete' && !$Image->deleted()){ ?>
-				<?php $obj = $Image->object; ?>
+			<?php if($ImageController->request->action == 'delete' && !$ImageController->deleted()){ ?>
+				<?php $obj = $Image; ?>
 				<p>Bild <code><?= $obj->longid ?></code> löschen?</p>
 				<img src="<?= $obj->source_original ?>" alt="[ANZEIGEFEHLER]">
 				<form action="<?= $server->url ?>/admin/images/<?= $obj->id ?>/delete" method="post">

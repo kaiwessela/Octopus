@@ -1,5 +1,9 @@
 <?php
 namespace Blog\Model\DataObjects;
+use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\DataObjects\Person;
+use \Blog\Model\DataObjects\Relations\PersonGroupRelation;
+use \Blog\Model\DataObjects\Relations\Lists\PersonGroupRelationList;
 
 class Group extends DataObject {
 
@@ -19,7 +23,6 @@ class Group extends DataObject {
 #
 #	const IGNORE_PULL_LIMIT = false;
 
-
 	const FIELDS = [
 		'name' => [
 			'type' => 'string',
@@ -35,26 +38,39 @@ class Group extends DataObject {
 	];
 
 
-	public function load($data, $block_recursion = false) {
+	function __construct() {
+		parent::__construct();
+		$this->relationlist = new PersonGroupRelationList();
+	}
+
+
+	public function load($data) {
 		$this->req('empty');
 
-		$this->name = $data[0]['group_name'];
-		$this->description = $data[0]['group_description'];
+		$this->load_single($data[0]);
 
-		if(!$block_recursion){
-			$relations = [];
-			foreach($data as $persondata){
-				$person = new Person();
-				$person->load($persondata, true);
-				$this->persons[] = $person;
+		$relations = [];
+		foreach($data as $persondata){
+			$person = new Person();
+			$person->load($persondata, true);
+			$this->persons[] = $person;
 
-				$relation = new PersonGroupRelation();
-				$relation->load($this, $person, $persondata);
-				$relations[$relation->id] = $relation;
-			}
-
-			$this->relationlist->load($relations);
+			$relation = new PersonGroupRelation();
+			$relation->load($this, $person, $persondata);
+			$relations[$relation->id] = $relation;
 		}
+
+		$this->relationlist->load($relations);
+	}
+
+
+	public function load_single($data) {
+		$this->req('empty');
+
+		$this->id = $data['group_id'];
+		$this->longid = $data['group_longid'];
+		$this->name = $data['group_name'];
+		$this->description = $data['group_description'];
 
 		$this->set_new(false);
 		$this->set_empty(false);

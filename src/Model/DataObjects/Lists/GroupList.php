@@ -1,5 +1,7 @@
 <?php
 namespace Blog\Model\DataObjects\Lists;
+use \Blog\Model\Abstracts\DataObjectList;
+use \Blog\Model\DataObjects\Group;
 
 class GroupList extends DataObjectList {
 
@@ -13,7 +15,7 @@ class GroupList extends DataObjectList {
 	const OBJECTS_ALIAS = 'groups';
 
 
-	private static function load_each($data){
+	protected static function load_each($data){
 		$obj = new Group();
 		$obj->load($data);
 		return $obj;
@@ -22,6 +24,9 @@ class GroupList extends DataObjectList {
 
 	const SELECT_QUERY = <<<SQL
 SELECT * FROM groups
+LEFT JOIN persongrouprelations ON persongrouprelation_group_id = group_id
+LEFT JOIN persons ON person_id = persongrouprelation_person_id
+LEFT JOIN images ON image_id = person_image_id
 ORDER BY group_name
 SQL; #---|
 

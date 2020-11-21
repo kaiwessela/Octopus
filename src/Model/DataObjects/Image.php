@@ -1,6 +1,7 @@
 <?php
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\ImageManager;
 
 class Image extends DataObject {
 
@@ -38,18 +39,27 @@ class Image extends DataObject {
 		]
 	];
 
-	protected function import_custom() {
-		// TODO
-		return;
+
+	// TEMP from here; ImageManager
+	const EXTENSION_PNG = 'png';
+	const EXTENSION_JPG = 'jpg';
+	const EXTENSION_GIF = 'gif';
+
+	protected function import_custom($fieldname, $data, $errors) {
+		if($fieldname != 'data' || !$this->is_new()){
+			return;
+		}
+
+		$imagemanager->receive_upload($this);
 	}
+	// END TEMP
+	// TODO delete procedure
+
 
 	public function load($data) {
 		$this->req('empty');
 
-		$this->load_single($data);
-
-		$this->set_new(false);
-		$this->set_empty(false);
+		$this->load_single($data[0]);
 	}
 
 	public function load_single($data) {

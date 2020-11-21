@@ -6,7 +6,7 @@ use \Blog\Controller\Processors\Picture;
 use \Blog\Controller\Processors\Timestamp;
 
 class PostController extends Controller {
-	const MODEL = 'Post';
+	const MODEL = 'Post'; // TODO put into function
 	const LIST_MODEL = 'PostList';
 
 

@@ -44,26 +44,32 @@ class Column extends DataObject {
 	}
 
 
-	public function load($data, $block_recursion = false) {
+	public function load($data) { // IDEA make private
 		$this->req('empty');
 
-		$this->name = $data[0]['column_name'];
-		$this->description = $data[0]['column_description'];
+		$this->load_single($data[0]);
 
-		if(!$block_recursion){
-			$relations = [];
-			foreach($data as $postdata){
-				$post = new Post();
-				$post->load($postdata, true);
-				$this->posts[] = $post;
+		$relations = [];
+		foreach($data as $postdata){
+			$post = new Post();
+			$post->load_single($postdata);
+			$this->posts[] = $post;
 
-				$relation = new PostColumnRelation();
-				$relation->load($this, $post, $postdata);
-				$relations[$relation->id] = $relation;
-			}
-
-			$this->relationlist->load($relations);
+			$relation = new PostColumnRelation();
+			$relation->load($this, $post, $postdata);
+			$relations[$relation->id] = $relation;
 		}
+
+		$this->relationlist->load($relations);
+	}
+
+	public function load_single($data) {
+		$this->req('empty');
+
+		$this->id = $data['column_id'];
+		$this->longid = $data['column_longid'];
+		$this->name = $data['column_name'];
+		$this->description = $data['column_description'];
 
 		$this->set_new(false);
 		$this->set_empty(false);

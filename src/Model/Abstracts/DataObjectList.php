@@ -14,7 +14,7 @@ abstract class DataObjectList {
 
 	use DataObjectTrait;
 
-	abstract private static function load_each($data);
+	abstract protected static function load_each($data);
 
 
 	public function pull(/*int*/$limit = null, /*int*/$offset = null) {
@@ -27,6 +27,8 @@ abstract class DataObjectList {
 
 		$pdo = self::open_pdo();
 		$this->req('empty');
+
+		$query = $this::SELECT_QUERY;
 
 		if($limit != null){
 			if(!is_int($limit)){
@@ -44,7 +46,7 @@ abstract class DataObjectList {
 			}
 		}
 
-		$s = $pdo->prepare($this::SELECT_QUERY);
+		$s = $pdo->prepare($query);
 
 		if(!$s->execute([])){
 			throw new DatabaseException($s);
@@ -66,8 +68,23 @@ abstract class DataObjectList {
 
 		$this->req('empty');
 
-		foreach($data as $objdata){
-			$this->objects[] = $this::load_each($objdata);
+		$i = 0;
+		$last_id = null;
+		$row_buffer = [];
+
+		foreach($data as $row){ // IDEA sql 'group by'
+			if($row[0] == $last_id){
+				$row_buffer[$i][] = $row;
+			} else {
+				$i++;
+				$row_buffer[$i] = [];
+				$row_buffer[$i][] = $row;
+				$last_id = $row[0];
+			}
+		}
+
+		foreach($row_buffer as $data){
+			$this->objects[] = $this::load_each($data);
 		}
 
 		$this->set_new(false);

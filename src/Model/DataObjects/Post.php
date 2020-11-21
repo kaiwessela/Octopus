@@ -78,7 +78,27 @@ class Post extends DataObject {
 	}
 
 
-	public function load($data, $block_recursion = false) {
+	public function load($data) {
+		$this->req('empty');
+
+		$this->load_single($data[0]);
+
+		$relations = [];
+		foreach($data as $columndata){
+			$column = new Column();
+			$column->load_single($columndata, true);
+			$this->columns[] = $column;
+
+			$relation = new PostColumnRelation();
+			$relation->load($column, $this, $columndata);
+			$relations[$relation->id] = $relation;
+		}
+
+		$this->relationlist->load($relations);
+	}
+
+
+	public function load_single($data) {
 		$this->req('empty');
 
 		$this->id = $data['post_id'];
@@ -91,25 +111,10 @@ class Post extends DataObject {
 		$this->timestamp = (int) $data['post_timestamp'];
 
 		if(!empty($data['image_id'])){
-			$this->image->load($data);
+			$this->image->load_single($data);
 		}
 
 		$this->content = $data['post_content'];
-
-		if(!$block_recursion){
-			$relations = [];
-			foreach($data as $columndata){
-				$column = new Column();
-				$column->load($columndata, true);
-				$this->columns[] = $column;
-
-				$relation = new PostColumnRelation();
-				$relation->load($column, $this, $columndata);
-				$relations[$relation->id] = $relation;
-			}
-
-			$this->relationlist->load($relations);
-		}
 
 		$this->set_new(false);
 		$this->set_empty(false);

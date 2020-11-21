@@ -1,6 +1,14 @@
 <?php
 namespace Blog\Model;
-use Blog\Config\Config;
+use \Blog\Config\Config;
+use \Blog\Model\Exceptions\WrongObjectStateException;
+use \Blog\Model\Exceptions\EmptyResultException;
+use \Blog\Model\Exceptions\InputFailedException;
+use \Blog\Model\Exceptions\MissingValueException;
+use \Blog\Model\Exceptions\IllegalValueException;
+use \Blog\Model\Exceptions\IdentifierCollisionException;
+use \Blog\Model\Exceptions\IdentifierMismatchException;
+use InvalidArgumentException;
 use PDO;
 
 trait DataObjectTrait {

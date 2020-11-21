@@ -22,6 +22,13 @@ class PostColumnRelation extends DataObjectRelation {
 	const FIELDS = [];
 
 
+	public function load(DataObject $object1, DataObject $object2, $data = []) {
+		parent::load($object1, $object2, $data);
+
+		$this->id = $data['postcolumnrelation_id'];
+	}
+
+
 	protected function set_object(DataObject $object) {
 		if($object instanceof Post){
 			$this->primary_object = $object;

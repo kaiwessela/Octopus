@@ -59,8 +59,6 @@ class EndpointHandler {
 			} else if($controller->status == 50){
 				$this->handle(500);
 				exit;
-			} else if(!$controller->empty()){
-				$controller->process();
 			}
 		}
 

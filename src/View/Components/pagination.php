@@ -3,7 +3,7 @@
 	foreach($pagination->items as $item){
 		if($item->template == 'first'){
 			?>
-			<a href="./<?= $item->target ?>"
+			<a href="<?= $server->url . $item->href ?>"
 				class="pagination-item first-last <?php if($item->disabled){ ?>disabled<?php } ?>"
 				title="<?= $item->title ?>">
 				Erste
@@ -11,7 +11,7 @@
 			<?php
 		} else if($item->template == 'last'){
 			?>
-			<a href="./<?= $item->target ?>"
+			<a href="<?= $server->url . $item->href ?>"
 				class="pagination-item first-last <?php if($item->disabled){ ?>disabled<?php } ?>"
 				title="<?= $item->title ?>">
 				Letzte
@@ -25,7 +25,7 @@
 			<?php
 		} else {
 			?>
-			<a href="./<?= $item->target ?>"
+			<a href="<?= $server->url . $item->href ?>"
 				class="pagination-item default <?php if($item->disabled){ ?>disabled<?php } ?>"
 				title="<?= $item->title ?>">
 				<?= $item->target ?>

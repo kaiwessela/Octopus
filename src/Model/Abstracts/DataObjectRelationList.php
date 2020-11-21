@@ -15,7 +15,7 @@ abstract class DataObjectRelationList {
 
 
 	function __construct() {
-
+		$this->relations = [];
 	}
 
 	public function load($relations) {

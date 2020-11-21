@@ -12,6 +12,21 @@
 			</section>
 
 			<section>
+				<?php
+				$pagination = $ColumnController->pagination;
+				if($pagination->total_pages > 1){
+				?>
+				<div>
+					<b>Seite <?= $pagination->current_page ?> von <?= $pagination->total_pages ?></b>
+					– Angezeigt werden Artikel <?= $pagination->first_object ?> bis
+					<?= $pagination->last_object ?> von insgesamt <?= $pagination->total_objects ?> Artikeln
+				</div>
+
+				<?php
+					include COMPONENT_PATH . 'pagination.php';
+				}
+				?>
+
 				<?php if(empty($Column->posts)){ ?>
 				<p>Keine Artikel gefunden.</p>
 				<?php } ?>

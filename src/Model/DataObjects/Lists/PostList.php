@@ -1,6 +1,6 @@
 <?php
-namespace Blog\Model\DatabaseObjects;
-use \Blog\Model\DataObjectList;
+namespace Blog\Model\DataObjects\Lists;
+use \Blog\Model\Abstracts\DataObjectList;
 use \Blog\Model\DataObjects\Post;
 
 class PostList extends DataObjectList {
@@ -15,7 +15,7 @@ class PostList extends DataObjectList {
 	const OBJECTS_ALIAS = 'posts';
 
 
-	private static function load_each($data){
+	protected static function load_each($data){
 		$obj = new Post();
 		$obj->load($data);
 		return $obj;
@@ -25,6 +25,8 @@ class PostList extends DataObjectList {
 	const SELECT_QUERY = <<<SQL
 SELECT * FROM posts
 LEFT JOIN images ON image_id = post_image_id
+LEFT JOIN postcolumnrelations ON postcolumnrelation_post_id = post_id
+LEFT JOIN columns ON column_id = postcolumnrelation_column_id
 ORDER BY post_timestamp DESC
 SQL; #---|
 

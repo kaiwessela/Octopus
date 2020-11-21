@@ -43,7 +43,16 @@ class Image extends DataObject {
 		return;
 	}
 
-	public function load($data, $block_recursion = false) {
+	public function load($data) {
+		$this->req('empty');
+
+		$this->load_single($data);
+
+		$this->set_new(false);
+		$this->set_empty(false);
+	}
+
+	public function load_single($data) {
 		$this->req('empty');
 
 		$this->id = $data['image_id'];

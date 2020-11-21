@@ -19,6 +19,8 @@ abstract class Controller {
 	const MODEL = '';
 	const LIST_MODEL = '';
 
+	const PAGINATABLE = false;
+
 
 	function __construct($request) {
 		$this->request = $request;
@@ -54,7 +56,7 @@ abstract class Controller {
 				$offset = $this->request->amount * ($this->request->page - 1);
 				$last_page = ceil($this->object->count / $this->request->amount);
 
-				if($this->request->page > $last_pate || $this->request->page == 0){
+				if($this->request->page > $last_page || $this->request->page == 0){
 					$this->status = 44;
 					return;
 				}
@@ -90,11 +92,28 @@ abstract class Controller {
 				}
 
 			} else {
+				if($this->request->action == 'show' && $this::PAGINATABLE){
+					$limit = $this->request->amount;
+
+					if($this->request->page == null){
+						$offset = null;
+					} else {
+						$offset = $this->request->amount * ($this->request->page - 1);
+					}
+				} else {
+					$limit = null;
+					$offset = null;
+				}
+
 				try {
-					$this->object->pull($this->request->identifier);
+					$this->object->pull($this->request->identifier, $limit, $offset);
 				} catch(EmptyResultException $e){
 					$this->status = 44;
 					return;
+				}
+
+				if($this->request->action == 'show' && $this::PAGINATABLE){
+					$this->object->count();
 				}
 
 				if($this->request->action == 'show' || $this->request->method == 'get'){
@@ -122,13 +141,6 @@ abstract class Controller {
 	}
 
 	public function export() {
-		// TEMP
-		return $this->object->export();
-
-
-		// --------
-		
-		# export errors
 		$errs = [];
 		foreach($this->errors as $error){
 			if($error instanceof Exportable){
@@ -140,61 +152,47 @@ abstract class Controller {
 
 
 		if($this->request->mode == 'multi'){
-			$this->export_multi();
+			return $this->export_multi();
 		} else {
-			$this->export_single();
+			return $this->export_single();
 		}
 	}
 
 	protected function export_multi() {
-
-	}
-
-	protected function export_single() {
-		$obj = $this->object->export();
-
-	}
-
-	public function process() {
-		$objs = [];
-		foreach($this->objects as $object){
-			$obj = $object->export();
-			$this->process_each($object, $obj);
-			$objs[] = $obj;
-		}
-		$this->objects = $objs;
-
-		$errs = [];
-		foreach($this->errors as $error){
-			if($error instanceof Exportable){
-				$err = $error->export();
-				$errs[$error->export_name] = $err;
-			}
-		}
-		$this->errors = $errs;
-
-		if($this->request->action == 'list' && isset($this->request->custom['pagination_structure'])){
+		if(!empty($this->request->custom['pagination_structure'])){
 			$current_page = $this->request->page;
 			$objects_per_page = $this->request->amount;
-			$total_objects = $this->count;
+			$total_objects = $this->object->count;
 			$base_path = $this->request->router->resolve_substitutions($this->request->custom['pagination_base']);
 			$structure = $this->request->custom['pagination_structure'];
 
-			try {
-				$this->pagination = new Pagination($current_page, $objects_per_page, $total_objects, $base_path, $structure);
-			} catch(InvalidArgumentException $e){
-				$this->exceptions[] = $e;
-			}
+			$this->pagination = new Pagination($current_page, $objects_per_page, $total_objects, $base_path, $structure);
 		}
-		$this->process_all($this->objects);
+
+		$export = [];
+		foreach($this->object->objects as $object){
+			$export[] = $this->export_each($object);
+		}
+		return $export;
 	}
 
-	protected function process_all(&$objects) {
-		return;
+	protected function export_single() {
+		if($this::PAGINATABLE && !empty($this->request->custom['pagination_structure'])){
+			$current_page = $this->request->page;
+			$objects_per_page = $this->request->amount;
+			$total_objects = $this->object->count;
+			$base_path = $this->request->router->resolve_substitutions($this->request->custom['pagination_base']);
+			$structure = $this->request->custom['pagination_structure'];
+
+			$this->pagination = new Pagination($current_page, $objects_per_page, $total_objects, $base_path, $structure);
+		}
+
+		$export = $this->export_each($this->object);
+		return $export;
 	}
 
-	protected function process_each(&$object, &$obj) {
-		return;
+	protected function export_each($object) {
+		return $object->export();
 	}
 
 

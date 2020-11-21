@@ -15,6 +15,8 @@ abstract class DataObject {
 	public $id;		#	str		*			[a-f0-9]{8}			=			=
 	public $longid;	#	str		*			[a-z0-9-]{9,60}		=			=
 
+	public $count;
+
 	private $new;
 	private $empty;
 
@@ -70,7 +72,8 @@ abstract class DataObject {
 		if(!$s->execute(['id' => $this->id])){
 			throw new DatabaseException($s);
 		} else {
-			return (int) $s->fetch()[0];
+			$this->count = (int) $s->fetch()[0];
+			return $this->count;
 		}
 	}
 

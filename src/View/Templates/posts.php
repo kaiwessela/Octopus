@@ -12,7 +12,7 @@
 					<h1>Alle Artikel</h1>
 				</header>
 
-				<?php $pagination = $Post->pagination; ?>
+				<?php $pagination = $PostController->pagination; ?>
 				<div>
 					<b>Seite <?= $pagination->current_page ?> von <?= $pagination->total_pages ?></b>
 					– Angezeigt werden Artikel <?= $pagination->first_object ?> bis
@@ -21,12 +21,12 @@
 
 				<?php include COMPONENT_PATH . 'pagination.php'; ?>
 
-				<?php if($Post->empty()){ ?>
+				<?php if($PostController->empty()){ ?>
 				<p>Keine Artikel gefunden.</p>
 				<?php } ?>
 
 <?php
-foreach($Post->objects as $post){
+foreach($Post as $post){
 	include COMPONENT_PATH . 'preview-post.php';
 }
 ?>

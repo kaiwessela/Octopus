@@ -57,8 +57,8 @@ class ControllerQuery {
 			throw new Exception(); // exception
 		}
 
-		if($this->action == 'list'){
-			if(!isset($settings['amount'])){
+		if($this->action == 'list' || $this->action == 'show'){
+			if(empty($settings['amount'])){
 				$this->amount = 5;
 			} else if(is_int($settings['amount']) && $settings['amount'] > 0){
 				$this->amount = $settings['amount'];
@@ -66,7 +66,7 @@ class ControllerQuery {
 				throw new Exception(); // exception;
 			}
 
-			if(!isset($settings['page'])){
+			if(empty($settings['page'])){
 				$this->page = 1;
 			} else if(is_int($settings['page']) && $settings['page'] > 0){
 				$this->page = $settings['page'];
@@ -82,7 +82,9 @@ class ControllerQuery {
 			} else {
 				throw new Exception(); // exception
 			}
-		} else if($this->action == 'show' || $this->action == 'edit' || $this->action == 'delete'){
+		}
+
+		if($this->action == 'show' || $this->action == 'edit' || $this->action == 'delete'){
 			if(is_string($settings['identifier'])){
 				$this->identifier = $this->router->resolve_substitutions($settings['identifier']);
 			} else {

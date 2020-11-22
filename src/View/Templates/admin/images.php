@@ -112,7 +112,7 @@
 
 			<?php if(($ImageController->request->action == 'edit' && !$ImageController->edited()) || ($ImageController->request->action == 'new' && !$ImageController->created())){ ?>
 				<?php $obj = $Image; ?>
-				<form action="#" method="post">
+				<form action="#" method="post" enctype="multipart/form-data">
 
 					<?php if($ImageController->request->action == 'new'){ ?>
 					<label for="longid">

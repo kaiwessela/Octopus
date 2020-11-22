@@ -1,7 +1,7 @@
 <?php
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
-use \Blog\Model\ImageManager;
+use \Blog\Model\ImageManager; // TEMP
 
 class Image extends DataObject {
 
@@ -50,6 +50,7 @@ class Image extends DataObject {
 			return;
 		}
 
+		$imagemanager = new ImageManager('/../resources/images/dynamic');
 		$imagemanager->receive_upload($this);
 	}
 	// END TEMP
@@ -77,10 +78,6 @@ class Image extends DataObject {
 	}
 
 	public function export($block_recursion = false) {
-		if($this->is_empty()){
-			return null;
-		}
-
 		$obj = (object) [];
 
 		$obj->id = $this->id;

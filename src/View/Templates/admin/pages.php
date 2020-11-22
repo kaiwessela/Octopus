@@ -6,80 +6,80 @@
 	<body>
 		<?php include COMPONENT_PATH . 'admin/header.php'; ?>
 		<main>
-			<?php if($Page->request->action == 'list'){ ?>
+			<?php if($PageController->request->action == 'list'){ ?>
 			<h1>Alle Seiten</h1>
-			<?php } else if($Page->request->action == 'show'){ ?>
+			<?php } else if($PageController->request->action == 'show'){ ?>
 			<h1>Seite ansehen</h1>
-			<?php } else if($Page->request->action == 'new'){ ?>
+			<?php } else if($PageController->request->action == 'new'){ ?>
 			<h1>Neue Seite erstellen</h1>
-			<?php } else if($Page->request->action == 'edit'){ ?>
+			<?php } else if($PageController->request->action == 'edit'){ ?>
 			<h1>Seite bearbeiten</h1>
-			<?php } else if($Page->request->action == 'delete'){ ?>
+			<?php } else if($PageController->request->action == 'delete'){ ?>
 			<h1>Seite löschen</h1>
 			<?php } ?>
 
-			<?php if($Page->request->action == 'list'){ ?>
+			<?php if($PageController->request->action == 'list'){ ?>
 				<a href="<?= $server->url ?>/admin/pages/new" class="button new green">Neue Seite erstellen</a>
 			<?php } else { ?>
 				<a href="<?= $server->url ?>/admin/pages" class="button back">Zurück zu allen Seiten</a>
 			<?php } ?>
 
-			<?php if($Page->created()){ ?>
+			<?php if($PageController->created()){ ?>
 				<div class="message green">
-					Seite <code><?= $Page->object->longid ?></code> wurde erfolgreich hinzugefügt.
+					Seite <code><?= $Page->longid ?></code> wurde erfolgreich hinzugefügt.
 				</div>
-			<?php } else if($Page->edited()){ ?>
+			<?php } else if($PageController->edited()){ ?>
 				<div class="message green">
-					Seite <code><?= $Page->object->longid ?></code> wurde erfolgreich bearbeitet.
+					Seite <code><?= $Page->longid ?></code> wurde erfolgreich bearbeitet.
 				</div>
-			<?php } else if($Page->deleted()){ ?>
+			<?php } else if($PageController->deleted()){ ?>
 				<div class="message green">
-					Seite <code><?= $Page->object->longid ?></code> wurde erfolgreich gelöscht.
+					Seite <code><?= $Page->longid ?></code> wurde erfolgreich gelöscht.
 				</div>
-			<?php } else if($Page->empty() && $Page->request->action == 'list'){ ?>
+			<?php } else if($PageController->empty() && $PageController->request->action == 'list'){ ?>
 				<div class="message yellow">
 					Es sind noch keine Seiten vorhanden.
 				</div>
-			<?php } else if($Page->unprocessable()){ ?>
+			<?php } else if($PageController->unprocessable()){ ?>
 				<div class="message red">
 					Die hochgeladenen Daten sind fehlerhaft.
 				</div>
 				<ul>
-				<?php foreach($Post->errors['import'] as $error){ ?>
+				<?php foreach($PageController->errors['import'] as $error){ ?>
 					<li><code><?= $error['field'] ?></code>: <?= $error['type'] ?></li>
 				<?php } ?>
 				</ul>
-			<?php } else if($Page->internal_error()){ ?>
+			<?php } else if($PageController->internal_error()){ ?>
 				<div class="message red">
 					Es ist ein interner Serverfehler aufgetreten.
 				</div>
 			<?php } ?>
 
-			<?php if($Page->request->action != 'list' && $Page->request->action != 'new'){ ?>
+			<?php if($PageController->request->action != 'list' && $PageController->request->action != 'new'){ ?>
 			<div>
-				<?php if($Page->request->action != 'show'){ ?>
-				<a class="button blue" href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>">Ansehen</a>
+				<?php if($PageController->request->action != 'show'){ ?>
+				<a class="button blue" href="<?= $server->url ?>/admin/pages/<?= $Page->id ?>">Ansehen</a>
 				<?php } ?>
 
-				<a class="button blue" href="<?= $server->url ?>/<?= $Page->object->longid ?>">Vorschau</a>
+				<a class="button blue" href="<?= $server->url ?>/<?= $Page->longid ?>">Vorschau</a>
 
-				<?php if($Page->request->action != 'edit'){ ?>
-				<a class="button yellow" href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>/edit">Bearbeiten</a>
+				<?php if($PageController->request->action != 'edit'){ ?>
+				<a class="button yellow" href="<?= $server->url ?>/admin/pages/<?= $Page->id ?>/edit">Bearbeiten</a>
 				<?php } ?>
 
-				<?php if($Page->request->action != 'delete'){ ?>
-				<a class="button red" href="<?= $server->url ?>/admin/pages/<?= $Page->object->id ?>/delete">Löschen</a>
+				<?php if($PageController->request->action != 'delete'){ ?>
+				<a class="button red" href="<?= $server->url ?>/admin/pages/<?= $Page->id ?>/delete">Löschen</a>
 				<?php } ?>
 			</div>
 			<?php } ?>
 
-			<?php if($Page->request->action == 'list' && $Page->found()){ ?>
+			<?php if($PageController->request->action == 'list' && $PageController->found()){ ?>
 				<?php
-				$pagination = $Page->pagination;
+				$pagination = $PageController->pagination;
 				include COMPONENT_PATH . 'admin/pagination.php';
 				?>
 
-				<?php foreach($Page->objects as $obj){ ?>
+				<?php foreach($Page as $obj){ ?>
 				<article>
 					<code><?= $obj->longid ?></code>
 					<h2><?= $obj->title ?></h2>
@@ -92,8 +92,8 @@
 				<?php } ?>
 			<?php } ?>
 
-			<?php if($Page->request->action == 'show' && $Page->found()){ ?>
-				<?php $obj = $Page->object; ?>
+			<?php if($PageController->request->action == 'show' && $PageController->found()){ ?>
+				<?php $obj = $Page; ?>
 				<article>
 					<code><?= $obj->longid ?></code>
 					<h1><?= $obj->headline ?></h1>
@@ -101,11 +101,11 @@
 				</article>
 			<?php } ?>
 
-			<?php if(($Page->request->action == 'edit' && !$Page->edited()) || ($Page->request->action == 'new' && !$Page->created())){ ?>
-				<?php $obj = $Page->object; ?>
+			<?php if(($PageController->request->action == 'edit' && !$PageController->edited()) || ($PageController->request->action == 'new' && !$PageController->created())){ ?>
+				<?php $obj = $Page; ?>
 				<form action="#" method="post">
 
-					<?php if($Page->request->action == 'new'){ ?>
+					<?php if($PageController->request->action == 'new'){ ?>
 					<label for="longid">
 						<span class="name">Seiten-ID</span>
 						<span class="conditions">
@@ -148,8 +148,8 @@
 				</form>
 			<?php } ?>
 
-			<?php if($Page->request->action == 'delete' && !$Page->deleted()){ ?>
-				<?php $obj = $Page->object; ?>
+			<?php if($PageController->request->action == 'delete' && !$PageController->deleted()){ ?>
+				<?php $obj = $Page; ?>
 				<p>Seite <code><?= $obj->longid ?></code> löschen?</p>
 				<form action="#" method="post">
 					<input type="hidden" id="id" name="id" value="<?= $obj->id ?>">

@@ -6,78 +6,78 @@
 	<body>
 		<?php include COMPONENT_PATH . 'admin/header.php'; ?>
 		<main>
-			<?php if($Event->request->action == 'list'){ ?>
+			<?php if($EventController->request->action == 'list'){ ?>
 			<h1>Alle Veranstaltungen</h1>
-			<?php } else if($Event->request->action == 'show'){ ?>
+			<?php } else if($EventController->request->action == 'show'){ ?>
 			<h1>Veranstaltung ansehen</h1>
-			<?php } else if($Event->request->action == 'new'){ ?>
+			<?php } else if($EventController->request->action == 'new'){ ?>
 			<h1>Neue Veranstaltung erstellen</h1>
-			<?php } else if($Event->request->action == 'edit'){ ?>
+			<?php } else if($EventController->request->action == 'edit'){ ?>
 			<h1>Veranstaltung bearbeiten</h1>
-			<?php } else if($Event->request->action == 'delete'){ ?>
+			<?php } else if($EventController->request->action == 'delete'){ ?>
 			<h1>Veranstaltung löschen</h1>
 			<?php } ?>
 
-			<?php if($Event->request->action == 'list'){ ?>
+			<?php if($EventController->request->action == 'list'){ ?>
 				<a href="<?= $server->url ?>/admin/events/new" class="button new green">Neue Veranstaltung hinzufügen</a>
 			<?php } else { ?>
 				<a href="<?= $server->url ?>/admin/events" class="button back">Zurück zu allen Veranstaltungen</a>
 			<?php } ?>
 
-			<?php if($Event->created()){ ?>
+			<?php if($EventController->created()){ ?>
 				<div class="message green">
-					Veranstaltung <code><?= $Event->object->longid ?></code> wurde erfolgreich hinzugefügt.
+					Veranstaltung <code><?= $Event->longid ?></code> wurde erfolgreich hinzugefügt.
 				</div>
-			<?php } else if($Event->edited()){ ?>
+			<?php } else if($EventController->edited()){ ?>
 				<div class="message green">
-					Veranstaltung <code><?= $Event->object->longid ?></code> wurde erfolgreich bearbeitet.
+					Veranstaltung <code><?= $Event->longid ?></code> wurde erfolgreich bearbeitet.
 				</div>
-			<?php } else if($Event->deleted()){ ?>
+			<?php } else if($EventController->deleted()){ ?>
 				<div class="message green">
-					Veranstaltung <code><?= $Event->object->longid ?></code> wurde erfolgreich gelöscht.
+					Veranstaltung <code><?= $Event->longid ?></code> wurde erfolgreich gelöscht.
 				</div>
-			<?php } else if($Event->empty() && $Event->request->action == 'list'){ ?>
+			<?php } else if($EventController->empty() && $EventController->request->action == 'list'){ ?>
 				<div class="message yellow">
 					Es sind noch keine Veranstaltungen vorhanden.
 				</div>
-			<?php } else if($Event->unprocessable()){ ?>
+			<?php } else if($EventController->unprocessable()){ ?>
 				<div class="message red">
 					Die hochgeladenen Daten sind fehlerhaft.
 				</div>
 				<ul>
-				<?php foreach($Post->errors['import'] as $error){ ?>
+				<?php foreach($EventController->errors['import'] as $error){ ?>
 					<li><code><?= $error['field'] ?></code>: <?= $error['type'] ?></li>
 				<?php } ?>
 				</ul>
-			<?php } else if($Event->internal_error()){ ?>
+			<?php } else if($EventController->internal_error()){ ?>
 				<div class="message red">
 					Es ist ein interner Serverfehler aufgetreten.
 				</div>
 			<?php } ?>
 
-			<?php if($Event->request->action != 'list' && $Event->request->action != 'new'){ ?>
+			<?php if($EventController->request->action != 'list' && $EventController->request->action != 'new'){ ?>
 			<div>
-				<?php if($Event->request->action != 'show'){ ?>
-				<a class="button blue" href="<?= $server->url ?>/admin/events/<?= $Event->object->id ?>">Ansehen</a>
+				<?php if($EventController->request->action != 'show'){ ?>
+				<a class="button blue" href="<?= $server->url ?>/admin/events/<?= $Event->id ?>">Ansehen</a>
 				<?php } ?>
 
-				<?php if($Event->request->action != 'edit'){ ?>
-				<a class="button yellow" href="<?= $server->url ?>/admin/events/<?= $Event->object->id ?>/edit">Bearbeiten</a>
+				<?php if($EventController->request->action != 'edit'){ ?>
+				<a class="button yellow" href="<?= $server->url ?>/admin/events/<?= $Event->id ?>/edit">Bearbeiten</a>
 				<?php } ?>
 
-				<?php if($Event->request->action != 'delete'){ ?>
-				<a class="button red" href="<?= $server->url ?>/admin/events/<?= $Event->object->id ?>/delete">Löschen</a>
+				<?php if($EventController->request->action != 'delete'){ ?>
+				<a class="button red" href="<?= $server->url ?>/admin/events/<?= $Event->id ?>/delete">Löschen</a>
 				<?php } ?>
 			</div>
 			<?php } ?>
 
-			<?php if($Event->request->action == 'list' && $Event->found()){ ?>
+			<?php if($EventController->request->action == 'list' && $EventController->found()){ ?>
 				<?php
-				$pagination = $Event->pagination;
+				$pagination = $EventController->pagination;
 				include COMPONENT_PATH . 'admin/pagination.php';
 				?>
 
-				<?php foreach($Event->objects as $obj){ ?>
+				<?php foreach($Event as $obj){ ?>
 				<article>
 					<code><?= $obj->longid ?></code>
 					<h2><?= $obj->title ?></h2>
@@ -95,8 +95,8 @@
 				<?php } ?>
 			<?php } ?>
 
-			<?php if($Event->request->action == 'show' && $Event->found()){ ?>
-				<?php $obj = $Event->object; ?>
+			<?php if($EventController->request->action == 'show' && $EventController->found()){ ?>
+				<?php $obj = $Event; ?>
 				<article>
 					<code><?= $obj->longid ?></code>
 					<h1><?= $obj->title ?></h1>
@@ -105,11 +105,11 @@
 				</article>
 			<?php } ?>
 
-			<?php if(($Event->request->action == 'edit' && !$Event->edited()) || ($Event->request->action == 'new' && !$Event->created())){ ?>
-				<?php $obj = $Event->object; ?>
+			<?php if(($EventController->request->action == 'edit' && !$EventController->edited()) || ($EventController->request->action == 'new' && !$EventController->created())){ ?>
+				<?php $obj = $Event; ?>
 				<form action="#" method="post">
 
-					<?php if($Event->request->action == 'new'){ ?>
+					<?php if($EventController->request->action == 'new'){ ?>
 					<label for="longid">
 						<span class="name">Veranstaltungs-ID</span>
 						<span class="conditions">
@@ -181,8 +181,8 @@
 				</form>
 			<?php } ?>
 
-			<?php if($Event->request->action == 'delete' && !$Event->deleted()){ ?>
-				<?php $obj = $Event->object; ?>
+			<?php if($EventController->request->action == 'delete' && !$EventController->deleted()){ ?>
+				<?php $obj = $Event; ?>
 				<p>Veranstaltung <code><?= $obj->longid ?></code> löschen?</p>
 				<form action="#" method="post">
 					<input type="hidden" id="id" name="id" value="<?= $obj->id ?>">
@@ -193,7 +193,7 @@
 		</main>
 		<?php include COMPONENT_PATH . 'admin/footer.php'; ?>
 
-		<?php if($Event->request->action == 'new' || $Event->request->action == 'edit'){
+		<?php if($EventController->request->action == 'new' || $EventController->request->action == 'edit'){
 			include COMPONENT_PATH . 'admin/timeinput.php';
 		} ?>
 

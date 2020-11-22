@@ -9,7 +9,7 @@ class ImageController extends Controller {
 
 
 	protected function export_each($image) {
-		$export = new Picture($image);
+		return new Picture($image);
 	}
 }
 ?>

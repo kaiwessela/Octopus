@@ -43,6 +43,7 @@ class Person extends DataObject {
 	function __construct() {
 		parent::__construct();
 		$this->image = new Image();
+		$this->groups = [];
 		$this->relationlist = new PersonGroupRelationList();
 	}
 
@@ -84,10 +85,6 @@ class Person extends DataObject {
 
 
 	public function export($block_recursion = false) {
-		if($this->is_empty()){
-			return null;
-		}
-
 		$obj = (object) [];
 
 		$obj->id = $this->id;
@@ -117,7 +114,7 @@ class Person extends DataObject {
 		if(!$this->image->is_empty()){
 			$values['image_id'] = $this->image->id;
 		} else {
-			$values['image_id'] = '';
+			$values['image_id'] = null;
 		}
 
 		if($this->is_new()){

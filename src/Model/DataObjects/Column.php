@@ -40,6 +40,7 @@ class Column extends DataObject {
 
 	function __construct() {
 		parent::__construct();
+		$this->posts = [];
 		$this->relationlist = new PostColumnRelationList();
 	}
 

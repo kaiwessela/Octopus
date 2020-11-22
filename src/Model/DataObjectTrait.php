@@ -94,11 +94,11 @@ trait DataObjectTrait {
 				throw new WrongObjectStateException('new');
 			}
 		} else if($state == 'empty'){
-			if($this->is_new()){
+			if(!$this->is_empty()){
 				throw new WrongObjectStateException('not new');
 			}
 		} else if($state == 'not new'){
-			if(!$this->is_empty()){
+			if($this->is_new()){
 				throw new WrongObjectStateException('empty');
 			}
 		} else if($state == 'not empty'){

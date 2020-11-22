@@ -19,7 +19,7 @@ class DatabaseException extends Exception {
 		$this->error_code = $pdo_statement->errorCode();
 		$this->error_info = $pdo_statement->errorInfo();
 
-		parent::__construct("Database Exception - [$this->error_code]: " . implode('; ', $this->error_info));
+		parent::__construct("Database Exception - [$this->error_code]: " . implode('; ', $this->error_info) . "; '$this->query'");
 	}
 
 	public function get_query() {

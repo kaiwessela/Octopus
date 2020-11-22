@@ -74,6 +74,7 @@ class Post extends DataObject {
 	function __construct() {
 		parent::__construct();
 		$this->image = new Image();
+		$this->columns = [];
 		$this->relationlist = new PostColumnRelationList();
 	}
 
@@ -122,10 +123,6 @@ class Post extends DataObject {
 
 
 	public function export($block_recursion = false) {
-		if($this->is_empty()){
-			return null;
-		}
-
 		$obj = (object) [];
 
 		$obj->id = $this->id;
@@ -167,7 +164,7 @@ class Post extends DataObject {
 		if(!$this->image->is_empty()){
 			$values['image_id'] = $this->image->id;
 		} else {
-			$values['image_id'] = '';
+			$values['image_id'] = null;
 		}
 
 		if($this->is_new()){

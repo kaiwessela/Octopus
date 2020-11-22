@@ -17,6 +17,14 @@ abstract class DataObjectList {
 	abstract protected static function load_each($data);
 
 
+	function __construct() {
+		$this->objects = [];
+		
+		$this->set_new(false);
+		$this->set_empty();
+	}
+
+
 	public function pull(/*int*/$limit = null, /*int*/$offset = null) {
 #	@action:
 #	  - select multiple objects from the database

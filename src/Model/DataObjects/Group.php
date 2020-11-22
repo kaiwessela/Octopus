@@ -40,6 +40,7 @@ class Group extends DataObject {
 
 	function __construct() {
 		parent::__construct();
+		$this->persons = [];
 		$this->relationlist = new PersonGroupRelationList();
 	}
 

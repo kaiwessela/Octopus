@@ -142,7 +142,10 @@ abstract class DataObject {
 		}
 
 		$this->push_children();
-		$this->relationlist->push();
+
+		if(!empty($this->relationlist)){
+			$this->relationlist->push();
+		}
 	}
 
 
@@ -186,16 +189,16 @@ abstract class DataObject {
 		$errors = new InputFailedException();
 
 		try {
-			$this->import_id_and_longid($data['id'], $data['longid']);
+			$this->import_id_and_longid($data['id'] ?? null, $data['longid']);
 		} catch(InputFailedException $e){
 			$errors->merge($e);
 		}
 
 		foreach($this::FIELDS as $fieldname => $fielddef){
-			$value = $data[$fieldname];
-			$required = $fielddef['required'];
-			$pattern = $fielddef['pattern'];
-			$type = $fielddef['type'];
+			$value = $data[$fieldname] ?? null;
+			$required = $fielddef['required'] ?? false;
+			$pattern = $fielddef['pattern'] ?? null;
+			$type = $fielddef['type'] ?? null;
 
 
 			if(empty($value) && !$required && $type !== 'custom'){

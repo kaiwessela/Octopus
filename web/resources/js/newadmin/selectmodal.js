@@ -40,6 +40,8 @@ class SelectModal extends Modal {
 			this.objects = await Post.pullList(10, (page - 1) * 10);
 		} else if(this.type == 'column'){
 			this.objects = await Column.pullList(10, (page - 1) * 10);
+		} else if(this.type == 'person'){
+			this.objects = await Person.pullList(10, (page - 1) * 10);
 		} else {
 			throw 'SelectModal.loadObjects(): invalid type.';
 		}

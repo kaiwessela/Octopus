@@ -111,11 +111,19 @@ abstract class DataObjectRelation {
 		}
 
 		if(!empty($this->primary_object) && $primary_id != $this->primary_object->id){
-			$errors->push(new IdentifierMismatchException('primary_id', $primary_id, $this));
+			if($this->primary_object->is_new()){ // NOTE this is a hotfix. work out how this can be done better.
+				$primary_id = $this->primary_object->id;
+			} else {
+				$errors->push(new IdentifierMismatchException('primary_id', $primary_id, $this));
+			}
 		}
 
 		if(!empty($this->secondary_object) && $secondary_id != $this->secondary_object->id){
-			$errors->push(new IdentifierMismatchException('secondary_id', $secondary_id, $this));
+			if($this->secondary_object->is_new()){
+				$secondary_id = $this->secondary_object->id;
+			} else {
+				$errors->push(new IdentifierMismatchException('secondary_id', $secondary_id, $this));
+			}
 		}
 
 		if($this->is_new()){

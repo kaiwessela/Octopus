@@ -41,7 +41,7 @@ class PersonGroupRelation extends DataObjectRelation {
 
 		$this->id = $data['persongrouprelation_id'];
 		$this->number = (int) $data['persongrouprelation_number'];
-		$this->role = (int) $data['persongrouprelation_role'];
+		$this->role = $data['persongrouprelation_role'];
 	}
 
 	protected function set_object(DataObject $object) {
@@ -62,6 +62,25 @@ class PersonGroupRelation extends DataObjectRelation {
 
 	protected function get_secondary_prototype() {
 		return new Group();
+	}
+
+	public function export() {
+		if($this->is_empty()){
+			return null;
+		}
+
+		$export = [
+			'id' => $this->id,
+			'primary_id' => $this->primary_object->id,
+			'secondary_id' => $this->secondary_object->id,
+			'number' => $this->number,
+			'role' => $this->role
+		];
+
+		$export[$this::PRIMARY_ALIAS . '_id'] = $this->primary_object->id;
+		$export[$this::SECONDARY_ALIAS . '_id'] = $this->secondary_object->id;
+
+		return $export;
 	}
 
 	protected function db_export() {

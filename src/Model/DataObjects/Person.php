@@ -94,7 +94,7 @@ class Person extends DataObject {
 		$obj->id = $this->id;
 		$obj->longid = $this->longid;
 		$obj->name = $this->name;
-		
+
 		if(!$this->image->is_empty()){
 			$obj->image = $this->image->export();
 		} else {

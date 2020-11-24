@@ -61,14 +61,16 @@ class APIEndpointHandler {
 
 	public function handle() {
 
+		$use_list = (empty($this->request->identifier) || $this->request->identifier == 'count') ?? false;
+
 		# CLASS HANDLING MODULE
-		if(!isset($this->request->class)){
+		if(empty($this->request->class)){
 			# no class requested, answer only with api status
 			$this->response->set_response_code(200);
 			$this->response->send();
 		} else if($this->request->class == 'posts'){
 			# class Post requested
-			if(!isset($this->request->identifier)){
+			if($use_list){
 				$backend_class = new \Blog\Model\DataObjects\Lists\PostList();
 			} else {
 				$backend_class = new \Blog\Model\DataObjects\Post();
@@ -76,7 +78,7 @@ class APIEndpointHandler {
 
 		} else if($this->request->class == 'images'){
 			# class Image requested
-			if(!isset($this->request->identifier)){
+			if($use_list){
 				$backend_class = new \Blog\Model\DataObjects\Lists\ImageList();
 			} else {
 				$backend_class = new \Blog\Model\DataObjects\Image();
@@ -84,7 +86,7 @@ class APIEndpointHandler {
 
 		} else if($this->request->class == 'persons'){
 			# class Person requested
-			if(!isset($this->request->identifier)){
+			if($use_list){
 				$backend_class = new \Blog\Model\DataObjects\Lists\PersonList();
 			} else {
 				$backend_class = new \Blog\Model\DataObjects\Person();
@@ -92,7 +94,7 @@ class APIEndpointHandler {
 
 		} else if($this->request->class == 'events'){
 			# class Event requested
-			if(!isset($this->request->identifier)){
+			if($use_list){
 				$backend_class = new \Blog\Model\DataObjects\Lists\EventList();
 			} else {
 				$backend_class = new \Blog\Model\DataObjects\Event();
@@ -100,7 +102,7 @@ class APIEndpointHandler {
 
 		} else if($this->request->class == 'pages'){
 			# class Page requested
-			if(!isset($this->request->identifier)){
+			if($use_list){
 				$backend_class = new \Blog\Model\DataObjects\Lists\PageList();
 			} else {
 				$backend_class = new \Blog\Model\DataObjects\Page();
@@ -108,12 +110,20 @@ class APIEndpointHandler {
 
 		} else if($this->request->class == 'columns'){
 			# class Column requested
-			if(!isset($this->request->identifier)){
+			if($use_list){
 				$backend_class = new \Blog\Model\DataObjects\Lists\ColumnList();
 			} else {
 				$backend_class = new \Blog\Model\DataObjects\Column();
 			}
-			
+
+		} else if($this->request->class == 'groups'){
+			# class Group requested
+			if($use_list){
+				$backend_class = new \Blog\Model\DataObjects\Lists\GroupList();
+			} else {
+				$backend_class = new \Blog\Model\DataObjects\Group();
+			}
+
 		} else {
 			# invalid class requested, answer with error
 			$this->response->set_response_code(400);
@@ -123,15 +133,15 @@ class APIEndpointHandler {
 
 
 		# IDENTIFIER HANDLING MODULE
-		if(!isset($this->request->identifier)){
+		if(empty($this->request->identifier)){
 			# no identifier specified -> return all instances of class
 
 			$limit = null;
 			$offset = null;
-			if(isset($this->request->query_string['limit'])){
+			if(!empty($this->request->query_string['limit'])){
 				$limit = (int) $this->request->query_string['limit'];
 
-				if(isset($this->request->query_string['offset'])){
+				if(!empty($this->request->query_string['offset'])){
 					$offset = (int) $this->request->query_string['offset'];
 				}
 			}
@@ -215,9 +225,20 @@ class APIEndpointHandler {
 
 		} else {
 			# object-specific identifier specified -> pull requested instance of class, handle depending on specified action
+
+			$limit = null;
+			$offset = null;
+			if(!empty($this->request->query_string['limit'])){
+				$limit = (int) $this->request->query_string['limit'];
+
+				if(!empty($this->request->query_string['offset'])){
+					$offset = (int) $this->request->query_string['offset'];
+				}
+			}
+
 			try {
 				# try to pull the specified instance of class
-				$backend_class->pull($this->request->identifier);
+				$backend_class->pull($this->request->identifier, $limit, $offset);
 			} catch(EmptyResultException $e){
 				# instance not found, answer with error
 				$this->response->set_response_code(404);
@@ -236,10 +257,24 @@ class APIEndpointHandler {
 
 
 		# ACTION HANDLING MODULE
-		if(!isset($this->request->action)){
+		if(empty($this->request->action)){
 			# no action specified -> return instance of class
 			$this->response->set_response_code(200);
 			$this->response->set_result($backend_class->export());
+			$this->response->send();
+
+		} else if($this->request->action == 'count'){
+			# action 'count' specified -> return the count of all children of the class
+			try {
+				$count = $backend_class->count();
+			} catch(DatabaseException $e){
+				$this->response->set_response_code(500);
+				$this->response->set_error_message($e->getMessage());
+				$this->response->send();
+			}
+
+			$this->response->set_response_code(200);
+			$this->response->set_result($count);
 			$this->response->send();
 
 		} else if($this->request->action == 'edit'){

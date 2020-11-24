@@ -17,7 +17,7 @@ class ImageList extends DataObjectList {
 
 	protected static function load_each($data){
 		$obj = new Image();
-		$obj->load($data);
+		$obj->load_single($data);
 		return $obj;
 	}
 

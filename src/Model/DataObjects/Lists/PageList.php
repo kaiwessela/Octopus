@@ -17,7 +17,7 @@ class PageList extends DataObjectList {
 
 	protected static function load_each($data) {
 		$obj = new Page();
-		$obj->load($data);
+		$obj->load_single($data);
 		return $obj;
 	}
 

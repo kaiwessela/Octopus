@@ -17,7 +17,7 @@ class PostList extends DataObjectList {
 
 	protected static function load_each($data) {
 		$obj = new Post();
-		$obj->load($data);
+		$obj->load_single($data);
 		return $obj;
 	}
 
@@ -25,8 +25,6 @@ class PostList extends DataObjectList {
 	const SELECT_QUERY = <<<SQL
 SELECT * FROM posts
 LEFT JOIN images ON image_id = post_image_id
-LEFT JOIN postcolumnrelations ON postcolumnrelation_post_id = post_id
-LEFT JOIN columns ON column_id = postcolumnrelation_column_id
 ORDER BY post_timestamp DESC
 SQL; #---|
 

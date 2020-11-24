@@ -17,7 +17,7 @@ class EventList extends DataObjectList {
 
 	protected static function load_each($data) {
 		$obj = new Event();
-		$obj->load($data);
+		$obj->load_single($data);
 		return $obj;
 	}
 

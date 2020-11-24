@@ -49,5 +49,33 @@ class PostColumnRelation extends DataObjectRelation {
 		return new Column();
 	}
 
+	protected function db_export() {
+		return [
+			'id' => $this->id,
+			'post_id' => $this->primary_object->id,
+			'column_id' => $this->secondary_object->id
+		];
+	}
+
+
+	const INSERT_QUERY = <<<SQL
+INSERT INTO postcolumnrelations (
+	postcolumnrelation_id,
+	postcolumnrelation_post_id,
+	postcolumnrelation_column_id
+) VALUES (
+	:id,
+	:post_id,
+	:column_id
+)
+SQL; #---|
+
+	const UPDATE_QUERY = null;
+
+	const DELETE_QUERY = <<<SQL
+DELETE FROM postcolumnrelations
+WHERE postcolumnrelation_id = :id
+SQL; #---|
+
 }
 ?>

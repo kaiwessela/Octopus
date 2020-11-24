@@ -45,13 +45,17 @@ class Column extends DataObject {
 	}
 
 
-	public function load($data) { // IDEA make private
+	public function load($data) {
 		$this->req('empty');
 
 		$this->load_single($data[0]);
 
 		$relations = [];
 		foreach($data as $postdata){
+			if(empty($postdata['postcolumnrelation_id'])){
+				continue;
+			}
+
 			$post = new Post();
 			$post->load_single($postdata);
 			$this->posts[] = $post;

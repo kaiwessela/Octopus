@@ -52,6 +52,10 @@ class Group extends DataObject {
 
 		$relations = [];
 		foreach($data as $persondata){
+			if(empty($persondata['persongrouprelation_id'])){
+				continue;
+			}
+
 			$person = new Person();
 			$person->load($persondata, true);
 			$this->persons[] = $person;

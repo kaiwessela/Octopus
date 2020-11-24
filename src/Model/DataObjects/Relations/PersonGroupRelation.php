@@ -64,5 +64,50 @@ class PersonGroupRelation extends DataObjectRelation {
 		return new Group();
 	}
 
+	protected function db_export() {
+		$values = [
+			'id' => $this->id,
+			'number' => $this->number,
+			'role' => $this->role
+		];
+
+		if($this->is_new()){
+			$values['person_id'] = $this->primary_object->id;
+			$values['group_id'] = $this->secondary_object->id;
+		}
+
+		return $values;
+	}
+
+
+	const INSERT_QUERY = <<<SQL
+INSERT INTO persongrouprelations (
+	persongrouprelation_id,
+	persongrouprelation_person_id,
+	persongrouprelation_group_id,
+	persongrouprelation_number,
+	persongrouprelation_role
+) VALUES (
+	:id,
+	:person_id,
+	:group_id,
+	:number,
+	:role
+)
+SQL; #---|
+
+
+	const UPDATE_QUERY = <<<SQL
+UPDATE persongrouprelations
+SET persongrouprelation_number = :number, persongrouprelation_role = :role
+WHERE persongrouprelation_id = :id
+SQL; #---|
+
+
+	const DELETE_QUERY = <<<SQL
+DELETE FROM persongrouprelations
+WHERE persongrouprelation_id = :id
+SQL; #---|
+
 }
 ?>

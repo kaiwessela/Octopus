@@ -85,7 +85,11 @@ class Post extends DataObject {
 		$this->load_single($data[0]);
 
 		$relations = [];
-		foreach($data as $columndata){ // TODO fix that empty/invalid columns are generated (see api call)
+		foreach($data as $columndata){
+			if(empty($columndata['postcolumnrelation_id'])){
+				continue;
+			}
+
 			$column = new Column();
 			$column->load_single($columndata, true);
 			$this->columns[] = $column;
@@ -134,7 +138,12 @@ class Post extends DataObject {
 		$obj->author = $this->author;
 		$obj->timestamp = $this->timestamp;
 		$obj->content = $this->content;
-		$obj->image = $this->image->export();
+
+		if(!$this->image->is_empty()){
+			$obj->image = $this->image->export();
+		} else {
+			$obj->image = null;
+		}
 
 		if(!$block_recursion){
 			$obj->columns = [];

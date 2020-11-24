@@ -246,13 +246,13 @@
 							<?php /* FIXME */ if(empty($column->id)){ continue; } ?>
 							<div class="listitem">
 								<p><strong><?= $column->name ?></strong><code><?= $column->longid ?></code></p>
-								<input type="hidden" name="relations[<?= $i ?>][id]" value="<?= $obj->relations[$i]->id ?>">
-								<input type="hidden" name="relations[<?= $i ?>][column_id]" value="<?= $column->id ?>">
-								<input type="hidden" name="relations[<?= $i ?>][post_id]" value="<?= $obj->id ?>">
+								<input type="hidden" name="columns[<?= $i ?>][id]" value="<?= $obj->relations[$i]['id'] ?>">
+								<input type="hidden" name="columns[<?= $i ?>][column_id]" value="<?= $column->id ?>">
+								<input type="hidden" name="columns[<?= $i ?>][post_id]" value="<?= $obj->id ?>">
 
 								<label class="radiobodge turn-around blue">
 									<span class="label-field">Beibehalten</span>
-									<input type="radio" name="relations[<?= $i ?>][action]" value="nothing" checked>
+									<input type="radio" name="columns[<?= $i ?>][action]" value="nothing" checked>
 									<span class="bodgeradio">
 										<span class="bodgetick"></span>
 									</span>
@@ -260,7 +260,7 @@
 
 								<label class="radiobodge turn-around green">
 									<span class="label-field">Hinzufügen</span>
-									<input type="radio" name="relations[<?= $i ?>][action]" value="new" disabled>
+									<input type="radio" name="columns[<?= $i ?>][action]" value="new" disabled>
 									<span class="bodgeradio">
 										<span class="bodgetick"></span>
 									</span>
@@ -268,7 +268,7 @@
 
 								<label class="radiobodge turn-around yellow">
 									<span class="label-field">Bearbeiten</span>
-									<input type="radio" name="relations[<?= $i ?>][action]" value="edit" disabled>
+									<input type="radio" name="columns[<?= $i ?>][action]" value="edit" disabled>
 									<span class="bodgeradio">
 										<span class="bodgetick"></span>
 									</span>
@@ -276,7 +276,7 @@
 
 								<label class="radiobodge turn-around red">
 									<span class="label-field">Entfernen</span>
-									<input type="radio" name="relations[<?= $i ?>][action]" value="delete">
+									<input type="radio" name="columns[<?= $i ?>][action]" value="delete">
 									<span class="bodgeradio">
 										<span class="bodgetick"></span>
 									</span>
@@ -287,12 +287,12 @@
 						<template>
 							<div class="listitem">
 								<p><strong>{{name}}</strong><code>{{longid}}</code></p>
-								<input type="hidden" name="relations[{{i}}][column_id]" value="{{id}}">
-								<input type="hidden" name="relations[{{i}}][post_id]" value="<?= $obj->id ?>">
+								<input type="hidden" name="columns[{{i}}][column_id]" value="{{id}}">
+								<input type="hidden" name="columns[{{i}}][post_id]" value="<?= $obj->id ?>">
 
 								<label class="radiobodge turn-around blue">
 									<span class="label-field">Beibehalten</span>
-									<input type="radio" name="relations[{{i}}][action]" value="nothing">
+									<input type="radio" name="columns[{{i}}][action]" value="nothing">
 									<span class="bodgeradio">
 										<span class="bodgetick"></span>
 									</span>
@@ -300,7 +300,7 @@
 
 								<label class="radiobodge turn-around green">
 									<span class="label-field">Hinzufügen</span>
-									<input type="radio" name="relations[{{i}}][action]" value="new" checked>
+									<input type="radio" name="columns[{{i}}][action]" value="new" checked>
 									<span class="bodgeradio">
 										<span class="bodgetick"></span>
 									</span>
@@ -308,7 +308,7 @@
 
 								<label class="radiobodge turn-around yellow">
 									<span class="label-field">Bearbeiten</span>
-									<input type="radio" name="relations[{{i}}][action]" value="edit" disabled>
+									<input type="radio" name="columns[{{i}}][action]" value="edit" disabled>
 									<span class="bodgeradio">
 										<span class="bodgetick"></span>
 									</span>
@@ -316,7 +316,7 @@
 
 								<label class="radiobodge turn-around red">
 									<span class="label-field">Entfernen</span>
-									<input type="radio" name="relations[{{i}}][action]" value="delete" disabled>
+									<input type="radio" name="columns[{{i}}][action]" value="delete" disabled>
 									<span class="bodgeradio">
 										<span class="bodgetick"></span>
 									</span>

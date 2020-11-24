@@ -55,6 +55,10 @@ class Person extends DataObject {
 
 		$relations = [];
 		foreach($data as $groupdata){
+			if(empty($groupdata['persongrouprelation_id'])){
+				continue;
+			}
+
 			$group = new Group();
 			$group->load_single($groupdata, true);
 			$this->groups[] = $group;
@@ -90,7 +94,12 @@ class Person extends DataObject {
 		$obj->id = $this->id;
 		$obj->longid = $this->longid;
 		$obj->name = $this->name;
-		$obj->image = $this->image->export();
+		
+		if(!$this->image->is_empty()){
+			$obj->image = $this->image->export();
+		} else {
+			$obj->image = null;
+		}
 
 		if(!$block_recursion){
 			$obj->groups = [];

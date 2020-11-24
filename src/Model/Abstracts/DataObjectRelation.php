@@ -69,6 +69,8 @@ abstract class DataObjectRelation {
 
 		if($this->is_new()){
 			$s = $pdo->prepare($this::INSERT_QUERY);
+		} else if($this::UPDATE_QUERY == null){
+			return;
 		} else {
 			$s = $pdo->prepare($this::UPDATE_QUERY);
 		}
@@ -118,7 +120,7 @@ abstract class DataObjectRelation {
 
 		if($this->is_new()){
 			if(empty($this->primary_object)){
-				$primary_obj = $this::PRIMARY_PROTOTYPE;
+				$primary_obj = $this->get_primary_prototype();
 
 				try {
 					$primary_obj->pull($primary_id);
@@ -127,7 +129,7 @@ abstract class DataObjectRelation {
 					$errors->push(new RelationNonexistentException($primary_id, get_class($primary_obj), 'primary_id'));
 				}
 			} else if(empty($this->secondary_object)){
-				$secondary_obj = $this::SECONDARY_PROTOTYPE;
+				$secondary_obj = $this->get_secondary_prototype();
 
 				try {
 					$secondary_obj->pull($secondary_id);
@@ -147,6 +149,7 @@ abstract class DataObjectRelation {
 			$type = $fielddef['type'];
 
 			if(empty($value) && !$required){
+				$this->$fieldname = null;
 				continue;
 
 			} else if(empty($value) && $required){
@@ -189,6 +192,10 @@ abstract class DataObjectRelation {
 
 
 	public function export() { // TODO add description
+		if($this->is_empty()){
+			return null;
+		}
+
 		$export = [
 			'id' => $this->id,
 			'primary_id' => $this->primary_object->id,

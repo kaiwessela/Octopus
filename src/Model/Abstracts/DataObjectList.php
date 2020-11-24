@@ -19,7 +19,7 @@ abstract class DataObjectList {
 
 	function __construct() {
 		$this->objects = [];
-		
+
 		$this->set_new(false);
 		$this->set_empty();
 	}
@@ -54,6 +54,8 @@ abstract class DataObjectList {
 			}
 		}
 
+		// IDEA use subqueries to pull relations as well (maybe optionally)
+
 		$s = $pdo->prepare($query);
 
 		if(!$s->execute([])){
@@ -76,6 +78,7 @@ abstract class DataObjectList {
 
 		$this->req('empty');
 
+		/* row buffer to use on sql statements with relation joins. currently not necessary.
 		$i = 0;
 		$last_id = null;
 		$row_buffer = [];
@@ -93,6 +96,11 @@ abstract class DataObjectList {
 
 		foreach($row_buffer as $data){
 			$this->objects[] = $this::load_each($data);
+		}
+		*/
+
+		foreach($data as $row){
+			$this->objects[] = $this::load_each($row);
 		}
 
 		$this->set_new(false);

@@ -20,7 +20,7 @@ abstract class DataObject {
 	private $new;
 	private $empty;
 
-	private $relationlist;
+	protected $relationlist;
 
 	const IGNORE_PULL_LIMIT = false;
 
@@ -201,8 +201,9 @@ abstract class DataObject {
 			$type = $fielddef['type'] ?? null;
 
 
-			if($type === 'string' || $type === 'integer' || $type === 'boolean' || $type === 'relationlist'){	
+			if($type === 'string' || $type === 'integer' || $type === 'boolean' || $type === 'relationlist'){
 				if(empty($value) && !$required){
+					$this->$fieldname = null;
 					continue;
 
 				} else if(empty($value) && $required){
@@ -236,17 +237,18 @@ abstract class DataObject {
 
 			} else if($type === 'relationlist'){
 				try {
-					$this->relationlist->import($value); // TODO do not forget to push
+					$this->relationlist->import($value, $this);
 				} catch(InputFailedException $e){
 					$errors->merge($e, $fieldname);
 					continue;
 				}
 
-				$this->$fieldname = $this->relationlist->get_objects(); // TODO this does not work
+				// NOTE: the new relations are added to this->relations but not to their actual object array, i.e. this->columns
+
 				continue;
 
 			} else if($type === 'custom'){
-				$this->import_custom($fieldname, $data, $errors); // TODO is this way of error handling the best one or should we use a try-catch?
+				$this->import_custom($fieldname, $data, $errors);
 				continue;
 
 			} else {
@@ -276,6 +278,7 @@ abstract class DataObject {
 					continue;
 				}
 
+				/* FIXME cascading import. is it necessary? fix if so
 				try {
 					$obj->generate();
 					$obj->import($data);
@@ -286,6 +289,7 @@ abstract class DataObject {
 
 				$this->$fieldname = $obj;
 				continue;
+				*/
 			}
 		}
 

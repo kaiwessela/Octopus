@@ -1,6 +1,7 @@
 <?php
 namespace Blog\Model\Abstracts;
 use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\DataObjectTrait;
 use \Blog\Model\Abstracts\DataObjectRelation;
 use \Blog\Model\Exceptions\InputFailedException;
 
@@ -12,6 +13,8 @@ abstract class DataObjectRelationList {
 	private $updates;
 
 	const UNIQUE = true;
+
+	use DataObjectTrait;
 
 
 	function __construct() {
@@ -48,6 +51,10 @@ abstract class DataObjectRelationList {
 	public function export() {
 		$export = [];
 		foreach($this->relations as $relation){
+			if(empty($relation)){
+				continue;
+			}
+
 			$export[] = $relation->export();
 		}
 		return $export;
@@ -78,15 +85,14 @@ abstract class DataObjectRelationList {
 				continue;
 
 			} else if($action == 'edit' || $action == 'delete') {
-				$relation_id = $relationdata['relation_id'];
+				$relation_id = $relationdata['id'];
 				$relation = $this->relations[$relation_id];
 
 				if(!$relation instanceof DataObjectRelation){
-					// Exception
+					// TODO Exception
 					continue;
 				}
 
-				// TODO check if anything changed at all
 				if($action == 'edit'){
 					try {
 						$relation->import($relationdata);
@@ -112,52 +118,6 @@ abstract class DataObjectRelationList {
 		if(!$errors->is_empty()){
 			throw $errors;
 		}
-
-		return $this->relations;
-	}
-#	@params
-#	  - data:
-#		[
-#			0 => [
-#				'action' => 'new',
-#				'primary_id' => string,
-#				'secondary_id' => string,
-#				…
-#			],
-#			1 => [
-#				'action' => 'edit',
-#				'relation_id' => string,
-#				'primary_id' => string,
-#				'secondary_id' => string,
-#				…
-#			],
-#			2 => [
-#				'action' => 'delete',
-#				'relation_id' => string
-#				'primary_id' => string,
-#				'secondary_id' => string,
-#			]
-#		];
-
-
-	private function get_objects() { // DEPRECATED
-		$objects = [];
-
-		foreach($this->relations as $relation){
-			$objects[] = $relation->object;
-		}
-
-		return $objects;
-	}
-
-	private function get_object_ids() { // DEPRECATED
-		$id_list = [];
-
-		foreach($this->relations as $relation){
-			$id_list[] = $relation->id;
-		}
-
-		return $id_list;
 	}
 }
 ?>

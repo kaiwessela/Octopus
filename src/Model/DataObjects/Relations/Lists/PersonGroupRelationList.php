@@ -16,22 +16,6 @@ class PersonGroupRelationList extends DataObjectRelationList {
 #	private $updates;
 
 
-	public function import($data, DataObject $object) {
-		$errors = new InputFailedException();
-
-		foreach($data as $key => $value){
-			$relation = new PersonGroupRelation();
-
-			if($value['action'] == 'new'){
-				$relation->generate($object);
-			}
-		}
-
-		if(!$errors->is_empty()){
-			throw $errors;
-		}
-	}
-
 	protected function get_relation_prototype() {
 		return new PersonGroupRelation();
 	}

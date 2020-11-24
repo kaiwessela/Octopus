@@ -17,7 +17,7 @@ class PersonList extends DataObjectList {
 
 	protected static function load_each($data){
 		$obj = new Person();
-		$obj->load($data);
+		$obj->load_single($data);
 		return $obj;
 	}
 
@@ -25,8 +25,6 @@ class PersonList extends DataObjectList {
 	const SELECT_QUERY = <<<SQL
 SELECT * FROM persons
 LEFT JOIN images ON image_id = person_image_id
-LEFT JOIN persongrouprelations ON persongrouprelation_person_id = person_id
-LEFT JOIN groups ON group_id = persongrouprelation_group_id
 ORDER BY person_name
 SQL; #---|
 

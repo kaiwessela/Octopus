@@ -90,14 +90,19 @@ class Group extends DataObject {
 		$obj->name = $this->name;
 		$obj->description = $this->description;
 
+		$obj->relations = $this->relationlist->export();
+
 		if(!$block_recursion && !empty($this->persons)){
 			$obj->persons = [];
-			foreach($this->persons as $person){
-				$obj->persons[] = $person->export(true);
+			foreach($this->persons as $i => $person){
+				$member = $person->export(true);
+				$member->role = $obj->relations[$i]['role'];
+				$member->number = $obj->relations[$i]['number']; // FIXME to object
+
+				$obj->persons[] = $member;
 			}
 		}
 
-		$obj->relations = $this->relationlist->export();
 
 		return $obj;
 	}

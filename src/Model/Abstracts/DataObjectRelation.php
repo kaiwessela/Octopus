@@ -151,10 +151,10 @@ abstract class DataObjectRelation {
 		// TODO check for unique
 
 		foreach($this::FIELDS as $fieldname => $fielddef){
-			$value = $data[$fieldname];
-			$required = $fielddef['required'];
-			$pattern = $fielddef['pattern'];
-			$type = $fielddef['type'];
+			$value = $data[$fieldname] ?? null;
+			$required = $fielddef['required'] ?? null;
+			$pattern = $fielddef['pattern'] ?? null;
+			$type = $fielddef['type'] ?? null;
 
 			if(empty($value) && !$required){
 				$this->$fieldname = null;

@@ -93,7 +93,7 @@
 			</label>
 			<div class="pseudoinput relationlist">
 				<div class="objectbox" data-count="<?= count($Object->persons) + 1 ?>">
-				<?php foreach($obj->persons as $i => $person){ ?>
+				<?php if(!empty($obj->persons)){ foreach($obj->persons as $i => $person){ ?>
 					<div class="listitem">
 						<p><strong><?= $person->name ?></strong> <code><?= $person->longid ?></code></p>
 						<input type="hidden" name="persons[<?= $i ?>][id]" value="<?= $Object->relations[$i]['id'] ?>">
@@ -138,7 +138,7 @@
 							</span>
 						</label>
 					</div>
-				<?php } ?>
+				<?php }} ?>
 				</div>
 				<template>
 					<div class="listitem">

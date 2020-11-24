@@ -201,12 +201,14 @@ abstract class DataObject {
 			$type = $fielddef['type'] ?? null;
 
 
-			if(empty($value) && !$required && $type !== 'custom'){
-				continue;
+			if($type === 'string' || $type === 'integer' || $type === 'boolean' || $type === 'relationlist'){	
+				if(empty($value) && !$required){
+					continue;
 
-			} else if(empty($value) && $required){
-				$errors->push(new MissingValueException($fieldname, $pattern ?? ''));
-				continue;
+				} else if(empty($value) && $required){
+					$errors->push(new MissingValueException($fieldname, $pattern ?? ''));
+					continue;
+				}
 			}
 
 

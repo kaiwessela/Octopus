@@ -19,7 +19,7 @@ class Request {
 	function __construct() {
 		$this->method = $_SERVER['REQUEST_METHOD'];
 
-		$path = trim($_SERVER['REQUEST_URI'], '/');
+		$path = trim(preg_replace('/\?.*$/', '', $_SERVER['REQUEST_URI']), '/');
 		$segments = explode('/', $path);
 
 		$this->class = $segments[2] ?? null;

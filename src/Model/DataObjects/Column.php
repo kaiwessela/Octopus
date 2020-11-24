@@ -81,6 +81,8 @@ class Column extends DataObject {
 	public function export($block_recursion = false) {
 		$obj = (object) [];
 
+		$obj->id = $this->id;
+		$obj->longid = $this->longid;
 		$obj->name = $this->name;
 		$obj->description = $this->description;
 

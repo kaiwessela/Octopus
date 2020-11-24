@@ -59,7 +59,7 @@ class ControllerQuery {
 
 		if($this->action == 'list' || $this->action == 'show'){
 			if(empty($settings['amount'])){
-				$this->amount = 5;
+				$this->amount = 10; // TODO set default in config
 			} else if(is_int($settings['amount']) && $settings['amount'] > 0){
 				$this->amount = $settings['amount'];
 			} else {

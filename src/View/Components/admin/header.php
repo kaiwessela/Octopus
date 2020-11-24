@@ -15,6 +15,7 @@
 		<li><a <?php if($server->path == 'admin'){ ?>class="current" <?php } ?>href="<?= $server->url ?>/admin">Startseite</a></li>
 		<li><a <?php if($server->path == 'admin/pages'){ ?>class="current" <?php } ?>href="<?= $server->url ?>/admin/pages">Seiten</a></li>
 		<li><a <?php if($server->path == 'admin/posts'){ ?>class="current" <?php } ?>href="<?= $server->url ?>/admin/posts">Posts</a></li>
+		<li><a <?php if($server->path == 'admin/columns'){ ?>class="current" <?php } ?>href="<?= $server->url ?>/admin/columns">Rubriken</a></li>
 		<li><a <?php if($server->path == 'admin/images'){ ?>class="current" <?php } ?>href="<?= $server->url ?>/admin/images">Bilder</a></li>
 		<li><a <?php if($server->path == 'admin/persons'){ ?>class="current" <?php } ?>href="<?= $server->url ?>/admin/persons">Personen</a></li>
 		<li><a <?php if($server->path == 'admin/events'){ ?>class="current" <?php } ?>href="<?= $server->url ?>/admin/events">Veranstaltungen</a></li>

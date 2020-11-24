@@ -60,7 +60,7 @@ class APIEndpointHandler {
 	}
 
 	public function handle() {
-		
+
 		# CLASS HANDLING MODULE
 		if(!isset($this->request->class)){
 			# no class requested, answer only with api status
@@ -68,19 +68,52 @@ class APIEndpointHandler {
 			$this->response->send();
 		} else if($this->request->class == 'posts'){
 			# class Post requested
-			$backend_class = new \Blog\Model\DatabaseObjects\Post;
+			if(!isset($this->request->identifier)){
+				$backend_class = new \Blog\Model\DataObjects\Lists\PostList();
+			} else {
+				$backend_class = new \Blog\Model\DataObjects\Post();
+			}
+
 		} else if($this->request->class == 'images'){
 			# class Image requested
-			$backend_class = new \Blog\Model\DatabaseObjects\Image;
+			if(!isset($this->request->identifier)){
+				$backend_class = new \Blog\Model\DataObjects\Lists\ImageList();
+			} else {
+				$backend_class = new \Blog\Model\DataObjects\Image();
+			}
+
 		} else if($this->request->class == 'persons'){
 			# class Person requested
-			$backend_class = new \Blog\Model\DatabaseObjects\Person;
+			if(!isset($this->request->identifier)){
+				$backend_class = new \Blog\Model\DataObjects\Lists\PersonList();
+			} else {
+				$backend_class = new \Blog\Model\DataObjects\Person();
+			}
+
 		} else if($this->request->class == 'events'){
 			# class Event requested
-			$backend_class = new \Blog\Model\DatabaseObjects\Event;
+			if(!isset($this->request->identifier)){
+				$backend_class = new \Blog\Model\DataObjects\Lists\EventList();
+			} else {
+				$backend_class = new \Blog\Model\DataObjects\Event();
+			}
+
 		} else if($this->request->class == 'pages'){
 			# class Page requested
-			$backend_class = new \Blog\Model\DatabaseObjects\Page;
+			if(!isset($this->request->identifier)){
+				$backend_class = new \Blog\Model\DataObjects\Lists\PageList();
+			} else {
+				$backend_class = new \Blog\Model\DataObjects\Page();
+			}
+
+		} else if($this->request->class == 'columns'){
+			# class Column requested
+			if(!isset($this->request->identifier)){
+				$backend_class = new \Blog\Model\DataObjects\Lists\ColumnList();
+			} else {
+				$backend_class = new \Blog\Model\DataObjects\Column();
+			}
+			
 		} else {
 			# invalid class requested, answer with error
 			$this->response->set_response_code(400);
@@ -105,7 +138,7 @@ class APIEndpointHandler {
 
 			try {
 				# try to pull all instances of class
-				$objs = $backend_class->pull_all($limit, $offset);
+				$backend_class->pull($limit, $offset);
 			} catch(EmptyResultException $e){
 				# no instances found, answer with error
 				$this->response->set_response_code(404);
@@ -125,7 +158,7 @@ class APIEndpointHandler {
 
 			# everything worked, return objects
 			$this->response->set_response_code(200);
-			$this->response->set_result($objs);
+			$this->response->set_result($backend_class->export());
 			$this->response->send();
 
 		} else if($this->request->identifier == 'new') {
@@ -206,7 +239,7 @@ class APIEndpointHandler {
 		if(!isset($this->request->action)){
 			# no action specified -> return instance of class
 			$this->response->set_response_code(200);
-			$this->response->set_result($backend_class);
+			$this->response->set_result($backend_class->export());
 			$this->response->send();
 
 		} else if($this->request->action == 'edit'){
@@ -237,7 +270,7 @@ class APIEndpointHandler {
 
 			# everything worked, return object
 			$this->response->set_response_code(200);
-			$this->response->set_result($backend_class);
+			$this->response->set_result($backend_class->export());
 			$this->response->send();
 
 		} else if($this->request->action == 'delete'){
@@ -254,7 +287,7 @@ class APIEndpointHandler {
 
 			# everything worked, return object
 			$this->response->set_response_code(200);
-			$this->response->set_result($backend_class);
+			$this->response->set_result($backend_class->export());
 			$this->response->send();
 
 		} else {

@@ -81,6 +81,8 @@ class Group extends DataObject {
 	public function export($block_recursion = false) {
 		$obj = (object) [];
 
+		$obj->id = $this->id;
+		$obj->longid = $this->longid;
 		$obj->name = $this->name;
 		$obj->description = $this->description;
 
@@ -97,7 +99,7 @@ class Group extends DataObject {
 	}
 
 
-	private function db_export() {
+	protected function db_export() {
 		$export = [
 			'id' => $this->id,
 			'name' => $this->name,

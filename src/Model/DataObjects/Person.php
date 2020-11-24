@@ -76,7 +76,7 @@ class Person extends DataObject {
 		$this->name = $data['person_name'];
 
 		if(!empty($data['image_id'])){
-			$this->image->load($data);
+			$this->image->load_single($data);
 		}
 
 		$this->set_new(false);

@@ -44,7 +44,7 @@ class PersonGroupRelation extends DataObjectRelation {
 		$this->role = (int) $data['persongrouprelation_role'];
 	}
 
-	private function set_object(DataObject $object) {
+	protected function set_object(DataObject $object) {
 		if($object instanceof Person){
 			$this->primary_object = $object;
 			return;

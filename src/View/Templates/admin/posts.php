@@ -229,6 +229,103 @@
 					</label>
 					<textarea id="content" name="content" cols="80" rows="20"><?= $obj->content ?></textarea>
 
+					<label>
+						<span class="name">Rubriken</span>
+						<span class="conditions">optional</span>
+						<span class="infos">
+							<strong>Beta-Test:</strong><br>
+							„Beibehalten“ bedeutet keine Änderung, das Backend ignoriert diese Relation dann einfach.<br>
+							„Hinzufügen“ fügt die Relation neu hinzu. Logischerweise deaktiviert für bereits bestehende Relationen.<br>
+							„Bearbeiten“ ist hier deaktiviert und wird später für kompliziertere Relationen mit Zusatzfeldern verwendet.<br>
+							„Löschen“ löscht eine Relation. Deaktiviert für neue Relationen, da diese in der Datenbank noch nicht existieren.</br>
+						</span>
+					</label>
+					<div class="pseudoinput relationlist">
+						<div class="objectbox" data-count="<?= count($obj->columns) + 1 ?>">
+						<?php foreach($obj->columns as $i => $column){ ?>
+							<?php /* FIXME */ if(empty($column->id)){ continue; } ?>
+							<div class="listitem">
+								<p><strong><?= $column->name ?></strong><code><?= $column->longid ?></code></p>
+								<input type="hidden" name="relations[<?= $i ?>][id]" value="<?= $obj->relations[$i]->id ?>">
+								<input type="hidden" name="relations[<?= $i ?>][column_id]" value="<?= $column->id ?>">
+								<input type="hidden" name="relations[<?= $i ?>][post_id]" value="<?= $obj->id ?>">
+
+								<label class="radiobodge turn-around blue">
+									<span class="label-field">Beibehalten</span>
+									<input type="radio" name="relations[<?= $i ?>][action]" value="nothing" checked>
+									<span class="bodgeradio">
+										<span class="bodgetick"></span>
+									</span>
+								</label>
+
+								<label class="radiobodge turn-around green">
+									<span class="label-field">Hinzufügen</span>
+									<input type="radio" name="relations[<?= $i ?>][action]" value="new" disabled>
+									<span class="bodgeradio">
+										<span class="bodgetick"></span>
+									</span>
+								</label>
+
+								<label class="radiobodge turn-around yellow">
+									<span class="label-field">Bearbeiten</span>
+									<input type="radio" name="relations[<?= $i ?>][action]" value="edit" disabled>
+									<span class="bodgeradio">
+										<span class="bodgetick"></span>
+									</span>
+								</label>
+
+								<label class="radiobodge turn-around red">
+									<span class="label-field">Entfernen</span>
+									<input type="radio" name="relations[<?= $i ?>][action]" value="delete">
+									<span class="bodgeradio">
+										<span class="bodgetick"></span>
+									</span>
+								</label>
+							</div>
+						<?php } ?>
+						</div>
+						<template>
+							<div class="listitem">
+								<p><strong>{{name}}</strong><code>{{longid}}</code></p>
+								<input type="hidden" name="relations[{{i}}][column_id]" value="{{id}}">
+								<input type="hidden" name="relations[{{i}}][post_id]" value="<?= $obj->id ?>">
+
+								<label class="radiobodge turn-around blue">
+									<span class="label-field">Beibehalten</span>
+									<input type="radio" name="relations[{{i}}][action]" value="nothing">
+									<span class="bodgeradio">
+										<span class="bodgetick"></span>
+									</span>
+								</label>
+
+								<label class="radiobodge turn-around green">
+									<span class="label-field">Hinzufügen</span>
+									<input type="radio" name="relations[{{i}}][action]" value="new" checked>
+									<span class="bodgeradio">
+										<span class="bodgetick"></span>
+									</span>
+								</label>
+
+								<label class="radiobodge turn-around yellow">
+									<span class="label-field">Bearbeiten</span>
+									<input type="radio" name="relations[{{i}}][action]" value="edit" disabled>
+									<span class="bodgeradio">
+										<span class="bodgetick"></span>
+									</span>
+								</label>
+
+								<label class="radiobodge turn-around red">
+									<span class="label-field">Entfernen</span>
+									<input type="radio" name="relations[{{i}}][action]" value="delete" disabled>
+									<span class="bodgeradio">
+										<span class="bodgetick"></span>
+									</span>
+								</label>
+							</div>
+						</template>
+						<button type="button" class="new green" data-action="open" data-modal="addcolumn">Rubrik hinzufügen</button>
+					</div>
+
 					<button type="submit" class="green">Speichern</button>
 				</form>
 			<?php } ?>
@@ -242,6 +339,24 @@
 				</form>
 			<?php } ?>
 
+			<div class="modal selectmodal" data-name="addcolumn">
+				<div class="box">
+					<h2>Rubrik auswählen</h2>
+					<form action="#" method="GET">
+						<div class="objectbox"></div>
+						<template>
+							<label>
+								<input type="radio" name="result" value="{{id}}">
+								<h3>{{name}}</h3>
+								<code>{{longid}}</code>
+							</label>
+						</template>
+						<button type="button" data-action="close">Schließen</button>
+						<button type="submit" data-action="submit">Auswählen</button>
+					</form>
+				</div>
+			</div>
+
 		</main>
 		<?php include COMPONENT_PATH . 'admin/footer.php'; ?>
 
@@ -250,5 +365,22 @@
 			include COMPONENT_PATH . 'admin/timeinput.php';
 		} ?>
 		<script src="<?= $server->url ?>/resources/js/admin/validate.js"></script>
+
+		<script src="<?= $server->url ?>/resources/js/newadmin/column.js"></script>
+		<script src="<?= $server->url ?>/resources/js/newadmin/modal.js"></script>
+		<script src="<?= $server->url ?>/resources/js/newadmin/selectmodal.js"></script>
+		<script src="<?= $server->url ?>/resources/js/newadmin/invoke.js"></script>
+		<script>
+			modals['addcolumn'].type = 'column';
+			modals['addcolumn'].onSubmit = () => {
+				var count = Number(document.querySelector('.relationlist .objectbox').getAttribute('data-count'));
+				count++;
+				document.querySelector('.relationlist .objectbox').setAttribute('data-count', count);
+
+				var newcontent = modals['addcolumn'].valueObject.replace(document.querySelector('.relationlist template').innerHTML);
+				newcontent = newcontent.replace(/{{i}}/g, count);
+				document.querySelector('.relationlist .objectbox').innerHTML += newcontent;
+			}
+		</script>
 	</body>
 </html>

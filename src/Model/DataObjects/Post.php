@@ -85,7 +85,7 @@ class Post extends DataObject {
 		$this->load_single($data[0]);
 
 		$relations = [];
-		foreach($data as $columndata){
+		foreach($data as $columndata){ // TODO fix that empty/invalid columns are generated (see api call)
 			$column = new Column();
 			$column->load_single($columndata, true);
 			$this->columns[] = $column;

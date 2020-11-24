@@ -5,6 +5,7 @@ class Item {
 	public $disabled;
 	public $target; # former absolute_number
 	public $steps;  # former relative_number
+	public $href;
 	public $title;
 
 	public $duplicate_priority;
@@ -32,7 +33,7 @@ class Item {
 			} else if(is_int($settings['number']) && $settings['number'] > 0){
 				$this->target = $settings['number'];
 			} else {
-				// error
+				// error TODO
 			}
 
 			$this->steps = $this->target - $pagination->current_page;
@@ -49,6 +50,8 @@ class Item {
 		} else {
 			// error
 		}
+
+		$this->href = '/' . $this->pagination->base_path . '/' . $this->target;
 
 		if(!$this->exists() && !$settings['hide_on_void']){
 			$this->disabled = true;

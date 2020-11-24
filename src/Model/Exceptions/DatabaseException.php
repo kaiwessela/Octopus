@@ -10,7 +10,6 @@ class DatabaseException extends Exception {
 	public $error_info;		# PDOStatement->errorInfo
 
 	function __construct($pdo_statement) {
-		parent::__construct('Database Exception; use DatabaseException methods for details');
 
 		if(!$pdo_statement instanceof PDOStatement){
 			throw new InvalidArgumentException('Invalid Argument; PDOStatement required; ' . serialize($pdo_statement));
@@ -19,6 +18,8 @@ class DatabaseException extends Exception {
 		$this->query = $pdo_statement->queryString;
 		$this->error_code = $pdo_statement->errorCode();
 		$this->error_info = $pdo_statement->errorInfo();
+
+		parent::__construct("Database Exception - [$this->error_code]: " . implode('; ', $this->error_info) . "; '$this->query'");
 	}
 
 	public function get_query() {

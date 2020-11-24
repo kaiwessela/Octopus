@@ -235,7 +235,7 @@ textarea {
 }
 
 div.pseudoinput {
-	max-width: 35rem;
+	max-width: 45rem;
 }
 
 .message {
@@ -325,14 +325,16 @@ button.yellow,
 	--border-color: var(--yellow);
 }
 
-a.button.new::before {
+a.button.new::before,
+button.new::before {
 	content: '+';
 	font-weight: 800;
 	padding-right: 0.25em;
 	color: var(--border-color);
 }
 
-a.button.back::before {
+a.button.back::before,
+button.back::before {
 	content: '←';
 	font-weight: 800;
 	padding-right: 0.25em;
@@ -387,6 +389,16 @@ img {
 
 .template {
 	display: none;
+}
+
+.listitem {
+	margin: 0;
+	padding: 0;
+	border-bottom: 1px solid var(--gray);
+}
+
+.listitem:last-of-type {
+	margin-bottom: 0.5rem;
 }
 
 
@@ -484,4 +496,124 @@ input:checked ~ .bodgecheckbox > .bodgetick > .bodgetick-down {
 
 input:checked ~ .bodgecheckbox > .bodgetick > .bodgetick-up {
 	height: 80%;
+}
+
+
+/* RADIOBODGE */
+.radiobodge {
+	--color: var(--blue);
+	font-size: 0.9rem;
+	line-height: 1.3em;
+	display: inline-flex;
+	margin: 0.1rem 0 1rem;
+}
+
+.radiobodge.green {
+	--color: var(--green);
+}
+
+.radiobodge.yellow {
+	--color: var(--yellow);
+}
+
+.radiobodge.red {
+	--color: var(--red);
+}
+
+.radiobodge.turn-around {
+	flex-direction: row-reverse;
+	justify-content: flex-end;
+}
+
+.radiobodge input[type=radio] {
+	opacity: 0;
+	position: absolute;
+}
+
+.radiobodge > .label-field {
+	margin-right: 0.5rem;
+	font-size: 1.1em;
+	color: var(--dark-gray);
+}
+
+.radiobodge.turn-around > .label-field {
+	margin-left: 0.5rem;
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+.radiobodge > .bodgeradio {
+	display: inline-block;
+	vertical-align: top;
+	width: 1em;
+	height: 1em;
+	border: 0.2em solid var(--color);
+	border-radius: 0.7em;
+	background-color: var(--white);
+	transition-duration: 0.25s;
+	margin: 0;
+}
+
+input[type=radio]:hover ~ .bodgeradio,
+input[type=radio]:focus ~ .bodgeradio,
+.radiobodge:hover > .bodgeradio,
+.radiobodge:focus > .bodgeradio {
+	border-color: var(--color);
+}
+
+.radiobodge > .bodgeradio > .bodgetick {
+	display: block;
+	position: relative;
+	height: 60%;
+	width: 60%;
+	background-color: var(--color);
+	border-radius: 50%;
+	top: 20%;
+	left: 20%;
+	box-sizing: border-box;
+	transition-duration: 0.2s;
+	transition-timing-function: ease;
+	margin: 0;
+	opacity: 0;
+}
+
+.radiobodge input:disabled ~ .bodgeradio {
+	border-color: var(--dark-gray);
+	background-color: var(--gray);
+	opacity: 0.5;
+}
+
+input:disabled ~ .bodgeradio > .bodgetick {
+	background-color: var(--dark-gray);
+}
+
+input:checked ~ .bodgeradio > .bodgetick {
+	opacity: 1;
+}
+
+
+/* MODAL MODAL MODAL */
+.modal {
+	display: none;
+	visibility: hidden;
+	position: fixed;
+	margin: 0;
+	top: 0;
+	left: 0;
+	height: 100vh;
+	width: 100vw;
+	background-color: #00000088;
+}
+
+.modal.open {
+	display: block;
+	visibility: visible;
+}
+
+.modal .box {
+	width: 50rem;
+	margin: 5rem auto;
+	padding: 1rem;
+	overflow-y: scroll;
+	background-color: #e3e3e3;
 }

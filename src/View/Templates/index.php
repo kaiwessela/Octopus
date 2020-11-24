@@ -13,7 +13,7 @@
 			<section>
 				<h2>Neueste Posts</h2>
 				<?php
-				foreach($Post->objects as $post){
+				foreach($Post as $post){
 					include COMPONENT_PATH . 'preview-post.php';
 				}
 				?>

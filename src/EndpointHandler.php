@@ -59,8 +59,6 @@ class EndpointHandler {
 			} else if($controller->status == 50){
 				$this->handle(500);
 				exit;
-			} else if(!$controller->empty()){
-				$controller->process();
 			}
 		}
 
@@ -82,13 +80,16 @@ class EndpointHandler {
 
 		http_response_code($response_code);
 
-		foreach($this->controllers as $name => $controller){
-			$shortname = str_replace('Controller', '', $name);
+		if($response_code == 200){
+			foreach($this->controllers as $name => $controller){
+				$controller_name = $controller->request->name . 'Controller';
+				$result_name = $controller->request->name;
 
-			global $$name;
-			global $$shortname;
-			$$name 		= $controller;
-			$$shortname = &$$name;
+				global $$controller_name;
+				global $$result_name;
+				$$controller_name = $controller;
+				$$result_name = $controller->export();
+			}
 		}
 
 

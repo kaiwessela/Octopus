@@ -2,28 +2,20 @@
 namespace Blog\Controller\Controllers;
 use \Blog\Controller\Controller;
 use \Blog\Controller\Processors\Picture;
-use \Blog\Controller\Processors\Pagination\Pagination;
-
 
 class PersonController extends Controller {
 	const MODEL = 'Person';
-
-	public $pagination;
-
-	/* @inherited
-	protected $request;
-	public $status;
-	public $objects;
-	public $exceptions;
-
-	protected $count;
-	*/
+	const LIST_MODEL = 'PersonList';
 
 
-	public function process_each(&$object, &$obj) {
-		if(!$object->image->is_empty()){
-			$obj->image = new Picture($object->image);
+	protected function export_each($person) {
+		$export = $person->export();
+
+		if(!$person->image->is_empty()){
+			$export->image = new Picture($person->image);
 		}
+
+		return $export;
 	}
 }
 ?>

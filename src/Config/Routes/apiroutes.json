@@ -24,7 +24,9 @@
 		"method": "GET",
 		"action": "show",
 		"class": "?3",
-		"identifier": "?4"
+		"identifier": "?4",
+		"limit": "?limit",
+		"offset": "?offset"
 	},
 	"api/v1/*/*/edit": {
 		"method": "POST",
@@ -35,6 +37,12 @@
 	"api/v1/*/*/delete": {
 		"method": "POST",
 		"action": "delete",
+		"class": "?3",
+		"identifier": "?4"
+	},
+	"api/v1/*/*/count": {
+		"method": "GET",
+		"action": "count",
 		"class": "?3",
 		"identifier": "?4"
 	}

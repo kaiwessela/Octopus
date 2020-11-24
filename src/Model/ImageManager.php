@@ -1,7 +1,7 @@
 <?php
 // BUG: permissions of the uploaded files
 namespace Blog\Model;
-use \Blog\Model\DatabaseObjects\Image;
+use \Blog\Model\DataObjects\Image;
 use \Blog\Model\Exceptions\ImageManagerException;
 use InvalidArgumentException;
 

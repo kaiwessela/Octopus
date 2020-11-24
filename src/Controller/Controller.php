@@ -11,18 +11,20 @@ use Exception;
 abstract class Controller {
 	public $request;
 	public $status;
-	public $objects;
+	public $object;
 	public $errors;
 
 	public $pagination;
-	protected $count;
 
 	const MODEL = '';
+	const LIST_MODEL = '';
+
+	const PAGINATABLE = false;
 
 
 	function __construct($request) {
 		$this->request = $request;
-		$this->status = 10;
+		$this->status = 50;
 		$this->errors = [];
 	}
 
@@ -39,121 +41,106 @@ abstract class Controller {
 	}
 
 	public function execute() {
-		$model = '\Blog\Model\DatabaseObjects\\' . $this::MODEL;
-
-		if($this->request->action == 'new'){
+		if($this->request->mode == 'multi'){
+			$model = '\Blog\Model\DataObjects\Lists\\' . $this::LIST_MODEL;
 			$this->object = new $model();
 
-			if($this->request->method == 'post'){
-				try {
-					$this->object->generate();
-					$this->object->import($this->request->data);
-					$this->object->push();
-					$this->status = 21;
-				} catch(InputFailedException $e){
-					$this->status = 41;
-					$this->errors[] = $e;
-					return;
-				} catch(Exception $e){
-					$this->status = 50;
-					throw $e;
-					return;
-				}
-			} else {
-				$this->status = 24;
-			}
-
-		} else if($this->request->action == 'show' || $this->request->action == 'edit' || $this->request->action == 'delete'){
-			try {
-				$this->object = new $model();
-				$this->object->pull($this->request->identifier);
-				$this->status = 20;
-			} catch(EmptyResultException $e){
-				$this->status = 44;
-				return;
-			} catch(Exception $e){
-				$this->status = 50;
-				throw $e;
-				return;
-			}
-
-			if($this->request->action == 'edit' && $this->request->method == 'post'){
-				try {
-					$this->object->import($this->request->data);
-					$this->object->push();
-					$this->status = 22;
-				} catch(InputFailedException $e){
-					$this->status = 41;
-					$this->errors[] = $e;
-					return;
-				} catch(Exception $e){
-					$this->status = 50;
-					throw $e;
-					return;
-				}
-			} else if($this->request->action == 'delete' && $this->request->method == 'post'){
-				try {
-					$this->object->delete();
-					$this->status = 23;
-				} catch(Exception $e){
-					$this->status = 50;
-					throw $e;
-					return;
-				}
-			}
-
-		} else if($this->request->action == 'list'){
 			$limit = $this->request->amount;
 
 			if($this->request->page == null){
 				$offset = null;
+			} else if($this->object->count() == 0){
+				$this->status = 24;
+				return;
 			} else {
-				try {
-					$this->count = $model::count();
-				} catch(DatabaseException $e){
-					$this->status = 50;
-					throw $e;
-					return;
-				}
+				$offset = $this->request->amount * ($this->request->page - 1);
+				$last_page = ceil($this->object->count / $this->request->amount);
 
-				if($this->count == 0){
-					$this->objects = [];
-					$this->status = 24;
+				if($this->request->page > $last_page || $this->request->page == 0){
+					$this->status = 44;
 					return;
-				} else {
-					$offset = $this->request->amount * ($this->request->page - 1);
-					$last_page = ceil($this->count / $this->request->amount);
-
-					if($this->request->page > $last_page || $this->request->page == 0){
-						$this->status = 44;
-						return;
-					}
 				}
 			}
 
 			try {
-				$this->objects = $model::pull_all($limit, $offset);
+				$this->object->pull($limit, $offset);
 				$this->status = 20;
 			} catch(EmptyResultException $e){
 				$this->status = 24;
 				return;
-			} catch(Exception $e){
-				$this->status = 50;
-				throw $e;
-				return;
+			}
+
+		} else {
+			$model = '\Blog\Model\DataObjects\\' . $this::MODEL;
+			$this->object = new $model();
+
+			if($this->request->action == 'new'){
+				if($this->request->method == 'post'){
+					$this->object->generate();
+
+					try {
+						$this->object->import($this->request->data);
+						$this->object->push();
+						$this->status = 21;
+					} catch(InputFailedException $e){
+						$this->status = 41;
+						$this->errors[] = $e;
+						return;
+					}
+				} else {
+					$this->status = 24;
+				}
+
+			} else {
+				if($this->request->action == 'show' && $this::PAGINATABLE){
+					$limit = $this->request->amount;
+
+					if($this->request->page == null){
+						$offset = null;
+					} else {
+						$offset = $this->request->amount * ($this->request->page - 1);
+					}
+				} else {
+					$limit = null;
+					$offset = null;
+				}
+
+				try {
+					$this->object->pull($this->request->identifier, $limit, $offset);
+				} catch(EmptyResultException $e){
+					$this->status = 44;
+					return;
+				}
+
+				if($this->request->action == 'show' && $this::PAGINATABLE){
+					$this->object->count();
+				}
+
+				if($this->request->action == 'show' || $this->request->method == 'get'){
+					$this->status = 20;
+					return;
+
+				} else if($this->request->action == 'edit'){
+					try {
+						$this->object->import($this->request->data);
+						$this->object->push();
+						$this->status = 22;
+					} catch(InputFailedException $e){
+						$this->status = 41;
+						$this->errors[] = $e;
+						return;
+					}
+
+				} else if($this->request->action == 'delete'){
+					$this->object->delete();
+					$this->status = 23;
+					return;
+				}
 			}
 		}
 	}
 
-	public function process() {
-		$objs = [];
-		foreach($this->objects as $object){
-			$obj = $object->export();
-			$this->process_each($object, $obj);
-			$objs[] = $obj;
-		}
-		$this->objects = $objs;
-
+	public function export() {
 		$errs = [];
 		foreach($this->errors as $error){
 			if($error instanceof Exportable){
@@ -163,38 +150,55 @@ abstract class Controller {
 		}
 		$this->errors = $errs;
 
-		if($this->request->action == 'list' && isset($this->request->custom['pagination_structure'])){
+
+		if($this->request->mode == 'multi'){
+			return $this->export_multi();
+		} else {
+			return $this->export_single();
+		}
+	}
+
+	protected function export_multi() {
+		if(!empty($this->request->custom['pagination_structure'])){
 			$current_page = $this->request->page;
 			$objects_per_page = $this->request->amount;
-			$total_objects = $this->count;
+			$total_objects = $this->object->count;
 			$base_path = $this->request->router->resolve_substitutions($this->request->custom['pagination_base']);
 			$structure = $this->request->custom['pagination_structure'];
 
-			try {
-				$this->pagination = new Pagination($current_page, $objects_per_page, $total_objects, $base_path, $structure);
-			} catch(InvalidArgumentException $e){
-				$this->exceptions[] = $e;
-			}
+			$this->pagination = new Pagination($current_page, $objects_per_page, $total_objects, $base_path, $structure);
 		}
-		$this->process_all($this->objects);
+
+		$export = [];
+		foreach($this->object->objects as $object){
+			$export[] = $this->export_each($object);
+		}
+		return $export;
 	}
 
-	protected function process_all(&$objects) {
-		return;
+	protected function export_single() {
+		if($this::PAGINATABLE && !empty($this->request->custom['pagination_structure'])){
+			$current_page = $this->request->page;
+			$objects_per_page = $this->request->amount;
+			$total_objects = $this->object->count;
+			$base_path = $this->request->router->resolve_substitutions($this->request->custom['pagination_base']);
+			$structure = $this->request->custom['pagination_structure'];
+
+			$this->pagination = new Pagination($current_page, $objects_per_page, $total_objects, $base_path, $structure);
+		}
+
+		$export = $this->export_each($this->object);
+		return $export;
 	}
 
-	protected function process_each(&$object, &$obj) {
-		return;
+	protected function export_each($object) {
+		return $object->export();
 	}
 
 
 
 	public function status(int $status) {
 		return $this->status == $status;
-	}
-
-	public function processing() {			# INFO status
-		return $this->status == 10;
 	}
 
 	public function found() {				# SUCCESS status
@@ -240,8 +244,6 @@ abstract class Controller {
 /* ================================
 
 STATUS:
-
-10 Processing
 
 20 Found
 21 Created

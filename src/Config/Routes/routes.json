@@ -35,6 +35,21 @@
 			}
 		}
 	},
+	"columns/*{9,}/#?": {
+		"template": "column",
+		"controllers": {
+			"ColumnController": {
+				"action": "show",
+				"identifier": "?2",
+				"amount": 1,
+				"page": "?3",
+				"custom": {
+					"pagination_structure": "default",
+					"pagination_base": "columns/?2"
+				}
+			}
+		}
+	},
 	"p/*{8}": {
 		"template": "post",
 		"controllers": {

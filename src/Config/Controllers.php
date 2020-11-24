@@ -7,7 +7,9 @@ class Controllers {
 		'ImageController',
 		'PageController',
 		'PersonController',
-		'PostController'
+		'PostController',
+		'ColumnController',
+		'GroupController'
 	];
 
 	const ALIASES = [
@@ -20,7 +22,11 @@ class Controllers {
 		'person'	=> 'PersonController',
 		'persons'	=> 'PersonController',
 		'post'		=> 'PostController',
-		'posts'		=> 'PostController'
+		'posts'		=> 'PostController',
+		'column' 	=> 'ColumnController',
+		'columns' 	=> 'ColumnController',
+		'group' 	=> 'GroupController',
+		'groups' 	=> 'GroupController'
 	];
 }
 ?>

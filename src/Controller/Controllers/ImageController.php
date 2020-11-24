@@ -2,26 +2,14 @@
 namespace Blog\Controller\Controllers;
 use \Blog\Controller\Controller;
 use \Blog\Controller\Processors\Picture;
-use \Blog\Controller\Processors\Pagination\Pagination;
-
 
 class ImageController extends Controller {
 	const MODEL = 'Image';
-
-	public $pagination;
-
-	/* @inherited
-	protected $request;
-	public $status;
-	public $objects;
-	public $exceptions;
-
-	protected $count;
-	*/
+	const LIST_MODEL = 'ImageList';
 
 
-	public function process_each(&$object, &$obj) {
-		$obj = new Picture($object);
+	protected function export_each($image) {
+		return new Picture($image);
 	}
 }
 ?>

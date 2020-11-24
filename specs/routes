@@ -1,0 +1,18 @@
+{
+	string | PathPattern | Wildcard | RegEx: {
+		"template": templateName,
+		"controllers": {
+			className | Substitution: {
+				["alias": string],
+				"action": "list" | "new" | "show" | "edit" | "delete",
+
+				"amount": int												| if action=="list"|"show"
+				["page": int | Substitution]								|
+
+				"identifier": string | Substitution							| if action=="show"|"edit"|"delete"
+
+				["custom": {…}]
+			}
+		}
+	}
+}

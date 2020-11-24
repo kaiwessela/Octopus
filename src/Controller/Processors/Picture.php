@@ -1,6 +1,6 @@
 <?php
 namespace Blog\Controller\Processors;
-use \Blog\Model\DatabaseObjects\Image;
+use \Blog\Model\DataObjects\Image;
 use \Blog\Model\ImageManager;
 use \Blog\Config\Config;
 
@@ -26,8 +26,9 @@ class Picture {
 		$this->extension = $image->extension;
 		$this->description = $image->description;
 		$this->copyright = $image->copyright;
-		$this->sizes = $image->sizes;
+		$this->sizes = $image->sizes ?? [];
 
+		$this->sources = [];
 		$this->source_original = $this->url('original');
 
 		foreach($this->sizes as $size){

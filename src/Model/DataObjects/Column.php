@@ -90,7 +90,7 @@ class Column extends DataObject {
 		$obj->name = $this->name;
 		$obj->description = $this->description;
 
-		if(!$block_recursion){
+		if(!$block_recursion && !empty($this->posts)){
 			$obj->posts = [];
 			foreach($this->posts as $post){
 				$obj->posts[] = $post->export(true);

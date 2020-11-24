@@ -2,8 +2,8 @@
 	string | PathPattern | Wildcard | RegEx: {
 		"template": templateName,
 		"controllers": {
-			className | Substitution: {
-				["alias": string],
+			className | Substitution | string: {							| string only if alias is set
+				["alias": className | Substitution],
 				"action": "list" | "new" | "show" | "edit" | "delete",
 
 				"amount": int												| if action=="list"|"show"

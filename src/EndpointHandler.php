@@ -47,7 +47,7 @@ class EndpointHandler {
 
 		foreach($this->router->controller_requests as $request){
 			$class = '\Blog\Controller\Controllers\\' . $request->class;
-			$this->controllers[$request->class] = new $class($request);
+			$this->controllers[] = new $class($request);
 		}
 
 		foreach($this->controllers as &$controller){
@@ -81,7 +81,7 @@ class EndpointHandler {
 		http_response_code($response_code);
 
 		if($response_code == 200){
-			foreach($this->controllers as $name => $controller){
+			foreach($this->controllers as $controller){
 				$controller_name = $controller->request->name . 'Controller';
 				$result_name = $controller->request->name;
 

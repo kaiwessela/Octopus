@@ -8,7 +8,7 @@ class ControllerQuery {
 	public $router;
 
 	public $class;
-	public $alias;
+	public $name;
 	public $method;
 	public $data;
 
@@ -27,6 +27,16 @@ class ControllerQuery {
 		$this->method = strtolower($_SERVER['REQUEST_METHOD']);
 		$this->data = $_POST;
 
+		if(!empty($settings['alias'])){
+			$alias = $class;
+
+			if(in_array($this->alias, ['Controller', 'Object', 'server', 'site', 'astronauth'])){
+				throw new Exception(); // TODO
+			}
+
+			$class = $settings['alias'];
+		}
+
 		if(in_array($class, Controllers::REGISTERED)){
 			$this->class = $class;
 		} else if(in_array(Controllers::ALIASES[$class], Controllers::REGISTERED)){
@@ -35,12 +45,8 @@ class ControllerQuery {
 			throw new Exception(); // exception
 		}
 
-		if(!empty($settings['alias']) && is_string($settings['alias'])){
-			if(!in_array($settings['alias'], ['server', 'site', 'astronauth', 'exception'])){
-				$this->alias = $settings['alias'];
-			} else {
-				throw new Exception(); // exception
-			}
+		if(!empty($alias)){
+			$this->name = $alias;
 		} else {
 			$this->name = str_replace('Controller', '', $this->class);
 		}

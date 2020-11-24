@@ -17,7 +17,7 @@ class InputFailedException extends Exception implements Exportable { // TODO ren
 		$this->exceptions[$exception->field] = $exception;
 	}
 
-	public function merge(InputFailedException $exception, $prefix) {
+	public function merge(InputFailedException $exception, $prefix = '') {
 		foreach($exception->exceptions as $e){
 			$this->exceptions[$prefix . ':' . $e->field] = $e;
 		}

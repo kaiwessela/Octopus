@@ -145,7 +145,7 @@ class Post extends DataObject {
 			$obj->image = null;
 		}
 
-		if(!$block_recursion){
+		if(!$block_recursion && !empty($this->columns)){
 			$obj->columns = [];
 			foreach($this->columns as $column){
 				$obj->columns[] = $column->export(true);

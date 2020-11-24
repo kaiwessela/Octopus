@@ -90,7 +90,7 @@ class Group extends DataObject {
 		$obj->name = $this->name;
 		$obj->description = $this->description;
 
-		if(!$block_recursion){
+		if(!$block_recursion && !empty($this->persons)){
 			$obj->persons = [];
 			foreach($this->persons as $person){
 				$obj->persons[] = $person->export(true);

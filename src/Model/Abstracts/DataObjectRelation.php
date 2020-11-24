@@ -102,9 +102,9 @@ abstract class DataObjectRelation {
 	public function import($data) {
 		$errors = new InputFailedException();
 
-		$id = $data['id'];
-		$primary_id = $data['primary_id'] ?? $data[$this::PRIMARY_ALIAS . '_id'];
-		$secondary_id = $data['secondary_id'] ?? $data[$this::SECONDARY_ALIAS . '_id'];
+		$id = $data['id'] ?? null;
+		$primary_id = $data['primary_id'] ?? $data[$this::PRIMARY_ALIAS . '_id'] ?? null;
+		$secondary_id = $data['secondary_id'] ?? $data[$this::SECONDARY_ALIAS . '_id'] ?? null;
 
 		if(!$this->is_new() && $id != $this->id){
 			$errors->push(new IdentifierMismatchException('id', $id, $this));

@@ -101,7 +101,7 @@ class Person extends DataObject {
 			$obj->image = null;
 		}
 
-		if(!$block_recursion){
+		if(!$block_recursion && !empty($this->groups)){
 			$obj->groups = [];
 			foreach($this->groups as $group){
 				$obj->groups[] = $group->export(true);

@@ -1,6 +1,7 @@
 <?php
 namespace Blog\Controller;
 use \Blog\Controller\Router;
+use \Blog\Controller\Exceptions\InvalidRouteAttributeException;
 use \Blog\Config\Controllers;
 use Exception;
 
@@ -30,8 +31,8 @@ class ControllerQuery {
 		if(!empty($settings['alias'])){
 			$alias = $class;
 
-			if(in_array($this->alias, ['Controller', 'Object', 'server', 'site', 'astronauth'])){
-				throw new Exception(); // TODO
+			if(in_array($alias, ['Controller', 'Object', 'server', 'site', 'astronauth'])){
+				throw new InvalidRouteAttributeException('alias', $alias, 'contains invalid words');
 			}
 
 			$class = $settings['alias'];
@@ -42,7 +43,7 @@ class ControllerQuery {
 		} else if(in_array(Controllers::ALIASES[$class], Controllers::REGISTERED)){
 			$this->class = Controllers::ALIASES[$class];
 		} else {
-			throw new Exception(); // exception
+			throw new InvalidRouteAttributeException('ControllerClass', $class, 'controller not found');
 		}
 
 		if(!empty($alias)){
@@ -60,7 +61,7 @@ class ControllerQuery {
 				$this->mode = 'single';
 			}
 		} else {
-			throw new Exception(); // exception
+			throw new InvalidRouteAttributeException('action', $settings['action'], 'invalid action');
 		}
 
 		if($this->action == 'list' || $this->action == 'show'){
@@ -69,7 +70,7 @@ class ControllerQuery {
 			} else if(is_int($settings['amount']) && $settings['amount'] > 0){
 				$this->amount = $settings['amount'];
 			} else {
-				throw new Exception(); // exception;
+				throw new InvalidRouteAttributeException('amount', var_export($settings['amount']));
 			}
 
 			if(empty($settings['page'])){
@@ -83,10 +84,10 @@ class ControllerQuery {
 				} else if(is_numeric($page) && $page > 0){
 					$this->page = (int) $page;
 				} else {
-					throw new Exception(); // exception
+					throw new InvalidRouteAttributeException('page', var_export($settings['page']));
 				}
 			} else {
-				throw new Exception(); // exception
+				throw new InvalidRouteAttributeException('page', var_export($settings['page']));
 			}
 		}
 
@@ -94,7 +95,7 @@ class ControllerQuery {
 			if(is_string($settings['identifier'])){
 				$this->identifier = $this->router->resolve_substitutions($settings['identifier']);
 			} else {
-				throw new Exception(); // exception
+				throw new InvalidRouteAttributeException('identifier', var_export($settings['identifier']));
 			}
 		}
 

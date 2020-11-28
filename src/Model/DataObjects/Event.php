@@ -67,6 +67,7 @@ class Event extends DataObject {
 		$this->title = $data['event_title'];
 		$this->organisation = $data['event_organisation'];
 		$this->timestamp = (int) $data['event_timestamp'];
+		$this->location = $data['event_location'];
 		$this->description = $data['event_description'];
 		$this->cancelled = (bool) $data['event_cancelled'];
 
@@ -83,6 +84,7 @@ class Event extends DataObject {
 		$obj->title = $this->title;
 		$obj->organisation = $this->organisation;
 		$obj->timestamp = $this->timestamp;
+		$obj->location = $this->location;
 		$obj->description = $this->description;
 		$obj->cancelled = $this->cancelled;
 
@@ -96,6 +98,7 @@ class Event extends DataObject {
 			'title' => $this->title,
 			'organisation' => $this->organisation,
 			'timestamp' => $this->timestamp,
+			'location' => $this->location,
 			'description' => $this->description,
 			'cancelled' => (int) $this->cancelled
 		];
@@ -124,6 +127,7 @@ INSERT INTO events (
 	event_title,
 	event_organisation,
 	event_timestamp,
+	event_location,
 	event_description,
 	event_cancelled
 ) VALUES (
@@ -132,6 +136,7 @@ INSERT INTO events (
 	:title,
 	:organisation,
 	:timestamp,
+	:location,
 	:description,
 	:cancelled
 )
@@ -143,6 +148,7 @@ UPDATE events SET
 	event_title = :title,
 	event_organisation = :organisation,
 	event_timestamp = :timestamp,
+	event_location = :location,
 	event_description = :description,
 	event_cancelled = :cancelled
 WHERE event_id = :id

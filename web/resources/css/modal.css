@@ -19,6 +19,7 @@ body {
 }
 
 .modal .box {
+	height: calc(100vh - 10rem);
 	width: 50rem;
 	margin: 5rem auto;
 	padding: 1rem;

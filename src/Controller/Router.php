@@ -3,7 +3,7 @@ namespace Blog\Controller;
 use \Blog\Controller\Exceptions\InvalidNotationException;
 use \Blog\Controller\Exceptions\InvalidRouteAttributeException;
 use \Blog\Controller\Exceptions\InvalidRoutingTableException;
-use \Blog\Controller\Exceptions\RouteNotFoundException;
+use \Blog\Controller\Exceptions\NoRouteFoundException;
 use \Blog\Controller\ControllerQuery;
 
 class Router {
@@ -26,7 +26,7 @@ class Router {
 
 		# check if routing table is an array
 		if(!is_array($this->routes)){
-			throw new InvalidRoutingTableException($this->routes);
+			throw new InvalidRoutingTableException('routes is not an array.');
 		}
 
 		# try to find the route corresponding to the requested path
@@ -62,14 +62,14 @@ class Router {
 	private function set_template($raw_template) {
 		# check if raw template is a string
 		if(!is_string($raw_template)){
-			throw new InvalidRouteAttributeException();
+			throw new InvalidRouteAttributeException('template', var_export($raw_template), 'not a string');
 		} else {
 			$template = $this->resolve_substitutions($raw_template);
 
 			# check if template contains any forbidden directory segments, such as /../
 			# template files may only sit in template dir or a child of that
 			if(preg_match('/(\.\.\/|\/\.\.)/', $template)){
-				throw new InvalidRouteAttributeException();
+				throw new InvalidRouteAttributeException('template', var_export($raw_template), 'forbidden characters');
 			} else {
 				# there was no problem, set template as router template attribute
 				$this->template = $template;
@@ -84,7 +84,7 @@ class Router {
 		} else if(is_bool($raw_auth)){
 			$this->auth = $raw_auth; # auth attribute is set and a boolean, set it
 		} else {
-			throw new InvalidRouteAttributeException();
+			throw new InvalidRouteAttributeException('auth', var_export($raw_auth));
 		}
 	}
 
@@ -117,7 +117,7 @@ class Router {
 				$notation
 			) . '$/';
 		} else {
-			throw new InvalidNotationException();
+			throw new InvalidNotationException($notation);
 		}
 	}
 }

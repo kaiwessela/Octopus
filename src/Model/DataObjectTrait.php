@@ -13,7 +13,7 @@ use PDO;
 
 trait DataObjectTrait {
 
-	protected static function open_pdo() {
+	public static function open_pdo() {
 		return new PDO(
 			'mysql:host=' . Config::DB_HOST . ';dbname=' . Config::DB_NAME,
 			Config::DB_USER,

@@ -1,7 +1,7 @@
 <?php
 namespace Blog\Controller\Processors;
 use \Blog\Model\DataObjects\Image;
-use \Blog\Model\ImageManager;
+use \Blog\Config\ImageManager as ImageManagerConfig;
 use \Blog\Config\Config;
 
 class Picture {
@@ -36,7 +36,7 @@ class Picture {
 				continue;
 			}
 
-			$this->sources[] = $this->url($size) . ' ' . ImageManager::DIMENSIONS[$size][1] . 'w';
+			$this->sources[] = $this->url($size) . ' ' . ImageManagerConfig::SCALINGS[$size][1] . 'w';
 		}
 
 		if(count($this->sources) == 0){

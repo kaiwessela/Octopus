@@ -1,5 +1,6 @@
 <?php
 namespace Blog\Model\Exceptions;
+use \Blog\Model\Exportable;
 use Exception;
 
 /*#=========== InputException ===========
@@ -12,10 +13,20 @@ RelationNonexistentException	- if i.e. a new post object references an image obj
 
 */#======================================
 
-abstract class InputException extends Exception {
+class InputException extends Exception implements Exportable {
 	public $field;
 	public $input;
 
-	abstract public function export();
+	function __construct($field, $message) {
+		$this->field = $field;
+		$this->message = "Unexpected input on field '$field': $message";
+	}
+
+	public function export() {
+		return [
+			'type' => 'Other',
+			'field' => $this->field
+		];
+	}
 }
 ?>

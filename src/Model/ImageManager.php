@@ -1,191 +1,194 @@
 <?php
-// BUG: permissions of the uploaded files
 namespace Blog\Model;
 use \Blog\Model\DataObjects\Image;
-use \Blog\Model\Exceptions\ImageManagerException;
-use InvalidArgumentException;
+use \Blog\Model\ImageManager\Image as IMImage;
+use \Blog\Model\ImageManager\Exceptions\ImageManagerException;
+use \Blog\Model\ImageManager\Exceptions\FileException;
+use \Blog\Config\ImageManager as IMConfig;
 
 class ImageManager {
-	private $dir;
-
-	const DIMENSIONS = [
-		'original' 		=> null,
-		'extrasmall' 	=> [	200, 	300, 	400		],
-		'small' 		=> [	400, 	600, 	800		],
-		'middle' 		=> [	800, 	1200, 	1600	],
-		'large' 		=> [	1600, 	2400, 	3200	],
-		'extralarge' 	=> [	3200, 	4800, 	6400	]
-	];
-
-	const JPG_QUALITY = [
-		'original' 		=> 100,
-		'extrasmall'	=> 80,
-		'small' 		=> 85,
-		'middle'		=> 90,
-		'large' 		=> 95,
-		'extralarge' 	=> 100
-	];
+	private $basedir;
+	public $versions; # = [size(str) => IMImage, …]
 
 
-	function __construct($dir) {
-		$dir = __DIR__ . '/..' . $dir;
-		if(!is_dir($dir)){
-			throw new InvalidArgumentException('Directory is not a valid directory: ' . $dir);
-		} else if(!is_writable($dir)){
-			throw new InvalidArgumentException('Directory is not writable: ' . $dir);
-		} else {
-			$this->dir = $dir;
+	function __construct() {
+		$this->versions = [];
+		$this->basedir = $_SERVER['DOCUMENT_ROOT'] . DIRECTORY_SEPARATOR . IMConfig::BASEDIR;
+
+		if(!file_exists($this->basedir)){
+			throw new FileException('basedir not found.');
 		}
 	}
 
-	# TODO better exception
-	# @param: &$image = Image object; Database representation of the image to be uploaded
-	public function receive_upload(&$image) {
-		# check if $image is a valid Image object
-		if(!isset($image) || !$image instanceof Image){
-			throw new InvalidArgumentException('Valid Image required in ImageManager::receive_upload().');
-		}
 
-		# check different sources; form post -> form-data, ajax -> json
-		# then receive the sent data
+	public function upload(Image $image, $fieldname) {
+#	@action:
+#	  - receive image data uploaded to the server (as json base64 or via $_FILES)
+#	  - create an ImageManagerImage from that data
+#	@params:
+#	  - $image: Image (DataObject), the IMImage gets the same id
+#	  - $fieldname: Name of the input field ($_FILES[XXX][tmp_name] / jsoninput[XXX])
+
 		if($_SERVER['CONTENT_TYPE'] == 'application/json'){
-			$data = $this->read_data_from_json();
+			$jsoninput = json_decode(file_get_contents('php://input'), true);
+			$data_base64 = preg_replace('/data:.+;base64/', '', $jsoninput[$fieldname]);
+			$data = base64_decode($data_base64) ?? null;
 		} else if(preg_match('/^multipart\/form-data;.+$/', $_SERVER['CONTENT_TYPE'])){
-			$data = $this->read_data_from_formdata();
+			$data = file_get_contents($_FILES[$fieldname]['tmp_name']) ?? null;
 		} else {
-			throw new ImageManagerException('Invalid Content-Type; application/json or multipart/form-data allowed.');
+			throw new ImageManagerException('invalid content-type.');
 		}
 
-		# determine imagetype of the image
-		$type = getimagesizefromstring($data)[2];
+		$original = new IMImage($image->id);
+		$original->receive($data);
 
-		# try to create an image from data
-		$orig_image = imagecreatefromstring($data);
+		$this->versions['original'] = $original;
+	}
 
-		# check if the image is valid -> data is a valid image
-		if(!$orig_image){
-			throw new ImageManagerException('Received Invalid or No image data from POST input.');
+
+	public function pull($image) {
+#	@action:
+#	  - select an IMImage from the database
+#	  - set it as the original image in versions
+#	@params:
+#	  - $image: Image->id string or Image object
+
+		if(is_string($image)){
+			$this->versions['original'] = IMImage::pull($image);
+		} else if($image instanceof Image){
+			$this->versions['original'] = IMImage::pull($image->id);
+		} else {
+			throw new ImageManagerException('image must be an Image or an image id.');
+		}
+	}
+
+
+	public function push() {
+#	@action:
+#	  - insert the original IMImage into the database
+
+		if(empty($this->versions['original'])){
+			throw new ImageManagerException('no image found.');
 		}
 
-		# check if image type is valid and write it into the Image object (as extension)
-		$this->check_and_set_type($image, $type);
+		$this->versions['original']->push();
+	}
 
-		# make a directory for the image files
-		mkdir($this->dir . '/' . $image->longid);
 
-		# list of all available sizes
-		$sizes = ['original'];
+	public function scale() {
+#	@action:
+#	  - scale the uploaded / original image to different sizes
 
-		foreach(self::DIMENSIONS as $target_size => $value){
-			if($target_size == 'original'){
-				$this->write_image($image, $data, 'original');
+		if(empty($this->versions)){
+			throw new ImageManagerException('no image found.');
+		}
+
+		$images = $this->versions['original']->scale();
+
+		if(!empty($images)){
+			$this->versions = array_merge($this->versions, $images);
+		}
+	}
+
+
+	public function write($longid, $only_original = false) {
+		# filename = /[basedir]/[longid]/[size].[extension]
+
+		if(!is_string($longid) || empty($longid)){
+			throw new InvalidArgumentException('longid must be a non-empty string.');
+		}
+
+		$directory = $this->basedir . DIRECTORY_SEPARATOR . $longid;
+		if(is_dir($directory)){
+			$this::rm($directory);
+		}
+
+
+		if(!mkdir($directory)){
+			throw new FileException('directory creation (mkdir) failed: ' . $directory);
+		}
+
+		if(!is_writable($directory)){
+			throw new FileException('directory not writable: ' . $directory);
+		}
+
+		foreach($this->versions as $size => $image){
+			if($only_original && $size != 'original'){
 				continue;
 			}
 
-			# resize image
-			$resized_data = $this->resize_image($image, $orig_image, $target_size);
-
-			if($resized_data == false){
-				# resized image would be bigger than the original one so do not use it
-				continue;
-			}
-
-			# add size to the list and write image file
-			$sizes[] = $target_size;
-			$this->write_image($image, $resized_data, $target_size);
-		}
-
-		$image->sizes = $sizes;
-
-		imagedestroy($orig_image);
-	}
-
-	private function check_and_set_type(&$image, $type) {
-		if($type == IMAGETYPE_PNG){
-			$image->extension = Image::EXTENSION_PNG;
-		} else if($type == IMAGETYPE_JPEG){
-			$image->extension = Image::EXTENSION_JPG;
-		} else if($type == IMAGETYPE_GIF){
-			$image->extension = Image::EXTENSION_GIF;
-		} else {
-			throw new ImageManagerException('Invalid image type. PNG, JPG and GIF allowed.');
-		}
-	}
-
-
-	private function resize_image($image, &$orig_image, $size) {
-		$width = imagesx($orig_image);
-		$height = imagesy($orig_image);
-		$ratio = $width / $height;
-
-		if($ratio < 0.5){
-			$new_width = self::DIMENSIONS[$size][0];
-		} else if($ratio > 2){
-			$new_width = self::DIMENSIONS[$size][2];
-		} else {
-			$new_width = self::DIMENSIONS[$size][1];
-		}
-
-		if($new_width > $width){
-			return null;
-		}
-
-		$new_image = imagescale($orig_image, $new_width);
-
-		ob_start();
-		if($image->extension == Image::EXTENSION_PNG){
-			imagepng($new_image, null, 9);
-		} else if($image->extension == Image::EXTENSION_JPG){
-			imagejpeg($new_image, null, self::JPG_QUALITY[$size]);
-		} else if($image->extension == Image::EXTENSION_GIF){
-			imagegif($new_image);
-		}
-
-		$data = ob_get_contents();
-		ob_end_clean();
-
-		imagedestroy($new_image);
-
-		return $data;
-	}
-
-	private function write_image(&$image, $data, $size) {
-		$path = "$this->dir/$image->longid/$size.$image->extension";
-
-		if(!file_put_contents($path, $data)){
-			throw new ImageManagerException('Unable to write file. Check your server configuration and permissions.');
-		}
-	}
-
-	private function read_data_from_json() {
-		$input = file_get_contents('php://input');
-		$raw_base64 = json_decode($input, true)['imagedata'];
-		$clean_base64 = preg_replace('/data:.+;base64/', '', $raw_base64);
-		return base64_decode($clean_base64);
-	}
-
-	private function read_data_from_formdata() {
-		return file_get_contents($_FILES['imagedata']['tmp_name']);
-	}
-
-	private function is_valid_image($data) {
-		$image = imagecreatefromstring($data);
-		$valid = ($image != false);
-		imagedestroy($image);
-		return $valid;
-	}
-
-	public function delete_images($image) {
-		foreach($image->sizes as $size){
-			$file = "$this->dir/$image->longid/$size.$image->extension";
-			if(file_exists($file)){
-				unlink($file);
+			$filename = $directory . DIRECTORY_SEPARATOR . $size . '.' . $image->extension();
+			if(file_put_contents($filename, $image->data) === false){
+				throw new FileException('file_put_contents failed: ' . $filename);
 			}
 		}
-
-		$dir = "$this->dir/$image->longid";
-		if(is_dir($dir))
-		rmdir($dir);
 	}
+
+
+	public function erase($longid) {
+		if(!is_string($longid) || empty($longid)){
+			throw new InvalidArgumentException('longid must be a non-empty string.');
+		}
+
+		$this::rm($this->basedir . DIRECTORY_SEPARATOR . $longid);
+	}
+
+
+	public function get_extension() {
+		if(empty($this->versions['original'])){
+			throw new ImageManagerException('no image found.');
+		}
+
+		return $this->versions['original']->extension();
+	}
+
+
+	public function get_sizes() {
+		if(empty($this->versions)){
+			throw new ImageManagerException('no image found.');
+		}
+
+		return array_keys($this->versions);
+	}
+
+
+	private static function rm($path) {
+		if(!file_exists($path)){
+			throw new FileException('file or directory does not exist: ' . $path);
+		}
+
+		if(!is_writable($path)){
+			throw new FileException('file or directory is not writable: ' . $path);
+		}
+
+		if(is_dir($path)){
+			$children = scandir($path);
+
+			if(!empty($children)){
+				foreach($children as $child){
+					if($child == '.' || $child == '..'){
+						continue;
+					}
+
+					self::rm($path . DIRECTORY_SEPARATOR . $child);
+				}
+			}
+
+			if(!rmdir($path)){
+				throw new FileException('directory is not removable: ' . $path);
+			}
+
+			return;
+
+		} else {
+			if(!unlink($path)){
+				throw new FileException('file is not deletable: ' . $path);
+			}
+
+			return;
+		}
+	}
+
+
 }
 ?>

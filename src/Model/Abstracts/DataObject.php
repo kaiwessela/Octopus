@@ -138,10 +138,9 @@ abstract class DataObject {
 		if(!$s->execute($this->db_export())){
 			throw new DatabaseException($s);
 		} else {
+			$this->push_children();
 			$this->set_new(false);
 		}
-
-		$this->push_children();
 
 		if(!empty($this->relationlist)){
 			$this->relationlist->push();

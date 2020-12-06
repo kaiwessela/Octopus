@@ -1,7 +1,9 @@
 <?php
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
-use \Blog\Model\ImageManager; // TEMP
+use \Blog\Model\Exceptions\InputException;
+use \Blog\Model\ImageManager;
+use \Blog\Model\ImageManager\Exceptions\ImageManagerException;
 
 class Image extends DataObject {
 
@@ -19,6 +21,8 @@ class Image extends DataObject {
 #	private $empty;
 #
 #	private $relationlist;
+
+	private $imagemanager;
 
 	const IGNORE_PULL_LIMIT = true;
 
@@ -40,21 +44,23 @@ class Image extends DataObject {
 	];
 
 
-	// TEMP from here; ImageManager
-	const EXTENSION_PNG = 'png';
-	const EXTENSION_JPG = 'jpg';
-	const EXTENSION_GIF = 'gif';
-
 	protected function import_custom($fieldname, $data, $errors) {
 		if($fieldname != 'data' || !$this->is_new()){
 			return;
 		}
 
-		$imagemanager = new ImageManager('/../resources/images/dynamic');
-		$imagemanager->receive_upload($this);
+		$this->imagemanager = new ImageManager();
+
+		try {
+			$this->imagemanager->upload($this, 'imagedata');
+			$this->imagemanager->scale();
+		} catch(ImageManagerException $e){
+			$errors->push(new InputException($fieldname, $e->getMessage()));
+		}
+
+		$this->extension = $this->imagemanager->get_extension();
+		$this->sizes = $this->imagemanager->get_sizes();
 	}
-	// END TEMP
-	// TODO delete procedure
 
 
 	public function load($data) {
@@ -75,6 +81,20 @@ class Image extends DataObject {
 
 		$this->set_new(false);
 		$this->set_empty(false);
+	}
+
+	protected function push_children() {
+		if($this->is_new()){
+			$this->imagemanager->write($this->longid);
+			$this->imagemanager->push();
+		}
+	}
+
+	public function delete() {
+		parent::delete();
+
+		$this->imagemanager = new ImageManager();
+		$this->imagemanager->erase($this->longid);
 	}
 
 	public function export($block_recursion = false) {

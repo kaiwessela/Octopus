@@ -22,13 +22,7 @@ spl_autoload_register(function($name){
 	}
 });
 
-spl_autoload_register(function($name){
-	$file = __DIR__ . '/../../' . strtolower(str_replace('\\', '/', $name)) . '.php';
-
-	if(file_exists($file)){
-		require_once $file;
-	}
-});
+require_once '../../libs/Astronauth/autoloader.php';
 
 $endpoint = new \Blog\APIEndpointHandler();
 $endpoint->handle();

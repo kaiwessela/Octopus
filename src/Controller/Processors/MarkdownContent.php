@@ -1,6 +1,6 @@
 <?php
 namespace Blog\Controller\Processors;
-use Parsedown;
+use \Parsedown\Parsedown;
 
 class MarkdownContent {
 	public $raw;

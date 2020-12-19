@@ -9,18 +9,11 @@ spl_autoload_register(function($name){
 	}
 });
 
-spl_autoload_register(function($name){
-	$file = __DIR__ . '/' . strtolower(str_replace('\\', '/', $name)) . '.php';
-
-	if(file_exists($file)){
-		require_once $file;
-	}
-});
+require_once 'libs/Astronauth/autoloader.php';
+require_once 'libs/Parsedown/autoloader.php';
 
 define('TEMPLATE_PATH', __DIR__ . '/Blog/View/Templates/');
 define('COMPONENT_PATH', __DIR__ . '/Blog/View/Components/');
-
-require_once 'libs/parsedown/Parsedown.php'; // TODO include into autoloader
 
 $endpoint = new \Blog\EndpointHandler();
 ?>

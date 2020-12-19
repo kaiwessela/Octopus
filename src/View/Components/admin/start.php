@@ -10,7 +10,7 @@
 				<?= $site->title ?><span class="darkened"> – Admin</span>
 			</div>
 			<div class="astronauth">
-				🚀 <span class="darkened">Angemeldet als</span> <?= $astronauth->account->name ?>
+				🚀 <span class="darkened">Angemeldet als</span> <?= $astronauth->get_account_name() ?>
 				<div class="expand">
 					<a href="<?= $server->url ?>/astronauth/account" class="button blue">Account verwalten</a>
 					<a href="<?= $server->url ?>/astronauth/signout" class="button red">Abmelden</a>

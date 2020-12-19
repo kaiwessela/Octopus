@@ -3,7 +3,7 @@ namespace Blog;
 use \Blog\Config\Config;
 use \Blog\Config\Site;
 use \Blog\Controller\Router;
-use \Astronauth\Backend\User;
+use \Astronauth\Main as Astronauth;
 
 class EndpointHandler {
 	public $user;
@@ -36,7 +36,7 @@ class EndpointHandler {
 
 		$this->router = new Router($routes_json);
 
-		$this->user = new User();
+		$this->user = new Astronauth();
 		$this->user->authenticate();
 
 		if($this->router->auth == true && !$this->user->is_authenticated()){

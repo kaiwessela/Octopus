@@ -6,7 +6,7 @@ use \Blog\Controller\API\Response;
 use \Blog\Model\Exceptions\DatabaseException;
 use \Blog\Model\Exceptions\EmptyResultException;
 use \Blog\Model\Exceptions\InvalidInputException;
-use \Astronauth\Backend\User;
+use \Astronauth\Main as Astronauth;
 use PDO;
 use PDOException;
 use InvalidArgumentException;
@@ -35,7 +35,7 @@ class APIEndpointHandler {
 		$this->response->set_api_status('kaiwessela/blog API v1 – running.');
 		$this->response->set_header('Content-Type: application/json');
 
-		$this->user = new User();
+		$this->user = new Astronauth();
 		$this->user->authenticate();
 		if(!$this->user->is_authenticated()){
 			$this->response->set_response_code(403);

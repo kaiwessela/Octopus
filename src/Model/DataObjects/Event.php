@@ -4,13 +4,13 @@ use \Blog\Model\Abstracts\DataObject;
 
 class Event extends DataObject {
 
-#			NAME				TYPE	REQUIRED	PATTERN		DB NAME		DB VALUE
-	public $title;			#	str		*			.{1,50}		=			=
-	public $organisation;	#	str		*			.{1,40}		=			=
-	public $timestamp;		#	int		*						=			=
-	public $location;		#	str					.{0,60}		=			=
-	public $description;	#	str								=			=
-	public $cancelled;		#	bool							=			= (int)
+#			NAME				TYPE			REQUIRED	PATTERN		DB NAME		DB VALUE
+	public $title;			#	str				*			.{1,50}		=			=
+	public $organisation;	#	str				*			.{1,40}		=			=
+	public $timestamp;		#	str(timestamp)	*						=			=
+	public $location;		#	str							.{0,60}		=			=
+	public $description;	#	str										=			=
+	public $cancelled;		#	bool									=			= (int)
 
 #	@inherited
 #	public $id;
@@ -35,8 +35,9 @@ class Event extends DataObject {
 			'pattern' => '.{1,40}'
 		],
 		'timestamp' => [
-			'type' => 'integer',
-			'required' => true
+			'type' => 'string',
+			'required' => true,
+			'pattern' => '[0-9]{4}-[0-9]{2}-[0-9]{2}( [0-2][0-9]:[0-5][0-9](:[0-5][0-9])?)?'
 		],
 		'location' => [
 			'type' => 'string',
@@ -66,7 +67,7 @@ class Event extends DataObject {
 		$this->longid = $data['event_longid'];
 		$this->title = $data['event_title'];
 		$this->organisation = $data['event_organisation'];
-		$this->timestamp = (int) $data['event_timestamp'];
+		$this->timestamp = $data['event_timestamp'];
 		$this->location = $data['event_location'];
 		$this->description = $data['event_description'];
 		$this->cancelled = (bool) $data['event_cancelled'];

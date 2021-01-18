@@ -48,9 +48,7 @@
 		<span class="infos">Der eigentliche Inhalt der Seite.</span>
 	</label>
 	<textarea id="content" name="content"
-		cols="80" rows="20">
-		<?= $Page->content ?>
-	</textarea>
+		cols="80" rows="20"><?= $Page->content ?></textarea>
 
 	<button type="submit" class="blue">Speichern</button>
 </form>

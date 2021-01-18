@@ -1,0 +1,78 @@
+.selectmodal[data-type=Image] .objects {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr 1fr;
+	grid-template-rows: repeat(auto-fill, minmax(7rem, 14rem));
+	gap: 1rem;
+	margin: 2rem 0;
+}
+
+.selectmodal[data-type=Image] .objects article {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	background: transparent;
+}
+
+.selectmodal[data-type=Image] .objects label {
+	display: flex;
+	box-sizing: border-box;
+	height: 100%;
+	padding: 0.25rem;
+}
+
+.selectmodal[data-type=Image] .objects input {
+	display: none;
+}
+
+.selectmodal[data-type=Image] .objects img {
+	height: auto;
+	width: auto;
+	max-height: 100%;
+	max-width: 100%;
+	margin: auto auto;
+	outline: 0.25rem solid #ffffff;
+}
+
+.selectmodal[data-type=Image] .objects input:checked+img {
+	outline: 0.25rem solid var(--blue);
+}
+
+
+
+.pseudoinput[data-type=Image] {
+	width: max-content;
+	height: min-content;
+}
+
+.pseudoinput[data-type=Image] .object {
+	height: 16rem;
+	width: auto;
+	margin: 0 0 0.5rem;
+	padding: 0.5rem;
+	background-color: #00000022;
+}
+
+.pseudoinput[data-type=Image] .object p {
+	font-size: 2.5rem;
+	color: #00000044;
+	text-align: center;
+	margin: 5rem auto;
+}
+
+.pseudoinput[data-type=Image] .object figure {
+	display: block;
+	margin: 0;
+}
+
+.pseudoinput[data-type=Image] .object figcaption {
+	display: block;
+	height: 1rem;
+	text-align: center;
+	color: #000000aa;
+}
+
+.pseudoinput[data-type=Image] .object figure img {
+	height: 14.5rem;
+	width: 100%;
+	object-fit: contain;
+}

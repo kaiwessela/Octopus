@@ -1,14 +1,13 @@
 -- phpMyAdmin SQL Dump
--- version 4.9.5
+-- version 5.0.4
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Erstellungszeit: 24. Nov 2020 um 20:51
--- Server-Version: 10.3.24-MariaDB-2
--- PHP-Version: 7.4.11
+-- Erstellungszeit: 18. Jan 2021 um 15:34
+-- Server-Version: 10.5.8-MariaDB-3
+-- PHP-Version: 8.0.1
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -46,7 +45,7 @@ CREATE TABLE `events` (
   `event_longid` varchar(60) NOT NULL,
   `event_title` varchar(50) NOT NULL,
   `event_organisation` varchar(40) NOT NULL,
-  `event_timestamp` bigint(20) NOT NULL,
+  `event_timestamp` datetime NOT NULL,
   `event_location` varchar(60) DEFAULT NULL,
   `event_description` text DEFAULT NULL,
   `event_cancelled` tinyint(1) NOT NULL DEFAULT 0
@@ -63,6 +62,17 @@ CREATE TABLE `groups` (
   `group_longid` varchar(60) NOT NULL,
   `group_name` varchar(30) NOT NULL,
   `group_description` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `imagefiles`
+--
+
+CREATE TABLE `imagefiles` (
+  `imagefile_id` varchar(8) NOT NULL,
+  `imagefile_data` longblob NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -146,7 +156,7 @@ CREATE TABLE `posts` (
   `post_subline` varchar(40) DEFAULT NULL,
   `post_teaser` text DEFAULT NULL,
   `post_author` varchar(50) NOT NULL,
-  `post_timestamp` bigint(20) NOT NULL,
+  `post_timestamp` datetime NOT NULL,
   `post_image_id` varchar(8) DEFAULT NULL,
   `post_content` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -175,6 +185,12 @@ ALTER TABLE `events`
 ALTER TABLE `groups`
   ADD PRIMARY KEY (`group_id`),
   ADD UNIQUE KEY `group_longid` (`group_longid`);
+
+--
+-- Indizes für die Tabelle `imagefiles`
+--
+ALTER TABLE `imagefiles`
+  ADD UNIQUE KEY `imagefile_id` (`imagefile_id`);
 
 --
 -- Indizes für die Tabelle `images`
@@ -225,6 +241,12 @@ ALTER TABLE `posts`
 --
 -- Constraints der exportierten Tabellen
 --
+
+--
+-- Constraints der Tabelle `imagefiles`
+--
+ALTER TABLE `imagefiles`
+  ADD CONSTRAINT `imagefiles_ibfk_1` FOREIGN KEY (`imagefile_id`) REFERENCES `images` (`image_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints der Tabelle `persongrouprelations`

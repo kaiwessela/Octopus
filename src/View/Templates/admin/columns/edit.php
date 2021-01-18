@@ -45,9 +45,7 @@
 		</span>
 	</label>
 	<textarea id="description" name="description"
-		cols="50" rows="3">
-		<?= $Column->description ?>
-	</textarea>
+		cols="50" rows="3"><?= $Column->description ?></textarea>
 
 	<button type="submit" class="green">Speichern</button>
 </form>

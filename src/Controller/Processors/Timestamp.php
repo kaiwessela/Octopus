@@ -2,6 +2,7 @@
 namespace Blog\Controller\Processors;
 
 class Timestamp {
+	public $dbtime;
 	public $unix;
 
 	const DATE_SHORT = '%d.%m.%Y'; # 09.01.2020
@@ -21,12 +22,13 @@ class Timestamp {
 	const MINUTE = '%M';
 
 
-	function __construct($unix) {
-		$this->unix = $unix;
+	function __construct($dbtime) {
+		$this->dbtime = $dbtime;
+		$this->unix = strtotime($dbtime);
 	}
 
 	function __toString() {
-		return (string) $this->unix;
+		return (string) $this->dbtime;
 	}
 
 	function __get($name) {

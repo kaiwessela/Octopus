@@ -1,5 +1,8 @@
 var modals = [];
 var pseudoinputs = [];
+var timeinputs = [];
+
+document.querySelectorAll('.nojs').forEach((el) => { el.classList.remove('nojs'); });
 
 document.querySelectorAll('.modal').forEach((el) => {
 	var modalName = el.getAttribute('data-name');
@@ -26,4 +29,14 @@ document.querySelectorAll('.pseudoinput').forEach((el) => {
 
 	pseudoinputs[name] = new PseudoInput();
 	pseudoinputs[name].bind(el);
+});
+
+document.querySelectorAll('.timeinput').forEach((el) => {
+	var name = el.getAttribute('data-for');
+	if(name == null){
+		return;
+	}
+
+	timeinputs[name] = new TimeInput();
+	timeinputs[name].bind(el);
 });

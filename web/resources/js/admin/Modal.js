@@ -33,6 +33,9 @@ class Modal {
 		if(submitBtns.length != 0){
 			submitBtns.forEach((el) => { this.addSubmitButton(el) });
 		}
+
+		this.addCloseButton(this.elem);
+		this.elem.querySelector('.box').addEventListener('click', (e) => { e.stopPropagation(); });
 	}
 
 	open() {

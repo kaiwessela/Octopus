@@ -48,6 +48,10 @@ body {
 	background-color: #20202f0f;
 }
 
+.nojs {
+	display: none;
+}
+
 header {
 	grid-column: grid-start / grid-end;
 	grid-row: header-start / header-end;
@@ -594,6 +598,18 @@ input:checked ~ .bodgeradio > .bodgetick {
 }
 
 
+/* TIMEINPUT */
+.timeinput label {
+	display: inline-block;
+	font-size: 0.8rem;
+	margin: 0.5rem 0.5rem 1rem 0;
+}
+
+.timeinput input {
+	margin: 0;
+}
+
+
 /* MODAL MODAL MODAL */
 .modal {
 	display: none;
@@ -619,4 +635,8 @@ input:checked ~ .bodgeradio > .bodgetick {
 	padding: 1rem;
 	overflow-y: scroll;
 	background-color: #e3e3e3;
+}
+
+.modal form {
+	margin: 0;
 }

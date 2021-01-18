@@ -4,13 +4,13 @@
 
 	<!-- LONGID -->
 	<label for="longid">
-		<span class="name">Veranstaltungs-ID</span>
+		<span class="name">Termin-ID</span>
 		<span class="conditions">
 			erforderlich; 9 bis 60 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
 			Bindestriche (-)
 		</span>
 		<span class="infos">
-			Die Veranstaltungs-ID wird in der URL verwendet und entspricht meistens dem Titel.
+			Die Termin-ID wird in der URL verwendet und entspricht meistens dem Titel.
 		</span>
 	</label>
 	<input type="text" size="40" autocomplete="off"
@@ -50,7 +50,7 @@
 		<span class="conditions">erforderlich</span>
 		<span class="infos">Datum und Uhrzeit der Veranstaltung.</span>
 	</label>
-	<input type="number" size="10" class="timeinput"
+	<input type="text" size="19"
 		id="timestamp" name="timestamp" value="<?= $Event->timestamp ?>" required>
 
 	<!-- LOCATION -->
@@ -70,15 +70,13 @@
 		<span class="infos">Beschreibung der Veranstaltung.</span>
 	</label>
 	<textarea id="description" name="description"
-		cols="60" rows="5">
-		<?= $Event->description ?>
-	</textarea>
+		cols="60" rows="5"><?= $Event->description ?></textarea>
 
 	<!-- CANCELLED -->
 	<label for="cancelled">
 		<span class="name">Absage</span>
 		<span class="conditions">optional</span>
-		<span class="description">Ist die Veranstaltung abgesagt?
+		<span class="description">Ist der Termin abgesagt?
 	</label>
 	<label class="checkbodge turn-around">
 		<span class="label-field">Ja</span>
@@ -94,3 +92,14 @@
 
 	<button type="submit" class="green">Speichern</button>
 </form>
+
+<div class="timeinput nojs" data-for="timestamp">
+	<label>
+		Datum:
+		<input type="date">
+	</label>
+	<label>
+		Uhrzeit:
+		<input type="time">
+	</label>
+</div>

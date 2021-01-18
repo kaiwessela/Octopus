@@ -8,15 +8,15 @@ use \Blog\Model\DataObjects\Relations\Lists\PostColumnRelationList;
 
 class Post extends DataObject {
 
-#			NAME			TYPE		REQUIRED	PATTERN		DB NAME		DB VALUE
-	public $overline;	#	str						.{0,25}		=			=
-	public $headline; 	#	str			*			.{1,60}		=			=
-	public $subline;	#	str						.{0,40}		=			=
-	public $teaser;		#	str						.*			=			=
-	public $author;		#	str			*			.{1,50}		=			=
-	public $timestamp;	#	int			*						=			=
-	public $image;		#	Image								image_id	Image->id
-	public $content;	#	str						.*			=			=
+#			NAME			TYPE			REQUIRED	PATTERN		DB NAME		DB VALUE
+	public $overline;	#	str							.{0,25}		=			=
+	public $headline; 	#	str				*			.{1,60}		=			=
+	public $subline;	#	str							.{0,40}		=			=
+	public $teaser;		#	str							.*			=			=
+	public $author;		#	str				*			.{1,50}		=			=
+	public $timestamp;	#	str(timestamp)	*						=			=
+	public $image;		#	Image									image_id	Image->id
+	public $content;	#	str							.*			=			=
 	public $columns;	#	arr[Column]
 
 #	@inherited
@@ -55,8 +55,9 @@ class Post extends DataObject {
 			'pattern' => '.{1,50}'
 		],
 		'timestamp' => [
-			'type' => 'integer',
-			'required' => true
+			'type' => 'string',
+			'required' => true,
+			'pattern' => '[0-9]{4}-[0-9]{2}-[0-9]{2}( [0-2][0-9]:[0-5][0-9](:[0-5][0-9])?)?'
 		],
 		'image' => [
 			'type' => 'Image',
@@ -113,7 +114,7 @@ class Post extends DataObject {
 		$this->subline = $data['post_subline'];
 		$this->teaser = $data['post_teaser'];
 		$this->author = $data['post_author'];
-		$this->timestamp = (int) $data['post_timestamp'];
+		$this->timestamp = $data['post_timestamp'];
 
 		if(!empty($data['image_id'])){
 			$this->image->load_single($data);

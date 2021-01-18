@@ -73,9 +73,7 @@
 		</span>
 	</label>
 	<textarea id="teaser" name="teaser"
-		cols="50" rows="3">
-		<?= $Post->teaser ?>
-	</textarea>
+		cols="50" rows="3"><?= $Post->teaser ?></textarea>
 
 	<!-- AUTHOR -->
 	<label for="author">
@@ -97,7 +95,7 @@
 			zur terminierten Veröffentlichung geplant.
 		</span>
 	</label>
-	<input type="number" class="timeinput" size="10"
+	<input type="text" class="timeinput" size="19"
 		id="timestamp" name="timestamp" value="<?= $Post->timestamp ?>"
 		required>
 
@@ -124,9 +122,7 @@
 		<span class="infos">Der eigentliche Inhalt des Artikels</span>
 	</label>
 	<textarea id="content" name="content"
-		cols="80" rows="20">
-		<?= $Post->content ?>
-	</textarea>
+		cols="80" rows="20"><?= $Post->content ?></textarea>
 
 	<!-- COLUMNS -->
 	<label>
@@ -138,7 +134,7 @@
 	<button type="submit" class="green">Speichern</button>
 </form>
 
-<div class="modal selectmodal" data-name="image-select" data-type="Image" data-objectsperpage="10">
+<div class="modal selectmodal nojs" data-name="image-select" data-type="Image" data-objectsperpage="20">
 	<div class="box">
 		<h2>Bild auswählen</h2>
 		<div class="pagination">
@@ -151,44 +147,75 @@
 				<template>
 					<article>
 						<label>
-							<figure>
-								<img src="<?= $server->url ?>/<?= $server->dyn_img_path ?>/{{longid}}/original.{{extension}}">
-								<figcaption>{{longid}}</figcaption>
-							</figure>
 							<input type="radio" name="result" value="{{id}}" {{current}}>
+							<img src="<?= $server->url ?>/<?= $server->dyn_img_path ?>/{{longid}}/original.{{extension}}">
 						</label>
 					</article>
 				</template>
 			</section>
-			<button type="button" data-action="close" class="red">Schließen</button>
 			<button type="submit" data-action="submit" class="blue">Auswählen</button>
+			<button type="button" data-action="close" class="red">Schließen</button>
 		</form>
 	</div>
 </div>
 
-<div class="modal uploadmodal" data-name="image-upload" data-type="Image">
+<div class="modal uploadmodal nojs" data-name="image-upload" data-type="Image">
 	<div class="box">
 		<h2>Neues Bild hochladen</h2>
 		<form action="#" method="GET">
-			<label>Longid</label>
-			<input type="text" name="longid">
+			<label for="image-upload-longid">
+				<span class="name">Bild-ID</span>
+				<span class="conditions">
+					erforderlich; 9 bis 60 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
+					Bindestriche (-)
+				</span>
+				<span class="infos">
+					Die Bild-ID wird in der URL verwendet und sollte den Bildinhalt kurz
+					beschreiben.
+				</span>
+			</label>
+			<input type="text" size="40" autocomplete="off"
+				id="image-upload-longid" name="longid"
+				minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required>
 
-			<label>Description</label>
-			<input type="text" name="description">
+			<label for="image-upload-description">
+				<span class="name">Beschreibung</span>
+				<span class="conditions">optional, bis zu 100 Zeichen</span>
+				<span class="infos">
+					Die Beschreibung wird als Alternativtext angezeigt, wenn das Bild nicht geladen
+					werden kann. Sie sollte den Bildinhalt wiedergeben.
+				</span>
+			</label>
+			<input type="text" size="60"
+				id="image-upload-description" name="description"
+				maxlength="100">
 
-			<label>Copyright</label>
-			<input type="text" name="copyright">
+			<label for="image-upload-copyright">
+				<span class="name">Urheberrechtshinweis</span>
+				<span class="conditions">optional, bis zu 100 Zeichen</span>
+				<span class="infos">
+					Der Urbeherrechtshinweis kann genutzt werden, um Lizensierungsinformationen zu dem Bild
+					zur Verfügung zu stellen. Er wird normalerweise unterhalb des Bildes angezeigt.
+				</span>
+			</label>
+			<input type="text" size="50"
+				id="image-upload-copyright" name="copyright"
+				maxlength="100">
 
-			<label>File</label>
-			<input type="file" name="imagedata">
+			<label for="image-upload-imagedata">
+				<span class="name">Datei</span>
+				<span class="conditions">erforderlich; PNG, JPEG oder GIF</span>
+			</label>
+			<input type="file" class="file"
+				id="image-upload-imagedata" name="imagedata" required>
 
-			<button type="button" data-action="close" class="red">Schließen</button>
 			<button type="submit" data-action="submit" class="green">Hochladen</button>
+			<button type="button" data-action="close" class="red">Schließen</button>
 		</form>
 	</div>
 </div>
 
-<div class="pseudoinput" data-type="Image" data-for="image_id" data-selectmodal="image-select" data-uploadmodal="image-upload">
+<div class="pseudoinput nojs" data-type="Image" data-for="image_id" data-selectmodal="image-select" data-uploadmodal="image-upload">
 	<div class="object"></div>
 	<template data-state="empty">
 		<p>Kein Bild ausgewählt.</p>
@@ -204,12 +231,13 @@
 	<button type="button" class="red" data-action="clear">Bild entfernen</button>
 </div>
 
-<script src="<?= $server->url ?>/resources/js/admin/GetClass.js"></script>
-<script src="<?= $server->url ?>/resources/js/admin/DataObject.js"></script>
-<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Image.js"></script>
-<script src="<?= $server->url ?>/resources/js/admin/Modal.js"></script>
-<script src="<?= $server->url ?>/resources/js/admin/Pagination.js"></script>
-<script src="<?= $server->url ?>/resources/js/admin/SelectModal.js"></script>
-<script src="<?= $server->url ?>/resources/js/admin/UploadModal.js"></script>
-<script src="<?= $server->url ?>/resources/js/admin/PseudoInput.js"></script>
-<script src="<?= $server->url ?>/resources/js/admin/invoke.js"></script>
+<div class="timeinput nojs" data-for="timestamp">
+	<label>
+		Datum:
+		<input type="date">
+	</label>
+	<label>
+		Uhrzeit:
+		<input type="time">
+	</label>
+</div>

@@ -11,17 +11,13 @@ class Post {
 		this.image;
 		this.content;
 
-		this.is_new;
-		this.is_empty;
-
-
-		this.is_new = false;
-		this.is_empty = true;
+		this.isNew = false;
+		this.isEmpty = true;
 	}
 
 	pull(identifier) {
 		return new Promise((resolve, reject) => {
-			if(!this.is_empty){
+			if(!this.isEmpty){
 				throw 'Post.pull(): Post is not empty.';
 			}
 
@@ -52,7 +48,6 @@ class Post {
 			ajax.responseType = 'json';
 			ajax.onreadystatechange = () => {
 				if(ajax.readyState == 4){
-					console.log(ajax);
 					if(ajax.response.response_code == '200 OK'){
 						var results = [];
 						ajax.response.result.forEach((data) => {
@@ -82,7 +77,7 @@ class Post {
 	}
 
 	load(data) {
-		if(!this.is_empty){
+		if(!this.isEmpty){
 			throw 'Post.load(): Post is not empty.';
 		}
 
@@ -98,8 +93,8 @@ class Post {
 		// this.image.load(data.image);
 		this.content = data.content;
 
-		this.is_new = false;
-		this.is_empty = false;
+		this.isNew = false;
+		this.isEmpty = false;
 	}
 
 	replace(string) {

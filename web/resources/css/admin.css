@@ -299,7 +299,8 @@ button.gray,
 
 a.button.blue,
 button.blue,
-.message.blue {
+.message.blue,
+button.current {
 	--background-color: var(--shiny-blue);
 	--border-color: var(--blue);
 }
@@ -343,11 +344,12 @@ button.back::before {
 
 .grid {
 	display: grid;
-	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-columns: repeat(auto-fill, minmax(7rem, 15rem));
 	width: 100%;
 }
 
 .grid article {
+	height: max-content;
 	margin: 0.25rem;
 }
 
@@ -611,6 +613,7 @@ input:checked ~ .bodgeradio > .bodgetick {
 }
 
 .modal .box {
+	max-height: calc(100vh - 10rem);
 	width: 50rem;
 	margin: 5rem auto;
 	padding: 1rem;

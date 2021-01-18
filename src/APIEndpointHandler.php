@@ -7,6 +7,7 @@ use \Blog\Model\Exceptions\DatabaseException;
 use \Blog\Model\Exceptions\EmptyResultException;
 use \Blog\Model\Exceptions\InvalidInputException;
 use \Astronauth\Main as Astronauth;
+use Exception;
 use PDO;
 use PDOException;
 use InvalidArgumentException;
@@ -197,6 +198,10 @@ class APIEndpointHandler {
 			} catch(DatabaseException $e){
 				# internal database exception, answer with error
 				$this->response->set_response_code(500);
+				$this->response->set_error_message($e->getMessage());
+				$this->response->send();
+			} catch(Exception $e){
+				$this->response->set_response_code(400);
 				$this->response->set_error_message($e->getMessage());
 				$this->response->send();
 			}

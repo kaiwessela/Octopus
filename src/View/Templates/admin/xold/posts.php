@@ -154,6 +154,19 @@
 			</label>
 			<input type="text" class="imageinput" id="image_id" name="image_id" size="8" minlength="8" maxlength="8" value="<?= $Post->image->id ?>">
 
+			<div class="pseudoinput">
+				<div class="objectbox">
+					<?php if(!empty($Post->image)){ ?>
+					<img src="<?= $server->url ?>.<?= $server->dyn_img_path ?>/<?= $Post->image->longid ?>/original.<?= $Post->image->extension ?>" alt="[ANZEIGEFEHLER]">
+					<?php } else { ?>
+					<div>Kein Bild ausgewählt.</div>
+					<?php } ?>
+				</div>
+				<template>
+					<img src="<?= $server->url ?>.<?= $server->dyn_img_path ?>"
+				</template>
+			</div>
+
 			<label for="content">
 				<span class="name">Inhalt</span>
 				<span class="conditions">
@@ -293,6 +306,11 @@
 		var newelem = document.createElement('div');
 		newelem.innerHTML = newcontent.replace(/{{i}}/g, count);
 		document.querySelector('.relationlist .objectbox').appendChild(newelem.firstElementChild);
+	}
+
+	modals['selectimage'].type = 'image';
+	modals['selectimage'].onSubmit = () => {
+
 	}
 </script>
 

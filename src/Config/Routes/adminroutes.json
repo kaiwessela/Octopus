@@ -1,11 +1,11 @@
 {
 	"admin": {
-		"template": "admin/main",
+		"template": "admin/wrapper",
 		"controllers": {},
 		"auth": true
 	},
 	"admin/*/#?": {
-		"template": "admin/?2",
+		"template": "admin/wrapper",
 		"controllers": {
 			"?2": {
 				"action": "list",
@@ -20,7 +20,7 @@
 		"auth": true
 	},
 	"admin/*/new": {
-		"template": "admin/?2",
+		"template": "admin/wrapper",
 		"controllers": {
 			"?2": {
 				"action": "new"
@@ -29,7 +29,7 @@
 		"auth": true
 	},
 	"admin/*/*": {
-		"template": "admin/?2",
+		"template": "admin/wrapper",
 		"controllers": {
 			"?2": {
 				"action": "show",
@@ -39,7 +39,7 @@
 		"auth": true
 	},
 	"admin/*/*/edit": {
-		"template": "admin/?2",
+		"template": "admin/wrapper",
 		"controllers": {
 			"?2": {
 				"action": "edit",
@@ -49,7 +49,7 @@
 		"auth": true
 	},
 	"admin/*/*/delete": {
-		"template": "admin/?2",
+		"template": "admin/wrapper",
 		"controllers": {
 			"?2": {
 				"action": "delete",

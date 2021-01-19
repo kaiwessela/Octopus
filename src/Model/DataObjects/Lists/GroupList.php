@@ -15,7 +15,7 @@ class GroupList extends DataObjectList {
 	const OBJECTS_ALIAS = 'groups';
 
 
-	protected static function load_each($data){
+	protected static function load_each(array $data) : Group {
 		$obj = new Group();
 		$obj->load_single($data);
 		return $obj;

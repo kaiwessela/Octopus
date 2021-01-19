@@ -16,7 +16,7 @@ class PersonGroupRelationList extends DataObjectRelationList {
 #	private $updates;
 
 
-	protected function get_relation_prototype() {
+	protected function get_relation_prototype() : PersonGroupRelation {
 		return new PersonGroupRelation();
 	}
 }

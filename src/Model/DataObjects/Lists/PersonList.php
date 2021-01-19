@@ -15,7 +15,7 @@ class PersonList extends DataObjectList {
 	const OBJECTS_ALIAS = 'persons';
 
 
-	protected static function load_each($data){
+	protected static function load_each(array $data) : Person {
 		$obj = new Person();
 		$obj->load_single($data);
 		return $obj;

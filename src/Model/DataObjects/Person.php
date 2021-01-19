@@ -8,10 +8,10 @@ use \Blog\Model\DataObjects\Relations\Lists\PersonGroupRelationList;
 
 class Person extends DataObject {
 
-#			NAME		TYPE		REQUIRED	PATTERN		DB NAME		DB VALUE
-	public $name;	#	str			*			.{1,50}		=			=
-	public $image;	#	Image								image_id	Image->id
-	public $groups;	#	arr[Group]
+#					NAME			TYPE		REQUIRED	PATTERN		DB NAME		DB VALUE
+	public string 	$name;		#	str			*			.{1,50}		=			=
+	public ?Image 	$image;		#	Image								image_id	Image->id
+	public ?array 	$groups;	#	arr[Group]
 
 #	@inherited
 #	public $id;
@@ -48,7 +48,7 @@ class Person extends DataObject {
 	}
 
 
-	public function load($data) {
+	public function load(array $data) : void {
 		$this->req('empty');
 
 		$this->load_single($data[0]);
@@ -72,7 +72,7 @@ class Person extends DataObject {
 	}
 
 
-	public function load_single($data) {
+	public function load_single(array $data) : void {
 		$this->req('empty');
 
 		$this->id = $data['person_id'];
@@ -88,33 +88,33 @@ class Person extends DataObject {
 	}
 
 
-	public function export($block_recursion = false) {
-		$obj = (object) [];
+	// public function export(bool $block_recursion = false) : object {
+	// 	$obj = (object) [];
+	//
+	// 	$obj->id = $this->id;
+	// 	$obj->longid = $this->longid;
+	// 	$obj->name = $this->name;
+	//
+	// 	if(!$this->image->is_empty()){
+	// 		$obj->image = $this->image->export();
+	// 	} else {
+	// 		$obj->image = null;
+	// 	}
+	//
+	// 	if(!$block_recursion && !empty($this->groups)){
+	// 		$obj->groups = [];
+	// 		foreach($this->groups as $group){
+	// 			$obj->groups[] = $group->export(true);
+	// 		}
+	// 	}
+	//
+	// 	$obj->relations = $this->relationlist->export();
+	//
+	// 	return $obj;
+	// }
 
-		$obj->id = $this->id;
-		$obj->longid = $this->longid;
-		$obj->name = $this->name;
 
-		if(!$this->image->is_empty()){
-			$obj->image = $this->image->export();
-		} else {
-			$obj->image = null;
-		}
-
-		if(!$block_recursion && !empty($this->groups)){
-			$obj->groups = [];
-			foreach($this->groups as $group){
-				$obj->groups[] = $group->export(true);
-			}
-		}
-
-		$obj->relations = $this->relationlist->export();
-
-		return $obj;
-	}
-
-
-	protected function db_export() {
+	protected function db_export() : array {
 		$values = [
 			'id' => $this->id,
 			'name' => $this->name
@@ -134,7 +134,7 @@ class Person extends DataObject {
 	}
 
 
-	protected function push_children() {
+	protected function push_children() : void {
 		if($this->image->is_new()){
 			$this->image->push();
 		}

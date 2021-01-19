@@ -7,10 +7,11 @@ use \Blog\Model\DataObjects\Relations\Lists\PersonGroupRelationList;
 
 class Group extends DataObject {
 
-#			NAME				TYPE		REQUIRED	PATTERN		DB NAME		DB VALUE
-	public $name;			#	str			*			.{1,30}		=			=
-	public $description;	#	str						.*			=			=
-	public $persons;		#	arr[Person]
+#					NAME				TYPE		REQUIRED	PATTERN		DB NAME		DB VALUE
+	public string 	$name;			#	str			*			.{1,30}		=			=
+	public ?string 	$description;	#	str						.*			=			=
+	public ?array 	$persons;		#	arr[Person]
+	//TODO ^^^^^ use PersonList
 
 #	@inherited
 #	public $id;
@@ -45,7 +46,7 @@ class Group extends DataObject {
 	}
 
 
-	public function load($data) {
+	public function load(array $data) : void {
 		$this->req('empty');
 
 		$this->load_single($data[0]);
@@ -69,7 +70,7 @@ class Group extends DataObject {
 	}
 
 
-	public function load_single($data) {
+	public function load_single(array $data) : void {
 		$this->req('empty');
 
 		$this->id = $data['group_id'];
@@ -82,33 +83,33 @@ class Group extends DataObject {
 	}
 
 
-	public function export($block_recursion = false) {
-		$obj = (object) [];
+	// public function export(bool $block_recursion = false) : object {
+	// 	$obj = (object) [];
+	//
+	// 	$obj->id = $this->id;
+	// 	$obj->longid = $this->longid;
+	// 	$obj->name = $this->name;
+	// 	$obj->description = $this->description;
+	//
+	// 	$obj->relations = $this->relationlist->export();
+	//
+	// 	if(!$block_recursion && !empty($this->persons)){
+	// 		$obj->persons = [];
+	// 		foreach($this->persons as $i => $person){
+	// 			$member = $person->export(true);
+	// 			$member->role = $obj->relations[$i]['role'];
+	// 			$member->number = $obj->relations[$i]['number']; // FIXME to object
+	//
+	// 			$obj->persons[] = $member;
+	// 		}
+	// 	}
+	//
+	//
+	// 	return $obj;
+	// }
 
-		$obj->id = $this->id;
-		$obj->longid = $this->longid;
-		$obj->name = $this->name;
-		$obj->description = $this->description;
 
-		$obj->relations = $this->relationlist->export();
-
-		if(!$block_recursion && !empty($this->persons)){
-			$obj->persons = [];
-			foreach($this->persons as $i => $person){
-				$member = $person->export(true);
-				$member->role = $obj->relations[$i]['role'];
-				$member->number = $obj->relations[$i]['number']; // FIXME to object
-
-				$obj->persons[] = $member;
-			}
-		}
-
-
-		return $obj;
-	}
-
-
-	protected function db_export() {
+	protected function db_export() : array {
 		$export = [
 			'id' => $this->id,
 			'name' => $this->name,

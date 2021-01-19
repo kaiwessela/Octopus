@@ -7,10 +7,10 @@ use \Blog\Model\DataObjects\Relations\Lists\PostColumnRelationList;
 
 class Column extends DataObject {
 
-#			NAME				TYPE		REQUIRED	PATTERN		DB NAME		DB VALUE
-	public $name;			#	str			*			.{1,30}		=			=
-	public $description;	#	str						.*			=			=
-	public $posts;			#	arr[Post]
+#					NAME				TYPE		REQUIRED	PATTERN		DB NAME		DB VALUE
+	public string 	$name;			#	str			*			.{1,30}		=			=
+	public ?string 	$description;	#	str						.*			=			=
+	public ?array 	$posts;			#	arr[Post]
 
 #	@inherited
 #	public $id;
@@ -45,7 +45,7 @@ class Column extends DataObject {
 	}
 
 
-	public function load($data) {
+	public function load(array $data) : void {
 		$this->req('empty');
 
 		$this->load_single($data[0]);
@@ -69,7 +69,7 @@ class Column extends DataObject {
 	}
 
 
-	public function load_single($data) {
+	public function load_single(array $data) : void {
 		$this->req('empty');
 
 		$this->id = $data['column_id'];
@@ -82,28 +82,28 @@ class Column extends DataObject {
 	}
 
 
-	public function export($block_recursion = false) {
-		$obj = (object) [];
+	// public function export(bool $block_recursion = false) : object {
+	// 	$obj = (object) [];
+	//
+	// 	$obj->id = $this->id;
+	// 	$obj->longid = $this->longid;
+	// 	$obj->name = $this->name;
+	// 	$obj->description = $this->description;
+	//
+	// 	if(!$block_recursion && !empty($this->posts)){
+	// 		$obj->posts = [];
+	// 		foreach($this->posts as $post){
+	// 			$obj->posts[] = $post->export(true);
+	// 		}
+	// 	}
+	//
+	// 	$obj->relations = $this->relationlist->export();
+	//
+	// 	return $obj;
+	// }
 
-		$obj->id = $this->id;
-		$obj->longid = $this->longid;
-		$obj->name = $this->name;
-		$obj->description = $this->description;
 
-		if(!$block_recursion && !empty($this->posts)){
-			$obj->posts = [];
-			foreach($this->posts as $post){
-				$obj->posts[] = $post->export(true);
-			}
-		}
-
-		$obj->relations = $this->relationlist->export();
-
-		return $obj;
-	}
-
-
-	protected function db_export() {
+	protected function db_export() : array {
 		$export = [
 			'id' => $this->id,
 			'name' => $this->name,

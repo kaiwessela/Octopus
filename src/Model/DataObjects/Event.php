@@ -4,13 +4,13 @@ use \Blog\Model\Abstracts\DataObject;
 
 class Event extends DataObject {
 
-#			NAME				TYPE			REQUIRED	PATTERN		DB NAME		DB VALUE
-	public $title;			#	str				*			.{1,50}		=			=
-	public $organisation;	#	str				*			.{1,40}		=			=
-	public $timestamp;		#	str(timestamp)	*						=			=
-	public $location;		#	str							.{0,60}		=			=
-	public $description;	#	str										=			=
-	public $cancelled;		#	bool									=			= (int)
+#					NAME				TYPE			REQUIRED	PATTERN		DB NAME		DB VALUE
+	public string 	$title;			#	str				*			.{1,50}		=			=
+	public string 	$organisation;	#	str				*			.{1,40}		=			=
+	public string 	$timestamp;		#	str(timestamp)	*						=			=
+	public ?string 	$location;		#	str							.{0,60}		=			=
+	public ?string 	$description;	#	str										=			=
+	public ?bool 	$cancelled;		#	bool									=			= (int)
 
 #	@inherited
 #	public $id;
@@ -53,14 +53,14 @@ class Event extends DataObject {
 	];
 
 
-	public function load($data) {
+	public function load(array $data) : void {
 		$this->req('empty');
 
 		$this->load_single($data[0]);
 	}
 
 
-	public function load_single($data) {
+	public function load_single(array $data) : void {
 		$this->req('empty');
 
 		$this->id = $data['event_id'];
@@ -77,23 +77,23 @@ class Event extends DataObject {
 	}
 
 
-	public function export($block_recursion = false) {
-		$obj = (object) [];
+	// public function export(bool $block_recursion = false) : object {
+	// 	$obj = (object) [];
+	//
+	// 	$obj->id = $this->id;
+	// 	$obj->longid = $this->longid;
+	// 	$obj->title = $this->title;
+	// 	$obj->organisation = $this->organisation;
+	// 	$obj->timestamp = $this->timestamp;
+	// 	$obj->location = $this->location;
+	// 	$obj->description = $this->description;
+	// 	$obj->cancelled = $this->cancelled;
+	//
+	// 	return $obj;
+	// }
 
-		$obj->id = $this->id;
-		$obj->longid = $this->longid;
-		$obj->title = $this->title;
-		$obj->organisation = $this->organisation;
-		$obj->timestamp = $this->timestamp;
-		$obj->location = $this->location;
-		$obj->description = $this->description;
-		$obj->cancelled = $this->cancelled;
 
-		return $obj;
-	}
-
-
-	protected function db_export() {
+	protected function db_export() : array {
 		$values = [
 			'id' => $this->id,
 			'title' => $this->title,

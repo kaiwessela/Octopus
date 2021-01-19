@@ -15,7 +15,7 @@ class ImageList extends DataObjectList {
 	const OBJECTS_ALIAS = 'images';
 
 
-	protected static function load_each($data){
+	protected static function load_each(array $data) : Image {
 		$obj = new Image();
 		$obj->load_single($data);
 		return $obj;

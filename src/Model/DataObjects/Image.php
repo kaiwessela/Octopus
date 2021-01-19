@@ -2,16 +2,17 @@
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\Exceptions\InputException;
+use \Blog\Model\Exceptions\InputFailedException;
 use \Blog\Model\ImageManager;
 use \Blog\Model\ImageManager\Exceptions\ImageManagerException;
 
 class Image extends DataObject {
 
-#			NAME				TYPE	REQUIRED	PATTERN		DB NAME		DB VALUE
-	public $extension;		#	str		*			custom		=			=
-	public $description;	#	str					.{0,100}	=			=
-	public $copyright;		#	str					.{0,100}	=			=
-	public $sizes;			#	array	*			custom		=			= (imploded)
+#					NAME				TYPE	REQUIRED	PATTERN		DB NAME		DB VALUE
+	public string 	$extension;		#	str		*			custom		=			=
+	public ?string 	$description;	#	str					.{0,100}	=			=
+	public ?string 	$copyright;		#	str					.{0,100}	=			=
+	public array 	$sizes;			#	array	*			custom		=			= (imploded)
 
 #	@inherited
 #	public $id;
@@ -22,7 +23,7 @@ class Image extends DataObject {
 #
 #	private $relationlist;
 
-	private $imagemanager;
+	private ?ImageManager $imagemanager;
 
 	const IGNORE_PULL_LIMIT = true;
 
@@ -44,7 +45,7 @@ class Image extends DataObject {
 	];
 
 
-	protected function import_custom($fieldname, $data, $errors) {
+	protected function import_custom(string $fieldname, $data, InputFailedException $errors) : void {
 		if($fieldname != 'data' || !$this->is_new()){
 			return;
 		}
@@ -63,13 +64,13 @@ class Image extends DataObject {
 	}
 
 
-	public function load($data) {
+	public function load(array $data) : void {
 		$this->req('empty');
 
 		$this->load_single($data[0]);
 	}
 
-	public function load_single($data) {
+	public function load_single(array $data) : void {
 		$this->req('empty');
 
 		$this->id = $data['image_id'];
@@ -83,35 +84,35 @@ class Image extends DataObject {
 		$this->set_empty(false);
 	}
 
-	protected function push_children() {
+	protected function push_children() : void {
 		if($this->is_new()){
 			$this->imagemanager->write($this->longid);
 			$this->imagemanager->push();
 		}
 	}
 
-	public function delete() {
+	public function delete() : void {
 		parent::delete();
 
 		$this->imagemanager = new ImageManager();
 		$this->imagemanager->erase($this->longid);
 	}
 
-	public function export($block_recursion = false) {
-		$obj = (object) [];
+	// public function export(bool $block_recursion = false) : object {
+	// 	$obj = (object) [];
+	//
+	// 	$obj->id = $this->id;
+	// 	$obj->longid = $this->longid;
+	// 	$obj->extension = $this->extension;
+	// 	$obj->description = $this->description;
+	// 	$obj->copyright = $this->copyright;
+	// 	$obj->sizes = $this->sizes;
+	//
+	// 	return $obj;
+	// }
 
-		$obj->id = $this->id;
-		$obj->longid = $this->longid;
-		$obj->extension = $this->extension;
-		$obj->description = $this->description;
-		$obj->copyright = $this->copyright;
-		$obj->sizes = $this->sizes;
 
-		return $obj;
-	}
-
-
-	protected function db_export() {
+	protected function db_export() : array {
 		$values = [
 			'id' => $this->id,
 			'description' => $this->description,

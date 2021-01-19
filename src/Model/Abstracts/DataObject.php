@@ -1,6 +1,7 @@
 <?php
 namespace Blog\Model\Abstracts;
 use \Blog\Model\DataObjectTrait;
+use \Blog\Model\Abstracts\DataObjectRelationList;
 use \Blog\Model\Exceptions\DatabaseException;
 use \Blog\Model\Exceptions\EmptyResultException;
 use \Blog\Model\Exceptions\InputFailedException;
@@ -11,16 +12,17 @@ use InvalidArgumentException;
 
 abstract class DataObject {
 
-#			NAME		TYPE	REQUIRED	PATTERN				DB NAME		DB VALUE
-	public $id;		#	str		*			[a-f0-9]{8}			=			=
-	public $longid;	#	str		*			[a-z0-9-]{9,60}		=			=
+#					NAME		TYPE	REQUIRED	PATTERN				DB NAME		DB VALUE
+	public string $id;		#	str		*			[a-f0-9]{8}			=			=
+	public string $longid;	#	str		*			[a-z0-9-]{9,60}		=			=
 
-	public $count;
+	public ?int $count;
 
-	private $new;
-	private $empty;
+	private bool $new;
+	private bool $empty;
+	private bool $disabled;
 
-	protected $relationlist;
+	protected ?DataObjectRelationList $relationlist;
 
 	const IGNORE_PULL_LIMIT = false;
 
@@ -28,18 +30,45 @@ abstract class DataObject {
 	use DataObjectTrait;
 
 
-	abstract public function load($data);
-	abstract public function export();
-	abstract protected function db_export();
+	abstract public function load(array $data) : void;
+	abstract protected function db_export() : array;
+
+
+	// TEST
+	public function export() : ?DataObject {
+		if($this->is_empty()){
+			return null;
+		}
+
+		$this->disabled = true;
+
+		foreach($this as $property){
+			if($property instanceof DataObject){
+				$property->export();
+			} else if(!empty($property) && is_array($property) && $property[0] instanceof DataObject){
+				foreach($property as $obj){
+					$obj->export();
+				}
+			}
+		}
+
+		if(!empty($this->relationlist)){
+			$this->relations = $this->relationlist->export();
+		}
+
+		return $this;
+	}
+	// -- Test
 
 
 	function __construct() {
 		$this->set_new(false);
 		$this->set_empty();
+		$this->disabled = false;
 	}
 
 
-	public function generate() {
+	public function generate() : void {
 #	@action:
 #	  - turn this empty object into a new object
 #	  - assign this object an id
@@ -53,7 +82,7 @@ abstract class DataObject {
 	}
 
 
-	public function count() {
+	public function count() : int {
 #	@requirements:
 #	  - this object must be configured to contain a list of DatabaseObjects, else return null
 #	@action:
@@ -66,7 +95,7 @@ abstract class DataObject {
 			return null;
 		}
 
-		$pdo = self::open_pdo();
+		$pdo = $this->open_pdo();
 
 		$s = $pdo->prepare($this::COUNT_QUERY);
 		if(!$s->execute(['id' => $this->id])){
@@ -78,7 +107,7 @@ abstract class DataObject {
 	}
 
 
-	public function pull(string $identifier, /*int*/$limit = null, /*int*/$offset = null) {
+	public function pull(string $identifier, ?int $limit = null, ?int $offset = null) : void {
 #	@action:
 #	  - select one object from the database
 #	  - call this->load to assign the received data to this object
@@ -88,7 +117,7 @@ abstract class DataObject {
 #	  - $offset: the amount of objects to be skipped at the beginning; ignored if $limit == null
 
 		$this->req('empty');
-		$pdo = self::open_pdo();
+		$pdo = $this->open_pdo();
 
 		$query = $this::PULL_QUERY;
 		$values = ['id' => $identifier];
@@ -121,13 +150,13 @@ abstract class DataObject {
 	}
 
 
-	public function push() {
+	public function push() : void {
 #	@action:
 #	  - upload (insert/update) this object and all its children to the database
 #	  - set this->new to false
 
 		$this->req('not empty');
-		$pdo = self::open_pdo();
+		$pdo = $this->open_pdo();
 
 		if($this->is_new()){
 			$s = $pdo->prepare($this::INSERT_QUERY);
@@ -148,7 +177,7 @@ abstract class DataObject {
 	}
 
 
-	protected function push_children() {
+	protected function push_children() : void {
 #	@action:
 #	  - placeholder function to be used by objects to push their children
 
@@ -156,14 +185,14 @@ abstract class DataObject {
 	}
 
 
-	public function delete() {
+	public function delete() : void {
 #	@action:
 #	  - delete this object in the database
 #	  - set this->new to true
 
 		$this->req('not empty');
 		$this->req('not new');
-		$pdo = self::open_pdo();
+		$pdo = $this->open_pdo();
 
 		$s = $pdo->prepare($this::DELETE_QUERY);
 		if(!$s->execute(['id' => $this->id])){
@@ -174,12 +203,12 @@ abstract class DataObject {
 	}
 
 
-	protected function import_custom($fieldname, $data, $errors) {
+	protected function import_custom(string $fieldname, $data, InputFailedException $errors) : void {
 		return;
 	} // TODO
 
 
-	public function import($data) {
+	public function import($data) : void {
 #	@action:
 #	  - import data received as array
 #	@params:
@@ -298,6 +327,5 @@ abstract class DataObject {
 
 		$this->set_empty(false);
 	}
-
 }
 ?>

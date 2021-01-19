@@ -11,12 +11,13 @@ use Blog\Model\Exceptions\MissingValueException;
 use Blog\Model\Exceptions\RelationNonexistentException;
 
 abstract class DataObjectRelation {
-	public $id;
-	public $primary_object;
-	public $secondary_object;
+	public string $id;
+	public ?object $primary_object;
+	public ?object $secondary_object;
 
-	private $new;
-	private $empty;
+	private bool $new;
+	private bool $empty;
+	private bool $disabled;
 
 	const UNIQUE = true;
 
@@ -26,9 +27,10 @@ abstract class DataObjectRelation {
 	function __construct() {
 		$this->new = false;
 		$this->empty = true;
+		$this->disabled = false;
 	}
 
-	public function generate(DataObject $object) {
+	public function generate(DataObject $object) : void {
 		$this->req('empty');
 
 		$this->generate_id();
@@ -39,7 +41,7 @@ abstract class DataObjectRelation {
 		$this->set_empty(false);
 	}
 
-	public function load(DataObject $object1, DataObject $object2, $data = []) {
+	public function load(DataObject $object1, DataObject $object2, $data = []) : void {
 		$this->req('empty');
 
 		$this->set_object($object1);
@@ -48,7 +50,7 @@ abstract class DataObjectRelation {
 		$this->set_empty(false);
 	}
 
-	private function already_exists($primary_id, $secondary_id) {
+	private function already_exists(string $primary_id, string $secondary_id) : bool {
 		$pdo = $this->open_pdo();
 
 		$s = $pdo->prepare($this::EXISTS_QUERY);
@@ -59,13 +61,13 @@ abstract class DataObjectRelation {
 		}
 	}
 
-	public function push() {
+	public function push() : void {
 #	@action:
 #	  - upload (insert/update) this object to the database
 #	  - set this->new to false
 
 		$this->req('not empty');
-		$pdo = self::open_pdo();
+		$pdo = $this->open_pdo();
 
 		if($this->is_new()){
 			$s = $pdo->prepare($this::INSERT_QUERY);
@@ -82,14 +84,14 @@ abstract class DataObjectRelation {
 		}
 	}
 
-	public function delete() {
+	public function delete() : void {
 #	@action:
 #	  - delete this object in the database
 #	  - set this->new to true
 
 		$this->req('not empty');
 		$this->req('not new');
-		$pdo = self::open_pdo();
+		$pdo = $this->open_pdo();
 
 		$s = $pdo->prepare($this::DELETE_QUERY);
 		if(!$s->execute(['id' => $this->id])){
@@ -99,7 +101,7 @@ abstract class DataObjectRelation {
 		}
 	}
 
-	public function import($data) {
+	public function import(array $data) : void {
 		$errors = new InputFailedException();
 
 		$id = $data['id'] ?? null;
@@ -199,21 +201,24 @@ abstract class DataObjectRelation {
 	}
 
 
-	public function export() { // TODO add description
+	public function export() : array { // TODO add description
 		if($this->is_empty()){
 			return null;
 		}
 
-		$export = [
-			'id' => $this->id,
-			'primary_id' => $this->primary_object->id,
-			'secondary_id' => $this->secondary_object->id
-		];
+		$this->disabled = true;
+		return $this;
 
-		$export[$this::PRIMARY_ALIAS . '_id'] = $this->primary_object->id;
-		$export[$this::SECONDARY_ALIAS . '_id'] = $this->secondary_object->id;
-
-		return $export;
+		// $export = [
+		// 	'id' => $this->id,
+		// 	'primary_id' => $this->primary_object->id,
+		// 	'secondary_id' => $this->secondary_object->id
+		// ];
+		//
+		// $export[$this::PRIMARY_ALIAS . '_id'] = $this->primary_object->id;
+		// $export[$this::SECONDARY_ALIAS . '_id'] = $this->secondary_object->id;
+		//
+		// return $export;
 	}
 
 

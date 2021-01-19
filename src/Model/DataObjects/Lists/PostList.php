@@ -15,7 +15,7 @@ class PostList extends DataObjectList {
 	const OBJECTS_ALIAS = 'posts';
 
 
-	protected static function load_each($data) {
+	protected static function load_each(array $data) : Post {
 		$obj = new Post();
 		$obj->load_single($data);
 		return $obj;

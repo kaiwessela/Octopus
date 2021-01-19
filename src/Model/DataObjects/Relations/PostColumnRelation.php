@@ -22,14 +22,14 @@ class PostColumnRelation extends DataObjectRelation {
 	const FIELDS = [];
 
 
-	public function load(DataObject $object1, DataObject $object2, $data = []) {
+	public function load(DataObject $object1, DataObject $object2, array $data = []) : void {
 		parent::load($object1, $object2, $data);
 
 		$this->id = $data['postcolumnrelation_id'];
 	}
 
 
-	protected function set_object(DataObject $object) {
+	protected function set_object(DataObject $object) : void {
 		if($object instanceof Post){
 			$this->primary_object = $object;
 			return;
@@ -41,15 +41,15 @@ class PostColumnRelation extends DataObjectRelation {
 		}
 	}
 
-	protected function get_primary_prototype() {
+	protected function get_primary_prototype() : Post {
 		return new Post();
 	}
 
-	protected function get_secondary_prototype() {
+	protected function get_secondary_prototype() : Column {
 		return new Column();
 	}
 
-	protected function db_export() {
+	protected function db_export() : array {
 		return [
 			'id' => $this->id,
 			'post_id' => $this->primary_object->id,

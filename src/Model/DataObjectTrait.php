@@ -9,11 +9,16 @@ use \Blog\Model\Exceptions\IllegalValueException;
 use \Blog\Model\Exceptions\IdentifierCollisionException;
 use \Blog\Model\Exceptions\IdentifierMismatchException;
 use InvalidArgumentException;
+use Exception;
 use PDO;
 
 trait DataObjectTrait {
 
-	public static function open_pdo() {
+	protected function open_pdo() {
+		if($this->disabled){
+			throw new Exception('DB Access prohibited - Object is disabled.');
+		}
+
 		return new PDO(
 			'mysql:host=' . Config::DB_HOST . ';dbname=' . Config::DB_NAME,
 			Config::DB_USER,

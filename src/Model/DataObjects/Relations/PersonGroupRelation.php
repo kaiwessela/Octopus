@@ -7,8 +7,8 @@ use \Blog\Model\DataObjects\Group;
 
 class PersonGroupRelation extends DataObjectRelation {
 
-	public $number;
-	public $role;
+	public int 		$number;
+	public string 	$role;
 
 #	@inherited
 #	public $id;
@@ -36,7 +36,7 @@ class PersonGroupRelation extends DataObjectRelation {
 	];
 
 
-	public function load(DataObject $object1, DataObject $object2, $data = []) {
+	public function load(DataObject $object1, DataObject $object2, array $data = []) : void {
 		parent::load($object1, $object2, $data);
 
 		$this->id = $data['persongrouprelation_id'];
@@ -44,7 +44,7 @@ class PersonGroupRelation extends DataObjectRelation {
 		$this->role = $data['persongrouprelation_role'];
 	}
 
-	protected function set_object(DataObject $object) {
+	protected function set_object(DataObject $object) : void {
 		if($object instanceof Person){
 			$this->primary_object = $object;
 			return;
@@ -56,34 +56,34 @@ class PersonGroupRelation extends DataObjectRelation {
 		}
 	}
 
-	protected function get_primary_prototype() {
+	protected function get_primary_prototype() : Person {
 		return new Person();
 	}
 
-	protected function get_secondary_prototype() {
+	protected function get_secondary_prototype() : Group {
 		return new Group();
 	}
 
-	public function export() {
-		if($this->is_empty()){
-			return null;
-		}
+	// public function export() : array {
+	// 	if($this->is_empty()){
+	// 		return null;
+	// 	}
+	//
+	// 	$export = [
+	// 		'id' => $this->id,
+	// 		'primary_id' => $this->primary_object->id,
+	// 		'secondary_id' => $this->secondary_object->id,
+	// 		'number' => $this->number,
+	// 		'role' => $this->role
+	// 	];
+	//
+	// 	$export[$this::PRIMARY_ALIAS . '_id'] = $this->primary_object->id;
+	// 	$export[$this::SECONDARY_ALIAS . '_id'] = $this->secondary_object->id;
+	//
+	// 	return $export;
+	// }
 
-		$export = [
-			'id' => $this->id,
-			'primary_id' => $this->primary_object->id,
-			'secondary_id' => $this->secondary_object->id,
-			'number' => $this->number,
-			'role' => $this->role
-		];
-
-		$export[$this::PRIMARY_ALIAS . '_id'] = $this->primary_object->id;
-		$export[$this::SECONDARY_ALIAS . '_id'] = $this->secondary_object->id;
-
-		return $export;
-	}
-
-	protected function db_export() {
+	protected function db_export() : array {
 		$values = [
 			'id' => $this->id,
 			'number' => $this->number,

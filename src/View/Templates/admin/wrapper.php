@@ -38,17 +38,18 @@
 		<main>
 
 <?php
-	$name = explode('/', $server->path)[1];
+	$name = explode('/', $server->path)[1] ?? '';
 	$config = $adminconfig[$name] ?? null;
 
+	$controller_var = $config->controller_var ?? null;
+	$object_var = $config->object_var ?? null;
+	$Controller = $$controller_var ?? null;
+	$Object = $$object_var ?? null;
+	
 	if(empty($config)){
 		require __DIR__ . '/main.php';
 
 	} else {
-		$controller_var = $config->controller_var;
-		$object_var = $config->object_var;
-		$Controller = $$controller_var;
-		$Object = $$object_var;
 
 		switch($Controller->request->action){
 			case 'list': 	?><h1><?= $config->lang->list->title	?></h1><?php break;
@@ -113,7 +114,7 @@
 		}
 	}
 
-	if($Controller->request->action == 'list' && $Controller->found()){
+	if($Controller?->request->action == 'list' && $Controller?->found()){
 		$pagination = $Controller->pagination;
 		include COMPONENT_PATH . 'admin/pagination.php';
 
@@ -124,17 +125,17 @@
 		?></section><?php
 	}
 
-	if($Controller->request->action == 'show' && $Controller->found()){
+	if($Controller?->request->action == 'show' && $Controller?->found()){
 		require __DIR__ . '/' . $name . '/show.php';
 	}
 
-	if(	($Controller->request->action == 'edit' && !$Controller->edited())
-	||	($Controller->request->action == 'new' && !$Controller->created()) ){
+	if(	($Controller?->request->action == 'edit' && !$Controller?->edited())
+	||	($Controller?->request->action == 'new' && !$Controller?->created()) ){
 
 		require __DIR__ . '/' . $name . '/edit.php';
 	}
 
-	if($Controller->request->action == 'delete' && !$Controller->deleted()){
+	if($Controller?->request->action == 'delete' && !$Controller?->deleted()){
 		require __DIR__ . '/' . $name . '/delete.php';
 	}
 
@@ -142,7 +143,7 @@
 ?>
 
 		</main>
-		
+
 		<footer>
 			<p>
 				Diese Seite nutzt »Blog« von Kai Florian Wessela in der Version <?= $server->version ?>.<br>

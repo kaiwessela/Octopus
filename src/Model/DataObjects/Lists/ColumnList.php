@@ -15,7 +15,7 @@ class ColumnList extends DataObjectList {
 	const OBJECTS_ALIAS = 'columns';
 
 
-	protected static function load_each($data){
+	protected static function load_each(array $data) : Column {
 		$obj = new Column();
 		$obj->load_single($data);
 		return $obj;

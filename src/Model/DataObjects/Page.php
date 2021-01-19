@@ -4,9 +4,9 @@ use \Blog\Model\Abstracts\DataObject;
 
 class Page extends DataObject {
 
-#			NAME			TYPE	REQUIRED	PATTERN		DB NAME		DB VALUE
-	public $title;		#	str		*			.{1,60}		=			=
-	public $content;	#	str								=			=
+#					NAME			TYPE	REQUIRED	PATTERN		DB NAME		DB VALUE
+	public string 	$title;		#	str		*			.{1,60}		=			=
+	public ?string 	$content;	#	str								=			=
 
 #	@inherited
 #	public $id;
@@ -31,14 +31,14 @@ class Page extends DataObject {
 	];
 
 
-	public function load($data) {
+	public function load(array $data) : void {
 		$this->req('empty');
 
 		$this->load_single($data[0]);
 	}
 
 
-	public function load_single($data) {
+	public function load_single(array $data) : void {
 		$this->req('empty');
 
 		$this->id = $data['page_id'];
@@ -51,19 +51,19 @@ class Page extends DataObject {
 	}
 
 
-	public function export($block_recursion = false) {
-		$obj = (object) [];
+	// public function export(bool $block_recursion = false) : object {
+	// 	$obj = (object) [];
+	//
+	// 	$obj->id = $this->id;
+	// 	$obj->longid = $this->longid;
+	// 	$obj->title = $this->title;
+	// 	$obj->content = $this->content;
+	//
+	// 	return $obj;
+	// }
 
-		$obj->id = $this->id;
-		$obj->longid = $this->longid;
-		$obj->title = $this->title;
-		$obj->content = $this->content;
 
-		return $obj;
-	}
-
-
-	protected function db_export() {
+	protected function db_export() : array {
 		$values = [
 			'id' => $this->id,
 			'title' => $this->title,

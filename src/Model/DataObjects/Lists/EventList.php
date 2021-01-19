@@ -15,7 +15,7 @@ class EventList extends DataObjectList {
 	const OBJECTS_ALIAS = 'events';
 
 
-	protected static function load_each($data) {
+	protected static function load_each(array $data) : Event {
 		$obj = new Event();
 		$obj->load_single($data);
 		return $obj;

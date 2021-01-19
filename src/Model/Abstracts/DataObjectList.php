@@ -1,20 +1,22 @@
 <?php
 namespace Blog\Model\Abstracts;
 use Blog\Model\DataObjectTrait;
+use Blog\Model\Abstracts\DataObject;
 use Blog\Model\Exceptions\DatabaseException;
 use Blog\Model\Exceptions\EmptyResultException;
 use InvalidArgumentException;
 
 abstract class DataObjectList {
 	public $objects;
-	public $count;
+	public int $count;
 
-	private $new;
-	private $empty;
+	private bool $new;
+	private bool $empty;
+	private bool $disabled;
 
 	use DataObjectTrait;
 
-	abstract protected static function load_each($data);
+	abstract protected static function load_each(array $data) : DataObject;
 
 
 	function __construct() {
@@ -22,10 +24,11 @@ abstract class DataObjectList {
 
 		$this->set_new(false);
 		$this->set_empty();
+		$this->disabled = false;
 	}
 
 
-	public function pull(/*int*/$limit = null, /*int*/$offset = null) {
+	public function pull(?int $limit = null, ?int $offset = null) : void {
 #	@action:
 #	  - select multiple objects from the database
 #	  - call this->load to assign the received data to this->objects
@@ -33,7 +36,7 @@ abstract class DataObjectList {
 #	  - $limit: the amount of objects to be selected
 #	  - $offset: the amount of objects to be skipped at the beginning; ignored if $limit == null
 
-		$pdo = self::open_pdo();
+		$pdo = $this->open_pdo();
 		$this->req('empty');
 
 		$query = $this::SELECT_QUERY;
@@ -68,7 +71,7 @@ abstract class DataObjectList {
 	}
 
 
-	public function load(array $data) {
+	public function load(array $data) : void {
 #	@action:
 #	  - call special functions to create DataObjects from $data
 #	  - assign the list of created DataObjects to this->objects
@@ -108,28 +111,34 @@ abstract class DataObjectList {
 	}
 
 
-	public function export() {
+	public function export() : array {
 #	@action:
 #	  - return an array of the results of the export function of each object
 #	@return:
 #		array of arrays which contain the exported data of one DataObject
 
-		$result = [];
-		foreach($this->objects as $object){
-			$result[] = $object->export();
+		if($this->is_empty()){
+			return null;
 		}
-		return $result;
+
+		$this->disabled = true;
+
+		foreach($this->objects as $obj){
+			$obj->export();
+		}
+
+		return $this->objects;
 	}
 
 
-	public function count() {
+	public function count() : int {
 #	@action:
 #	  - return the number of objects of this type stored in the database
 #	  - store this number in this->count
 #	@return:
 #		integer
 
-		$pdo = self::open_pdo();
+		$pdo = $this->open_pdo();
 
 		$s = $pdo->prepare($this::COUNT_QUERY);
 		if(!$s->execute([])){

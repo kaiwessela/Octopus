@@ -8,16 +8,16 @@ use \Blog\Model\DataObjects\Relations\Lists\PostColumnRelationList;
 
 class Post extends DataObject {
 
-#			NAME			TYPE			REQUIRED	PATTERN		DB NAME		DB VALUE
-	public $overline;	#	str							.{0,25}		=			=
-	public $headline; 	#	str				*			.{1,60}		=			=
-	public $subline;	#	str							.{0,40}		=			=
-	public $teaser;		#	str							.*			=			=
-	public $author;		#	str				*			.{1,50}		=			=
-	public $timestamp;	#	str(timestamp)	*						=			=
-	public $image;		#	Image									image_id	Image->id
-	public $content;	#	str							.*			=			=
-	public $columns;	#	arr[Column]
+#					NAME			TYPE			REQUIRED	PATTERN		DB NAME		DB VALUE
+	public ?string 	$overline;	#	str							.{0,25}		=			=
+	public string 	$headline; 	#	str				*			.{1,60}		=			=
+	public ?string 	$subline;	#	str							.{0,40}		=			=
+	public ?string 	$teaser;	#	str							.*			=			=
+	public string 	$author;	#	str				*			.{1,50}		=			=
+	public string 	$timestamp;	#	str(timestamp)	*						=			=
+	public ?Image 	$image;		#	Image									image_id	Image->id
+	public ?string 	$content;	#	str							.*			=			=
+	public ?array 	$columns;	#	arr[Column]
 
 #	@inherited
 #	public $id;
@@ -80,7 +80,7 @@ class Post extends DataObject {
 	}
 
 
-	public function load($data) {
+	public function load(array $data) : void {
 		$this->req('empty');
 
 		$this->load_single($data[0]);
@@ -104,7 +104,7 @@ class Post extends DataObject {
 	}
 
 
-	public function load_single($data) {
+	public function load_single(array $data) : void {
 		$this->req('empty');
 
 		$this->id = $data['post_id'];
@@ -127,39 +127,39 @@ class Post extends DataObject {
 	}
 
 
-	public function export($block_recursion = false) {
-		$obj = (object) [];
+	// public function export(bool $block_recursion = false) : object {
+	// 	$obj = (object) [];
+	//
+	// 	$obj->id = $this->id;
+	// 	$obj->longid = $this->longid;
+	// 	$obj->overline = $this->overline;
+	// 	$obj->headline = $this->headline;
+	// 	$obj->subline = $this->subline;
+	// 	$obj->teaser = $this->teaser;
+	// 	$obj->author = $this->author;
+	// 	$obj->timestamp = $this->timestamp;
+	// 	$obj->content = $this->content;
+	//
+	// 	if(!$this->image->is_empty()){
+	// 		$obj->image = $this->image->export();
+	// 	} else {
+	// 		$obj->image = null;
+	// 	}
+	//
+	// 	if(!$block_recursion && !empty($this->columns)){
+	// 		$obj->columns = [];
+	// 		foreach($this->columns as $column){
+	// 			$obj->columns[] = $column->export(true);
+	// 		}
+	// 	}
+	//
+	// 	$obj->relations = $this->relationlist->export();
+	//
+	// 	return $obj;
+	// }
 
-		$obj->id = $this->id;
-		$obj->longid = $this->longid;
-		$obj->overline = $this->overline;
-		$obj->headline = $this->headline;
-		$obj->subline = $this->subline;
-		$obj->teaser = $this->teaser;
-		$obj->author = $this->author;
-		$obj->timestamp = $this->timestamp;
-		$obj->content = $this->content;
 
-		if(!$this->image->is_empty()){
-			$obj->image = $this->image->export();
-		} else {
-			$obj->image = null;
-		}
-
-		if(!$block_recursion && !empty($this->columns)){
-			$obj->columns = [];
-			foreach($this->columns as $column){
-				$obj->columns[] = $column->export(true);
-			}
-		}
-
-		$obj->relations = $this->relationlist->export();
-
-		return $obj;
-	}
-
-
-	protected function db_export() {
+	protected function db_export() : array {
 		$values = [
 			'id' => $this->id,
 			'overline' => $this->overline,
@@ -185,7 +185,7 @@ class Post extends DataObject {
 	}
 
 
-	protected function push_children() {
+	protected function push_children() : void {
 		if($this->image->is_new()){
 			$this->image->push();
 		}

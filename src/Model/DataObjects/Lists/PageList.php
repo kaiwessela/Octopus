@@ -15,7 +15,7 @@ class PageList extends DataObjectList {
 	const OBJECTS_ALIAS = 'pages';
 
 
-	protected static function load_each($data) {
+	protected static function load_each(array $data) : Page {
 		$obj = new Page();
 		$obj->load_single($data);
 		return $obj;

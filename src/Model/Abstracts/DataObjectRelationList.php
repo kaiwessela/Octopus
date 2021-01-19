@@ -6,11 +6,11 @@ use \Blog\Model\Abstracts\DataObjectRelation;
 use \Blog\Model\Exceptions\InputFailedException;
 
 abstract class DataObjectRelationList {
-	public $relations;
+	public ?array $relations;
 
-	private $insertions;
-	private $deletions;
-	private $updates;
+	private ?array $insertions;
+	private ?array $deletions;
+	private ?array $updates;
 
 	const UNIQUE = true;
 
@@ -21,11 +21,11 @@ abstract class DataObjectRelationList {
 		$this->relations = [];
 	}
 
-	public function load($relations) {
+	public function load($relations) : void {
 		$this->relations = $relations;
 	}
 
-	public function push() {
+	public function push() : void {
 		$pdo = $this->open_pdo();
 
 		// TEMP
@@ -48,19 +48,27 @@ abstract class DataObjectRelationList {
 		}
 	}
 
-	public function export() {
-		$export = [];
-		foreach($this->relations as $relation){
-			if(empty($relation)){
-				continue;
-			}
+	public function export() : array {
+		$this->disabled = true;
 
-			$export[] = $relation->export();
+		foreach($this->relations as $relation){
+			$relation->export();
 		}
-		return $export;
+
+		return $this->relations;
+
+		// $export = [];
+		// foreach($this->relations as $relation){
+		// 	if(empty($relation)){
+		// 		continue;
+		// 	}
+		//
+		// 	$export[] = $relation->export();
+		// }
+		// return $export;
 	}
 
-	public function import($data, DataObject $object) {
+	public function import(array $data, DataObject $object) : void {
 
 
 		$errors = new InputFailedException();

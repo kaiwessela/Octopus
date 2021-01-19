@@ -200,7 +200,8 @@ label .conditions {
 
 input,
 textarea,
-div.pseudoinput {
+div.pseudoinput,
+div.relationinput {
 	display: block;
 	max-width: 100%;
 	margin: 0.5rem 0 1rem;
@@ -397,13 +398,13 @@ img {
 	display: none;
 }
 
-.listitem {
+.relation {
 	margin: 0;
 	padding: 0;
 	border-bottom: 1px solid var(--gray);
 }
 
-.listitem:last-of-type {
+.relation:last-of-type {
 	margin-bottom: 0.5rem;
 }
 

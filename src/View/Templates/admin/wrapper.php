@@ -142,7 +142,7 @@
 ?>
 
 		</main>
-		
+
 		<footer>
 			<p>
 				Diese Seite nutzt »Blog« von Kai Florian Wessela in der Version <?= $server->version ?>.<br>
@@ -155,11 +155,14 @@
 		<script src="<?= $server->url ?>/resources/js/admin/GetClass.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/DataObject.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Image.js"></script>
+		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Person.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/Modal.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/Pagination.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/SelectModal.js"></script>
+		<script src="<?= $server->url ?>/resources/js/admin/MultiSelectModal.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/UploadModal.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/PseudoInput.js"></script>
+		<script src="<?= $server->url ?>/resources/js/admin/RelationInput.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/TimeInput.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/invoke.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/validate.js"></script>

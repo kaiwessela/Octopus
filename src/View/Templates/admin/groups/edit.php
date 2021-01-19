@@ -54,7 +54,70 @@
 		<span class="name">Mitglieder</span>
 		<span class="conditions">optional</span>
 	</label>
+	<div class="relationinput nojs" data-type="Person" data-for="persons" data-selectmodal="persons-select">
+		<div class="objects">
+			<template>
+				<div class="relation">
+					<input type="hidden" name="persons[{{i}}][person_id]" value="{{id}}">
+					<input type="hidden" name="persons[{{i}}][group_id]" value="<?= $Object->id ?>">
+					<p>{{name}} – {{longid}}</p>
+
+					<label class="radiobodge turn-around blue">
+						<span class="label-field">Keine Änderung</span>
+						<input type="radio" name="persons[{{i}}][action]" value="ignore">
+						<span class="bodgeradio"><span class="bodgetick"></span></span>
+					</label>
+
+					<label class="radiobodge turn-around green">
+						<span class="label-field">Hinzufügen</span>
+						<input type="radio" name="persons[{{i}}][action]" value="new" checked>
+						<span class="bodgeradio"><span class="bodgetick"></span></span>
+					</label>
+
+					<label class="radiobodge turn-around yellow">
+						<span class="label-field">Bearbeiten</span>
+						<input type="radio" name="persons[{{i}}][action]" value="edit" disabled>
+						<span class="bodgeradio"><span class="bodgetick"></span></span>
+					</label>
+
+					<label class="radiobodge turn-around red">
+						<span class="label-field">Entfernen</span>
+						<input type="radio" name="persons[{{i}}][action]" value="delete" disabled>
+						<span class="bodgeradio"><span class="bodgetick"></span></span>
+					</label>
+				</div>
+			</template>
+		</div>
+		<button type="button" class="new blue" data-action="select">Person(en) hinzufügen</button>
+	</div>
 
 
 	<button type="submit" class="green">Speichern</button>
 </form>
+
+<div class="modal multiselectmodal nojs" data-name="persons-select" data-type="Person" data-objectsperpage="1">
+	<div class="box">
+		<h2>Personen auswählen</h2>
+		<form action="#" method="GET">
+			<section class="objects">
+				<template>
+					<article>
+						<label class="checkbodge turn-around">
+							<span class="label-field">{{name}} – {{longid}}</span>
+							<input type="checkbox" name="result" value="{{id}}">
+							<span class="bodgecheckbox">
+								<span class="bodgetick">
+									<span class="bodgetick-down"></span>
+									<span class="bodgetick-up"></span>
+								</span>
+							</span>
+						</label>
+					</article>
+				</template>
+			</section>
+			<button type="button" data-action="loadmore">Weitere Personen laden</button><br>
+			<button type="submit" data-action="submit" class="blue">Auswählen</button>
+			<button type="button" data-action="close" class="red">Schließen</button>
+		</form>
+	</div>
+</div>

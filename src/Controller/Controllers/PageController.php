@@ -10,7 +10,7 @@ class PageController extends Controller {
 
 	protected function export_each($page) {
 		$export = $page->export();
-		$export->content = new MarkdownContent($page->content);
+		// $export->content = new MarkdownContent($page->content);
 
 		return $export;
 	}

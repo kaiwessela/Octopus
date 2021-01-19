@@ -14,13 +14,13 @@
 		</span>
 	</label>
 	<input type="text" size="40" autocomplete="off"
-		id="longid" name="longid" value="<?= $Post->longid ?>"
+		id="longid" name="longid" value="<?= $Post?->longid ?>"
 		minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required>
 
 <?php } else { ?>
 
-	<input type="hidden" name="id" value="<?= $Post->id ?>">
-	<input type="hidden" name="longid" value="<?= $Post->longid ?>">
+	<input type="hidden" name="id" value="<?= $Post?->id ?>">
+	<input type="hidden" name="longid" value="<?= $Post?->longid ?>">
 
 <?php } ?>
 
@@ -34,7 +34,7 @@
 		</span>
 	</label>
 	<input type="text" size="20"
-		id="overline" name="overline" value="<?= $Post->overline ?>"
+		id="overline" name="overline" value="<?= $Post?->overline ?>"
 		maxlength="25">
 
 	<!-- HEADLINE -->
@@ -47,7 +47,7 @@
 		</span>
 	</label>
 	<input type="text" size="40"
-		id="headline" name="headline" value="<?= $Post->headline ?>"
+		id="headline" name="headline" value="<?= $Post?->headline ?>"
 		maxlength="60" required>
 
 	<!-- SUBLINE -->
@@ -60,7 +60,7 @@
 		</span>
 	</label>
 	<input type="text" size="30"
-		id="subline" name="subline" value="<?= $Post->subline ?>"
+		id="subline" name="subline" value="<?= $Post?->subline ?>"
 		maxlength="40">
 
 	<!-- TEASER -->
@@ -73,7 +73,7 @@
 		</span>
 	</label>
 	<textarea id="teaser" name="teaser"
-		cols="50" rows="3"><?= $Post->teaser ?></textarea>
+		cols="50" rows="3"><?= $Post?->teaser ?></textarea>
 
 	<!-- AUTHOR -->
 	<label for="author">
@@ -82,7 +82,7 @@
 		<span class="infos">Der Autor des Artikels.</span>
 	</label>
 	<input type="text" size="30"
-		id="author" name="author" value="<?= $Post->author ?>"
+		id="author" name="author" value="<?= $Post?->author ?>"
 		maxlength="50" required>
 
 	<!-- TIMESTAMP -->
@@ -96,7 +96,7 @@
 		</span>
 	</label>
 	<input type="text" class="timeinput" size="19"
-		id="timestamp" name="timestamp" value="<?= $Post->timestamp ?>"
+		id="timestamp" name="timestamp" value="<?= $Post?->timestamp ?>"
 		required>
 
 	<!-- IMAGE -->
@@ -109,7 +109,7 @@
 		</span>
 	</label>
 	<input type="text" class="imageinput" size="8"
-		id="image_id" name="image_id" value="<?= $Post->image->id ?>"
+		id="image_id" name="image_id" value="<?= $Post?->image?->id ?>"
 		minlength="8" maxlength="8">
 
 	<!-- CONTENT -->
@@ -122,7 +122,7 @@
 		<span class="infos">Der eigentliche Inhalt des Artikels</span>
 	</label>
 	<textarea id="content" name="content"
-		cols="80" rows="20"><?= $Post->content ?></textarea>
+		cols="80" rows="20"><?= $Post?->content ?></textarea>
 
 	<!-- COLUMNS -->
 	<label>

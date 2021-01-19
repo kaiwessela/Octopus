@@ -14,13 +14,13 @@
 		</span>
 	</label>
 	<input type="text" size="40" autocomplete="off"
-		id="longid" name="longid" value="<?= $Group->longid ?>"
+		id="longid" name="longid" value="<?= $Group?->longid ?>"
 		minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required>
 
 <?php } else { ?>
 
-	<input type="hidden" name="id" value="<?= $Group->id ?>">
-	<input type="hidden" name="longid" value="<?= $Group->longid ?>">
+	<input type="hidden" name="id" value="<?= $Group?->id ?>">
+	<input type="hidden" name="longid" value="<?= $Group?->longid ?>">
 
 <?php } ?>
 
@@ -33,7 +33,7 @@
 		</span>
 	</label>
 	<input type="text" size="30"
-		id="name" name="name" value="<?= $Group->name ?>"
+		id="name" name="name" value="<?= $Group?->name ?>"
 		maxlength="30" required>
 
 	<!-- DESCRIPTION -->
@@ -46,7 +46,7 @@
 	</label>
 	<textarea id="description" name="description"
 		cols="50" rows="3">
-		<?= $Group->description ?>
+		<?= $Group?->description ?>
 	</textarea>
 
 	<!-- MEMBERS -->

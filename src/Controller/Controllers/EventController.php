@@ -10,7 +10,7 @@ class EventController extends Controller {
 
 	protected function export_each($event) {
 		$export = $event->export();
-		$export->timestamp = new Timestamp($event->timestamp);
+		// $export->timestamp = new Timestamp($event->timestamp);
 
 		return $export;
 	}

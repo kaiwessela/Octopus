@@ -14,13 +14,13 @@
 		</span>
 	</label>
 	<input type="text" size="40" autocomplete="off"
-		id="longid" name="longid" value="<?= $Person->longid ?>"
+		id="longid" name="longid" value="<?= $Person?->longid ?>"
 		minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required>
 
 <?php } else { ?>
 
-	<input type="hidden" name="id" value="<?= $Person->id ?>">
-	<input type="hidden" name="longid" value="<?= $Person->longid ?>">
+	<input type="hidden" name="id" value="<?= $Person?->id ?>">
+	<input type="hidden" name="longid" value="<?= $Person?->longid ?>">
 
 <?php } ?>
 
@@ -33,7 +33,7 @@
 		</span>
 	</label>
 	<input type="text" size="30"
-		id="name" name="name" value="<?= $Person->name ?>"
+		id="name" name="name" value="<?= $Person?->name ?>"
 		maxlength="50" required>
 
 	<!-- IMAGE -->
@@ -45,7 +45,7 @@
 		</span>
 	</label>
 	<input type="text" class="imageinput" size="8"
-		id="image_id" name="image_id" value="<?= $Person->image?->id ?>"
+		id="image_id" name="image_id" value="<?= $Person?->image?->id ?>"
 		minlength="8" maxlength="8">
 
 	<button type="submit" class="green">Speichern</button>

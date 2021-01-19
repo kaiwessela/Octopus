@@ -12,12 +12,12 @@ class PostController extends Controller {
 
 	protected function export_each($post) {
 		$export = $post->export();
-		$export->timestamp = new Timestamp($post->timestamp);
-		$export->content = new MarkdownContent($post->content);
-
-		if(!$post->image->is_empty()){
-			$export->image = new Picture($post->image);
-		}
+		// $export->timestamp = new Timestamp($post->timestamp);
+		// $export->content = new MarkdownContent($post->content);
+		//
+		// if(!$post->image->is_empty()){
+		// 	$export->image = new Picture($post->image);
+		// }
 
 		return $export;
 	}

@@ -14,13 +14,13 @@
 		</span>
 	</label>
 	<input type="text" size="40" autocomplete="off"
-		id="longid" name="longid" value="<?= $Event->longid ?>"
+		id="longid" name="longid" value="<?= $Event?->longid ?>"
 		minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required>
 
 <?php } else { ?>
 
-	<input type="hidden" name="id" value="<?= $Event->id ?>">
-	<input type="hidden" name="longid" value="<?= $Event->longid ?>">
+	<input type="hidden" name="id" value="<?= $Event?->id ?>">
+	<input type="hidden" name="longid" value="<?= $Event?->longid ?>">
 
 <?php } ?>
 
@@ -31,7 +31,7 @@
 		<span class="infos">Der Titel der Veranstaltung.</span>
 	</label>
 	<input type="text" size="40"
-		id="title" name="title" value="<?= $Event->title ?>"
+		id="title" name="title" value="<?= $Event?->title ?>"
 		maxlength="50" required>
 
 	<!-- ORGANISATION -->
@@ -41,7 +41,7 @@
 		<span class="infos">Die Organisation, die zur Veranstaltung eingeladen hat.</span>
 	</label>
 	<input type="text" size="30"
-		id="organisation" name="organisation" value="<?= $Event->organisation ?>"
+		id="organisation" name="organisation" value="<?= $Event?->organisation ?>"
 		maxlength="40" required>
 
 	<!-- TIMESTAMP -->
@@ -51,7 +51,7 @@
 		<span class="infos">Datum und Uhrzeit der Veranstaltung.</span>
 	</label>
 	<input type="text" size="19"
-		id="timestamp" name="timestamp" value="<?= $Event->timestamp ?>" required>
+		id="timestamp" name="timestamp" value="<?= $Event?->timestamp ?>" required>
 
 	<!-- LOCATION -->
 	<label for="location">
@@ -60,7 +60,7 @@
 		<span class="infos">Der Ort der Veranstaltung.</span>
 	</label>
 	<input type="text" size="40"
-		id="location" name="location" value="<?= $Event->location ?>"
+		id="location" name="location" value="<?= $Event?->location ?>"
 		maxlength="60">
 
 	<!-- DESCRIPTION -->
@@ -70,7 +70,7 @@
 		<span class="infos">Beschreibung der Veranstaltung.</span>
 	</label>
 	<textarea id="description" name="description"
-		cols="60" rows="5"><?= $Event->description ?></textarea>
+		cols="60" rows="5"><?= $Event?->description ?></textarea>
 
 	<!-- CANCELLED -->
 	<label for="cancelled">
@@ -81,7 +81,7 @@
 	<label class="checkbodge turn-around">
 		<span class="label-field">Ja</span>
 		<input type="checkbox" id="cancelled" name="cancelled" value="true"
-			<?php if($Event->cancelled){ echo 'checked'; } ?>>
+			<?php if($Event?->cancelled){ echo 'checked'; } ?>>
 		<span class="bodgecheckbox">
 			<span class="bodgetick">
 				<span class="bodgetick-down"></span>

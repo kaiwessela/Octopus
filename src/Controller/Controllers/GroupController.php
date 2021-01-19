@@ -13,13 +13,13 @@ class GroupController extends Controller {
 	protected function export_each($group) {
 		$export = $group->export();
 
-		if(!empty($group->persons)){
-			foreach($group->persons as $i => $person){
-				if(!$person->image->is_empty()){
-					$export->persons[$i]->image = new Picture($person->image);
-				}
-			}
-		}
+		// if(!empty($group->persons)){
+		// 	foreach($group->persons as $i => $person){
+		// 		if(!$person->image->is_empty()){
+		// 			$export->persons[$i]->image = new Picture($person->image);
+		// 		}
+		// 	}
+		// }
 
 		return $export;
 	}

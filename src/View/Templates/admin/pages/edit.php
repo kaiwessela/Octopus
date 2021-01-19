@@ -15,13 +15,13 @@
 		</span>
 	</label>
 	<input type="text" size="40" autocomplete="off"
-		id="longid" name="longid" value="<?= $Page->longid ?>"
+		id="longid" name="longid" value="<?= $Page?->longid ?>"
 		minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required>
 
 <?php } else { ?>
 
-	<input type="hidden" name="id" value="<?= $Page->id ?>">
-	<input type="hidden" name="longid" value="<?= $Page->longid ?>">
+	<input type="hidden" name="id" value="<?= $Page?->id ?>">
+	<input type="hidden" name="longid" value="<?= $Page?->longid ?>">
 
 <?php } ?>
 
@@ -35,7 +35,7 @@
 		</span>
 	</label>
 	<input type="text" size="40"
-		id="title" name="title" value="<?= $Page->title ?>"
+		id="title" name="title" value="<?= $Page?->title ?>"
 		maxlength="60" required>
 
 	<!-- CONTENT -->
@@ -48,7 +48,7 @@
 		<span class="infos">Der eigentliche Inhalt der Seite.</span>
 	</label>
 	<textarea id="content" name="content"
-		cols="80" rows="20"><?= $Page->content ?></textarea>
+		cols="80" rows="20"><?= $Page?->content ?></textarea>
 
 	<button type="submit" class="blue">Speichern</button>
 </form>

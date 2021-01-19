@@ -14,13 +14,13 @@
 		</span>
 	</label>
 	<input type="text" size="40" autocomplete="off"
-		id="longid" name="longid" value="<?= $Column->longid ?>"
+		id="longid" name="longid" value="<?= $Column?->longid ?>"
 		minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required>
 
 <?php } else { ?>
 
-	<input type="hidden" name="id" value="<?= $Column->id ?>">
-	<input type="hidden" name="longid" value="<?= $Column->longid ?>">
+	<input type="hidden" name="id" value="<?= $Column?->id ?>">
+	<input type="hidden" name="longid" value="<?= $Column?->longid ?>">
 
 <?php } ?>
 
@@ -33,7 +33,7 @@
 		</span>
 	</label>
 	<input type="text" size="30"
-		id="name" name="name" value="<?= $Column->name ?>"
+		id="name" name="name" value="<?= $Column?->name ?>"
 		maxlength="30" required>
 
 	<!-- DESCRIPTION -->
@@ -45,7 +45,7 @@
 		</span>
 	</label>
 	<textarea id="description" name="description"
-		cols="50" rows="3"><?= $Column->description ?></textarea>
+		cols="50" rows="3"><?= $Column?->description ?></textarea>
 
 	<button type="submit" class="green">Speichern</button>
 </form>

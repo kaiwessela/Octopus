@@ -15,13 +15,13 @@
 		</span>
 	</label>
 	<input type="text" size="40" autocomplete="off"
-		id="longid" name="longid" value="<?= $Image->longid ?>"
+		id="longid" name="longid" value="<?= $Image?->longid ?>"
 		minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required>
 
 <?php } else { ?>
 
-	<input type="hidden" id="id" name="id" value="<?= $Image->id ?>">
-	<input type="hidden" id="longid" name="longid" value="<?= $Image->longid ?>">
+	<input type="hidden" id="id" name="id" value="<?= $Image?->id ?>">
+	<input type="hidden" id="longid" name="longid" value="<?= $Image?->longid ?>">
 
 <?php } ?>
 
@@ -35,7 +35,7 @@
 		</span>
 	</label>
 	<input type="text" size="60"
-		id="description" name="description" value="<?= $Image->description ?>"
+		id="description" name="description" value="<?= $Image?->description ?>"
 		maxlength="100">
 
 	<!-- COPYRIGHT -->
@@ -48,7 +48,7 @@
 		</span>
 	</label>
 	<input type="text" size="50"
-		id="copyright" name="copyright" value="<?= $Image->copyright ?>"
+		id="copyright" name="copyright" value="<?= $Image?->copyright ?>"
 		maxlength="100">
 
 
@@ -69,5 +69,5 @@
 
 <?php if($ImageController->request->action == 'edit'){ ?>
 <br>
-<img src="<?= $server->url . $server->dyn_img_path . "$Image->longid/original.$Image->extension" ?>" alt="[ANZEIGEFEHLER]">
+<img src="<?= $server->url . $server->dyn_img_path . "$Image?->longid/original.$Image?->extension" ?>" alt="[ANZEIGEFEHLER]">
 <?php } ?>

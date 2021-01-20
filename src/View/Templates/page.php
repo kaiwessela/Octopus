@@ -7,7 +7,7 @@
 	<body>
 		<?php include COMPONENT_PATH . 'header.php'; ?>
 		<main>
-			<?= $Page->content->parsed ?>
+			<?= $Page->content?->parse() ?>
 		</main>
 		<?php include COMPONENT_PATH . 'footer.php'; ?>
 		<?php include COMPONENT_PATH . 'scripts.php'; ?>

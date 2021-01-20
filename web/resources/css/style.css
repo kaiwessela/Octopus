@@ -395,6 +395,11 @@ body > footer ul.link-list li {
 	list-style-type: none;
 }
 
+article p:empty,
+article span:empty {
+	display: none;
+}
+
 article:not(.preview) > p {
 	grid-column: text-start / text-end;
 	font-size: 1.3rem;

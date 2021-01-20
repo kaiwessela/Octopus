@@ -50,7 +50,7 @@ class Router {
 		}
 
 		$this->set_template($this->route['template']);
-		$this->set_auth($this->route['auth']);
+		$this->set_auth($this->route['auth'] ?? false);
 
 		foreach($this->route['controllers'] as $class => $settings){
 			$class = $this->resolve_substitutions($class);

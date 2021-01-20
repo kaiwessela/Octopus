@@ -27,7 +27,7 @@
 				}
 				?>
 
-				<?php if(empty($Column->posts)){ ?>
+				<?php if(!$Column->posts){ ?>
 				<p>Keine Artikel gefunden.</p>
 				<?php } ?>
 

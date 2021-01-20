@@ -95,7 +95,7 @@
 			zur terminierten Veröffentlichung geplant.
 		</span>
 	</label>
-	<input type="text" class="timeinput" size="19"
+	<input type="text" size="19"
 		id="timestamp" name="timestamp" value="<?= $Post?->timestamp ?>"
 		required>
 

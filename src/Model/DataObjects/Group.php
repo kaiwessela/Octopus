@@ -19,6 +19,7 @@ class Group extends DataObject {
 #
 #	private $new;
 #	private $empty;
+#	private $disabled;
 #
 #	private $relationlist;
 #
@@ -41,7 +42,6 @@ class Group extends DataObject {
 
 	function __construct() {
 		parent::__construct();
-		$this->persons = [];
 		$this->relationlist = new PersonGroupRelationList();
 	}
 
@@ -81,32 +81,6 @@ class Group extends DataObject {
 		$this->set_new(false);
 		$this->set_empty(false);
 	}
-
-
-	// public function export(bool $block_recursion = false) : object {
-	// 	$obj = (object) [];
-	//
-	// 	$obj->id = $this->id;
-	// 	$obj->longid = $this->longid;
-	// 	$obj->name = $this->name;
-	// 	$obj->description = $this->description;
-	//
-	// 	$obj->relations = $this->relationlist->export();
-	//
-	// 	if(!$block_recursion && !empty($this->persons)){
-	// 		$obj->persons = [];
-	// 		foreach($this->persons as $i => $person){
-	// 			$member = $person->export(true);
-	// 			$member->role = $obj->relations[$i]['role'];
-	// 			$member->number = $obj->relations[$i]['number']; // FIXME to object
-	//
-	// 			$obj->persons[] = $member;
-	// 		}
-	// 	}
-	//
-	//
-	// 	return $obj;
-	// }
 
 
 	protected function db_export() : array {

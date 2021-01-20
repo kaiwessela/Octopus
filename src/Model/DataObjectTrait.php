@@ -12,7 +12,7 @@ use InvalidArgumentException;
 use Exception;
 use PDO;
 
-trait DataObjectTrait {
+trait DataObjectTrait { // TODO move into Abstracts
 
 	protected function open_pdo() {
 		if($this->disabled){

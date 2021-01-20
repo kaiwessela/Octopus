@@ -1,16 +1,17 @@
 <?php
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\DataTypes\Timestamp;
 
 class Event extends DataObject {
 
-#					NAME				TYPE			REQUIRED	PATTERN		DB NAME		DB VALUE
-	public string 	$title;			#	str				*			.{1,50}		=			=
-	public string 	$organisation;	#	str				*			.{1,40}		=			=
-	public string 	$timestamp;		#	str(timestamp)	*						=			=
-	public ?string 	$location;		#	str							.{0,60}		=			=
-	public ?string 	$description;	#	str										=			=
-	public ?bool 	$cancelled;		#	bool									=			= (int)
+#						NAME				TYPE			REQUIRED	PATTERN		DB NAME		DB VALUE
+	public string 		$title;			#	str				*			.{1,50}		=			=
+	public string 		$organisation;	#	str				*			.{1,40}		=			=
+	public Timestamp 	$timestamp;		#	str(timestamp)	*						=			=
+	public ?string 		$location;		#	str							.{0,60}		=			=
+	public ?string 		$description;	#	str										=			=
+	public ?bool 		$cancelled;		#	bool									=			= (int)
 
 #	@inherited
 #	public $id;
@@ -18,6 +19,7 @@ class Event extends DataObject {
 #
 #	private $new;
 #	private $empty;
+#	private $disabled;
 #
 #	private $relationlist;
 
@@ -67,7 +69,7 @@ class Event extends DataObject {
 		$this->longid = $data['event_longid'];
 		$this->title = $data['event_title'];
 		$this->organisation = $data['event_organisation'];
-		$this->timestamp = $data['event_timestamp'];
+		$this->timestamp = new Timestamp($data['event_timestamp']);
 		$this->location = $data['event_location'];
 		$this->description = $data['event_description'];
 		$this->cancelled = (bool) $data['event_cancelled'];
@@ -77,28 +79,12 @@ class Event extends DataObject {
 	}
 
 
-	// public function export(bool $block_recursion = false) : object {
-	// 	$obj = (object) [];
-	//
-	// 	$obj->id = $this->id;
-	// 	$obj->longid = $this->longid;
-	// 	$obj->title = $this->title;
-	// 	$obj->organisation = $this->organisation;
-	// 	$obj->timestamp = $this->timestamp;
-	// 	$obj->location = $this->location;
-	// 	$obj->description = $this->description;
-	// 	$obj->cancelled = $this->cancelled;
-	//
-	// 	return $obj;
-	// }
-
-
 	protected function db_export() : array {
 		$values = [
 			'id' => $this->id,
 			'title' => $this->title,
 			'organisation' => $this->organisation,
-			'timestamp' => $this->timestamp,
+			'timestamp' => (string) $this->timestamp,
 			'location' => $this->location,
 			'description' => $this->description,
 			'cancelled' => (int) $this->cancelled

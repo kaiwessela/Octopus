@@ -4,8 +4,8 @@
 	<strong><?= $obj?->subline ?></strong>
 	<small>
 		Von <?= $obj->author ?> –
-		<time datetime="<?= $obj->timestamp->iso ?>">
-			<?= $obj->timestamp->datetime ?>
+		<time datetime="<?= $obj->timestamp->iso() ?>">
+			<?= $obj->timestamp->format('datetime') ?>
 		</time>
 	</small>
 	<div>

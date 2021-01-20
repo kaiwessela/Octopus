@@ -5,19 +5,21 @@ use \Blog\Model\DataObjects\Image;
 use \Blog\Model\DataObjects\Column;
 use \Blog\Model\DataObjects\Relations\PostColumnRelation;
 use \Blog\Model\DataObjects\Relations\Lists\PostColumnRelationList;
+use \Blog\Model\DataTypes\Timestamp;
+use \Blog\Model\DataTypes\MarkdownContent;
 
 class Post extends DataObject {
 
-#					NAME			TYPE			REQUIRED	PATTERN		DB NAME		DB VALUE
-	public ?string 	$overline;	#	str							.{0,25}		=			=
-	public string 	$headline; 	#	str				*			.{1,60}		=			=
-	public ?string 	$subline;	#	str							.{0,40}		=			=
-	public ?string 	$teaser;	#	str							.*			=			=
-	public string 	$author;	#	str				*			.{1,50}		=			=
-	public string 	$timestamp;	#	str(timestamp)	*						=			=
-	public ?Image 	$image;		#	Image									image_id	Image->id
-	public ?string 	$content;	#	str							.*			=			=
-	public ?array 	$columns;	#	arr[Column]
+#							NAME			TYPE			REQUIRED	PATTERN		DB NAME		DB VALUE
+	public ?string 			$overline;	#	str							.{0,25}		=			=
+	public string 			$headline; 	#	str				*			.{1,60}		=			=
+	public ?string 			$subline;	#	str							.{0,40}		=			=
+	public ?string 			$teaser;	#	str							.*			=			=
+	public string 			$author;	#	str				*			.{1,50}		=			=
+	public Timestamp 		$timestamp;	#	str(timestamp)	*						=			=
+	public ?Image 			$image;		#	Image									image_id	Image->id
+	public ?MarkdownContent $content;	#	str							.*			=			=
+	public ?array 			$columns;	#	arr[Column]
 
 #	@inherited
 #	public $id;
@@ -25,6 +27,7 @@ class Post extends DataObject {
 #
 #	private $new;
 #	private $empty;
+#	private $disabled;
 #
 #	private $relationlist;
 
@@ -74,8 +77,6 @@ class Post extends DataObject {
 
 	function __construct() {
 		parent::__construct();
-		$this->image = new Image();
-		$this->columns = [];
 		$this->relationlist = new PostColumnRelationList();
 	}
 
@@ -114,49 +115,18 @@ class Post extends DataObject {
 		$this->subline = $data['post_subline'];
 		$this->teaser = $data['post_teaser'];
 		$this->author = $data['post_author'];
-		$this->timestamp = $data['post_timestamp'];
 
-		if(!empty($data['image_id'])){
-			$this->image->load_single($data);
-		}
+		$this->timestamp = new Timestamp($data['post_timestamp']);
 
-		$this->content = $data['post_content'];
+		$this->image = empty($data['image_id']) ? null : new Image();
+		$this->image?->load_single($data);
+
+		$this->content = empty($data['post_content'])
+			? null : new MarkdownContent($data['post_content']);
 
 		$this->set_new(false);
 		$this->set_empty(false);
 	}
-
-
-	// public function export(bool $block_recursion = false) : object {
-	// 	$obj = (object) [];
-	//
-	// 	$obj->id = $this->id;
-	// 	$obj->longid = $this->longid;
-	// 	$obj->overline = $this->overline;
-	// 	$obj->headline = $this->headline;
-	// 	$obj->subline = $this->subline;
-	// 	$obj->teaser = $this->teaser;
-	// 	$obj->author = $this->author;
-	// 	$obj->timestamp = $this->timestamp;
-	// 	$obj->content = $this->content;
-	//
-	// 	if(!$this->image->is_empty()){
-	// 		$obj->image = $this->image->export();
-	// 	} else {
-	// 		$obj->image = null;
-	// 	}
-	//
-	// 	if(!$block_recursion && !empty($this->columns)){
-	// 		$obj->columns = [];
-	// 		foreach($this->columns as $column){
-	// 			$obj->columns[] = $column->export(true);
-	// 		}
-	// 	}
-	//
-	// 	$obj->relations = $this->relationlist->export();
-	//
-	// 	return $obj;
-	// }
 
 
 	protected function db_export() : array {
@@ -167,15 +137,10 @@ class Post extends DataObject {
 			'subline' => $this->subline,
 			'teaser' => $this->teaser,
 			'author' => $this->author,
-			'timestamp' => $this->timestamp,
-			'content' => $this->content
+			'timestamp' => (string) $this->timestamp,
+			'image_id' => $this->image?->id,
+			'content' => (string) $this->content
 		];
-
-		if(!$this->image->is_empty()){
-			$values['image_id'] = $this->image->id;
-		} else {
-			$values['image_id'] = null;
-		}
 
 		if($this->is_new()){
 			$values['longid'] = $this->longid;
@@ -186,7 +151,7 @@ class Post extends DataObject {
 
 
 	protected function push_children() : void {
-		if($this->image->is_new()){
+		if($this->image?->is_new()){
 			$this->image->push();
 		}
 	}

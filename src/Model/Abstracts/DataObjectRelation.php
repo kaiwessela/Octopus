@@ -41,7 +41,7 @@ abstract class DataObjectRelation {
 		$this->set_empty(false);
 	}
 
-	public function load(DataObject $object1, DataObject $object2, $data = []) : void {
+	public function load(DataObject $object1, DataObject $object2, array $data = []) : void {
 		$this->req('empty');
 
 		$this->set_object($object1);
@@ -201,7 +201,7 @@ abstract class DataObjectRelation {
 	}
 
 
-	public function export() : array { // TODO add description
+	public function export() : DataObjectRelation { // TODO add description
 		if($this->is_empty()){
 			return null;
 		}

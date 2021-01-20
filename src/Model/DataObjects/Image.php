@@ -5,6 +5,8 @@ use \Blog\Model\Exceptions\InputException;
 use \Blog\Model\Exceptions\InputFailedException;
 use \Blog\Model\ImageManager;
 use \Blog\Model\ImageManager\Exceptions\ImageManagerException;
+use \Blog\Config\ImageManager as ImageManagerConfig;
+use \Blog\Config\Config;
 
 class Image extends DataObject {
 
@@ -20,6 +22,7 @@ class Image extends DataObject {
 #
 #	private $new;
 #	private $empty;
+#	private $disabled;
 #
 #	private $relationlist;
 
@@ -70,6 +73,7 @@ class Image extends DataObject {
 		$this->load_single($data[0]);
 	}
 
+
 	public function load_single(array $data) : void {
 		$this->req('empty');
 
@@ -84,6 +88,7 @@ class Image extends DataObject {
 		$this->set_empty(false);
 	}
 
+
 	protected function push_children() : void {
 		if($this->is_new()){
 			$this->imagemanager->write($this->longid);
@@ -91,25 +96,13 @@ class Image extends DataObject {
 		}
 	}
 
+
 	public function delete() : void {
 		parent::delete();
 
 		$this->imagemanager = new ImageManager();
 		$this->imagemanager->erase($this->longid);
 	}
-
-	// public function export(bool $block_recursion = false) : object {
-	// 	$obj = (object) [];
-	//
-	// 	$obj->id = $this->id;
-	// 	$obj->longid = $this->longid;
-	// 	$obj->extension = $this->extension;
-	// 	$obj->description = $this->description;
-	// 	$obj->copyright = $this->copyright;
-	// 	$obj->sizes = $this->sizes;
-	//
-	// 	return $obj;
-	// }
 
 
 	protected function db_export() : array {
@@ -127,6 +120,32 @@ class Image extends DataObject {
 
 		return $values;
 	}
+
+
+	public function src(string $size = 'original') : ?string {
+		if(!in_array($size, $this->sizes)){
+			return null;
+		}
+
+		return Config::SERVER_URL . Config::DYNAMIC_IMAGE_PATH
+			. $this->longid . '/' . $size . '.' . $this->extension;
+	}
+
+
+	public function srcset() : ?string {
+		$sources = [];
+
+		foreach($this->sizes as $size){
+			if($size == 'original'){
+				continue;
+			}
+
+			$sources[] = $this->src($size) . ' ' . ImageManagerConfig::SCALINGS[$size][1] . 'w';
+		}
+
+		return implode(', ', $sources);
+	}
+	
 
 	const PULL_QUERY = <<<SQL
 SELECT * FROM images

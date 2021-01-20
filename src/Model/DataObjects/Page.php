@@ -1,12 +1,13 @@
 <?php
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\DataTypes\MarkdownContent;
 
 class Page extends DataObject {
 
-#					NAME			TYPE	REQUIRED	PATTERN		DB NAME		DB VALUE
-	public string 	$title;		#	str		*			.{1,60}		=			=
-	public ?string 	$content;	#	str								=			=
+#							NAME			TYPE	REQUIRED	PATTERN		DB NAME		DB VALUE
+	public string 			$title;		#	str		*			.{1,60}		=			=
+	public ?MarkdownContent $content;	#	str								=			=
 
 #	@inherited
 #	public $id;
@@ -14,6 +15,7 @@ class Page extends DataObject {
 #
 #	private $new;
 #	private $empty;
+#	private $disabled;
 #
 #	private $relationlist;
 
@@ -44,30 +46,20 @@ class Page extends DataObject {
 		$this->id = $data['page_id'];
 		$this->longid = $data['page_longid'];
 		$this->title = $data['page_title'];
-		$this->content = $data['page_content'];
+
+		$this->content = empty($data['page_content'])
+			? null : new MarkdownContent($data['page_content']);
 
 		$this->set_new(false);
 		$this->set_empty(false);
 	}
 
 
-	// public function export(bool $block_recursion = false) : object {
-	// 	$obj = (object) [];
-	//
-	// 	$obj->id = $this->id;
-	// 	$obj->longid = $this->longid;
-	// 	$obj->title = $this->title;
-	// 	$obj->content = $this->content;
-	//
-	// 	return $obj;
-	// }
-
-
 	protected function db_export() : array {
 		$values = [
 			'id' => $this->id,
 			'title' => $this->title,
-			'content' => $this->content
+			'content' => (string) $this->content
 		];
 
 		if($this->is_new()){

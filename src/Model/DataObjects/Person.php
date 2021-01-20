@@ -19,6 +19,7 @@ class Person extends DataObject {
 #
 #	private $new;
 #	private $empty;
+#	private $disabled;
 #
 #	private $relationlist;
 
@@ -42,8 +43,6 @@ class Person extends DataObject {
 
 	function __construct() {
 		parent::__construct();
-		$this->image = new Image();
-		$this->groups = [];
 		$this->relationlist = new PersonGroupRelationList();
 	}
 
@@ -79,52 +78,20 @@ class Person extends DataObject {
 		$this->longid = $data['person_longid'];
 		$this->name = $data['person_name'];
 
-		if(!empty($data['image_id'])){
-			$this->image->load_single($data);
-		}
+		$this->image = empty($data['image_id']) ? null : new Image();
+		$this->image?->load_single($data);
 
 		$this->set_new(false);
 		$this->set_empty(false);
 	}
 
 
-	// public function export(bool $block_recursion = false) : object {
-	// 	$obj = (object) [];
-	//
-	// 	$obj->id = $this->id;
-	// 	$obj->longid = $this->longid;
-	// 	$obj->name = $this->name;
-	//
-	// 	if(!$this->image->is_empty()){
-	// 		$obj->image = $this->image->export();
-	// 	} else {
-	// 		$obj->image = null;
-	// 	}
-	//
-	// 	if(!$block_recursion && !empty($this->groups)){
-	// 		$obj->groups = [];
-	// 		foreach($this->groups as $group){
-	// 			$obj->groups[] = $group->export(true);
-	// 		}
-	// 	}
-	//
-	// 	$obj->relations = $this->relationlist->export();
-	//
-	// 	return $obj;
-	// }
-
-
 	protected function db_export() : array {
 		$values = [
 			'id' => $this->id,
-			'name' => $this->name
+			'name' => $this->name,
+			'image_id' => $this->image?->id
 		];
-
-		if(!$this->image->is_empty()){
-			$values['image_id'] = $this->image->id;
-		} else {
-			$values['image_id'] = null;
-		}
 
 		if($this->is_new()){
 			$values['longid'] = $this->longid;
@@ -135,7 +102,7 @@ class Person extends DataObject {
 
 
 	protected function push_children() : void {
-		if($this->image->is_new()){
+		if($this->image?->is_new()){
 			$this->image->push();
 		}
 	}

@@ -18,6 +18,7 @@ class Column extends DataObject {
 #
 #	private $new;
 #	private $empty;
+#	private $disabled;
 #
 #	private $relationlist;
 #
@@ -40,7 +41,6 @@ class Column extends DataObject {
 
 	function __construct() {
 		parent::__construct();
-		$this->posts = [];
 		$this->relationlist = new PostColumnRelationList();
 	}
 
@@ -80,27 +80,6 @@ class Column extends DataObject {
 		$this->set_new(false);
 		$this->set_empty(false);
 	}
-
-
-	// public function export(bool $block_recursion = false) : object {
-	// 	$obj = (object) [];
-	//
-	// 	$obj->id = $this->id;
-	// 	$obj->longid = $this->longid;
-	// 	$obj->name = $this->name;
-	// 	$obj->description = $this->description;
-	//
-	// 	if(!$block_recursion && !empty($this->posts)){
-	// 		$obj->posts = [];
-	// 		foreach($this->posts as $post){
-	// 			$obj->posts[] = $post->export(true);
-	// 		}
-	// 	}
-	//
-	// 	$obj->relations = $this->relationlist->export();
-	//
-	// 	return $obj;
-	// }
 
 
 	protected function db_export() : array {

@@ -25,6 +25,12 @@ class Group extends DataObject {
 #
 #	const IGNORE_PULL_LIMIT = false;
 
+	const PROPERTIES = [
+		'name' => '.{1,30}',
+		'description' => null,
+		'persons' => PersonGroupRelationList::class
+	];
+
 	const FIELDS = [
 		'name' => [
 			'type' => 'string',

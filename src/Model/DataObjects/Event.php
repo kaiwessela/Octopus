@@ -25,33 +25,13 @@ class Event extends DataObject {
 
 	const IGNORE_PULL_LIMIT = true;
 
-	const FIELDS = [
-		'title' => [
-			'type' => 'string',
-			'required' => true,
-			'pattern' => '.{1,50}'
-		],
-		'organisation' => [
-			'type' => 'string',
-			'required' => true,
-			'pattern' => '.{1,40}'
-		],
-		'timestamp' => [
-			'type' => 'string',
-			'required' => true,
-			'pattern' => '[0-9]{4}-[0-9]{2}-[0-9]{2}( [0-2][0-9]:[0-5][0-9](:[0-5][0-9])?)?'
-		],
-		'location' => [
-			'type' => 'string',
-			'required' => false,
-			'pattern' => '.{0,60}'
-		],
-		'description' => [
-			'type' => 'string'
-		],
-		'cancelled' => [
-			'type' => 'boolean'
-		]
+	const PROPERTIES = [
+		'title' => '.{1,50}',
+		'organisation' => '.{1,40}',
+		'timestamp' => Timestamp::class,
+		'location' => '.{0,60}',
+		'description' => null,
+		'cancelled' => null
 	];
 
 

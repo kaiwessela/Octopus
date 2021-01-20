@@ -1,14 +1,19 @@
 <?php
 namespace Blog\Model\Abstracts;
 use \Blog\Model\DataObjectTrait;
+use \Blog\Model\Abstracts\DataType;
+use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\Abstracts\DataObjectRelationList;
 use \Blog\Model\Exceptions\DatabaseException;
+use \Blog\Model\Exceptions\InputException;
 use \Blog\Model\Exceptions\EmptyResultException;
 use \Blog\Model\Exceptions\InputFailedException;
 use \Blog\Model\Exceptions\IllegalValueException;
 use \Blog\Model\Exceptions\MissingValueException;
 use \Blog\Model\Exceptions\RelationNonexistentException;
 use InvalidArgumentException;
+use Exception;
+use TypeError;
 
 abstract class DataObject {
 
@@ -177,12 +182,9 @@ abstract class DataObject {
 	}
 
 
-	protected function push_children() : void {
+	protected function push_children() : void {}
 #	@action:
 #	  - placeholder function to be used by objects to push their children
-
-		return;
-	}
 
 
 	public function delete() : void {
@@ -203,12 +205,10 @@ abstract class DataObject {
 	}
 
 
-	protected function import_custom(string $fieldname, $data, InputFailedException $errors) : void {
-		return;
-	} // TODO
+	protected function import_custom(string $property, array $data) : void {}
 
 
-	public function import($data) : void {
+	public function import(array $data) : void {
 #	@action:
 #	  - import data received as array
 #	@params:
@@ -222,104 +222,227 @@ abstract class DataObject {
 			$errors->merge($e);
 		}
 
-		foreach($this::FIELDS as $fieldname => $fielddef){
-			$value = $data[$fieldname] ?? null;
-			$required = $fielddef['required'] ?? false;
-			$pattern = $fielddef['pattern'] ?? null;
-			$type = $fielddef['type'] ?? null;
+		foreach($this::PROPERTIES as $property => $definition){
+			$input = $data[$property] ?? null;
 
-
-			if($type === 'string' || $type === 'integer' || $type === 'boolean' || $type === 'relationlist'){
-				if(empty($value) && !$required){
-					$this->$fieldname = null;
-					continue;
-
-				} else if(empty($value) && $required){
-					$errors->push(new MissingValueException($fieldname, $pattern ?? ''));
-					continue;
-				}
+			if($definition == null){ # property is only defined by its PHP type
+				$mode = 'as-is';
+			} else if($definition == 'custom'){
+				$mode = 'custom';
+			} else if(!class_exists($definition)){ # definition is (at least should be) a regex
+				$mode = 'regex';
+			} else if(is_subclass_of($definition, DataType::class)){
+				$mode = 'datatype';
+			} else if(is_subclass_of($definition, DataObject::class)){
+				$mode = 'dataobject';
+			} else if(is_subclass_of($definition, DataObjectRelationList::class)){
+				$mode = 'relationlist';
+			} else {
+				throw new Exception("Invalid definition '$definition' for $property.");
 			}
 
-
-			if($type === 'string'){
-				if(!empty($pattern) && !preg_match("/^$pattern$/", $value)){
-					$errors->push(new IllegalValueException($fieldname, $value, $pattern));
-					continue;
-				}
-
-				$this->$fieldname = $value;
-				continue;
-
-			} else if($type === 'integer'){
-				if(!is_numeric($value)){
-					$errors->push(new IllegalValueException($fieldname, $value, '[Integer]'));
-					continue;
-				}
-
-				$this->$fieldname = (int) $value;
-				continue;
-
-			} else if($type === 'boolean'){
-				$this->$fieldname = (bool) $value;
-				continue;
-
-			} else if($type === 'relationlist'){
+			if($mode == 'custom'){
 				try {
-					$this->relationlist->import($value, $this);
+					$this->import_custom($property, $data);
 				} catch(InputFailedException $e){
-					$errors->merge($e, $fieldname);
-					continue;
+					$errors->merge($e, $property);
+				} catch(InputException $e){
+					$errors->push($e);
 				}
 
-				// NOTE: the new relations are added to this->relations but not to their actual object array, i.e. this->columns
-
 				continue;
+			}
 
-			} else if($type === 'custom'){
-				$this->import_custom($fieldname, $data, $errors);
-				continue;
-
-			} else {
+			if(empty($input) && in_array($mode, ['as-is', 'regex', 'datatype'])){
 				try {
-					$class = '\Blog\Model\DataObjects\\' . $type;
-					$obj = new $class();
-				} catch(Exception $e){
-					continue;
+					$this->$property = null;
+				} catch(TypeError $e){
+					$errors->push(new MissingValueException($property, $definition));
 				}
 
-				if(!empty($data[$fieldname . '_id']) || !empty($data[$fieldname]['id'])){
-					$id = $data[$fieldname . '_id'] ?? $data[$fieldname]['id'];
+				continue;
+			}
 
-					try {
-						$obj->pull($id);
-					} catch(EmpyResultException $e){
-						$errors->push(new RelationNonexistentException($fieldname, $id, get_class($obj)));
+			if($mode == 'regex' || $mode == 'as-is'){
+				if($mode == 'regex'){
+					$regex = "/^$definition$/";
+					if(preg_match($regex, null) === false){ # check if definition is a valid regex
+						throw new Exception("Invalid regex for $property.");
+					} else if(!preg_match($regex, $input)){
+						$errors->push(new IllegalValueException($property, $input, $definition));
 						continue;
 					}
-
-					$this->$fieldname = $obj;
-					continue;
 				}
 
-				if(empty($value) && $required){
-					$errors->push(new MissingValueException($fieldname, get_class($obj)));
-					continue;
-				}
-
-				/* FIXME cascading import. is it necessary? fix if so
 				try {
-					$obj->generate();
-					$obj->import($data);
-				} catch(InputFailedException $e){
-					$errors->merge($e, $fieldname);
+					$this->$property = $input;
+				} catch(TypeError $e){
+					$errors->push(new IllegalValueException($property, $input, $definition));
+				}
+
+				continue;
+			}
+
+			if($mode == 'datatype'){
+				try {
+					$this->$property = $definition::import($input, $errors);
+				} catch(InputException $e){
+					$e->field = $property;
+					$errors->push($e);
+				}
+
+				continue;
+			}
+
+			if($mode == 'dataobject'){
+				if(!empty($input['id']) || !empty($data[$property.'_id'])){
+					$input = $input['id'] ?? $data[$property.'_id'];
+					$object = new $definition();
+
+					try {
+						$object->pull($input);
+						$this->$property = $object;
+					} catch(EmptyResultException $e){
+						$errors->push(new RelationNonexistentException($property, $input, $definition));
+					}
+
+					continue;
+				} else if(is_array($input)){
+					$object = new $definition();
+
+					try {
+						$object->generate();
+						$object->import($input);
+						$this->$property = $object;
+					} catch(InputFailedException $e){
+						$errors->merge($e, $property);
+					}
+
+					continue;
+				} else {
+					try {
+						$this->$property = null;
+					} catch(TypeError $e){
+						$errors->push(new MissingValueException($property, $definition));
+					}
+
+					continue;
+				}
+			}
+
+			if($mode == 'relationlist') {
+				if(empty($input)){
 					continue;
 				}
 
-				$this->$fieldname = $obj;
+				try { // TODO this is not the nicest possible way, actual object list is not updated
+					$this->relationlist->import($input, $this);
+				} catch(InputFailedException $e){
+					$errors->merge($e, $property);
+				}
+
 				continue;
-				*/
 			}
 		}
+
+		// foreach($this::FIELDS as $fieldname => $fielddef){
+		// 	$value = $data[$fieldname] ?? null;
+		// 	$required = $fielddef['required'] ?? false;
+		// 	$pattern = $fielddef['pattern'] ?? null;
+		// 	$type = $fielddef['type'] ?? null;
+		//
+		//
+		// 	if($type === 'string' || $type === 'integer' || $type === 'boolean' || $type === 'relationlist'){
+		// 		if(empty($value) && !$required){
+		// 			$this->$fieldname = null;
+		// 			continue;
+		//
+		// 		} else if(empty($value) && $required){
+		// 			$errors->push(new MissingValueException($fieldname, $pattern ?? ''));
+		// 			continue;
+		// 		}
+		// 	}
+		//
+		//
+		// 	if($type === 'string'){
+		// 		if(!empty($pattern) && !preg_match("/^$pattern$/", $value)){
+		// 			$errors->push(new IllegalValueException($fieldname, $value, $pattern));
+		// 			continue;
+		// 		}
+		//
+		// 		$this->$fieldname = $value;
+		// 		continue;
+		//
+		// 	} else if($type === 'integer'){
+		// 		if(!is_numeric($value)){
+		// 			$errors->push(new IllegalValueException($fieldname, $value, '[Integer]'));
+		// 			continue;
+		// 		}
+		//
+		// 		$this->$fieldname = (int) $value;
+		// 		continue;
+		//
+		// 	} else if($type === 'boolean'){
+		// 		$this->$fieldname = (bool) $value;
+		// 		continue;
+		//
+		// 	} else if($type === 'relationlist'){
+		// 		try {
+		// 			$this->relationlist->import($value, $this);
+		// 		} catch(InputFailedException $e){
+		// 			$errors->merge($e, $fieldname);
+		// 			continue;
+		// 		}
+		//
+		// 		// NOTE: the new relations are added to this->relations but not to their actual object array, i.e. this->columns
+		//
+		// 		continue;
+		//
+		// 	} else if($type === 'custom'){
+		// 		$this->import_custom($fieldname, $data, $errors);
+		// 		continue;
+		//
+		// 	} else {
+		// 		try {
+		// 			$class = '\Blog\Model\DataObjects\\' . $type;
+		// 			$obj = new $class();
+		// 		} catch(Exception $e){
+		// 			continue;
+		// 		}
+		//
+		// 		if(!empty($data[$fieldname . '_id']) || !empty($data[$fieldname]['id'])){
+		// 			$id = $data[$fieldname . '_id'] ?? $data[$fieldname]['id'];
+		//
+		// 			try {
+		// 				$obj->pull($id);
+		// 			} catch(EmpyResultException $e){
+		// 				$errors->push(new RelationNonexistentException($fieldname, $id, get_class($obj)));
+		// 				continue;
+		// 			}
+		//
+		// 			$this->$fieldname = $obj;
+		// 			continue;
+		// 		}
+		//
+		// 		if(empty($value) && $required){
+		// 			$errors->push(new MissingValueException($fieldname, get_class($obj)));
+		// 			continue;
+		// 		}
+		//
+		// 		/* FIXME cascading import. is it necessary? fix if so
+		// 		try {
+		// 			$obj->generate();
+		// 			$obj->import($data);
+		// 		} catch(InputFailedException $e){
+		// 			$errors->merge($e, $fieldname);
+		// 			continue;
+		// 		}
+		//
+		// 		$this->$fieldname = $obj;
+		// 		continue;
+		// 		*/
+		// 	}
+		// }
 
 		if(!$errors->is_empty()){
 			throw $errors;

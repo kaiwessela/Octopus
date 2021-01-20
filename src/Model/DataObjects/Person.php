@@ -25,19 +25,10 @@ class Person extends DataObject {
 
 	const IGNORE_PULL_LIMIT = true;
 
-	const FIELDS = [
-		'name' => [
-			'type' => 'string',
-			'required' => true,
-			'pattern' => '.{1,50}'
-		],
-		'image' => [
-			'type' => 'Image',
-			'required' => false
-		],
-		'groups' => [
-			'type' => 'relationlist'
-		]
+	const PROPERTIES = [
+		'name' => '.{1,50}',
+		'image' => Image::class,
+		'groups' => PersonGroupRelationList::class
 	];
 
 

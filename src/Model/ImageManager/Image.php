@@ -3,8 +3,10 @@ namespace Blog\Model\ImageManager;
 use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\Exceptions\DatabaseException;
 use \Blog\Model\Exceptions\EmptyResultException;
-use \Blog\Config\ImageManager as IMConfig;
 use \Blog\Model\ImageManager\Exceptions\ImageManagerException;
+use \Blog\Config\ImageManager as IMConfig;
+use \Blog\Config\Config;
+use PDO;
 
 class Image {
 	public $image_id;
@@ -33,7 +35,12 @@ class Image {
 	}
 
 	public static function pull($image_id) {
-		$pdo = DataObject::open_pdo();
+		$pdo = new PDO(
+			'mysql:host=' . Config::DB_HOST . ';dbname=' . Config::DB_NAME,
+			Config::DB_USER,
+			Config::DB_PASSWORD,
+			[PDO::ATTR_PERSISTENT => true]
+		);
 
 		$query = 'SELECT * FROM imagefiles WHERE imagefile_id = :id';
 		$values = ['id' => $image_id];
@@ -51,7 +58,12 @@ class Image {
 	}
 
 	public function push() {
-		$pdo = DataObject::open_pdo();
+		$pdo = new PDO(
+			'mysql:host=' . Config::DB_HOST . ';dbname=' . Config::DB_NAME,
+			Config::DB_USER,
+			Config::DB_PASSWORD,
+			[PDO::ATTR_PERSISTENT => true]
+		);
 
 		$query = 'INSERT INTO imagefiles (imagefile_id, imagefile_data) VALUES (:id, :data)';
 		$values = ['id' => $this->image_id, 'data' => $this->data];

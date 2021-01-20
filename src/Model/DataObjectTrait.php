@@ -15,7 +15,7 @@ use PDO;
 trait DataObjectTrait { // TODO move into Abstracts
 
 	protected function open_pdo() {
-		if($this->disabled){
+		if($this->disabled == true){
 			throw new Exception('DB Access prohibited - Object is disabled.');
 		}
 

@@ -8,7 +8,7 @@ class MarkdownContent implements DataType {
 	private ?string $parsed;
 
 
-	function __construct($value) {
+	function __construct(string $value) {
 		$this->raw = $value;
 	}
 
@@ -16,8 +16,8 @@ class MarkdownContent implements DataType {
 		return $this->raw;
 	}
 
-	public function import($value) {
-
+	public static function import(string $value) : MarkdownContent {
+		return new MarkdownContent($value);
 	}
 
 	public function parse() : string {

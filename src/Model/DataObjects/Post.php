@@ -33,45 +33,16 @@ class Post extends DataObject {
 
 	const IGNORE_PULL_LIMIT = true;
 
-	const FIELDS = [
-		'overline' => [
-			'type' => 'string',
-			'required' => false,
-			'pattern' => '.{0,25}'
-		],
-		'headline' => [
-			'type' => 'string',
-			'required' => true,
-			'pattern' => '.{1,60}'
-		],
-		'subline' => [
-			'type' => 'string',
-			'required' => false,
-			'pattern' => '.{0,40}'
-		],
-		'teaser' => [
-			'type' => 'string'
-		],
-		'author' => [
-			'type' => 'string',
-			'required' => true,
-			'pattern' => '.{1,50}'
-		],
-		'timestamp' => [
-			'type' => 'string',
-			'required' => true,
-			'pattern' => '[0-9]{4}-[0-9]{2}-[0-9]{2}( [0-2][0-9]:[0-5][0-9](:[0-5][0-9])?)?'
-		],
-		'image' => [
-			'type' => 'Image',
-			'required' => false
-		],
-		'content' => [
-			'type' => 'string'
-		],
-		'columns' => [
-			'type' => 'relationlist'
-		]
+	const PROPERTIES = [
+		'overline' => '.{0,25}',
+		'headline' => '.{1,60}',
+		'subline' => '.{0,40}',
+		'teaser' => null,
+		'author' => '.{1,50}',
+		'timestamp' => Timestamp::class,
+		'image' => Image::class,
+		'content' => MarkdownContent::class,
+		'columns' => PostColumnRelationList::class
 	];
 
 

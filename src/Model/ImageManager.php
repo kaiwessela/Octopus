@@ -9,6 +9,7 @@ use \Blog\Config\ImageManager as IMConfig;
 class ImageManager {
 	private $basedir;
 	public $versions; # = [size(str) => IMImage, …]
+	private $pdo;
 
 
 	function __construct() {

@@ -3,8 +3,8 @@ namespace Blog\Model\Abstracts;
 
 interface DataType {
 
-	function __construct($value);
+	function __construct(string $value);
 	function __toString();
-	function import($value);
+	public static function import(string $value) : DataType;
 }
 ?>

@@ -1,6 +1,7 @@
 <?php
 namespace Blog\Model\DataTypes;
 use \Blog\Model\Abstracts\DataType;
+use \Blog\Model\Exceptions\IllegalValueException;
 
 class Timestamp implements DataType {
 	private string $db_datetime;
@@ -32,8 +33,14 @@ class Timestamp implements DataType {
 		return $this->db_datetime;
 	}
 
-	function import($value) { // handle user input
+	public static function import(string $value) : Timestamp { // handle user input
+		$regex = '/^[0-9]{4}-[0-9]{2}-[0-9]{2}( [0-2][0-9]:[0-5][0-9](:[0-5][0-9])?)?$/';
 
+		if(preg_match($regex, $value)){
+			return new Timestamp($value);
+		} else {
+			throw new IllegalValueException(null, $value, $regex);
+		}
 	}
 
 	public function unix() : int {

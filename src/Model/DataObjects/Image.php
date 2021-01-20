@@ -30,26 +30,15 @@ class Image extends DataObject {
 
 	const IGNORE_PULL_LIMIT = true;
 
-	const FIELDS = [
-		'description' => [
-			'type' => 'string',
-			'required' => false,
-			'pattern' => '.{0,100}'
-		],
-		'copyright' => [
-			'type' => 'string',
-			'required' => false,
-			'pattern' => '.{0,100}'
-		],
-		'data' => [
-			'type' => 'custom',
-			'required' => false
-		]
+	const PROPERTIES = [
+		'description' => '.{0,100}',
+		'copyright' => '.{0,100}',
+		'data' => 'custom'
 	];
 
 
-	protected function import_custom(string $fieldname, $data, InputFailedException $errors) : void {
-		if($fieldname != 'data' || !$this->is_new()){
+	protected function import_custom(string $property, array $data) : void {
+		if($property != 'data' || !$this->is_new()){
 			return;
 		}
 
@@ -59,7 +48,7 @@ class Image extends DataObject {
 			$this->imagemanager->upload($this, 'imagedata');
 			$this->imagemanager->scale();
 		} catch(ImageManagerException $e){
-			$errors->push(new InputException($fieldname, $e->getMessage()));
+			throw new InputException($property, $e->getMessage());
 		}
 
 		$this->extension = $this->imagemanager->get_extension();
@@ -145,7 +134,7 @@ class Image extends DataObject {
 
 		return implode(', ', $sources);
 	}
-	
+
 
 	const PULL_QUERY = <<<SQL
 SELECT * FROM images

@@ -12,6 +12,8 @@ abstract class DataObjectRelationList {
 	private ?array $deletions;
 	private ?array $updates;
 
+	private bool $disabled;
+
 	const UNIQUE = true;
 
 	use DataObjectTrait;
@@ -19,6 +21,7 @@ abstract class DataObjectRelationList {
 
 	function __construct() {
 		$this->relations = [];
+		$this->disabled = false;
 	}
 
 	public function load($relations) : void {

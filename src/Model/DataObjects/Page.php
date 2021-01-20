@@ -21,15 +21,9 @@ class Page extends DataObject {
 
 	const IGNORE_PULL_LIMIT = true;
 
-	const FIELDS = [
-		'title' => [
-			'type' => 'string',
-			'required' => true,
-			'pattern' => '.{1,60}'
-		],
-		'content' => [
-			'type' => 'string'
-		]
+	const PROPERTIES = [
+		'title' => '.{1,60}',
+		'content' => MarkdownContent::class
 	];
 
 

@@ -24,18 +24,10 @@ class Column extends DataObject {
 #
 #	const IGNORE_PULL_LIMIT = false;
 
-	const FIELDS = [
-		'name' => [
-			'type' => 'string',
-			'required' => true,
-			'pattern' => '.{1,30}'
-		],
-		'description' => [
-			'type' => 'string'
-		],
-		'posts' => [
-			'type' => 'relationlist'
-		]
+	const PROPERTIES = [
+		'name' => '.{1,30}',
+		'description' => null,
+		'posts' => PostColumnRelationList::class
 	];
 
 

@@ -42,7 +42,7 @@ abstract class Controller {
 
 	public function execute() {
 		if($this->request->mode == 'multi'){
-			$model = '\Blog\Model\DataObjects\Lists\\' . $this::LIST_MODEL;
+			$model = $this::LIST_MODEL;
 			$this->object = new $model();
 
 			$limit = $this->request->amount;
@@ -71,7 +71,7 @@ abstract class Controller {
 			}
 
 		} else {
-			$model = '\Blog\Model\DataObjects\\' . $this::MODEL;
+			$model = $this::MODEL;
 			$this->object = new $model();
 
 			if($this->request->action == 'new'){
@@ -171,7 +171,7 @@ abstract class Controller {
 
 		$export = [];
 		foreach($this->object->objects as $object){
-			$export[] = $this->export_each($object);
+			$export[] = $object->export();
 		}
 		return $export;
 	}
@@ -187,12 +187,7 @@ abstract class Controller {
 			$this->pagination = new Pagination($current_page, $objects_per_page, $total_objects, $base_path, $structure);
 		}
 
-		$export = $this->export_each($this->object);
-		return $export;
-	}
-
-	protected function export_each($object) {
-		return $object->export();
+		return $this->object->export();
 	}
 
 

@@ -1,27 +1,13 @@
 <?php
 namespace Blog\Controller\Controllers;
 use \Blog\Controller\Controller;
-use \Blog\Controller\Processors\Picture;
+use \Blog\Model\DataObjects\Group;
+use \Blog\Model\DataObjects\Lists\GroupList;
 
 class GroupController extends Controller {
-	const MODEL = 'Group';
-	const LIST_MODEL = 'GroupList';
+	const MODEL = Group::class;
+	const LIST_MODEL = GroupList::class;
 
 	const PAGINATABLE = true;
-
-
-	protected function export_each($group) {
-		$export = $group->export();
-
-		// if(!empty($group->persons)){
-		// 	foreach($group->persons as $i => $person){
-		// 		if(!$person->image->is_empty()){
-		// 			$export->persons[$i]->image = new Picture($person->image);
-		// 		}
-		// 	}
-		// }
-
-		return $export;
-	}
 }
 ?>

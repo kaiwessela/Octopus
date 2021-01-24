@@ -1,25 +1,11 @@
 <?php
 namespace Blog\Controller\Controllers;
 use \Blog\Controller\Controller;
-use \Blog\Controller\Processors\MarkdownContent;
-use \Blog\Controller\Processors\Picture;
-use \Blog\Controller\Processors\Timestamp;
+use \Blog\Model\DataObjects\Post;
+use \Blog\Model\DataObjects\Lists\PostList;
 
 class PostController extends Controller {
-	const MODEL = 'Post'; // TODO put into function
-	const LIST_MODEL = 'PostList';
-
-
-	protected function export_each($post) {
-		$export = $post->export();
-		// $export->timestamp = new Timestamp($post->timestamp);
-		// $export->content = new MarkdownContent($post->content);
-		//
-		// if(!$post->image->is_empty()){
-		// 	$export->image = new Picture($post->image);
-		// }
-
-		return $export;
-	}
+	const MODEL = Post::class;
+	const LIST_MODEL = PostList::class;
 }
 ?>

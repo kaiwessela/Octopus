@@ -1,16 +1,11 @@
 <?php
 namespace Blog\Controller\Controllers;
 use \Blog\Controller\Controller;
-use \Blog\Controller\Processors\Picture;
+use \Blog\Model\DataObjects\Image;
+use \Blog\Model\DataObjects\Lists\ImageList;
 
 class ImageController extends Controller {
-	const MODEL = 'Image';
-	const LIST_MODEL = 'ImageList';
-
-
-	protected function export_each($image) {
-		// return new Picture($image);
-		return $image->export();
-	}
+	const MODEL = Image::class;
+	const LIST_MODEL = ImageList::class;
 }
 ?>

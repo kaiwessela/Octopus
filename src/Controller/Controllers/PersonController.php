@@ -1,21 +1,11 @@
 <?php
 namespace Blog\Controller\Controllers;
 use \Blog\Controller\Controller;
-use \Blog\Controller\Processors\Picture;
+use \Blog\Model\DataObjects\Person;
+use \Blog\Model\DataObjects\Lists\PersonList;
 
 class PersonController extends Controller {
-	const MODEL = 'Person';
-	const LIST_MODEL = 'PersonList';
-
-
-	protected function export_each($person) {
-		$export = $person->export();
-
-		// if(!$person->image->is_empty()){
-		// 	$export->image = new Picture($person->image);
-		// }
-
-		return $export;
-	}
+	const MODEL = Person::class;
+	const LIST_MODEL = PersonList::class;
 }
 ?>

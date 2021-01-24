@@ -63,8 +63,8 @@ class PostColumnRelation extends DataObjectRelation {
 	protected function db_export() : array {
 		return [
 			'id' => $this->id,
-			'post_id' => $this->person->id,
-			'column_id' => $this->group->id
+			'post_id' => $this->post->id,
+			'column_id' => $this->column->id
 		];
 	}
 

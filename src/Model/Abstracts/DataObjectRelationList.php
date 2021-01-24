@@ -5,6 +5,7 @@ use \Blog\Model\DataObjectTrait;
 use \Blog\Model\Abstracts\DataObjectRelation;
 use \Blog\Model\Exceptions\InputFailedException;
 use \Blog\Model\Exceptions\DatabaseException;
+use \Blog\Model\Exceptions\RelationCollisionException;
 
 abstract class DataObjectRelationList {
 	public array $relations;
@@ -98,11 +99,28 @@ abstract class DataObjectRelationList {
 				try {
 					$relation->generate($object);
 					$relation->import($relationdata);
-					$this->relations[$relation->id] = $relation;
-					$this->updates[] = $relation->id;
 				} catch(InputFailedException $e){
 					$errors->merge($e, $index);
+					continue;
 				}
+
+				if($class::UNIQUE){
+					$propname;
+					foreach($class::OBJECTS as $nm => $cls){
+						if($cls != $object::class){
+							$propname = $nm;
+						}
+					}
+
+					foreach($this->relations as $existing){
+						if($existing->$propname->id == $relation->$propname->id){
+							throw new RelationCollisionException($propname, '', $existing->id);
+						}
+					}
+				}
+
+				$this->relations[$relation->id] = $relation;
+				$this->updates[] = $relation->id;
 
 			} else if($action == 'edit' || $action == 'delete'){
 				$relation = $this->relations[$relationdata['id']];
@@ -129,9 +147,6 @@ abstract class DataObjectRelationList {
 
 			}
 		}
-
-
-		// TODO check for unique
 
 		if(!$errors->is_empty()){
 			throw $errors;

@@ -307,6 +307,10 @@ abstract class DataObject {
 					continue;
 				}
 
+				if(empty($this->$property)){
+					$this->$property = new $definition();
+				}
+
 				try {
 					$this->$property->import($input, $this);
 				} catch(InputFailedException $e){

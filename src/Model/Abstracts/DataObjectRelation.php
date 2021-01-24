@@ -43,18 +43,6 @@ abstract class DataObjectRelation {
 	abstract public function load(array $data, /*DataObject*/ $object) : void;
 
 
-	private function already_exists(string $primary_id, string $secondary_id) : bool { // DEPRECATED
-		$pdo = $this->open_pdo();
-
-		$s = $pdo->prepare($this::EXISTS_QUERY);
-		if(!$s->execute(['id1' => $primary_id, 'id2' => $secondary_id])){
-			throw new DatabaseException($s);
-		} else {
-			return $s->rowCount() >= 1;
-		}
-	}
-
-
 	public function push() : void {
 #	@action:
 #	  - upload (insert/update) this object to the database
@@ -106,6 +94,10 @@ abstract class DataObjectRelation {
 		}
 
 		foreach($this::OBJECTS as $name => $class){
+			if($this->$name->is_new()){
+				continue;
+			}
+
 			if($this->is_new() && empty($this->$name)){
 				$obj = new $class();
 
@@ -158,8 +150,6 @@ abstract class DataObjectRelation {
 				$errors->push(new IllegalValueException($property, $input, $definition));
 			}
 		}
-
-		// TODO check for unique
 
 		if(!$errors->is_empty()){
 			throw $errors;

@@ -10,8 +10,7 @@ class Group extends DataObject {
 #					NAME				TYPE		REQUIRED	PATTERN		DB NAME		DB VALUE
 	public string 	$name;			#	str			*			.{1,30}		=			=
 	public ?string 	$description;	#	str						.*			=			=
-	public ?array 	$persons;		#	arr[Person]
-	//TODO ^^^^^ use PersonList
+	public PersonGroupRelationList|array|null $personrelations;
 
 #	@inherited
 #	public $id;
@@ -28,28 +27,8 @@ class Group extends DataObject {
 	const PROPERTIES = [
 		'name' => '.{1,30}',
 		'description' => null,
-		'persons' => PersonGroupRelationList::class
+		'personrelations' => PersonGroupRelationList::class
 	];
-
-	const FIELDS = [
-		'name' => [
-			'type' => 'string',
-			'required' => true,
-			'pattern' => '.{1,30}'
-		],
-		'description' => [
-			'type' => 'string'
-		],
-		'persons' => [
-			'type' => 'relationlist'
-		]
-	];
-
-
-	function __construct() {
-		parent::__construct();
-		$this->relationlist = new PersonGroupRelationList();
-	}
 
 
 	public function load(array $data) : void {
@@ -57,22 +36,25 @@ class Group extends DataObject {
 
 		$this->load_single($data[0]);
 
-		$relations = [];
-		foreach($data as $persondata){
-			if(empty($persondata['persongrouprelation_id'])){
-				continue;
-			}
+		$this->personrelations = empty($data[0]['persongrouprelation_id']) ? null : new PersonGroupRelationList();
+		$this->personrelations?->load($data, $this);
 
-			$person = new Person();
-			$person->load_single($persondata, true);
-			$this->persons[] = $person;
-
-			$relation = new PersonGroupRelation();
-			$relation->load($this, $person, $persondata);
-			$relations[$relation->id] = $relation;
-		}
-
-		$this->relationlist->load($relations);
+		// $relations = [];
+		// foreach($data as $persondata){
+		// 	if(empty($persondata['persongrouprelation_id'])){
+		// 		continue;
+		// 	}
+		//
+		// 	$person = new Person();
+		// 	$person->load_single($persondata, true);
+		// 	$this->persons[] = $person;
+		//
+		// 	$relation = new PersonGroupRelation();
+		// 	$relation->load($this, $person, $persondata);
+		// 	$relations[$relation->id] = $relation;
+		// }
+		//
+		// $this->relationlist->load($relations);
 	}
 
 
@@ -101,6 +83,12 @@ class Group extends DataObject {
 		}
 
 		return $export;
+	}
+
+
+	protected function push_children() : void {
+		// TEMP
+		$this->grouprelations->push();
 	}
 
 

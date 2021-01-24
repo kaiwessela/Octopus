@@ -27,7 +27,6 @@ abstract class DataObject {
 	private bool $empty;
 	private bool $disabled;
 
-	protected ?DataObjectRelationList $relationlist;
 
 	const IGNORE_PULL_LIMIT = false;
 
@@ -37,33 +36,6 @@ abstract class DataObject {
 
 	abstract public function load(array $data) : void;
 	abstract protected function db_export() : array;
-
-
-	// TEST
-	public function export() : ?DataObject {
-		if($this->is_empty()){
-			return null;
-		}
-
-		$this->disabled = true;
-
-		foreach($this as $property){
-			if($property instanceof DataObject){
-				$property->export();
-			} else if(!empty($property) && is_array($property) && $property[0] instanceof DataObject){
-				foreach($property as $obj){
-					$obj->export();
-				}
-			}
-		}
-
-		if(!empty($this->relationlist)){
-			$this->relations = $this->relationlist->export();
-		}
-
-		return $this;
-	}
-	// -- Test
 
 
 	function __construct() {
@@ -335,8 +307,8 @@ abstract class DataObject {
 					continue;
 				}
 
-				try { // TODO this is not the nicest possible way, actual object list is not updated
-					$this->relationlist->import($input, $this);
+				try {
+					$this->$property->import($input, $this);
 				} catch(InputFailedException $e){
 					$errors->merge($e, $property);
 				}
@@ -345,110 +317,38 @@ abstract class DataObject {
 			}
 		}
 
-		// foreach($this::FIELDS as $fieldname => $fielddef){
-		// 	$value = $data[$fieldname] ?? null;
-		// 	$required = $fielddef['required'] ?? false;
-		// 	$pattern = $fielddef['pattern'] ?? null;
-		// 	$type = $fielddef['type'] ?? null;
-		//
-		//
-		// 	if($type === 'string' || $type === 'integer' || $type === 'boolean' || $type === 'relationlist'){
-		// 		if(empty($value) && !$required){
-		// 			$this->$fieldname = null;
-		// 			continue;
-		//
-		// 		} else if(empty($value) && $required){
-		// 			$errors->push(new MissingValueException($fieldname, $pattern ?? ''));
-		// 			continue;
-		// 		}
-		// 	}
-		//
-		//
-		// 	if($type === 'string'){
-		// 		if(!empty($pattern) && !preg_match("/^$pattern$/", $value)){
-		// 			$errors->push(new IllegalValueException($fieldname, $value, $pattern));
-		// 			continue;
-		// 		}
-		//
-		// 		$this->$fieldname = $value;
-		// 		continue;
-		//
-		// 	} else if($type === 'integer'){
-		// 		if(!is_numeric($value)){
-		// 			$errors->push(new IllegalValueException($fieldname, $value, '[Integer]'));
-		// 			continue;
-		// 		}
-		//
-		// 		$this->$fieldname = (int) $value;
-		// 		continue;
-		//
-		// 	} else if($type === 'boolean'){
-		// 		$this->$fieldname = (bool) $value;
-		// 		continue;
-		//
-		// 	} else if($type === 'relationlist'){
-		// 		try {
-		// 			$this->relationlist->import($value, $this);
-		// 		} catch(InputFailedException $e){
-		// 			$errors->merge($e, $fieldname);
-		// 			continue;
-		// 		}
-		//
-		// 		// NOTE: the new relations are added to this->relations but not to their actual object array, i.e. this->columns
-		//
-		// 		continue;
-		//
-		// 	} else if($type === 'custom'){
-		// 		$this->import_custom($fieldname, $data, $errors);
-		// 		continue;
-		//
-		// 	} else {
-		// 		try {
-		// 			$class = '\Blog\Model\DataObjects\\' . $type;
-		// 			$obj = new $class();
-		// 		} catch(Exception $e){
-		// 			continue;
-		// 		}
-		//
-		// 		if(!empty($data[$fieldname . '_id']) || !empty($data[$fieldname]['id'])){
-		// 			$id = $data[$fieldname . '_id'] ?? $data[$fieldname]['id'];
-		//
-		// 			try {
-		// 				$obj->pull($id);
-		// 			} catch(EmpyResultException $e){
-		// 				$errors->push(new RelationNonexistentException($fieldname, $id, get_class($obj)));
-		// 				continue;
-		// 			}
-		//
-		// 			$this->$fieldname = $obj;
-		// 			continue;
-		// 		}
-		//
-		// 		if(empty($value) && $required){
-		// 			$errors->push(new MissingValueException($fieldname, get_class($obj)));
-		// 			continue;
-		// 		}
-		//
-		// 		/* FIXME cascading import. is it necessary? fix if so
-		// 		try {
-		// 			$obj->generate();
-		// 			$obj->import($data);
-		// 		} catch(InputFailedException $e){
-		// 			$errors->merge($e, $fieldname);
-		// 			continue;
-		// 		}
-		//
-		// 		$this->$fieldname = $obj;
-		// 		continue;
-		// 		*/
-		// 	}
-		// }
-
 		if(!$errors->is_empty()){
 			throw $errors;
 		}
 
 		$this->set_empty(false);
+	}
+
+
+	public function export() : ?DataObject {
+		if($this->is_empty()){
+			return null;
+		}
+
+		$this->disabled = true;
+
+		foreach($this as $property => $value){
+			if($value instanceof DataObject){
+				$value->export();
+			} else if($value instanceof DataObjectRelationList){
+				$this->$property = $value->export($this::class);
+			} else if(!empty($value) && is_array($value) && $value[0] instanceof DataObject){
+				foreach($value as $obj){
+					$obj->export();
+				}
+			}
+		}
+
+		if(!empty($this->relationlist)){
+			$this->relations = $this->relationlist->export();
+		}
+
+		return $this;
 	}
 }
 ?>

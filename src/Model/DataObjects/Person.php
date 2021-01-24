@@ -7,11 +7,9 @@ use \Blog\Model\DataObjects\Relations\PersonGroupRelation;
 use \Blog\Model\DataObjects\Relations\Lists\PersonGroupRelationList;
 
 class Person extends DataObject {
-
-#					NAME			TYPE		REQUIRED	PATTERN		DB NAME		DB VALUE
-	public string 	$name;		#	str			*			.{1,50}		=			=
-	public ?Image 	$image;		#	Image								image_id	Image->id
-	public ?array 	$groups;	#	arr[Group]
+	public string 								$name;
+	public ?Image 								$image;
+	public PersonGroupRelationList|array|null 	$grouprelations;
 
 #	@inherited
 #	public $id;
@@ -21,21 +19,15 @@ class Person extends DataObject {
 #	private $empty;
 #	private $disabled;
 #
-#	private $relationlist;
+#	private $relationlist; DEPRECATED
 
 	const IGNORE_PULL_LIMIT = true;
 
 	const PROPERTIES = [
 		'name' => '.{1,50}',
 		'image' => Image::class,
-		'groups' => PersonGroupRelationList::class
+		'grouprelations' => PersonGroupRelationList::class
 	];
-
-
-	function __construct() {
-		parent::__construct();
-		$this->relationlist = new PersonGroupRelationList();
-	}
 
 
 	public function load(array $data) : void {
@@ -43,22 +35,8 @@ class Person extends DataObject {
 
 		$this->load_single($data[0]);
 
-		$relations = [];
-		foreach($data as $groupdata){
-			if(empty($groupdata['persongrouprelation_id'])){
-				continue;
-			}
-
-			$group = new Group();
-			$group->load_single($groupdata, true);
-			$this->groups[] = $group;
-
-			$relation = new PersonGroupRelation();
-			$relation->load($group, $this, $groupdata);
-			$relations[$relation->id] = $relation;
-		}
-
-		$this->relationlist->load($relations);
+		$this->grouprelations = empty($data[0]['persongrouprelation_id']) ? null : new PersonGroupRelationList();
+		$this->grouprelations?->load($data, $this);
 	}
 
 
@@ -96,6 +74,9 @@ class Person extends DataObject {
 		if($this->image?->is_new()){
 			$this->image->push();
 		}
+
+		// TEMP
+		$this->grouprelations->push();
 	}
 
 

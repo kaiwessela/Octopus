@@ -4,17 +4,18 @@ use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\DataObjectTrait;
 use \Blog\Model\Abstracts\DataObjectRelation;
 use \Blog\Model\Exceptions\InputFailedException;
+use \Blog\Model\Exceptions\DatabaseException;
 
 abstract class DataObjectRelationList {
-	public ?array $relations;
+	public array $relations;
 
-	private ?array $insertions;
-	private ?array $deletions;
-	private ?array $updates;
+	private array $deletions;
+	private array $updates;
 
 	private bool $disabled;
 
 	const UNIQUE = true;
+	const RELATION_CLASS = null;
 
 	use DataObjectTrait;
 
@@ -22,85 +23,85 @@ abstract class DataObjectRelationList {
 	function __construct() {
 		$this->relations = [];
 		$this->disabled = false;
+		$this->updates = [];
+		$this->deletions = [];
 	}
 
-	public function load($relations) : void {
-		$this->relations = $relations;
-	}
+
+	abstract public function load(array $data, /*DataObject*/ $object) : void;
+
 
 	public function push() : void {
 		$pdo = $this->open_pdo();
 
-		// TEMP
-		if(!empty($this->insertions)){
-			foreach($this->insertions as $insertion){
-				$insertion->push();
+		if(!empty($this->updates)){
+			if(count($this->updates) == 1){
+				$this->relations[$this->updates[0]]->push();
+			} else {
+				$valuestrings = [];
+				$values = [];
+				foreach($this->updates as $i => $id){
+					$valuestrings[] = $this->db_valuestring($i);
+					$values = array_merge($values, $this->db_values($i, $id));
+				}
+
+				$valuestring = implode(', ', $valuestrings);
+				$query = str_replace('%VALUESTRING%', $valuestring, $this::PUSH_QUERY);
+
+				$s = $pdo->prepare($query);
+				if(!$s->execute($values)){
+					throw new DatabaseException($s);
+				} else {
+					$this->updates = [];
+				}
 			}
 		}
 
 		if(!empty($this->deletions)){
-			foreach($this->deletions as $deletion){
-				$deletion->delete();
+			$idstrings = [];
+			$values = [];
+			foreach($this->deletions as $i => $id){
+				$idstrings[] = $this->db_idstring($i);
+				$values["id_$i"] = $id;
 			}
-		}
 
-		if(!empty($this->updates)){
-			foreach($this->updates as $update){
-				$update->push();
+			$idstring = implode(', ', $idstrings);
+			$query = str_replace('%IDSTRING%', $idstring, $this::DELETE_QUERY);
+
+			$s = $pdo->prepare($query);
+			if(!$s->execute($values)){
+				throw new DatabaseException($s);
+			} else {
+				$this->deletions = [];
 			}
 		}
 	}
 
-	public function export() : array {
-		$this->disabled = true;
-
-		foreach($this->relations as $relation){
-			$relation->export();
-		}
-
-		return $this->relations;
-
-		// $export = [];
-		// foreach($this->relations as $relation){
-		// 	if(empty($relation)){
-		// 		continue;
-		// 	}
-		//
-		// 	$export[] = $relation->export();
-		// }
-		// return $export;
-	}
 
 	public function import(array $data, DataObject $object) : void {
-
-
 		$errors = new InputFailedException();
-
-		// TODO check for unique
 
 		foreach($data as $index => $relationdata){
 			$action = $relationdata['action'];
+			$class = $this::RELATION_CLASS;
 
 			if($action == 'new'){
-				$relation = $this->get_relation_prototype();
+				$relation = new $class();
 
 				try {
 					$relation->generate($object);
 					$relation->import($relationdata);
-					$this->insertions[] = $relation;
 					$this->relations[$relation->id] = $relation;
+					$this->updates[] = $relation->id;
 				} catch(InputFailedException $e){
 					$errors->merge($e, $index);
 				}
 
-				continue;
-
-			} else if($action == 'edit' || $action == 'delete') {
-				$relation_id = $relationdata['id'];
-				$relation = $this->relations[$relation_id];
+			} else if($action == 'edit' || $action == 'delete'){
+				$relation = $this->relations[$relationdata['id']];
 
 				if(!$relation instanceof DataObjectRelation){
-					// TODO Exception
+					// TODO maybe exception
 					continue;
 				}
 
@@ -111,24 +112,36 @@ abstract class DataObjectRelationList {
 						$errors->merge($e, $index);
 					}
 
-					$this->updates[] = $relation;
+					$this->updates[] = $relation->id;
 					$this->relations[$relation->id] = $relation;
-					continue;
 
 				} else if($action == 'delete'){
-					$this->deletions[] = $relation;
-					$this->relations[$relation->id] = null;
-					continue;
+					$this->deletions[] = $relation->id;
+					unset($this->relations[$relation->id]);
 				}
 
-			} else {
-				continue;
 			}
 		}
+
+
+		// TODO check for unique
 
 		if(!$errors->is_empty()){
 			throw $errors;
 		}
+	}
+
+
+	public function export(?string $perspective = null) {
+		if(empty($this->relations)){
+			return null;
+		}
+
+		foreach($this->relations as $relation){
+			$relation->export($perspective);
+		}
+
+		return array_values($this->relations);
 	}
 }
 ?>

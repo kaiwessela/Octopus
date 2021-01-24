@@ -6,82 +6,80 @@ use \Blog\Model\DataObjects\Person;
 use \Blog\Model\DataObjects\Group;
 
 class PersonGroupRelation extends DataObjectRelation {
-
-	public int 		$number;
-	public string 	$role;
+	public ?Person $person;
+	public ?Group $group;
+	public ?int $number;
+	public ?string $role;
 
 #	@inherited
 #	public $id;
-#	public $primary_object;
-#	public $secondary_object;
 #
 #	private $new;
 #	private $empty;
 
 	const UNIQUE = false;
 
-	const PRIMARY_ALIAS = 'person';
-	const SECONDARY_ALIAS = 'group';
+	const OBJECTS = [
+		'person' => Person::class,
+		'group' => Group::class
+	];
 
-	const FIELDS = [
-		'number' => [
-			'type' => 'integer',
-			'required' => false
-		],
-		'role' => [
-			'type' => 'string',
-			'required' => false,
-			'pattern' => '.{0,40}'
-		]
+	const PROPERTIES = [
+		'number' => null,
+		'role' => '.{0,40}'
 	];
 
 
-	public function load(DataObject $object1, DataObject $object2, array $data = []) : void {
-		parent::load($object1, $object2, $data);
+	public function generate(/*Person|Group*/ $object) : void {
+		parent::generate($object);
+
+		if($object instanceof Person){
+			$this->person = &$object;
+		} else if($object instanceof Group){
+			$this->group = &$group;
+		}
+	}
+
+
+	public function load(array $data, /*Person|Group*/ $object) : void {
+		$this->req('empty');
 
 		$this->id = $data['persongrouprelation_id'];
 		$this->number = (int) $data['persongrouprelation_number'];
 		$this->role = $data['persongrouprelation_role'];
-	}
 
-	protected function set_object(DataObject $object) : void {
 		if($object instanceof Person){
-			$this->primary_object = $object;
-			return;
+			$this->person = &$object;
+			$this->group = new Group();
+			$this->group->load_single($data);
+		} else if($object instanceof Group){
+			$this->group = &$object;
+			$this->person = new Person();
+			$this->person->load_single($data);
 		}
 
-		if($object instanceof Group){
-			$this->secondary_object = $object;
-			return;
+		$this->set_empty(false);
+	}
+
+
+	public function export(?string $perspective = null) : ?PersonGroupRelation {
+		if($this->is_empty()){
+			return null;
 		}
+
+		$this->disabled = true;
+
+		if($perspective == Person::class){
+			$this->person = null;
+		}
+
+		if($perspective == Group::class){
+			$this->group = null;
+		}
+
+		return $this;
 	}
 
-	protected function get_primary_prototype() : Person {
-		return new Person();
-	}
-
-	protected function get_secondary_prototype() : Group {
-		return new Group();
-	}
-
-	// public function export() : array {
-	// 	if($this->is_empty()){
-	// 		return null;
-	// 	}
-	//
-	// 	$export = [
-	// 		'id' => $this->id,
-	// 		'primary_id' => $this->primary_object->id,
-	// 		'secondary_id' => $this->secondary_object->id,
-	// 		'number' => $this->number,
-	// 		'role' => $this->role
-	// 	];
-	//
-	// 	$export[$this::PRIMARY_ALIAS . '_id'] = $this->primary_object->id;
-	// 	$export[$this::SECONDARY_ALIAS . '_id'] = $this->secondary_object->id;
-	//
-	// 	return $export;
-	// }
 
 	protected function db_export() : array {
 		$values = [
@@ -91,8 +89,8 @@ class PersonGroupRelation extends DataObjectRelation {
 		];
 
 		if($this->is_new()){
-			$values['person_id'] = $this->primary_object->id;
-			$values['group_id'] = $this->secondary_object->id;
+			$values['person_id'] = $this->person->id;
+			$values['group_id'] = $this->group->id;
 		}
 
 		return $values;

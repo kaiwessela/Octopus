@@ -59,7 +59,7 @@
 			<template>
 				<div class="relation">
 					<input type="hidden" name="persons[{{i}}][person_id]" value="{{id}}">
-					<input type="hidden" name="persons[{{i}}][group_id]" value="<?= $Object->id ?>">
+					<input type="hidden" name="persons[{{i}}][group_id]" value="<?= $Group?->id ?>">
 					<p>{{name}} – {{longid}}</p>
 
 					<label class="radiobodge turn-around blue">

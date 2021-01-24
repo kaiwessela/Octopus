@@ -2,8 +2,6 @@
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\DataObjects\Image;
-use \Blog\Model\DataObjects\Column;
-use \Blog\Model\DataObjects\Relations\PersonGroupRelation;
 use \Blog\Model\DataObjects\Relations\Lists\PersonGroupRelationList;
 
 class Person extends DataObject {
@@ -12,14 +10,14 @@ class Person extends DataObject {
 	public PersonGroupRelationList|array|null 	$grouprelations;
 
 #	@inherited
-#	public $id;
-#	public $longid;
+#	public string $id;
+#	public string $longid;
 #
-#	private $new;
-#	private $empty;
-#	private $disabled;
+#	public ?int $count;
 #
-#	private $relationlist; DEPRECATED
+#	private bool $new;
+#	private bool $empty;
+#	private bool $disabled;
 
 	const IGNORE_PULL_LIMIT = true;
 
@@ -67,16 +65,6 @@ class Person extends DataObject {
 		}
 
 		return $values;
-	}
-
-
-	protected function push_children() : void {
-		if($this->image?->is_new()){
-			$this->image->push();
-		}
-
-		// TEMP
-		$this->grouprelations->push();
 	}
 
 

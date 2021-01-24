@@ -16,10 +16,8 @@ use Exception;
 use TypeError;
 
 abstract class DataObject {
-
-#					NAME		TYPE	REQUIRED	PATTERN				DB NAME		DB VALUE
-	public string $id;		#	str		*			[a-f0-9]{8}			=			=
-	public string $longid;	#	str		*			[a-z0-9-]{9,60}		=			=
+	public string $id;
+	public string $longid;
 
 	public ?int $count;
 
@@ -27,8 +25,11 @@ abstract class DataObject {
 	private bool $empty;
 	private bool $disabled;
 
+	const IGNORE_PULL_LIMIT = false; // TODO why do we need this?
 
-	const IGNORE_PULL_LIMIT = false;
+	const PROPERTIES = [];
+
+	// TODO where do we need count queries? check this in all dataobjects
 
 
 	use DataObjectTrait;
@@ -41,6 +42,7 @@ abstract class DataObject {
 	function __construct() {
 		$this->set_new(false);
 		$this->set_empty();
+		$this->count = null;
 		$this->disabled = false;
 	}
 
@@ -144,19 +146,17 @@ abstract class DataObject {
 		if(!$s->execute($this->db_export())){
 			throw new DatabaseException($s);
 		} else {
-			$this->push_children();
 			$this->set_new(false);
 		}
 
-		if(!empty($this->relationlist)){
-			$this->relationlist->push();
+		foreach($this::PROPERTIES as $property => $definition){
+			if(is_subclass_of($definition, DataObject::class)){
+				$this->$property?->push();
+			} else if(is_subclass_of($definition, DataObjectRelationList::class)){
+				$this->$property?->push();
+			}
 		}
 	}
-
-
-	protected function push_children() : void {}
-#	@action:
-#	  - placeholder function to be used by objects to push their children
 
 
 	public function delete() : void {

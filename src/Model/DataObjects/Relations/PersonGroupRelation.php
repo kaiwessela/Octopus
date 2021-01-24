@@ -6,16 +6,17 @@ use \Blog\Model\DataObjects\Person;
 use \Blog\Model\DataObjects\Group;
 
 class PersonGroupRelation extends DataObjectRelation {
-	public ?Person $person;
-	public ?Group $group;
-	public ?int $number;
-	public ?string $role;
+	public ?Person 	$person;
+	public ?Group 	$group;
+	public ?int 	$number;
+	public ?string 	$role;
 
 #	@inherited
-#	public $id;
+#	public string $id;
 #
-#	private $new;
-#	private $empty;
+#	private bool $new;
+#	private bool $empty;
+#	private bool $disabled;
 
 	const UNIQUE = false;
 
@@ -37,16 +38,14 @@ class PersonGroupRelation extends DataObjectRelation {
 			$this->person = &$object;
 		} else if($object instanceof Group){
 			$this->group = &$group;
+		} else {
+			throw new TypeError('Invalid type of $object.');
 		}
 	}
 
 
 	public function load(array $data, /*Person|Group*/ $object) : void {
 		$this->req('empty');
-
-		$this->id = $data['persongrouprelation_id'];
-		$this->number = (int) $data['persongrouprelation_number'];
-		$this->role = $data['persongrouprelation_role'];
 
 		if($object instanceof Person){
 			$this->person = &$object;
@@ -56,28 +55,15 @@ class PersonGroupRelation extends DataObjectRelation {
 			$this->group = &$object;
 			$this->person = new Person();
 			$this->person->load_single($data);
+		} else {
+			throw new TypeError('Invalid type of $object.');
 		}
+
+		$this->id = $data['persongrouprelation_id'];
+		$this->number = (int) $data['persongrouprelation_number'];
+		$this->role = $data['persongrouprelation_role'];
 
 		$this->set_empty(false);
-	}
-
-
-	public function export(?string $perspective = null) : ?PersonGroupRelation {
-		if($this->is_empty()){
-			return null;
-		}
-
-		$this->disabled = true;
-
-		if($perspective == Person::class){
-			$this->person = null;
-		}
-
-		if($perspective == Group::class){
-			$this->group = null;
-		}
-
-		return $this;
 	}
 
 

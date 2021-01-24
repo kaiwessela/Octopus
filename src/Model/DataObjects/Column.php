@@ -1,40 +1,30 @@
 <?php
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
-use \Blog\Model\DataObjects\Post;
-use \Blog\Model\DataObjects\Relations\PostColumnRelation;
 use \Blog\Model\DataObjects\Relations\Lists\PostColumnRelationList;
 
 class Column extends DataObject {
-
-#					NAME				TYPE		REQUIRED	PATTERN		DB NAME		DB VALUE
-	public string 	$name;			#	str			*			.{1,30}		=			=
-	public ?string 	$description;	#	str						.*			=			=
-	public ?array 	$posts;			#	arr[Post]
+	public string 								$name;
+	public ?string 								$description;
+	public PostColumnRelationList|array|null 	$postrelations;
 
 #	@inherited
-#	public $id;
-#	public $longid;
+#	public string $id;
+#	public string $longid;
 #
-#	private $new;
-#	private $empty;
-#	private $disabled;
+#	public ?int $count;
 #
-#	private $relationlist;
+#	private bool $new;
+#	private bool $empty;
+#	private bool $disabled;
 #
 #	const IGNORE_PULL_LIMIT = false;
 
 	const PROPERTIES = [
 		'name' => '.{1,30}',
 		'description' => null,
-		'posts' => PostColumnRelationList::class
+		'postrelations' => PostColumnRelationList::class
 	];
-
-
-	function __construct() {
-		parent::__construct();
-		$this->relationlist = new PostColumnRelationList();
-	}
 
 
 	public function load(array $data) : void {
@@ -42,22 +32,8 @@ class Column extends DataObject {
 
 		$this->load_single($data[0]);
 
-		$relations = [];
-		foreach($data as $postdata){
-			if(empty($postdata['postcolumnrelation_id'])){
-				continue;
-			}
-
-			$post = new Post();
-			$post->load_single($postdata);
-			$this->posts[] = $post;
-
-			$relation = new PostColumnRelation();
-			$relation->load($this, $post, $postdata);
-			$relations[$relation->id] = $relation;
-		}
-
-		$this->relationlist->load($relations);
+		$this->postrelations = empty($data[0]['postcolumnrelation_id']) ? null : new PostColumnRelationList();
+		$this->postrelations?->load($data, $this);
 	}
 
 

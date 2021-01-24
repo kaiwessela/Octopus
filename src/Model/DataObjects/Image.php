@@ -9,26 +9,24 @@ use \Blog\Config\ImageManager as ImageManagerConfig;
 use \Blog\Config\Config;
 
 class Image extends DataObject {
-
-#					NAME				TYPE	REQUIRED	PATTERN		DB NAME		DB VALUE
-	public string 	$extension;		#	str		*			custom		=			=
-	public ?string 	$description;	#	str					.{0,100}	=			=
-	public ?string 	$copyright;		#	str					.{0,100}	=			=
-	public array 	$sizes;			#	array	*			custom		=			= (imploded)
+	public string 	$extension;
+	public ?string 	$description;
+	public ?string 	$copyright;
+	public array 	$sizes;
 
 #	@inherited
-#	public $id;
-#	public $longid;
+#	public string $id;
+#	public string $longid;
 #
-#	private $new;
-#	private $empty;
-#	private $disabled;
+#	public ?int $count;
 #
-#	private $relationlist;
-
-	private ?ImageManager $imagemanager;
+#	private bool $new;
+#	private bool $empty;
+#	private bool $disabled;
 
 	const IGNORE_PULL_LIMIT = true;
+
+	private ?ImageManager $imagemanager;
 
 	const PROPERTIES = [
 		'description' => '.{0,100}',
@@ -78,7 +76,9 @@ class Image extends DataObject {
 	}
 
 
-	protected function push_children() : void {
+	public function push() : void {
+		parent::push();
+
 		if($this->is_new()){
 			$this->imagemanager->write($this->longid);
 			$this->imagemanager->push();

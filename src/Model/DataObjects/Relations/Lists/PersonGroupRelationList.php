@@ -3,28 +3,18 @@ namespace Blog\Model\DataObjects\Relations\Lists;
 use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\Abstracts\DataObjectRelationList;
 use \Blog\Model\DataObjects\Relations\PersonGroupRelation;
-use \Blog\Model\DataObjects\Person;
-use \Blog\Model\DataObjects\Group;
-use \Blog\Model\Exceptions\InputFailedException;
 
 class PersonGroupRelationList extends DataObjectRelationList {
 
 #	@inherited
-#	public $relations;
+#	public array $relations;
 #
-#	private $deletions;
-#	private $updates;
+#	private array $deletions;
+#	private array $updates;
+#
+#	private bool $disabled;
 
 	const RELATION_CLASS = PersonGroupRelation::class;
-
-
-	public function load(array $data, /*Person|Group*/ $object) : void {
-		foreach($data as $row){
-			$rel = new PersonGroupRelation();
-			$rel->load($row, $object);
-			$this->relations[$rel->id] = $rel;
-		}
-	}
 
 
 	protected function db_valuestring(int $index) : string {

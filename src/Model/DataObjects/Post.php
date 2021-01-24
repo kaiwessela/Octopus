@@ -2,34 +2,30 @@
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\DataObjects\Image;
-use \Blog\Model\DataObjects\Column;
-use \Blog\Model\DataObjects\Relations\PostColumnRelation;
 use \Blog\Model\DataObjects\Relations\Lists\PostColumnRelationList;
 use \Blog\Model\DataTypes\Timestamp;
 use \Blog\Model\DataTypes\MarkdownContent;
 
 class Post extends DataObject {
-
-#							NAME			TYPE			REQUIRED	PATTERN		DB NAME		DB VALUE
-	public ?string 			$overline;	#	str							.{0,25}		=			=
-	public string 			$headline; 	#	str				*			.{1,60}		=			=
-	public ?string 			$subline;	#	str							.{0,40}		=			=
-	public ?string 			$teaser;	#	str							.*			=			=
-	public string 			$author;	#	str				*			.{1,50}		=			=
-	public Timestamp 		$timestamp;	#	str(timestamp)	*						=			=
-	public ?Image 			$image;		#	Image									image_id	Image->id
-	public ?MarkdownContent $content;	#	str							.*			=			=
-	public ?array 			$columns;	#	arr[Column]
+	public ?string 								$overline;
+	public string 								$headline;
+	public ?string 								$subline;
+	public ?string 								$teaser;
+	public string 								$author;
+	public Timestamp 							$timestamp;
+	public ?Image 								$image;
+	public ?MarkdownContent 					$content;
+	public PostColumnRelationList|array|null 	$columnrelations;
 
 #	@inherited
-#	public $id;
-#	public $longid;
+#	public string $id;
+#	public string $longid;
 #
-#	private $new;
-#	private $empty;
-#	private $disabled;
+#	public ?int $count;
 #
-#	private $relationlist;
+#	private bool $new;
+#	private bool $empty;
+#	private bool $disabled;
 
 	const IGNORE_PULL_LIMIT = true;
 
@@ -42,14 +38,8 @@ class Post extends DataObject {
 		'timestamp' => Timestamp::class,
 		'image' => Image::class,
 		'content' => MarkdownContent::class,
-		'columns' => PostColumnRelationList::class
+		'columnrelations' => PostColumnRelationList::class
 	];
-
-
-	function __construct() {
-		parent::__construct();
-		$this->relationlist = new PostColumnRelationList();
-	}
 
 
 	public function load(array $data) : void {
@@ -57,22 +47,8 @@ class Post extends DataObject {
 
 		$this->load_single($data[0]);
 
-		$relations = [];
-		foreach($data as $columndata){
-			if(empty($columndata['postcolumnrelation_id'])){
-				continue;
-			}
-
-			$column = new Column();
-			$column->load_single($columndata, true);
-			$this->columns[] = $column;
-
-			$relation = new PostColumnRelation();
-			$relation->load($column, $this, $columndata);
-			$relations[$relation->id] = $relation;
-		}
-
-		$this->relationlist->load($relations);
+		$this->columnrelations = empty($data[0]['postcolumnrelation_id']) ? null : new PostColumnRelationList();
+		$this->columnrelations?->load($data, $this);
 	}
 
 

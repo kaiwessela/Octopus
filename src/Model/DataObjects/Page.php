@@ -4,20 +4,18 @@ use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\DataTypes\MarkdownContent;
 
 class Page extends DataObject {
-
-#							NAME			TYPE	REQUIRED	PATTERN		DB NAME		DB VALUE
-	public string 			$title;		#	str		*			.{1,60}		=			=
-	public ?MarkdownContent $content;	#	str								=			=
+	public string 			$title;
+	public ?MarkdownContent $content;
 
 #	@inherited
-#	public $id;
-#	public $longid;
+#	public string $id;
+#	public string $longid;
 #
-#	private $new;
-#	private $empty;
-#	private $disabled;
+#	public ?int $count;
 #
-#	private $relationlist;
+#	private bool $new;
+#	private bool $empty;
+#	private bool $disabled;
 
 	const IGNORE_PULL_LIMIT = true;
 

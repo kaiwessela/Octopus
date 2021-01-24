@@ -4,24 +4,22 @@ use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\DataTypes\Timestamp;
 
 class Event extends DataObject {
-
-#						NAME				TYPE			REQUIRED	PATTERN		DB NAME		DB VALUE
-	public string 		$title;			#	str				*			.{1,50}		=			=
-	public string 		$organisation;	#	str				*			.{1,40}		=			=
-	public Timestamp 	$timestamp;		#	str(timestamp)	*						=			=
-	public ?string 		$location;		#	str							.{0,60}		=			=
-	public ?string 		$description;	#	str										=			=
-	public ?bool 		$cancelled;		#	bool									=			= (int)
+	public string 		$title;
+	public string 		$organisation;
+	public Timestamp 	$timestamp;
+	public ?string 		$location;
+	public ?string 		$description;
+	public ?bool 		$cancelled;
 
 #	@inherited
-#	public $id;
-#	public $longid;
+#	public string $id;
+#	public string $longid;
 #
-#	private $new;
-#	private $empty;
-#	private $disabled;
+#	public ?int $count;
 #
-#	private $relationlist;
+#	private bool $new;
+#	private bool $empty;
+#	private bool $disabled;
 
 	const IGNORE_PULL_LIMIT = true;
 

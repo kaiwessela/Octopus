@@ -1,16 +1,12 @@
 <?php
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
-use \Blog\Model\DataObjects\Person;
-use \Blog\Model\DataObjects\Relations\PersonGroupRelation;
 use \Blog\Model\DataObjects\Relations\Lists\PersonGroupRelationList;
 
 class Group extends DataObject {
-
-#					NAME				TYPE		REQUIRED	PATTERN		DB NAME		DB VALUE
-	public string 	$name;			#	str			*			.{1,30}		=			=
-	public ?string 	$description;	#	str						.*			=			=
-	public PersonGroupRelationList|array|null $personrelations;
+	public string 								$name;
+	public ?string 								$description;
+	public PersonGroupRelationList|array|null 	$personrelations;
 
 #	@inherited
 #	public $id;
@@ -38,23 +34,6 @@ class Group extends DataObject {
 
 		$this->personrelations = empty($data[0]['persongrouprelation_id']) ? null : new PersonGroupRelationList();
 		$this->personrelations?->load($data, $this);
-
-		// $relations = [];
-		// foreach($data as $persondata){
-		// 	if(empty($persondata['persongrouprelation_id'])){
-		// 		continue;
-		// 	}
-		//
-		// 	$person = new Person();
-		// 	$person->load_single($persondata, true);
-		// 	$this->persons[] = $person;
-		//
-		// 	$relation = new PersonGroupRelation();
-		// 	$relation->load($this, $person, $persondata);
-		// 	$relations[$relation->id] = $relation;
-		// }
-		//
-		// $this->relationlist->load($relations);
 	}
 
 
@@ -86,12 +65,6 @@ class Group extends DataObject {
 	}
 
 
-	protected function push_children() : void {
-		// TEMP
-		$this->grouprelations->push();
-	}
-
-
 	const PULL_QUERY = <<<SQL
 SELECT * FROM groups
 LEFT JOIN persongrouprelations ON persongrouprelation_group_id = group_id
@@ -108,10 +81,8 @@ SQL; #---|
 
 
 	const INSERT_QUERY = <<<SQL
-INSERT INTO groups
-	(group_id, group_longid, group_name, group_description)
-VALUES
-	(:id, :longid, :name, :description)
+INSERT INTO groups (group_id, group_longid, group_name, group_description)
+VALUES (:id, :longid, :name, :description)
 SQL; #---|
 
 

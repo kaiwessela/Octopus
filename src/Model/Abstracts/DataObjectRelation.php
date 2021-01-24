@@ -18,6 +18,8 @@ abstract class DataObjectRelation {
 	private bool $disabled;
 
 	const UNIQUE = true;
+	const OBJECTS = [];
+	const PROPERTIES = [];
 
 	use DataObjectTrait;
 
@@ -165,6 +167,20 @@ abstract class DataObjectRelation {
 	}
 
 
-	abstract public function export(?string $perspective = null) : ?DataObjectRelation;
+	public function export(?string $perspective) : ?DataObjectRelation {
+		if($this->is_empty()){
+			return null;
+		}
+
+		$this->disabled = true;
+
+		foreach($this::OBJECTS as $property => $class){
+			if($perspective == $class){
+				$this->$property = null;
+			}
+		}
+
+		return $this;
+	}
 }
 ?>

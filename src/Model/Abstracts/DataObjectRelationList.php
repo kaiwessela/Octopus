@@ -14,7 +14,6 @@ abstract class DataObjectRelationList {
 
 	private bool $disabled;
 
-	const UNIQUE = true;
 	const RELATION_CLASS = null;
 
 	use DataObjectTrait;
@@ -28,7 +27,15 @@ abstract class DataObjectRelationList {
 	}
 
 
-	abstract public function load(array $data, /*DataObject*/ $object) : void;
+	public function load(array $data, DataObject $object) : void {
+		$class = $this::RELATION_CLASS;
+
+		foreach($data as $row){
+			$rel = new $class();
+			$rel->load($row, $object);
+			$this->relations[$rel->id] = $rel;
+		}
+	}
 
 
 	public function push() : void {
@@ -143,5 +150,10 @@ abstract class DataObjectRelationList {
 
 		return array_values($this->relations);
 	}
+
+
+	abstract protected function db_valuestring(int $index) : string;
+	abstract protected function db_idstring(int $index) : string;
+	abstract protected function db_values(int $index, string $relation_id) : array;
 }
 ?>

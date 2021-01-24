@@ -6,54 +6,65 @@ use \Blog\Model\DataObjects\Post;
 use \Blog\Model\DataObjects\Column;
 
 class PostColumnRelation extends DataObjectRelation {
+	public ?Post 	$post;
+	public ?Column 	$column;
+
 #	@inherited
-#	public $id;
-#	public $primary_object;
-#	public $secondary_object;
+#	public string $id;
 #
-#	private $new;
-#	private $empty;
+#	private bool $new;
+#	private bool $empty;
+#	private bool $disabled;
 #
 #	const UNIQUE = true;
 
-	const PRIMARY_ALIAS = 'post';
-	const SECONDARY_ALIAS = 'column';
+	const OBJECTS = [
+		'post' => Post::class,
+		'column' => Column::class
+	];
 
-	const FIELDS = [];
+	const PROPERTIES = [];
 
 
-	public function load(DataObject $object1, DataObject $object2, array $data = []) : void {
-		parent::load($object1, $object2, $data);
+	public function generate(/*Post|Column*/ $object) : void {
+		parent::generate($object);
+
+		if($object instanceof Post){
+			$this->post = &$object;
+		} else if($object instanceof Column){
+			$this->column = &$object;
+		} else {
+			throw new TypeError('Invalid type of $object.');
+		}
+	}
+
+
+	public function load(array $data, /*Post|Column*/ $object) : void {
+		$this->req('empty');
+
+		if($object instanceof Post){
+			$this->post = &$object;
+			$this->column = new Column();
+			$this->column->load_single($data);
+		} else if($object instanceof Column){
+			$this->group = &$object;
+			$this->post = new Post();
+			$this->post->load_single($data);
+		} else {
+			throw new TypeError('Invalid type of $object.');
+		}
 
 		$this->id = $data['postcolumnrelation_id'];
+
+		$this->set_empty(false);
 	}
 
-
-	protected function set_object(DataObject $object) : void {
-		if($object instanceof Post){
-			$this->primary_object = $object;
-			return;
-		}
-
-		if($object instanceof Column){
-			$this->secondary_object = $object;
-			return;
-		}
-	}
-
-	protected function get_primary_prototype() : Post {
-		return new Post();
-	}
-
-	protected function get_secondary_prototype() : Column {
-		return new Column();
-	}
 
 	protected function db_export() : array {
 		return [
 			'id' => $this->id,
-			'post_id' => $this->primary_object->id,
-			'column_id' => $this->secondary_object->id
+			'post_id' => $this->person->id,
+			'column_id' => $this->group->id
 		];
 	}
 
@@ -70,7 +81,9 @@ INSERT INTO postcolumnrelations (
 )
 SQL; #---|
 
+
 	const UPDATE_QUERY = null;
+
 
 	const DELETE_QUERY = <<<SQL
 DELETE FROM postcolumnrelations

@@ -1,12 +1,12 @@
 <article>
-	<code><?= $obj->longid ?></code>
-	<h1><?= $obj->name ?></h1>
-	<p><?= $obj->description ?></p>
+	<code><?= $Column->longid ?></code>
+	<h1><?= $Column->name ?></h1>
+	<p><?= $Column->description ?></p>
 
-	<?php foreach($obj->posts as $post){ ?>
+	<?php foreach($Column->postrelations as $rel){ ?>
 		<article>
-			<code><?= $post->longid ?></code>
-			<h2><?= $post->headline ?></h2>
+			<code><?= $rel->post->longid ?></code>
+			<h2><?= $rel->post->headline ?></h2>
 		</article>
 	<?php } ?>
 </article>

@@ -28,10 +28,10 @@ class Person extends DataObject {
 	];
 
 
-	public function load(array $data) : void {
+	public function load(array $data, bool $norecursion = false) : void {
 		$this->req('empty');
 
-		if(is_array($data[0]))){
+		if(is_array($data[0])){
 			$row = $data[0];
 		} else {
 			$row = $data;
@@ -44,8 +44,10 @@ class Person extends DataObject {
 		$this->image = empty($row['image_id']) ? null : new Image();
 		$this->image?->load($row);
 
-		$this->grouprelations = empty($row['persongrouprelation_id']) ? null : new PersonGroupRelationList();
-		$this->grouprelations?->load($data, $this);
+		if(!$norecursion){
+			$this->grouprelations = empty($row['persongrouprelation_id']) ? null : new PersonGroupRelationList();
+			$this->grouprelations?->load($data, $this);
+		}
 
 		$this->set_new(false);
 		$this->set_empty(false);

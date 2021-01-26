@@ -29,7 +29,7 @@ abstract class DataObjectList {
 	}
 
 
-	public function pull(?int $limit, ?int $offset, ?array $options) : void {
+	public function pull(?int $limit = null, ?int $offset = null, ?array $options = null) : void {
 #	@action:
 #	  - select multiple objects from the database
 #	  - call this->load to assign the received data to this->objects
@@ -40,15 +40,7 @@ abstract class DataObjectList {
 		$pdo = $this->open_pdo();
 		$this->req('empty');
 
-		$query = $this::SELECT_QUERY;
-
-		if($limit != null){
-			if($offset != null){
-				$query .= " LIMIT $offset, $limit";
-			} else {
-				$query .= " LIMIT $limit";
-			}
-		}
+		$query = $this->pull_query($limit, $offset, $options);
 
 		// IDEA use subqueries to pull relations as well (maybe optionally)
 
@@ -64,8 +56,8 @@ abstract class DataObjectList {
 	}
 
 
-	protected function pull_query(?int $limit, ?int $offset, ?array $options) : string {
-		$query = $this::PULL_QUERY;
+	protected function pull_query(?int $limit = null, ?int $offset = null, ?array $options = null) : string {
+		$query = $this::SELECT_QUERY;
 		$query .= ($limit) ? (($offset) ? " LIMIT $offset, $limit" : " LIMIT $limit") : null;
 		return $query;
 	}

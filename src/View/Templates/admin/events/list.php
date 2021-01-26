@@ -2,7 +2,7 @@
 	<code><?= $obj->longid ?></code>
 	<h2><?= $obj->title ?></h2>
 	<small><?= $obj->location ?></small>
-	<small><?= $obj->timestamp->datetime_long ?></small>
+	<small><?= $obj->timestamp?->format('datetime_long') ?></small>
 	<div>
 		<a class="button blue"
 			href="<?= $server->url ?>/admin/events/<?= $obj->id ?>">Ansehen</a>

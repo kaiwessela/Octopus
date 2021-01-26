@@ -86,7 +86,7 @@ abstract class DataObject {
 	}
 
 
-	public function pull(string $identifier, ?int $limit, ?int $offset, ?array $options) : void {
+	public function pull(string $identifier, ?int $limit = null, ?int $offset = null, ?array $options = null) : void {
 #	@action:
 #	  - select one object from the database
 #	  - call this->load to assign the received data to this object
@@ -118,7 +118,7 @@ abstract class DataObject {
 	}
 
 
-	protected function pull_query(?int $limit, ?int $offset, ?array $options) : string {
+	protected function pull_query(?int $limit = null, ?int $offset = null, ?array $options = null) : string {
 		$query = $this::PULL_QUERY;
 		$query .= ($limit) ? (($offset) ? " LIMIT $offset, $limit" : " LIMIT $limit") : null;
 		return $query;

@@ -69,5 +69,5 @@
 
 <?php if($ImageController->request->action == 'edit'){ ?>
 <br>
-<img src="<?= $server->url . $server->dyn_img_path . "$Image?->longid/original.$Image?->extension" ?>" alt="[ANZEIGEFEHLER]">
+<img src="<?= $Image->src() ?>" alt="[ANZEIGEFEHLER]">
 <?php } ?>

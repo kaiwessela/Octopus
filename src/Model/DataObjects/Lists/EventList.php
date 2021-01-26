@@ -16,13 +16,13 @@ class EventList extends DataObjectList {
 	const OBJECTS_ALIAS = 'events';
 
 
-	protected function pull_query(?int $limit, ?int $offset, ?array $options) : string {
-		$query = $this::PULL_QUERY;
+	protected function pull_query(?int $limit = null, ?int $offset = null, ?array $options = null) : string {
+		$query = $this::SELECT_QUERY;
 
-		if(in_array('future', $options)){
-			$query .= 'WHERE DATE(event_timestamp) >= DATE(NOW()) ORDER BY event_timestamp ';
+		if(is_array($options) && in_array('future', $options)){
+			$query .= ' WHERE DATE(event_timestamp) >= DATE(NOW()) ORDER BY event_timestamp ';
 		} else {
-			$query .= 'ORDER BY event_timestamp DESC ';
+			$query .= ' ORDER BY event_timestamp DESC ';
 		}
 
 		$query .= ($limit) ? (($offset) ? " LIMIT $offset, $limit" : " LIMIT $limit") : null;

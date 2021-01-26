@@ -33,10 +33,10 @@ class Event extends DataObject {
 	];
 
 
-	public function load(array $data) : void {
+	public function load(array $data, bool $norecursion = false) : void {
 		$this->req('empty');
 
-		if(is_array($data[0]))){
+		if(is_array($data[0])){
 			$row = $data[0];
 		} else {
 			$row = $data;

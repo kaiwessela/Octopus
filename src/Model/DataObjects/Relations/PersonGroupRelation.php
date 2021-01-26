@@ -50,11 +50,11 @@ class PersonGroupRelation extends DataObjectRelation {
 		if($object instanceof Person){
 			$this->person = &$object;
 			$this->group = new Group();
-			$this->group->load_single($data);
+			$this->group->load($data, true);
 		} else if($object instanceof Group){
 			$this->group = &$object;
 			$this->person = new Person();
-			$this->person->load_single($data);
+			$this->person->load($data, true);
 		} else {
 			throw new TypeError('Invalid type of $object.');
 		}

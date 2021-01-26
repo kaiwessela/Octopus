@@ -270,7 +270,7 @@ a.button {
 	--background-color: var(--shiny-blue);
 	--border-color: var(--blue);
 	display: inline-block;
-	margin: 0.25rem auto;
+	margin: 0.25rem 0.25rem 0.25rem 0;
 	padding: 0.25rem 0.5rem;
 	font-family: 'Open Sans';
 	font-size: 0.9rem;

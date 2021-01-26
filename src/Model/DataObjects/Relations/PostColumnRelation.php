@@ -45,11 +45,11 @@ class PostColumnRelation extends DataObjectRelation {
 		if($object instanceof Post){
 			$this->post = &$object;
 			$this->column = new Column();
-			$this->column->load_single($data);
+			$this->column->load($data, true);
 		} else if($object instanceof Column){
 			$this->group = &$object;
 			$this->post = new Post();
-			$this->post->load_single($data);
+			$this->post->load($data, true);
 		} else {
 			throw new TypeError('Invalid type of $object.');
 		}

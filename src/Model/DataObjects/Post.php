@@ -42,10 +42,10 @@ class Post extends DataObject {
 	];
 
 
-	public function load(array $data) : void {
+	public function load(array $data, bool $norecursion = false) : void {
 		$this->req('empty');
 
-		if(is_array($data[0]))){
+		if(is_array($data[0])){
 			$row = $data[0];
 		} else {
 			$row = $data;
@@ -67,8 +67,10 @@ class Post extends DataObject {
 		$this->content = empty($row['post_content'])
 		? null : new MarkdownContent($row['post_content']);
 
-		$this->columnrelations = empty($row['postcolumnrelation_id']) ? null : new PostColumnRelationList();
-		$this->columnrelations?->load($data, $this);
+		if(!$norecursion){
+			$this->columnrelations = empty($row['postcolumnrelation_id']) ? null : new PostColumnRelationList();
+			$this->columnrelations?->load($data, $this);
+		}
 
 		$this->set_new(false);
 		$this->set_empty(false);

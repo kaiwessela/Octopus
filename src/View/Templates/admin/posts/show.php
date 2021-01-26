@@ -11,7 +11,7 @@
 		</time>
 	</small>
 
-	<?php if(!empty($Post->image)){ ?>
+	<?php if($Post->image){ ?>
 	<div>
 		Bild: <code><?= $Post->image?->longid ?></code>
 		<a href="<?= $server->url ?>/admin/images/<?= $Post->image?->id ?>">ansehen</a>

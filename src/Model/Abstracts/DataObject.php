@@ -86,7 +86,7 @@ abstract class DataObject {
 	}
 
 
-	public function pull(string $identifier, ?int $limit = null, ?int $offset = null) : void {
+	public function pull(string $identifier, ?int $limit, ?int $offset, ?array $options) : void {
 #	@action:
 #	  - select one object from the database
 #	  - call this->load to assign the received data to this object
@@ -98,23 +98,12 @@ abstract class DataObject {
 		$this->req('empty');
 		$pdo = $this->open_pdo();
 
-		$query = $this::PULL_QUERY;
 		$values = ['id' => $identifier];
 
-		if($limit != null && !$this::IGNORE_PULL_LIMIT){
-			if(!is_int($limit)){
-				throw new InvalidArgumentException('Invalid argument: limit must be an integer.');
-			}
-
-			if($offset != null){
-				if(!is_int($offset)){
-					throw new InvalidArgumentException('Invalid argument: offset must be an integer.');
-				}
-
-				$query .= " LIMIT $offset, $limit";
-			} else {
-				$query .= " LIMIT $limit";
-			}
+		if($this::IGNORE_PULL_LIMIT){
+			$query = $this->pull_query(options: $options);
+		} else {
+			$query = $this->pull_query($limit, $offset, $options);
 		}
 
 		$s = $pdo->prepare($query);
@@ -126,6 +115,13 @@ abstract class DataObject {
 		} else {
 			$this->load($s->fetchAll());
 		}
+	}
+
+
+	protected function pull_query(?int $limit, ?int $offset, ?array $options) : string {
+		$query = $this::PULL_QUERY;
+		$query .= ($limit) ? (($offset) ? " LIMIT $offset, $limit" : " LIMIT $limit") : null;
+		return $query;
 	}
 
 

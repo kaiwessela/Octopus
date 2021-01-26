@@ -12,14 +12,8 @@ class PersonList extends DataObjectList {
 #	private $new;
 #	private $empty;
 
+	const OBJECT_CLASS = Person::class;
 	const OBJECTS_ALIAS = 'persons';
-
-
-	protected static function load_each(array $data) : Person {
-		$obj = new Person();
-		$obj->load_single($data);
-		return $obj;
-	}
 
 
 	const SELECT_QUERY = <<<SQL

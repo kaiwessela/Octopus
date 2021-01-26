@@ -12,14 +12,8 @@ class ImageList extends DataObjectList {
 #	private $new;
 #	private $empty;
 
+	const OBJECT_CLASS = Image::class;
 	const OBJECTS_ALIAS = 'images';
-
-
-	protected static function load_each(array $data) : Image {
-		$obj = new Image();
-		$obj->load_single($data);
-		return $obj;
-	}
 
 
 	const SELECT_QUERY = <<<SQL

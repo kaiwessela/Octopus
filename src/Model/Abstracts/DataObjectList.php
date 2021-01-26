@@ -14,9 +14,10 @@ abstract class DataObjectList {
 	private bool $empty;
 	private bool $disabled;
 
-	use DataObjectTrait;
+	const OBJECT_CLASS = null;
 
-	abstract protected static function load_each(array $data) : DataObject;
+
+	use DataObjectTrait;
 
 
 	function __construct() {
@@ -28,7 +29,7 @@ abstract class DataObjectList {
 	}
 
 
-	public function pull(?int $limit = null, ?int $offset = null) : void {
+	public function pull(?int $limit, ?int $offset, ?array $options) : void {
 #	@action:
 #	  - select multiple objects from the database
 #	  - call this->load to assign the received data to this->objects
@@ -42,15 +43,7 @@ abstract class DataObjectList {
 		$query = $this::SELECT_QUERY;
 
 		if($limit != null){
-			if(!is_int($limit)){
-				throw new InvalidArgumentException('Invalid argument: limit must be an integer.');
-			}
-
 			if($offset != null){
-				if(!is_int($offset)){
-					throw new InvalidArgumentException('Invalid argument: offset must be an integer.');
-				}
-
 				$query .= " LIMIT $offset, $limit";
 			} else {
 				$query .= " LIMIT $limit";
@@ -68,6 +61,13 @@ abstract class DataObjectList {
 		} else {
 			$this->load($s->fetchAll());
 		}
+	}
+
+
+	protected function pull_query(?int $limit, ?int $offset, ?array $options) : string {
+		$query = $this::PULL_QUERY;
+		$query .= ($limit) ? (($offset) ? " LIMIT $offset, $limit" : " LIMIT $limit") : null;
+		return $query;
 	}
 
 
@@ -102,8 +102,11 @@ abstract class DataObjectList {
 		}
 		*/
 
+		$class = $this::OBJECT_CLASS;
 		foreach($data as $row){
-			$this->objects[] = $this::load_each($row);
+			$obj = new $class();
+			$obj->load($row);
+			$this->objects[] = $obj;
 		}
 
 		$this->set_new(false);

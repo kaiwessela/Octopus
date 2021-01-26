@@ -12,14 +12,8 @@ class ColumnList extends DataObjectList {
 	#	private $new;
 	#	private $empty;
 
+	const OBJECT_CLASS = Column::class;
 	const OBJECTS_ALIAS = 'columns';
-
-
-	protected static function load_each(array $data) : Column {
-		$obj = new Column();
-		$obj->load_single($data);
-		return $obj;
-	}
 
 
 	const SELECT_QUERY = <<<SQL

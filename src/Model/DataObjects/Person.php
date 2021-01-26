@@ -31,22 +31,21 @@ class Person extends DataObject {
 	public function load(array $data) : void {
 		$this->req('empty');
 
-		$this->load_single($data[0]);
+		if(is_array($data[0]))){
+			$row = $data[0];
+		} else {
+			$row = $data;
+		}
 
-		$this->grouprelations = empty($data[0]['persongrouprelation_id']) ? null : new PersonGroupRelationList();
+		$this->id = $row['person_id'];
+		$this->longid = $row['person_longid'];
+		$this->name = $row['person_name'];
+
+		$this->image = empty($row['image_id']) ? null : new Image();
+		$this->image?->load($row);
+
+		$this->grouprelations = empty($row['persongrouprelation_id']) ? null : new PersonGroupRelationList();
 		$this->grouprelations?->load($data, $this);
-	}
-
-
-	public function load_single(array $data) : void {
-		$this->req('empty');
-
-		$this->id = $data['person_id'];
-		$this->longid = $data['person_longid'];
-		$this->name = $data['person_name'];
-
-		$this->image = empty($data['image_id']) ? null : new Image();
-		$this->image?->load_single($data);
 
 		$this->set_new(false);
 		$this->set_empty(false);

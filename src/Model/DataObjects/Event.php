@@ -36,21 +36,20 @@ class Event extends DataObject {
 	public function load(array $data) : void {
 		$this->req('empty');
 
-		$this->load_single($data[0]);
-	}
+		if(is_array($data[0]))){
+			$row = $data[0];
+		} else {
+			$row = $data;
+		}
 
-
-	public function load_single(array $data) : void {
-		$this->req('empty');
-
-		$this->id = $data['event_id'];
-		$this->longid = $data['event_longid'];
-		$this->title = $data['event_title'];
-		$this->organisation = $data['event_organisation'];
-		$this->timestamp = new Timestamp($data['event_timestamp']);
-		$this->location = $data['event_location'];
-		$this->description = $data['event_description'];
-		$this->cancelled = (bool) $data['event_cancelled'];
+		$this->id = $row['event_id'];
+		$this->longid = $row['event_longid'];
+		$this->title = $row['event_title'];
+		$this->organisation = $row['event_organisation'];
+		$this->timestamp = new Timestamp($row['event_timestamp']);
+		$this->location = $row['event_location'];
+		$this->description = $row['event_description'];
+		$this->cancelled = (bool) $row['event_cancelled'];
 
 		$this->set_new(false);
 		$this->set_empty(false);

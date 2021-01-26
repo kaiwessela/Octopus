@@ -30,20 +30,19 @@ class Column extends DataObject {
 	public function load(array $data) : void {
 		$this->req('empty');
 
-		$this->load_single($data[0]);
+		if(is_array($data[0]))){
+			$row = $data[0];
+		} else {
+			$row = $data;
+		}
 
-		$this->postrelations = empty($data[0]['postcolumnrelation_id']) ? null : new PostColumnRelationList();
+		$this->id = $row['column_id'];
+		$this->longid = $row['column_longid'];
+		$this->name = $row['column_name'];
+		$this->description = $row['column_description'];
+
+		$this->postrelations = empty($row['postcolumnrelation_id']) ? null : new PostColumnRelationList();
 		$this->postrelations?->load($data, $this);
-	}
-
-
-	public function load_single(array $data) : void {
-		$this->req('empty');
-
-		$this->id = $data['column_id'];
-		$this->longid = $data['column_longid'];
-		$this->name = $data['column_name'];
-		$this->description = $data['column_description'];
 
 		$this->set_new(false);
 		$this->set_empty(false);

@@ -57,19 +57,18 @@ class Image extends DataObject {
 	public function load(array $data) : void {
 		$this->req('empty');
 
-		$this->load_single($data[0]);
-	}
+		if(is_array($data[0]))){
+			$row = $data[0];
+		} else {
+			$row = $data;
+		}
 
-
-	public function load_single(array $data) : void {
-		$this->req('empty');
-
-		$this->id = $data['image_id'];
-		$this->longid = $data['image_longid'];
-		$this->extension = $data['image_extension'];
-		$this->description = $data['image_description'];
-		$this->copyright = $data['image_copyright'];
-		$this->sizes = explode(' ', $data['image_sizes']);
+		$this->id = $row['image_id'];
+		$this->longid = $row['image_longid'];
+		$this->extension = $row['image_extension'];
+		$this->description = $row['image_description'];
+		$this->copyright = $row['image_copyright'];
+		$this->sizes = explode(' ', $row['image_sizes']);
 
 		$this->set_new(false);
 		$this->set_empty(false);

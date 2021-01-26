@@ -28,19 +28,18 @@ class Page extends DataObject {
 	public function load(array $data) : void {
 		$this->req('empty');
 
-		$this->load_single($data[0]);
-	}
+		if(is_array($data[0]))){
+			$row = $data[0];
+		} else {
+			$row = $data;
+		}
 
+		$this->id = $row['page_id'];
+		$this->longid = $row['page_longid'];
+		$this->title = $row['page_title'];
 
-	public function load_single(array $data) : void {
-		$this->req('empty');
-
-		$this->id = $data['page_id'];
-		$this->longid = $data['page_longid'];
-		$this->title = $data['page_title'];
-
-		$this->content = empty($data['page_content'])
-			? null : new MarkdownContent($data['page_content']);
+		$this->content = empty($row['page_content'])
+			? null : new MarkdownContent($row['page_content']);
 
 		$this->set_new(false);
 		$this->set_empty(false);

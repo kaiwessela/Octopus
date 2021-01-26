@@ -12,14 +12,8 @@ class GroupList extends DataObjectList {
 	#	private $new;
 	#	private $empty;
 
+	const OBJECT_CLASS = Group::class;
 	const OBJECTS_ALIAS = 'groups';
-
-
-	protected static function load_each(array $data) : Group {
-		$obj = new Group();
-		$obj->load_single($data);
-		return $obj;
-	}
 
 
 	const SELECT_QUERY = <<<SQL

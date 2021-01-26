@@ -50,6 +50,19 @@
 			}
 		}
 	},
+	"events/#?": {
+		"template": "events",
+		"controllers": {
+			"EventController": {
+				"action": "list",
+				"amount": 10,
+				"page": "?2",
+				"custom": {
+					"future"
+				}
+			}
+		}
+	},
 	"p/*{8}": {
 		"template": "post",
 		"controllers": {

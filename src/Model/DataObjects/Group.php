@@ -30,20 +30,19 @@ class Group extends DataObject {
 	public function load(array $data) : void {
 		$this->req('empty');
 
-		$this->load_single($data[0]);
+		if(is_array($data[0]))){
+			$row = $data[0];
+		} else {
+			$row = $data;
+		}
 
-		$this->personrelations = empty($data[0]['persongrouprelation_id']) ? null : new PersonGroupRelationList();
+		$this->id = $row['group_id'];
+		$this->longid = $row['group_longid'];
+		$this->name = $row['group_name'];
+		$this->description = $row['group_description'];
+
+		$this->personrelations = empty($row['persongrouprelation_id']) ? null : new PersonGroupRelationList();
 		$this->personrelations?->load($data, $this);
-	}
-
-
-	public function load_single(array $data) : void {
-		$this->req('empty');
-
-		$this->id = $data['group_id'];
-		$this->longid = $data['group_longid'];
-		$this->name = $data['group_name'];
-		$this->description = $data['group_description'];
 
 		$this->set_new(false);
 		$this->set_empty(false);

@@ -12,14 +12,8 @@ class PostList extends DataObjectList {
 #	private $new;
 #	private $empty;
 
+	const OBJECT_CLASS = Post::class;
 	const OBJECTS_ALIAS = 'posts';
-
-
-	protected static function load_each(array $data) : Post {
-		$obj = new Post();
-		$obj->load_single($data);
-		return $obj;
-	}
 
 
 	const SELECT_QUERY = <<<SQL

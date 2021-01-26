@@ -12,19 +12,27 @@ class EventList extends DataObjectList {
 #	private $new;
 #	private $empty;
 
+	const OBJECT_CLASS = Event::class;
 	const OBJECTS_ALIAS = 'events';
 
 
-	protected static function load_each(array $data) : Event {
-		$obj = new Event();
-		$obj->load_single($data);
-		return $obj;
+	protected function pull_query(?int $limit, ?int $offset, ?array $options) : string {
+		$query = $this::PULL_QUERY;
+
+		if(in_array('future', $options)){
+			$query .= 'WHERE DATE(event_timestamp) >= DATE(NOW()) ORDER BY event_timestamp ';
+		} else {
+			$query .= 'ORDER BY event_timestamp DESC ';
+		}
+
+		$query .= ($limit) ? (($offset) ? " LIMIT $offset, $limit" : " LIMIT $limit") : null;
+
+		return $query;
 	}
 
 
 	const SELECT_QUERY = <<<SQL
 SELECT * FROM events
-ORDER BY event_timestamp
 SQL; #---|
 
 	const COUNT_QUERY = <<<SQL

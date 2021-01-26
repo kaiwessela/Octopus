@@ -45,31 +45,30 @@ class Post extends DataObject {
 	public function load(array $data) : void {
 		$this->req('empty');
 
-		$this->load_single($data[0]);
+		if(is_array($data[0]))){
+			$row = $data[0];
+		} else {
+			$row = $data;
+		}
 
-		$this->columnrelations = empty($data[0]['postcolumnrelation_id']) ? null : new PostColumnRelationList();
+		$this->id = $row['post_id'];
+		$this->longid = $row['post_longid'];
+		$this->overline = $row['post_overline'];
+		$this->headline = $row['post_headline'];
+		$this->subline = $row['post_subline'];
+		$this->teaser = $row['post_teaser'];
+		$this->author = $row['post_author'];
+
+		$this->timestamp = new Timestamp($row['post_timestamp']);
+
+		$this->image = empty($row['image_id']) ? null : new Image();
+		$this->image?->load($data);
+
+		$this->content = empty($row['post_content'])
+		? null : new MarkdownContent($row['post_content']);
+
+		$this->columnrelations = empty($row['postcolumnrelation_id']) ? null : new PostColumnRelationList();
 		$this->columnrelations?->load($data, $this);
-	}
-
-
-	public function load_single(array $data) : void {
-		$this->req('empty');
-
-		$this->id = $data['post_id'];
-		$this->longid = $data['post_longid'];
-		$this->overline = $data['post_overline'];
-		$this->headline = $data['post_headline'];
-		$this->subline = $data['post_subline'];
-		$this->teaser = $data['post_teaser'];
-		$this->author = $data['post_author'];
-
-		$this->timestamp = new Timestamp($data['post_timestamp']);
-
-		$this->image = empty($data['image_id']) ? null : new Image();
-		$this->image?->load_single($data);
-
-		$this->content = empty($data['post_content'])
-			? null : new MarkdownContent($data['post_content']);
 
 		$this->set_new(false);
 		$this->set_empty(false);

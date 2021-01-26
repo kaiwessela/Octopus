@@ -12,6 +12,7 @@ class PageList extends DataObjectList {
 #	private $new;
 #	private $empty;
 
+	const OBJECT_CLASS = Page::class;
 	const OBJECTS_ALIAS = 'pages';
 
 

@@ -157,12 +157,32 @@ article > :last-child {
 	margin-bottom: 0;
 }
 
+table {
+	width: 100%;
+}
+
+table tr {
+	padding: 0.25rem 0;
+}
+
+table tr > td:first-child {
+	width: 8rem;
+	padding-right: 1rem;
+}
+
 div {
 	margin: 0.5rem 0;
 }
 
 small {
 	color: var(--dark-gray);
+}
+
+em {
+	color: var(--dark-gray);
+	font-weight: normal;
+	font-style: normal;
+	text-decoration: none;
 }
 
 code {
@@ -233,6 +253,12 @@ textarea.invalid {
 input.tooshort,
 textarea.tooshort {
 	border-color: var(--yellow);
+}
+
+input[disabled],
+textarea[disabled] {
+	color: #000000;
+	background-color: var(--shiny-gray);
 }
 
 textarea {

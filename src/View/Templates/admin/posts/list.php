@@ -1,13 +1,8 @@
 <article>
 	<code><?= $obj->longid ?></code>
+	<small><?= $obj->author ?>, <?= $obj->timestamp->format('date_short') ?></small>
 	<h2><?= $obj->headline ?></h2>
 	<strong><?= $obj?->subline ?></strong>
-	<small>
-		Von <?= $obj->author ?> –
-		<time datetime="<?= $obj->timestamp->iso() ?>">
-			<?= $obj->timestamp->format('datetime') ?>
-		</time>
-	</small>
 	<div>
 		<a class="button blue"
 			href="<?= $server->url ?>/admin/posts/<?= $obj->id ?>">Ansehen</a>

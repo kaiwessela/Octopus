@@ -1,4 +1,4 @@
-<form action="#" method="post">
+<form action="#" method="post" class="pages edit">
 
 <?php if($PageController->request->action == 'new'){ ?>
 
@@ -20,8 +20,15 @@
 
 <?php } else { ?>
 
-	<input type="hidden" name="id" value="<?= $Page?->id ?>">
-	<input type="hidden" name="longid" value="<?= $Page?->longid ?>">
+	<label for="id">
+		<span class="name">ID</span>
+	</label>
+	<input type="text" id="id" name="id" value="<?= $Page?->id ?>" size="8" disabled>
+
+	<label for="longid">
+		<span class="name">Long-ID</span>
+	</label>
+	<input type="text" id="longid" name="longid" value="<?= $Page?->longid ?>" size="40" disabled>
 
 <?php } ?>
 

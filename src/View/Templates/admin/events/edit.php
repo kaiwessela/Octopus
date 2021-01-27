@@ -1,4 +1,4 @@
-<form action="#" method="post">
+<form action="#" method="post" class="events edit">
 
 <?php if($EventController->request->action == 'new'){ ?>
 
@@ -19,8 +19,15 @@
 
 <?php } else { ?>
 
-	<input type="hidden" name="id" value="<?= $Event?->id ?>">
-	<input type="hidden" name="longid" value="<?= $Event?->longid ?>">
+	<label for="id">
+		<span class="name">ID</span>
+	</label>
+	<input type="text" id="id" name="id" value="<?= $Event?->id ?>" size="8" disabled>
+
+	<label for="longid">
+		<span class="name">Long-ID</span>
+	</label>
+	<input type="text" id="longid" name="longid" value="<?= $Event?->longid ?>" size="40" disabled>
 
 <?php } ?>
 

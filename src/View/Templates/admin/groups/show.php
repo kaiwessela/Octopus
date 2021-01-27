@@ -1,4 +1,4 @@
-<article>
+<section class="groups show">
 	<code><?= $Group->longid ?></code>
 	<h1><?= $Group->name ?></h1>
 	<p><?= $Group->description ?></p>
@@ -9,4 +9,4 @@
 		<li><code><?= $rel->person->longid ?></code> <strong><?= $rel->person->name ?></strong></li>
 	<?php } ?>
 </ul>
-</article>
+</section>

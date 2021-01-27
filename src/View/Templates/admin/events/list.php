@@ -1,8 +1,7 @@
 <article>
-	<code><?= $obj->longid ?></code>
+	<em><?= $obj->timestamp?->format('datetime_long') ?></em>
 	<h2><?= $obj->title ?></h2>
-	<small><?= $obj->location ?></small>
-	<small><?= $obj->timestamp?->format('datetime_long') ?></small>
+	<p><code><?= $obj->longid ?></code> – <em><?= $obj->organisation ?></em></p>
 	<div>
 		<a class="button blue"
 			href="<?= $server->url ?>/admin/events/<?= $obj->id ?>">Ansehen</a>

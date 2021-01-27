@@ -1,4 +1,4 @@
-<form action="#" method="post" enctype="multipart/form-data">
+<form action="#" method="post" enctype="multipart/form-data" class="images edit">
 
 <?php if($ImageController->request->action == 'new'){ ?>
 
@@ -20,8 +20,17 @@
 
 <?php } else { ?>
 
-	<input type="hidden" id="id" name="id" value="<?= $Image?->id ?>">
-	<input type="hidden" id="longid" name="longid" value="<?= $Image?->longid ?>">
+	<label for="id">
+		<span class="name">ID</span>
+	</label>
+	<input type="text" id="id" name="id" value="<?= $Image?->id ?>" size="8" disabled>
+
+	<label for="longid">
+		<span class="name">Long-ID</span>
+	</label>
+	<input type="text" id="longid" name="longid" value="<?= $Image?->longid ?>" size="40" disabled>
+
+	<img src="<?= $Image->src() ?>" alt="[ANZEIGEFEHLER]">
 
 <?php } ?>
 
@@ -66,8 +75,3 @@
 
 	<button type="submit" class="green">Speichern</button>
 </form>
-
-<?php if($ImageController->request->action == 'edit'){ ?>
-<br>
-<img src="<?= $Image->src() ?>" alt="[ANZEIGEFEHLER]">
-<?php } ?>

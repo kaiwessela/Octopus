@@ -1,4 +1,4 @@
-<form action="#" method="post">
+<form action="#" method="post" class="groups edit">
 
 <?php if($Controller->request->action == 'new'){ ?>
 
@@ -19,8 +19,15 @@
 
 <?php } else { ?>
 
-	<input type="hidden" name="id" value="<?= $Group?->id ?>">
-	<input type="hidden" name="longid" value="<?= $Group?->longid ?>">
+	<label for="id">
+		<span class="name">ID</span>
+	</label>
+	<input type="text" id="id" name="id" value="<?= $Group?->id ?>" size="8" disabled>
+
+	<label for="longid">
+		<span class="name">Long-ID</span>
+	</label>
+	<input type="text" id="longid" name="longid" value="<?= $Group?->longid ?>" size="40" disabled>
 
 <?php } ?>
 

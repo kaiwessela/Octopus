@@ -5,6 +5,8 @@
 		"lang": {
 			"singular": "Seite",
 			"plural": "Seiten",
+			"plural_nominativ": "Seiten",
+			"plural_dativ": "Seiten",
 			"message": {
 				"created": "Die Seite wurde erfolgreich erstellt.",
 				"edited": "Die bearbeitete Seite wurde erfolgreich gespeichert.",
@@ -36,6 +38,8 @@
 		"lang": {
 			"singular": "Artikel",
 			"plural": "Artikel",
+			"plural_nominativ": "Artikel",
+			"plural_dativ": "Artikeln",
 			"message": {
 				"created": "Der Artikel wurde erfolgreich hinzugefügt.",
 				"edited": "Der bearbeitete Artikel wurde erfolgreich gespeichert.",
@@ -67,6 +71,8 @@
 		"lang": {
 			"singular": "Rubrik",
 			"plural": "Rubriken",
+			"plural_nominativ": "Rubriken",
+			"plural_dativ": "Rubriken",
 			"message": {
 				"created": "Die Rubrik wurde erfolgreich hinzugefügt.",
 				"edited": "Die bearbeitete Rubrik wurde erfolgreich gespeichert.",
@@ -98,6 +104,8 @@
 		"lang": {
 			"singular": "Bild",
 			"plural": "Bilder",
+			"plural_nominativ": "Bilder",
+			"plural_dativ": "Bildern",
 			"message": {
 				"created": "Das Bild wurde erfolgreich hochgeladen.",
 				"edited": "Die Bilddaten wurden erfolgreich bearbeitet.",
@@ -129,6 +137,8 @@
 		"lang": {
 			"singular": "Person",
 			"plural": "Personen",
+			"plural_nominativ": "Personen",
+			"plural_dativ": "Personen",
 			"message": {
 				"created": "Das Profil wurde erfolgreich hinzugefügt.",
 				"edited": "Das bearbeitete Profil wurde erfolgreich gespeichert.",
@@ -160,6 +170,8 @@
 		"lang": {
 			"singular": "Gruppe",
 			"plural": "Gruppen",
+			"plural_nominativ": "Gruppen",
+			"plural_dativ": "Gruppen",
 			"message": {
 				"created": "Die Gruppe wurde erfolgreich erstellt.",
 				"edited": "Die bearbeitete Gruppe wurde erfolgreich gespeichert.",
@@ -191,6 +203,8 @@
 		"lang": {
 			"singular": "Termin",
 			"plural": "Termine",
+			"plural_nominativ": "Termine",
+			"plural_dativ": "Terminen",
 			"message": {
 				"created": "Der Termin wurde erfolgreich erstellt.",
 				"edited": "Der bearbeitete Termin wurde erfolgreich gespeichert.",

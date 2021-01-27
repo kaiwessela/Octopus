@@ -1,4 +1,4 @@
-<article>
+<section class="persons show">
 	<code><?= $Person->longid ?></code>
 	<h1 class="name"><?= $Person->name ?></h1>
 
@@ -9,4 +9,4 @@
 		<img src="<?= $Person->image?->src() ?>?size=original" alt="<?= $Person->image?->description ?>">
 	</div>
 	<?php } ?>
-</article>
+</section>

@@ -1,3 +1,36 @@
+section.list.images {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 1rem;
+}
+
+section.list.images article {
+	margin: 0;
+	box-sizing: border-box;
+}
+
+section.list.images img {
+	height: 12rem;
+	width: 100%;
+	object-fit: contain;
+	object-position: center center;
+	background-color: #00000022;
+}
+
+section.show.images img,
+form.images img {
+	height: auto;
+	max-height: 50vh;
+	margin: 1rem 0;
+	padding: 0.5rem;
+	object-fit: contain;
+	object-position: center center;
+	background-color: #ffffff;
+	box-sizing: border-box;
+}
+
+
+
 .selectmodal[data-type=Image] .objects {
 	display: grid;
 	grid-template-columns: 1fr 1fr 1fr 1fr;

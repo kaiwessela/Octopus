@@ -45,7 +45,7 @@
 	$object_var = $config->object_var ?? null;
 	$Controller = $$controller_var ?? null;
 	$Object = $$object_var ?? null;
-	
+
 	if(empty($config)){
 		require __DIR__ . '/main.php';
 
@@ -116,7 +116,23 @@
 
 	if($Controller?->request->action == 'list' && $Controller?->found()){
 		$pagination = $Controller->pagination;
-		include COMPONENT_PATH . 'admin/pagination.php';
+
+		?>
+		<p>
+			Angezeigt werden <?= $config->lang->plural_nominativ ?>
+			<b><?= $pagination->first_object ?> bis <?= $pagination->last_object ?></b>
+			von insgesamt <b><?= $pagination->total_objects ?></b>
+			<?= $config->lang->plural_dativ ?>
+		</p>
+		<div>
+			<?php foreach($pagination->items as $item){ ?>
+			<a class="button<?php if($item->template != 'current'){ ?> gray<?php } ?>"
+				href="<?= $server->url ?>/<?= $pagination->base_path ?>/<?= $item->target ?>">
+				<?= $item->target ?>
+			</a>
+			<?php } ?>
+		</div>
+		<?php
 
 		?><section class="<?= $name ?> list"><?php
 		foreach($Object as $obj){

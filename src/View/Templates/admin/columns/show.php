@@ -1,4 +1,4 @@
-<article>
+<section class="columns show">
 	<code><?= $Column->longid ?></code>
 	<h1><?= $Column->name ?></h1>
 	<p><?= $Column->description ?></p>
@@ -9,4 +9,4 @@
 			<h2><?= $rel->post->headline ?></h2>
 		</article>
 	<?php } ?>
-</article>
+</section>

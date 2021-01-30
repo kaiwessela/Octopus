@@ -11,6 +11,8 @@ class Person extends DataObject {
 			'longid',
 			'name'
 		];
+
+		this.grouprelations = [];
 	}
 
 	extractFromElement(elem) {

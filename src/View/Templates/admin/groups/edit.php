@@ -52,57 +52,45 @@
 		</span>
 	</label>
 	<textarea id="description" name="description"
-		cols="50" rows="3">
-		<?= $Group?->description ?>
-	</textarea>
+		cols="50" rows="3"><?= $Group?->description ?></textarea>
 
 	<!-- MEMBERS -->
 	<label>
 		<span class="name">Mitglieder</span>
 		<span class="conditions">optional</span>
+		<span class="infos">
+			Änderungen werden lokal zwischengespeichert und beim Abschicken übernommen.
+		</span>
 	</label>
-	<div class="relationinput nojs" data-type="Person" data-for="persons" data-selectmodal="persons-select">
+	<div class="relationinput nojs" data-type="Person" data-unique="false" data-for="persons" data-selectmodal="persons-select">
 		<div class="objects">
+			<?php foreach($Group?->personrelations as $i => $rel){ ?>
+				<div class="relation" data-i="<?= $i ?>" data-exists="true">
+					<input type="hidden" name="persons[<?= $i ?>][id]" value="<?= $rel->id ?>">
+					<input type="hidden" name="persons[<?= $i ?>][action]" class="action" value="ignore">
+					<input type="hidden" name="persons[<?= $i ?>][person_id]" class="objectId" value="<?= $rel->person->id ?>">
+					<input type="hidden" name="persons[<?= $i ?>][group_id]" value="<?= $Group?->id ?>">
+					<p class="title"><span><?= $rel->person->name ?></span> – <code><?= $rel->person->longid ?></code></p>
+					<button type="button" class="red" data-action="remove">Entfernen</button>
+					<button type="button" data-action="restore">Entf. rückgängig</button>
+				</div>
+			<?php } ?>
 			<template>
-				<div class="relation">
-					<input type="hidden" name="persons[{{i}}][person_id]" value="{{id}}">
+				<div class="relation" data-i="{{i}}" data-exists="false">
+					<input type="hidden" name="persons[{{i}}][action]" class="action" value="new">
+					<input type="hidden" name="persons[{{i}}][person_id]" class="objectId" value="{{id}}">
 					<input type="hidden" name="persons[{{i}}][group_id]" value="<?= $Group?->id ?>">
-					<p>{{name}} – {{longid}}</p>
-
-					<label class="radiobodge turn-around blue">
-						<span class="label-field">Keine Änderung</span>
-						<input type="radio" name="persons[{{i}}][action]" value="ignore">
-						<span class="bodgeradio"><span class="bodgetick"></span></span>
-					</label>
-
-					<label class="radiobodge turn-around green">
-						<span class="label-field">Hinzufügen</span>
-						<input type="radio" name="persons[{{i}}][action]" value="new" checked>
-						<span class="bodgeradio"><span class="bodgetick"></span></span>
-					</label>
-
-					<label class="radiobodge turn-around yellow">
-						<span class="label-field">Bearbeiten</span>
-						<input type="radio" name="persons[{{i}}][action]" value="edit" disabled>
-						<span class="bodgeradio"><span class="bodgetick"></span></span>
-					</label>
-
-					<label class="radiobodge turn-around red">
-						<span class="label-field">Entfernen</span>
-						<input type="radio" name="persons[{{i}}][action]" value="delete" disabled>
-						<span class="bodgeradio"><span class="bodgetick"></span></span>
-					</label>
+					<p class="title"><span>{{name}}</span> – <code>{{longid}}</code></p>
+					<button type="button" class="red" data-action="remove">Entfernen</button>
 				</div>
 			</template>
 		</div>
 		<button type="button" class="new blue" data-action="select">Person(en) hinzufügen</button>
 	</div>
-
-
 	<button type="submit" class="green">Speichern</button>
 </form>
 
-<div class="modal multiselectmodal nojs" data-name="persons-select" data-type="Person" data-objectsperpage="1">
+<div class="modal multiselectmodal nojs" data-name="persons-select" data-type="Person" data-objectsperpage="20">
 	<div class="box">
 		<h2>Personen auswählen</h2>
 		<form action="#" method="GET">

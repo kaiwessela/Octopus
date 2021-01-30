@@ -8,6 +8,10 @@ class MultiSelectModal extends Modal {
 		this.objectsPerPage;
 		this.objects = [];
 		this.objectElems = [];
+
+		this.selectedIds = [];
+		this.disabledIds = [];
+		this.markedIds = [];
 	}
 
 	async bind(elem) {
@@ -29,6 +33,8 @@ class MultiSelectModal extends Modal {
 
 		if(Object.keys(this.objects).length == 0){
 			this.loadMore();
+		} else {
+			this.reloadTags();
 		}
 	}
 
@@ -53,6 +59,32 @@ class MultiSelectModal extends Modal {
 
 		if(Object.keys(this.objects).length >= this.objectCount){
 			this.elem.querySelector('[data-action=loadmore]').remove();
+		}
+
+		this.reloadTags();
+	}
+
+	reloadTags() {
+		for(var id in this.objectElems){
+			var elem = this.objectElems[id];
+
+			if(this.selectedIds.includes(id)){
+				elem.querySelector('input').checked = true;
+			} else {
+				elem.querySelector('input').checked = false;
+			}
+
+			if(this.disabledIds.includes(id)){
+				elem.querySelector('input').disabled = true;
+			} else {
+				elem.querySelector('input').disabled = false;
+			}
+
+			if(this.markedIds.includes(id)){
+				elem.classList.add('marked');
+			} else {
+				elem.classList.remove('marked');
+			}
 		}
 	}
 }

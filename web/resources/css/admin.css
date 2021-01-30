@@ -220,8 +220,7 @@ label .conditions {
 
 input,
 textarea,
-div.pseudoinput,
-div.relationinput {
+div.pseudoinput {
 	display: block;
 	max-width: 100%;
 	margin: 0.5rem 0 1rem;
@@ -424,16 +423,6 @@ img {
 	display: none;
 }
 
-.relation {
-	margin: 0;
-	padding: 0;
-	border-bottom: 1px solid var(--gray);
-}
-
-.relation:last-of-type {
-	margin-bottom: 0.5rem;
-}
-
 
 
 /* CHECKBODGE */
@@ -479,11 +468,19 @@ img {
 	margin: 0;
 }
 
+input:checked ~ .bodgecheckbox,
 input[type=checkbox]:hover ~ .bodgecheckbox,
 input[type=checkbox]:focus ~ .bodgecheckbox,
 .checkbodge:hover > .bodgecheckbox,
 .checkbodge:focus > .bodgecheckbox {
 	border-color: var(--blue);
+}
+
+input:disabled ~ .bodgecheckbox,
+input:disabled:hover ~ .bodgecheckbox,
+input:disabled:focus ~ .bodgecheckbox {
+	background-color: var(--shiny-gray);
+	border-color: var(--gray);
 }
 
 .checkbodge > .bodgecheckbox > .bodgetick {
@@ -515,8 +512,8 @@ input[type=checkbox]:focus ~ .bodgecheckbox,
 	margin: 0;
 }
 
-input:checked ~ .bodgecheckbox {
-	border-color: var(--blue);
+input:disabled ~ .bodgecheckbox > .bodgetick > span {
+	background-color: var(--gray);
 }
 
 input:checked ~ .bodgecheckbox > .bodgetick {
@@ -666,4 +663,84 @@ input:checked ~ .bodgeradio > .bodgetick {
 
 .modal form {
 	margin: 0;
+}
+
+
+
+div.relationinput {
+	display: block;
+	max-width: 100%;
+	margin: 0.5rem 0 1rem;
+	padding: 0 0.5rem 0.5rem;
+	font-size: 1rem;
+	border: 0.1rem solid var(--gray);
+	outline: 0;
+	box-shadow: none;
+}
+
+.relation {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	margin: 0.5rem 0;
+	padding: 0.25rem;
+	background-color: var(--white);
+	border-radius: 0.25rem;
+}
+
+.relation .title {
+	margin: 0.25rem;
+}
+
+.relation input.action ~ .title::before {
+	content: '·';
+	font-family: 'Fira Mono';
+	font-size: 1.5em;
+	line-height: 1em;
+	color: var(--blue);
+	background-color: var(--shiny-blue);
+	margin-right: 0.5rem;
+	padding: 0 0.25rem;
+}
+
+.relation input.action[value=new] ~ .title::before {
+	content: '+';
+	color: var(--green);
+	background-color: var(--shiny-green);
+}
+
+.relation input.action[value=new] ~ .title span {
+	color: var(--green);
+}
+
+.relation input.action[value=edit] ~ .title::before {
+	content: '~';
+	color: var(--yellow);
+	background-color: var(--shiny-yellow);
+}
+
+.relation input.action[value=delete] ~ .title::before {
+	content: '-';
+	color: var(--red);
+	background-color: var(--shiny-red);
+}
+
+.relation input.action[value=delete] ~ .title span {
+	text-decoration: line-through;
+}
+
+.relation input.action[value=ignore] ~ button[data-action=restore],
+.relation input.action[value=new] ~ button[data-action=restore],
+.relation input.action[value=edit] ~ button[data-action=restore] {
+	display: none;
+}
+
+.relation input.action[value=delete] ~ button[data-action=remove] {
+	display: none;
+}
+
+.multiselectmodal article.marked .label-field::after {
+	content: '(ausgewählt)';
+	font-style: italic;
+	color: var(--gray);
+	margin-left: 0.5rem;
 }

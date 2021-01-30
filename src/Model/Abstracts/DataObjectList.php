@@ -7,7 +7,7 @@ use Blog\Model\Exceptions\EmptyResultException;
 use InvalidArgumentException;
 
 abstract class DataObjectList {
-	public $objects;
+	public array $objects;
 	public int $count;
 
 	private bool $new;
@@ -106,23 +106,32 @@ abstract class DataObjectList {
 	}
 
 
-	public function export() : array {
+	public function load_from_relationlist(DataObjectRelationList $relationlist) : void {
+		$this->req('empty');
+
+		foreach($relationlist->relations as $relation){
+			$this->objects[] = $relation->get_object($this::OBJECT_CLASS);
+		}
+
+		$this->set_empty(false);
+	}
+
+
+	public function export() : ?array {
 #	@action:
 #	  - return an array of the results of the export function of each object
 #	@return:
 #		array of arrays which contain the exported data of one DataObject
 
-		if($this->is_empty()){
-			return null;
+		if(!$this->is_empty()){
+			foreach($this->objects as $obj){
+				$obj?->export();
+			}
 		}
 
 		$this->disabled = true;
 
-		foreach($this->objects as $obj){
-			$obj->export();
-		}
-
-		return $this->objects;
+		return empty($this->objects) ? null : $this->objects;
 	}
 
 

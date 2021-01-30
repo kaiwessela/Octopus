@@ -4,6 +4,7 @@ use \Blog\Model\Abstracts\DataObjectRelation;
 use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\DataObjects\Person;
 use \Blog\Model\DataObjects\Group;
+use Exception;
 
 class PersonGroupRelation extends DataObjectRelation {
 	public ?Person 	$person;
@@ -80,6 +81,28 @@ class PersonGroupRelation extends DataObjectRelation {
 		}
 
 		return $values;
+	}
+
+
+	public function get_object(string $class) : DataObject {
+		$property = null;
+		foreach($this::OBJECTS as $prop => $cls){
+			if($class == $cls){
+				$property = $prop;
+			}
+		}
+
+		if(empty($property)){
+			throw new Exception('relationlist does not contain this object.');
+		}
+
+		$object = $this->$property;
+
+		foreach($this::PROPERTIES as $prop => $def){
+			$object->$prop = $this->$prop;
+		}
+
+		return $object;
 	}
 
 

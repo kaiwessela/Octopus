@@ -1,11 +1,13 @@
 <?php
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\DataObjects\Lists\PersonList;
 use \Blog\Model\DataObjects\Relations\Lists\PersonGroupRelationList;
 
 class Group extends DataObject {
 	public string 								$name;
 	public ?string 								$description;
+	public PersonList|array|null 				$persons;
 	public PersonGroupRelationList|array|null 	$personrelations;
 
 #	@inherited
@@ -23,6 +25,7 @@ class Group extends DataObject {
 	const PROPERTIES = [
 		'name' => '.{1,30}',
 		'description' => null,
+		'personlist' => PersonList::class,
 		'personrelations' => PersonGroupRelationList::class
 	];
 
@@ -44,6 +47,8 @@ class Group extends DataObject {
 		if(!$norecursion){
 			$this->personrelations = empty($row['persongrouprelation_id']) ? null : new PersonGroupRelationList();
 			$this->personrelations?->load($data, $this);
+			$this->persons = empty($this->personrelations?->relations) ? null : new PersonList();
+			$this->persons?->load_from_relationlist($this->personrelations);
 		}
 
 		$this->set_new(false);

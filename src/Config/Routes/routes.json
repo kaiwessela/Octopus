@@ -57,9 +57,9 @@
 				"action": "list",
 				"amount": 10,
 				"page": "?2",
-				"custom": {
+				"custom": [
 					"future"
-				}
+				]
 			}
 		}
 	},

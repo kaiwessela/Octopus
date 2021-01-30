@@ -3,6 +3,7 @@ namespace Blog\Model\Abstracts;
 use \Blog\Model\DataObjectTrait;
 use \Blog\Model\Abstracts\DataType;
 use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\Abstracts\DataObjectList;
 use \Blog\Model\Abstracts\DataObjectRelationList;
 use \Blog\Model\Exceptions\DatabaseException;
 use \Blog\Model\Exceptions\InputException;
@@ -205,6 +206,8 @@ abstract class DataObject {
 				$mode = 'dataobject';
 			} else if(is_subclass_of($definition, DataObjectRelationList::class)){
 				$mode = 'relationlist';
+			} else if(is_subclass_of($definition, DataObjectList::class)){
+				continue;
 			} else {
 				throw new Exception("Invalid definition '$definition' for $property.");
 			}
@@ -335,6 +338,8 @@ abstract class DataObject {
 		foreach($this as $property => $value){
 			if($value instanceof DataObject){
 				$value->export();
+			} else if($value instanceof DataObjectList){
+				$this->$property = $value->export();
 			} else if($value instanceof DataObjectRelationList){
 				$this->$property = $value->export($this::class);
 			} else if(!empty($value) && is_array($value) && $value[0] instanceof DataObject){
@@ -342,10 +347,6 @@ abstract class DataObject {
 					$obj->export();
 				}
 			}
-		}
-
-		if(!empty($this->relationlist)){
-			$this->relations = $this->relationlist->export();
 		}
 
 		return $this;

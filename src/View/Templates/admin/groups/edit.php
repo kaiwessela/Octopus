@@ -22,12 +22,12 @@
 	<label for="id">
 		<span class="name">ID</span>
 	</label>
-	<input type="text" id="id" name="id" value="<?= $Group?->id ?>" size="8" disabled>
+	<input type="text" id="id" name="id" value="<?= $Group?->id ?>" size="8" readonly>
 
 	<label for="longid">
 		<span class="name">Long-ID</span>
 	</label>
-	<input type="text" id="longid" name="longid" value="<?= $Group?->longid ?>" size="40" disabled>
+	<input type="text" id="longid" name="longid" value="<?= $Group?->longid ?>" size="40" readonly>
 
 <?php } ?>
 
@@ -57,29 +57,29 @@
 	<!-- MEMBERS -->
 	<label>
 		<span class="name">Mitglieder</span>
-		<span class="conditions">optional</span>
+		<span class="conditions">optional, Mehrfacheintrag möglich</span>
 		<span class="infos">
 			Änderungen werden lokal zwischengespeichert und beim Abschicken übernommen.
 		</span>
 	</label>
 	<div class="relationinput nojs" data-type="Person" data-unique="false" data-for="persons" data-selectmodal="persons-select">
 		<div class="objects">
-			<?php foreach($Group?->personrelations as $i => $rel){ ?>
+			<?php if($Group?->personrelations){ foreach($Group->personrelations as $i => $rel){ ?>
 				<div class="relation" data-i="<?= $i ?>" data-exists="true">
-					<input type="hidden" name="persons[<?= $i ?>][id]" value="<?= $rel->id ?>">
-					<input type="hidden" name="persons[<?= $i ?>][action]" class="action" value="ignore">
-					<input type="hidden" name="persons[<?= $i ?>][person_id]" class="objectId" value="<?= $rel->person->id ?>">
-					<input type="hidden" name="persons[<?= $i ?>][group_id]" value="<?= $Group?->id ?>">
+					<input type="hidden" name="personrelations[<?= $i ?>][id]" value="<?= $rel->id ?>">
+					<input type="hidden" name="personrelations[<?= $i ?>][action]" class="action" value="ignore">
+					<input type="hidden" name="personrelations[<?= $i ?>][person_id]" class="objectId" value="<?= $rel->person->id ?>">
+					<input type="hidden" name="personrelations[<?= $i ?>][group_id]" value="<?= $Group?->id ?>">
 					<p class="title"><span><?= $rel->person->name ?></span> – <code><?= $rel->person->longid ?></code></p>
 					<button type="button" class="red" data-action="remove">Entfernen</button>
 					<button type="button" data-action="restore">Entf. rückgängig</button>
 				</div>
-			<?php } ?>
+			<?php }} ?>
 			<template>
 				<div class="relation" data-i="{{i}}" data-exists="false">
-					<input type="hidden" name="persons[{{i}}][action]" class="action" value="new">
-					<input type="hidden" name="persons[{{i}}][person_id]" class="objectId" value="{{id}}">
-					<input type="hidden" name="persons[{{i}}][group_id]" value="<?= $Group?->id ?>">
+					<input type="hidden" name="personrelations[{{i}}][action]" class="action" value="new">
+					<input type="hidden" name="personrelations[{{i}}][person_id]" class="objectId" value="{{id}}">
+					<input type="hidden" name="personrelations[{{i}}][group_id]" value="<?= $Group?->id ?>">
 					<p class="title"><span>{{name}}</span> – <code>{{longid}}</code></p>
 					<button type="button" class="red" data-action="remove">Entfernen</button>
 				</div>
@@ -87,6 +87,8 @@
 		</div>
 		<button type="button" class="new blue" data-action="select">Person(en) hinzufügen</button>
 	</div>
+
+
 	<button type="submit" class="green">Speichern</button>
 </form>
 

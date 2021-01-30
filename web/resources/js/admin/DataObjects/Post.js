@@ -1,22 +1,34 @@
-class Person extends DataObject {
+class Post extends DataObject {
 	constructor() {
 		super();
 
-		this.name;
+		this.overline;
+		this.headline;
+		this.subline;
+		this.teaser;
+		this.author;
+		this.timestamp;
+		this.content;
 
-		super._type = 'Person';
-		super._apiname = 'persons';
+		super._type = 'Post';
+		super._apiname = 'posts';
 		super.properties = [
 			'id',
 			'longid',
-			'name'
+			'overline',
+			'headline',
+			'subline',
+			'teaser',
+			'author',
+			'timestamp',
+			'content'
 		];
 	}
 
 	extractFromElement(elem) {
 		return new Promise((resolve, reject) => {
 			if(!elem instanceof HTMLElement){
-				throw 'Person.extractFromElement(): elem is not an HTMLElement.';
+				throw 'Group.extractFromElement(): elem is not an HTMLElement.';
 			}
 
 			for(var i = 0; i < elem.children.length; i++){

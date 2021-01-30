@@ -22,12 +22,12 @@
 	<label for="id">
 		<span class="name">ID</span>
 	</label>
-	<input type="text" id="id" name="id" value="<?= $Post?->id ?>" size="8" disabled>
+	<input type="text" id="id" name="id" value="<?= $Post?->id ?>" size="8" readonly>
 
 	<label for="longid">
 		<span class="name">Long-ID</span>
 	</label>
-	<input type="text" id="longid" name="longid" value="<?= $Post?->longid ?>" size="40" disabled>
+	<input type="text" id="longid" name="longid" value="<?= $Post?->longid ?>" size="40" readonly>
 
 <?php } ?>
 
@@ -134,8 +134,36 @@
 	<!-- COLUMNS -->
 	<label>
 		<span class="name">Rubriken</span>
-		<span class="conditions">optional</span>
+		<span class="conditions">optional, Mehrfacheintrag nicht erlaubt</span>
+		<span class="infos">
+			Änderungen werden lokal zwischengespeichert und beim Abschicken übernommen.
+		</span>
 	</label>
+	<div class="relationinput nojs" data-type="Column" data-unique="true" data-for="columns" data-selectmodal="columns-select">
+		<div class="objects">
+			<?php if($Post?->columnrelations){ foreach($Post->columnrelations as $i => $rel){ ?>
+				<div class="relation" data-i="<?= $i ?>" data-exists="true">
+					<input type="hidden" name="columnrelations[<?= $i ?>][id]" value="<?= $rel->id ?>">
+					<input type="hidden" name="columnrelations[<?= $i ?>][action]" class="action" value="ignore">
+					<input type="hidden" name="columnrelations[<?= $i ?>][column_id]" class="objectId" value="<?= $rel->column->id ?>">
+					<input type="hidden" name="columnrelations[<?= $i ?>][post_id]" value="<?= $Post?->id ?>">
+					<p class="title"><span><?= $rel->column->name ?></span> – <code><?= $rel->column->longid ?></code></p>
+					<button type="button" class="red" data-action="remove">Entfernen</button>
+					<button type="button" data-action="restore">Entf. rückgängig</button>
+				</div>
+			<?php }} ?>
+			<template>
+				<div class="relation" data-i="{{i}}" data-exists="false">
+					<input type="hidden" name="columnrelations[{{i}}][action]" class="action" value="new">
+					<input type="hidden" name="columnrelations[{{i}}][column_id]" class="objectId" value="{{id}}">
+					<input type="hidden" name="columnrelations[{{i}}][post_id]" value="<?= $Post?->id ?>">
+					<p class="title"><span>{{name}}</span> – <code>{{longid}}</code></p>
+					<button type="button" class="red" data-action="remove">Entfernen</button>
+				</div>
+			</template>
+		</div>
+		<button type="button" class="new blue" data-action="select">Rubrik(en) hinzufügen</button>
+	</div>
 
 
 	<button type="submit" class="green">Speichern</button>
@@ -247,4 +275,31 @@
 		Uhrzeit:
 		<input type="time">
 	</label>
+</div>
+
+<div class="modal multiselectmodal nojs" data-name="columns-select" data-type="Column" data-objectsperpage="20">
+	<div class="box">
+		<h2>Rubriken auswählen</h2>
+		<form action="#" method="GET">
+			<section class="objects">
+				<template>
+					<article>
+						<label class="checkbodge turn-around">
+							<span class="label-field">{{name}} – {{longid}}</span>
+							<input type="checkbox" name="result" value="{{id}}">
+							<span class="bodgecheckbox">
+								<span class="bodgetick">
+									<span class="bodgetick-down"></span>
+									<span class="bodgetick-up"></span>
+								</span>
+							</span>
+						</label>
+					</article>
+				</template>
+			</section>
+			<button type="button" data-action="loadmore">Weitere Rubriken laden</button><br>
+			<button type="submit" data-action="submit" class="blue">Auswählen</button>
+			<button type="button" data-action="close" class="red">Schließen</button>
+		</form>
+	</div>
 </div>

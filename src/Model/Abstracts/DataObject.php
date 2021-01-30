@@ -186,7 +186,7 @@ abstract class DataObject {
 		$errors = new InputFailedException();
 
 		try {
-			$this->import_id_and_longid($data['id'] ?? null, $data['longid']);
+			$this->import_id_and_longid($data['id'] ?? null, $data['longid'] ?? null);
 		} catch(InputFailedException $e){
 			$errors->merge($e);
 		}

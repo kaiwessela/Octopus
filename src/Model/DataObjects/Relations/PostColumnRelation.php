@@ -31,8 +31,10 @@ class PostColumnRelation extends DataObjectRelation {
 
 		if($object instanceof Post){
 			$this->post = &$object;
+			$this->column = null;
 		} else if($object instanceof Column){
 			$this->column = &$object;
+			$this->post = null;
 		} else {
 			throw new TypeError('Invalid type of $object.');
 		}

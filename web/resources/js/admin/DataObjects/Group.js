@@ -1,22 +1,24 @@
-class Person extends DataObject {
+class Group extends DataObject {
 	constructor() {
 		super();
 
 		this.name;
+		this.description;
 
-		super._type = 'Person';
-		super._apiname = 'persons';
+		super._type = 'Group';
+		super._apiname = 'groups';
 		super.properties = [
 			'id',
 			'longid',
-			'name'
+			'name',
+			'description'
 		];
 	}
 
 	extractFromElement(elem) {
 		return new Promise((resolve, reject) => {
 			if(!elem instanceof HTMLElement){
-				throw 'Person.extractFromElement(): elem is not an HTMLElement.';
+				throw 'Group.extractFromElement(): elem is not an HTMLElement.';
 			}
 
 			for(var i = 0; i < elem.children.length; i++){

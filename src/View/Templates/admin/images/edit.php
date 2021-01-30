@@ -23,12 +23,12 @@
 	<label for="id">
 		<span class="name">ID</span>
 	</label>
-	<input type="text" id="id" name="id" value="<?= $Image?->id ?>" size="8" disabled>
+	<input type="text" id="id" name="id" value="<?= $Image?->id ?>" size="8" readonly>
 
 	<label for="longid">
 		<span class="name">Long-ID</span>
 	</label>
-	<input type="text" id="longid" name="longid" value="<?= $Image?->longid ?>" size="40" disabled>
+	<input type="text" id="longid" name="longid" value="<?= $Image?->longid ?>" size="40" readonly>
 
 	<img src="<?= $Image->src() ?>" alt="[ANZEIGEFEHLER]">
 

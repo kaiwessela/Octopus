@@ -173,6 +173,9 @@
 		<script src="<?= $server->url ?>/resources/js/admin/DataObject.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Image.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Person.js"></script>
+		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Group.js"></script>
+		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Post.js"></script>
+		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Column.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/Modal.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/Pagination.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/SelectModal.js"></script>

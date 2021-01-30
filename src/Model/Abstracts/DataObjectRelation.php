@@ -94,7 +94,7 @@ abstract class DataObjectRelation {
 		}
 
 		foreach($this::OBJECTS as $name => $class){
-			if($this->$name->is_new()){
+			if($this->$name?->is_new()){
 				continue;
 			}
 

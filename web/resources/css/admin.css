@@ -255,7 +255,9 @@ textarea.tooshort {
 }
 
 input[disabled],
-textarea[disabled] {
+textarea[disabled],
+input[readonly],
+textarea[readonly] {
 	color: #000000;
 	background-color: var(--shiny-gray);
 }

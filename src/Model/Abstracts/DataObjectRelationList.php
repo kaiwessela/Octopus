@@ -73,7 +73,7 @@ abstract class DataObjectRelationList {
 				$values["id_$i"] = $id;
 			}
 
-			$idstring = implode(', ', $idstrings);
+			$idstring = implode(' OR ', $idstrings);
 			$query = str_replace('%IDSTRING%', $idstring, $this::DELETE_QUERY);
 
 			$s = $pdo->prepare($query);

@@ -682,7 +682,7 @@ div.relationinput {
 
 .relation {
 	display: grid;
-	grid-template-columns: 1fr auto;
+	grid-template-columns: 1fr auto auto auto;
 	margin: 0.5rem 0;
 	padding: 0.25rem;
 	background-color: var(--white);
@@ -695,23 +695,24 @@ div.relationinput {
 
 .relation input.action ~ .title::before {
 	content: '·';
+	display: inline-block;
 	font-family: 'Fira Mono';
-	font-size: 1.5em;
-	line-height: 1em;
+	font-size: 1.8em;
+	line-height: 0.8em;
 	color: var(--blue);
 	background-color: var(--shiny-blue);
 	margin-right: 0.5rem;
-	padding: 0 0.25rem;
+	text-align: center;
+	height: 1.5rem;
+	width: 1.5rem;
+	border-radius: 0.1rem;
+	vertical-align: middle;
 }
 
 .relation input.action[value=new] ~ .title::before {
 	content: '+';
 	color: var(--green);
 	background-color: var(--shiny-green);
-}
-
-.relation input.action[value=new] ~ .title span {
-	color: var(--green);
 }
 
 .relation input.action[value=edit] ~ .title::before {
@@ -738,6 +739,16 @@ div.relationinput {
 
 .relation input.action[value=delete] ~ button[data-action=remove] {
 	display: none;
+}
+
+.relation input[type=text],
+.relation input[type=number] {
+	border: none;
+	background-color: var(--shiny-gray);
+	border-radius: 0.25rem;
+	margin: 0 0.25rem;
+	padding: 0.25rem;
+	font-size: 0.9rem;
 }
 
 .multiselectmodal article.marked .label-field::after {

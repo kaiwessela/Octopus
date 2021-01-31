@@ -70,7 +70,9 @@
 					<input type="hidden" name="personrelations[<?= $i ?>][action]" class="action" value="ignore">
 					<input type="hidden" name="personrelations[<?= $i ?>][person_id]" class="objectId" value="<?= $rel->person->id ?>">
 					<input type="hidden" name="personrelations[<?= $i ?>][group_id]" value="<?= $Group?->id ?>">
-					<p class="title"><span><?= $rel->person->name ?></span> – <code><?= $rel->person->longid ?></code></p>
+					<p class="title" title="{{longid}}"><span><?= $rel->person->name ?></span></p>
+					<input type="number" name="personrelations[<?= $i ?>][number]" value="<?= $rel->number ?>" data-origval="<?= $rel->number ?>" placeholder="Nr." size="5">
+					<input type="text" name="personrelations[<?= $i ?>][role]" value="<?= $rel->role ?>" data-origval="<?= $rel->role ?>" placeholder="Rolle" size="20">
 					<button type="button" class="red" data-action="remove">Entfernen</button>
 					<button type="button" data-action="restore">Entf. rückgängig</button>
 				</div>
@@ -80,7 +82,9 @@
 					<input type="hidden" name="personrelations[{{i}}][action]" class="action" value="new">
 					<input type="hidden" name="personrelations[{{i}}][person_id]" class="objectId" value="{{id}}">
 					<input type="hidden" name="personrelations[{{i}}][group_id]" value="<?= $Group?->id ?>">
-					<p class="title"><span>{{name}}</span> – <code>{{longid}}</code></p>
+					<p class="title" title="{{longid}}"><span>{{name}}</span></p>
+					<input type="number" name="personrelations[<?= $i ?>][number]" placeholder="Nr." size="5">
+					<input type="text" name="personrelations[<?= $i ?>][role]" placeholder="Rolle" size="20">
 					<button type="button" class="red" data-action="remove">Entfernen</button>
 				</div>
 			</template>

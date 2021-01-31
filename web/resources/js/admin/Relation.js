@@ -3,6 +3,7 @@ class Relation {
 		this.elem;
 		this.object;
 		this.onDelete = function(){};
+		this.inputs = [];
 	}
 
 	bind(elem) {
@@ -32,6 +33,13 @@ class Relation {
 				}
 			});
 		}
+
+		this.inputs = this.elem.querySelectorAll('input[data-origval]');
+		this.inputs.forEach((input) => {
+			input.addEventListener('input', () => {
+				this.onInput();
+			});
+		});
 	}
 
 	static loadExisting(elems) {
@@ -60,5 +68,25 @@ class Relation {
 		var html = this.object.insertIn(template);
 		dummy.innerHTML = html.replace(/{{i}}/g, number);
 		return dummy.firstElementChild;
+	}
+
+	onInput() {
+		if(this.elem.getAttribute('data-exists') != 'true'){
+			return;
+		}
+
+		var edited = false;
+
+		this.inputs.forEach((input) => {
+			if(input.value != input.getAttribute('data-origval')){
+				edited = true;
+			}
+		});
+
+		if(edited){
+			this.elem.querySelector('input.action').value = 'edit';
+		} else {
+			this.elem.querySelector('input.action').value = 'ignore';
+		}
 	}
 }

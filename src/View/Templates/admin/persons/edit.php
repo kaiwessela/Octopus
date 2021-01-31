@@ -72,6 +72,8 @@
 					<input type="hidden" name="grouprelations[<?= $i ?>][group_id]" class="objectId" value="<?= $rel->group->id ?>">
 					<input type="hidden" name="grouprelations[<?= $i ?>][person_id]" value="<?= $Person?->id ?>">
 					<p class="title"><span><?= $rel->group->name ?></span> – <code><?= $rel->group->longid ?></code></p>
+					<input type="hidden" name="personrelations[<?= $i ?>][number]" value="<?= $rel->number ?>">
+					<input type="text" name="personrelations[<?= $i ?>][role]" value="<?= $rel->role ?>" data-origval="<?= $rel->role ?>" placeholder="Rolle" size="20">
 					<button type="button" class="red" data-action="remove">Entfernen</button>
 					<button type="button" data-action="restore">Entf. rückgängig</button>
 				</div>
@@ -82,6 +84,8 @@
 					<input type="hidden" name="grouprelations[{{i}}][group_id]" class="objectId" value="{{id}}">
 					<input type="hidden" name="grouprelations[{{i}}][person_id]" value="<?= $Person?->id ?>">
 					<p class="title"><span>{{name}}</span> – <code>{{longid}}</code></p>
+					<input type="hidden" name="personrelations[<?= $i ?>][number]">
+					<input type="text" name="personrelations[<?= $i ?>][role]" placeholder="Rolle" size="20">
 					<button type="button" class="red" data-action="remove">Entfernen</button>
 				</div>
 			</template>

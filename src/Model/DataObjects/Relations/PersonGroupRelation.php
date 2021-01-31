@@ -86,28 +86,6 @@ class PersonGroupRelation extends DataObjectRelation {
 	}
 
 
-	public function get_object(string $class) : DataObject {
-		$property = null;
-		foreach($this::OBJECTS as $prop => $cls){
-			if($class == $cls){
-				$property = $prop;
-			}
-		}
-
-		if(empty($property)){
-			throw new Exception('relationlist does not contain this object.');
-		}
-
-		$object = $this->$property;
-
-		foreach($this::PROPERTIES as $prop => $def){
-			$object->$prop = $this->$prop;
-		}
-
-		return $object;
-	}
-
-
 	const INSERT_QUERY = <<<SQL
 INSERT INTO persongrouprelations (
 	persongrouprelation_id,

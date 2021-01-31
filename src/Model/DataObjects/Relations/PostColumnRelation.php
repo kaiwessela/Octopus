@@ -49,7 +49,7 @@ class PostColumnRelation extends DataObjectRelation {
 			$this->column = new Column();
 			$this->column->load($data, true);
 		} else if($object instanceof Column){
-			$this->group = &$object;
+			$this->column = &$object;
 			$this->post = new Post();
 			$this->post->load($data, true);
 		} else {

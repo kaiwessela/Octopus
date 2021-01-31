@@ -25,7 +25,7 @@ class Group extends DataObject {
 	const PROPERTIES = [
 		'name' => '.{1,30}',
 		'description' => null,
-		'personlist' => PersonList::class,
+		'persons' => PersonList::class,
 		'personrelations' => PersonGroupRelationList::class
 	];
 

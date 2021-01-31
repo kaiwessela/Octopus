@@ -51,7 +51,7 @@ class Response {
 
 		http_response_code($this->response_code);
 
-		echo json_encode($this->response);
+		echo json_encode($this->response, \JSON_THROW_ON_ERROR);
 
 		exit;
 	}

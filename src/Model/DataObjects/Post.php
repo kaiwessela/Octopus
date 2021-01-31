@@ -2,6 +2,7 @@
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\DataObjects\Image;
+use \Blog\Model\DataObjects\Lists\ColumnList;
 use \Blog\Model\DataObjects\Relations\Lists\PostColumnRelationList;
 use \Blog\Model\DataTypes\Timestamp;
 use \Blog\Model\DataTypes\MarkdownContent;
@@ -15,6 +16,7 @@ class Post extends DataObject {
 	public Timestamp 							$timestamp;
 	public ?Image 								$image;
 	public ?MarkdownContent 					$content;
+	public ColumnList|array|null 				$columns;
 	public PostColumnRelationList|array|null 	$columnrelations;
 
 #	@inherited
@@ -38,6 +40,7 @@ class Post extends DataObject {
 		'timestamp' => Timestamp::class,
 		'image' => Image::class,
 		'content' => MarkdownContent::class,
+		'columns' => ColumnList::class,
 		'columnrelations' => PostColumnRelationList::class
 	];
 
@@ -70,6 +73,8 @@ class Post extends DataObject {
 		if(!$norecursion){
 			$this->columnrelations = empty($row['postcolumnrelation_id']) ? null : new PostColumnRelationList();
 			$this->columnrelations?->load($data, $this);
+			$this->columns = empty($this->columnrelations?->relations) ? null : new ColumnList();
+			$this->columns?->load_from_relationlist($this->columnrelations);
 		}
 
 		$this->set_new(false);

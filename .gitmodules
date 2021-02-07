@@ -1,6 +1,0 @@
-[submodule "libs/astronauth"]
-	path = libs/astronauth
-	url = git@github.com:kaiwessela/astronauth
-[submodule "libs/ParsedownForBlog"]
-	path = libs/ParsedownForBlog
-	url = git@github.com:kaiwessela/ParsedownForBlog

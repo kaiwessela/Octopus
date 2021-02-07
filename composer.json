@@ -1,0 +1,6 @@
+{
+	"require": {
+		"kaiwessela/parsedownforblog": "dev-master",
+		"kaiwessela/astronauth": "v0.3.2-beta"
+	}
+}

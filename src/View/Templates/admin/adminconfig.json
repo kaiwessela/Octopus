@@ -229,5 +229,38 @@
 				"title": "Termin löschen"
 			}
 		}
+	},
+	"proposals": {
+		"controller_var": "ProposalController",
+		"object_var": "Proposal",
+		"lang": {
+			"singular": "Antrag",
+			"plural": "Anträge",
+			"plural_nominativ": "Anträge",
+			"plural_dativ": "Anträgen",
+			"message": {
+				"created": "Der Antrag wurde erfolgreich erstellt.",
+				"edited": "Der bearbeitete Antrag wurde erfolgreich gespeichert.",
+				"deleted": "Der Antrag wurde gelöscht.",
+				"empty": "Es sind noch keine Anträge vorhanden."
+			},
+			"list": {
+				"title": "Alle Anträge",
+				"linktext": "Zurück zu allen Anträgen"
+			},
+			"show": {
+				"title": "Antrag anzeigen"
+			},
+			"new": {
+				"title": "Neuen Antrag erstellen",
+				"linktext": "Neuen Antrag erstellen"
+			},
+			"edit": {
+				"title": "Antrag bearbeiten"
+			},
+			"delete": {
+				"title": "Antrag löschen"
+			}
+		}
 	}
 }

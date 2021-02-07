@@ -4,6 +4,7 @@ use \Blog\Model\Abstracts\DataObjectRelation;
 use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\DataObjects\Post;
 use \Blog\Model\DataObjects\Column;
+use TypeError;
 
 class PostColumnRelation extends DataObjectRelation {
 	public ?Post 	$post;

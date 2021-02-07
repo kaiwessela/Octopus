@@ -4,7 +4,7 @@ use \Blog\Model\Abstracts\DataObjectRelation;
 use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\DataObjects\Person;
 use \Blog\Model\DataObjects\Group;
-use Exception;
+use TypeError;
 
 class PersonGroupRelation extends DataObjectRelation {
 	public ?Person 	$person;

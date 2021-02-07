@@ -184,6 +184,7 @@
 		<script src="<?= $server->url ?>/resources/js/admin/PseudoInput.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/Relation.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/RelationInput.js"></script>
+		<script src="<?= $server->url ?>/resources/js/admin/ListInput.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/TimeInput.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/invoke.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/validate.js"></script>

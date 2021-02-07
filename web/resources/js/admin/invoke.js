@@ -2,6 +2,7 @@ var modals = [];
 var pseudoinputs = [];
 var relationinputs = [];
 var timeinputs = [];
+var listinputs = [];
 
 document.querySelectorAll('.nojs').forEach((el) => { el.classList.remove('nojs'); });
 
@@ -52,4 +53,14 @@ document.querySelectorAll('.timeinput').forEach((el) => {
 
 	timeinputs[name] = new TimeInput();
 	timeinputs[name].bind(el);
+});
+
+document.querySelectorAll('.listinput').forEach((el) => {
+	var name = el.getAttribute('data-for');
+	if(name == null){
+		return;
+	}
+
+	listinputs[name] = new ListInput();
+	listinputs[name].bind(el);
 });

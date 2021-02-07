@@ -9,7 +9,8 @@ class Controllers {
 		'PersonController',
 		'PostController',
 		'ColumnController',
-		'GroupController'
+		'GroupController',
+		'ProposalController'
 	];
 
 	const ALIASES = [
@@ -26,7 +27,9 @@ class Controllers {
 		'column' 	=> 'ColumnController',
 		'columns' 	=> 'ColumnController',
 		'group' 	=> 'GroupController',
-		'groups' 	=> 'GroupController'
+		'groups' 	=> 'GroupController',
+		'proposal' 	=> 'ProposalController',
+		'proposals' => 'ProposalController'
 	];
 }
 ?>

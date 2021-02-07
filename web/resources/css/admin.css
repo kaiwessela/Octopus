@@ -266,6 +266,19 @@ textarea {
 	resize: vertical;
 }
 
+select {
+	display: block;
+	margin: 0.5rem 0 1rem;
+	padding: 0.5rem;
+	font-family: 'Fira Mono';
+	font-size: 1rem;
+	background-color: var(--white);
+	border: 0.1rem solid var(--gray);
+	outline: 0;
+	box-shadow: none;
+	border-radius: 0.25rem;
+}
+
 div.pseudoinput {
 	max-width: 45rem;
 }
@@ -665,6 +678,49 @@ input:checked ~ .bodgeradio > .bodgetick {
 
 .modal form {
 	margin: 0;
+}
+
+
+
+div.listinput {
+	display: block;
+	width: max-content;
+	margin: 0.5rem 0 1rem;
+	padding: 0 0.5rem 0.5rem;
+	font-size: 1rem;
+	border: 0.1rem solid var(--gray);
+	outline: 0;
+	box-shadow: none;
+}
+
+.listinput table {
+	border: none;
+	border-spacing: 0 0.5rem;
+}
+
+.listinput table th {
+	text-align: left;
+	padding: 0.25rem;
+}
+
+.listinput .items .item {
+	background-color: var(--white);
+	border-radius: 0.25rem;
+}
+
+.listinput .items .item td {
+	margin: 0;
+	padding: 0.25rem;
+}
+
+.listinput .item input[type=text],
+.listinput .item input[type=number],
+.listinput .item select {
+	border: none;
+	background-color: var(--shiny-gray);
+	border-radius: 0.25rem;
+	margin: 0;
+	padding: 0.25rem;
 }
 
 

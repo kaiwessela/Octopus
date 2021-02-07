@@ -28,18 +28,6 @@ abstract class Controller {
 		$this->errors = [];
 	}
 
-	function __set($name, $value) {
-		if($name == 'object'){
-			$this->objects[0] = $value;
-		}
-	}
-
-	function __get($name) {
-		if($name == 'object'){
-			return $this->objects[0];
-		}
-	}
-
 	public function execute() {
 		if($this->request->mode == 'multi'){
 			$model = $this::LIST_MODEL;

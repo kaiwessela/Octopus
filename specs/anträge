@@ -1,0 +1,18 @@
+PROPOSALS
+id
+longid
+title
+description
+timestamp
+votes [party, vote, amount]
+file
+
+
+TAGS
+id
+object_id
+name
+type			(= proposal | post | …)
+
+
+Chart.js

@@ -70,7 +70,7 @@ class Proposal extends DataObject {
 		$value = $data['votes'];
 
 		if(!is_array($value)){
-			$votes = null;
+			$this->votes = null;
 			return;
 		}
 

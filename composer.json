@@ -1,8 +1,14 @@
 {
 	"name": "kaiwessela/blog",
 	"description": "My personal blog system.",
+	"repositories": [
+		{
+			"type": "vcs",
+			"url": "https://github.com/kaiwessela/ParsedownForBlog"
+		}
+	],
 	"require": {
-		"kaiwessela/parsedownforblog": "dev-master",
+		"kaiwessela/parsedownforblog": "v1.0.0",
 		"kaiwessela/astronauth": "v0.3.2-beta"
 	}
 }

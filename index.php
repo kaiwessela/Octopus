@@ -9,8 +9,8 @@ spl_autoload_register(function($name){
 	}
 });
 
-require_once 'libs/Astronauth/autoloader.php';
-require_once 'libs/Parsedown/autoloader.php';
+require_once 'vendor/kaiwessela/astronauth/autoloader.php';
+require_once 'vendor/kaiwessela/parsedownforblog/autoloader.php';
 
 define('TEMPLATE_PATH', __DIR__ . '/Blog/View/Templates/');
 define('COMPONENT_PATH', __DIR__ . '/Blog/View/Components/');

@@ -4,37 +4,38 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1d4bc98a31134ca9e79090d2e96a91c2",
+    "content-hash": "9b0dc4020dbd602e9f340a056ee226a7",
     "packages": [
         {
             "name": "kaiwessela/astronauth",
-            "version": "v0.3.2-beta",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kaiwessela/Astronauth.git",
-                "reference": "e0361bd71c3d02b0178247d96f124c11e8b1d7f9"
+                "reference": "d23987bde65194caf17450488570040075841ca5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kaiwessela/Astronauth/zipball/e0361bd71c3d02b0178247d96f124c11e8b1d7f9",
-                "reference": "e0361bd71c3d02b0178247d96f124c11e8b1d7f9",
+                "url": "https://api.github.com/repos/kaiwessela/Astronauth/zipball/d23987bde65194caf17450488570040075841ca5",
+                "reference": "d23987bde65194caf17450488570040075841ca5",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.0"
             },
+            "default-branch": true,
             "type": "library",
             "notification-url": "https://packagist.org/downloads/",
             "description": "Astronauth website authentication module.",
             "support": {
                 "issues": "https://github.com/kaiwessela/Astronauth/issues",
-                "source": "https://github.com/kaiwessela/Astronauth/tree/v0.3.2-beta"
+                "source": "https://github.com/kaiwessela/Astronauth/tree/master"
             },
-            "time": "2021-02-07T15:55:05+00:00"
+            "time": "2021-02-12T22:34:04+00:00"
         },
         {
             "name": "kaiwessela/parsedownforblog",
-            "version": "dev-master",
+            "version": "v1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kaiwessela/ParsedownForBlog.git",
@@ -49,9 +50,7 @@
             "require": {
                 "php": ">=7.0"
             },
-            "default-branch": true,
             "type": "library",
-            "notification-url": "https://packagist.org/downloads/",
             "description": "Parsedown by Emanuil Rusev, modified for Blog.",
             "support": {
                 "source": "https://github.com/kaiwessela/ParsedownForBlog/tree/v1.0.0"
@@ -63,8 +62,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "kaiwessela/parsedownforblog": 20,
-        "kaiwessela/astronauth": 10
+        "kaiwessela/astronauth": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

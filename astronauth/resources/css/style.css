@@ -1,0 +1,267 @@
+@font-face {
+	font-family: 'Overpass';
+	font-weight: 400;
+	font-style: normal;
+	src: url('../fonts/overpass-regular.woff2');
+}
+
+@font-face {
+	font-family: 'Overpass';
+	font-weight: 400;
+	font-style: italic;
+	src: url('../fonts/overpass-italic.woff2');
+}
+
+@font-face {
+	font-family: 'Overpass';
+	font-weight: 700;
+	font-style: normal;
+	src: url('../fonts/overpass-bold.woff2');
+}
+
+:root {
+	--page-background-color: #121212;
+	--form-background-color: #ffffff11;
+	--font-color: #ffffff;
+	--input-background-color: #ffffff11;
+	--input-hover-background-color: #ffffff22;
+	--input-accent-color: #ffffff22;
+	--highlight-color: #1da1f2;
+	--success-color: #3eb362;
+	--warning-color: #dbeb54;
+	--error-color: #db4044;
+}
+
+html, body {
+	font-family: 'Overpass';
+	background-color: var(--page-background-color);
+	color: var(--font-color);
+}
+
+body {
+	margin: 0;
+	padding: 0;
+}
+
+main {
+	padding: 1rem;
+	width: 32rem;
+	background-color: var(--form-background-color);
+	margin: 2rem auto;
+	border-radius: 0.5rem;
+}
+
+h1 {
+	margin: 0;
+}
+
+a {
+	color: var(--highlight-color);
+}
+
+a:hover,
+a:focus {
+	text-decoration: none;
+}
+
+label {
+	display: block;
+	width: 100%;
+	margin: 2rem 0 0;
+	font-size: 1.4rem;
+}
+
+label > .label-field {
+	display: block;
+}
+
+label > .label-hint {
+	display: block;
+	font-size: 0.8rem;
+	color: #898989;
+}
+
+a.under-input {
+	display: inline-block;
+	margin: 0 0 0.5rem;
+	font-size: 0.9rem;
+	color: var(--highlight-color);
+	text-decoration: underline;
+}
+
+a.under-input:hover,
+a.under-input:focus {
+	text-decoration: none;
+}
+
+input:invalid {
+	outline: none;
+	box-shadow: none;
+}
+
+input[type=text],
+input[type=email],
+input[type=password] {
+	font-family: 'Hack';
+	font-size: 1.1rem;
+	display: block;
+	padding: 0 1rem;
+	margin: 0.5rem 0;
+	line-height: 2.5rem;
+	width: calc(100% - 2rem);
+	background-color: var(--input-background-color);
+	color: var(--font-color);
+	border: none;
+	border-bottom: 0.2rem solid var(--input-accent-color);
+	border-radius: 0.25rem;
+	outline: none;
+	transition-duration: 0.25s;
+}
+
+input[type=text]:hover,
+input[type=email]:hover,
+input[type=password]:hover,
+input[type=text]:focus,
+input[type=email]:focus,
+input[type=password]:focus {
+	background-color: var(--input-hover-background-color);
+}
+
+input[type=submit] {
+	width: 100%;
+	height: 2.5rem;
+	line-height: 2rem;
+	margin: 1.5rem 0 0;
+	border: 0.2rem solid var(--highlight-color);
+	border-radius: 0.25rem;
+	outline: none;
+	background-color: var(--highlight-color);
+	color: var(--font-color);
+	transition-duration: 0.25s;
+	font-family: 'Overpass';
+	font-size: 1.2rem;
+}
+
+input[type=submit]:hover,
+input[type=submit]:focus {
+	background-color: var(--input-hover-background-color);
+	color: var(--highlight-color);
+}
+
+input[type=checkbox] {
+	opacity: 0;
+	position: absolute;
+}
+
+
+
+.message {
+	margin: 1rem 0;
+	padding: 0.5rem;
+	background-color: #ffffff00;
+	border-radius: 0.25rem;
+}
+
+.message p {
+	margin: 0.25em 0;
+}
+
+.message .summary {
+	font-size: 1.3em;
+	font-weight: 600;
+}
+
+.message.success {
+	background-color: var(--success-color);
+}
+
+.message.warning {
+	background-color: var(--warning-color);
+}
+
+.message.error {
+	background-color: var(--error-color);
+}
+
+
+
+.checkbodge {
+	width: 100%;
+	font-size: 1.1rem;
+	line-height: 1.6em;
+	display: inline-flex;
+}
+
+.checkbodge.turn-around {
+	flex-direction: row-reverse;
+	justify-content: flex-end;
+}
+
+.checkbodge > .label-field {
+	margin-right: 0.5rem;
+}
+
+.checkbodge.turn-around > .label-field {
+	margin-left: 0.5rem;
+}
+
+.checkbodge > .bodgecheckbox {
+	display: inline-block;
+	vertical-align: top;
+	width: 1.2em;
+	height: 1.2em;
+	border: 0.2em solid var(--input-accent-color);
+	border-radius: 0.25em;
+	background-color: var(--input-background-color);
+	transition-duration: 0.25s;
+}
+
+input[type=checkbox]:hover ~ .bodgecheckbox,
+input[type=checkbox]:focus ~ .bodgecheckbox,
+.checkbodge:hover > .bodgecheckbox,
+.checkbodge:focus > .bodgecheckbox {
+	border-color: var(--highlight-color);
+}
+
+.checkbodge > .bodgecheckbox > .bodgetick {
+	display: block;
+	position: relative;
+	height: inherit;
+	width: inherit;
+	opacity: 0;
+	transform: rotate(45deg);
+	left: 3%;
+	top: 5%;
+	transition-duration: 0.2s;
+	transition-timing-function: ease-in;
+}
+
+.checkbodge > .bodgecheckbox > .bodgetick > span {
+	display: block;
+	height: 12%;
+	width: 12%;
+	background-color: var(--highlight-color);
+	border-radius: 0.075em;
+	position: absolute;
+	bottom: 20%;
+	right: 44%;
+	box-sizing: border-box;
+	transition-duration: 0.2s;
+	transition-timing-function: ease;
+}
+
+input:checked ~ .bodgecheckbox {
+	border-color: var(--highlight-color);
+}
+
+input:checked ~ .bodgecheckbox > .bodgetick {
+	opacity: 100;
+}
+
+input:checked ~ .bodgecheckbox > .bodgetick > .bodgetick-down {
+	width: 40%;
+}
+
+input:checked ~ .bodgecheckbox > .bodgetick > .bodgetick-up {
+	height: 80%;
+}

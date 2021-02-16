@@ -16,6 +16,8 @@ use InvalidArgumentException;
 use Exception;
 use TypeError;
 
+// TODO escape html characters to prevent xss
+
 abstract class DataObject {
 	public string $id;
 	public string $longid;
@@ -29,6 +31,7 @@ abstract class DataObject {
 	const IGNORE_PULL_LIMIT = false; // TODO why do we need this?
 
 	const PROPERTIES = [];
+	const PSEUDOLISTS = [];
 
 	// TODO where do we need count queries? check this in all dataobjects
 
@@ -328,28 +331,34 @@ abstract class DataObject {
 	}
 
 
-	public function export() : ?DataObject {
-		if($this->is_empty()){
-			return null;
-		}
-
+	public function export() : void {
 		$this->disabled = true;
 
 		foreach($this as $property => $value){
-			if($value instanceof DataObject){
-				$value->export();
-			} else if($value instanceof DataObjectList){
-				$this->$property = $value->export();
+			if($value instanceof DataObject || $value instanceof DataObjectList){
+				$this->$property->export();
 			} else if($value instanceof DataObjectRelationList){
-				$this->$property = $value->export($this::class);
-			} else if(!empty($value) && is_array($value) && $value[0] instanceof DataObject){
-				foreach($value as $obj){
-					$obj->export();
-				}
+				$this->$property->export($this::class);
 			}
 		}
+	}
 
-		return $this;
+
+	function __get($property) { // TESTING; validate, use caching at least on disabled objects
+		// FIXME 'uninitialized' in result
+		if(!empty($this::PSEUDOLISTS[$property])){
+			$class = $this::PSEUDOLISTS[$property][0];
+			$reference = $this::PSEUDOLISTS[$property][1];
+
+			$res = empty($this->$reference?->relations) ? null : new $class();
+			$res?->load_from_relationlist($this->$reference);
+
+			if($this->disabled){
+				$res->export();
+			}
+
+			return $res;
+		}
 	}
 }
 ?>

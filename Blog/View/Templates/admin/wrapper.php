@@ -135,9 +135,7 @@
 		<?php
 
 		?><section class="<?= $name ?> list"><?php
-		foreach($Object as $obj){
-			require __DIR__ . '/' . $name . '/list.php';
-		}
+		$Object->each(function($obj) use ($server, $name){ require __DIR__ . '/' . $name . '/list.php'; });
 		?></section><?php
 	}
 

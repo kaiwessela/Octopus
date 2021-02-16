@@ -117,21 +117,43 @@ abstract class DataObjectList {
 	}
 
 
-	public function export() : ?array {
+	public function each(callable $callback) { # function($value){}
+		if(empty($this->objects)){
+			return;
+		}
+
+		foreach($this->objects as $object){
+			$callback($object);
+		}
+	}
+
+
+	public function foreach(callable $callback) { # function($key, $value){}
+		if(empty($this->objects)){
+			return;
+		}
+
+		foreach($this->objects as $i => $object){
+			$callback($i, $object);
+		}
+	}
+
+
+	public function export() : void {
 #	@action:
 #	  - return an array of the results of the export function of each object
 #	@return:
 #		array of arrays which contain the exported data of one DataObject
 
-		if(!$this->is_empty()){
-			foreach($this->objects as $obj){
-				$obj?->export();
-			}
-		}
-
 		$this->disabled = true;
 
-		return empty($this->objects) ? null : $this->objects;
+		if(empty($this->objects)){
+			return;
+		}
+
+		foreach($this->objects as &$obj){
+			$obj?->export();
+		}
 	}
 
 

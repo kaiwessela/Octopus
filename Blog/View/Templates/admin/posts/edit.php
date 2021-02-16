@@ -141,7 +141,7 @@
 	</label>
 	<div class="relationinput nojs" data-type="Column" data-unique="true" data-for="columns" data-selectmodal="columns-select">
 		<div class="objects">
-			<?php if($Post?->columnrelations){ foreach($Post->columnrelations as $i => $rel){ ?>
+			<?php $Post?->columnrelations?->foreach(function($i, $rel){ ?>
 				<div class="relation" data-i="<?= $i ?>" data-exists="true">
 					<input type="hidden" name="columnrelations[<?= $i ?>][id]" value="<?= $rel->id ?>">
 					<input type="hidden" name="columnrelations[<?= $i ?>][action]" class="action" value="ignore">
@@ -151,7 +151,7 @@
 					<button type="button" class="red" data-action="remove">Entfernen</button>
 					<button type="button" data-action="restore">Entf. rückgängig</button>
 				</div>
-			<?php }} ?>
+			<?php }); ?>
 			<template>
 				<div class="relation" data-i="{{i}}" data-exists="false">
 					<input type="hidden" name="columnrelations[{{i}}][action]" class="action" value="new">

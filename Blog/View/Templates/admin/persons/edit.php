@@ -65,7 +65,7 @@
 	</label>
 	<div class="relationinput nojs" data-type="Group" data-unique="false" data-for="groups" data-selectmodal="groups-select">
 		<div class="objects">
-			<?php if($Person?->grouprelations){ foreach($Person->grouprelations as $i => $rel){ ?>
+			<?php $Person?->grouprelations?->foreach(function($i, $rel) use ($Person){ ?>
 				<div class="relation" data-i="<?= $i ?>" data-exists="true">
 					<input type="hidden" name="grouprelations[<?= $i ?>][id]" value="<?= $rel->id ?>">
 					<input type="hidden" name="grouprelations[<?= $i ?>][action]" class="action" value="ignore">
@@ -77,7 +77,7 @@
 					<button type="button" class="red" data-action="remove">Entfernen</button>
 					<button type="button" data-action="restore">Entf. rückgängig</button>
 				</div>
-			<?php }} ?>
+			<?php }); ?>
 			<template>
 				<div class="relation" data-i="{{i}}" data-exists="false">
 					<input type="hidden" name="grouprelations[{{i}}][action]" class="action" value="new">

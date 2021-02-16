@@ -154,16 +154,36 @@ abstract class DataObjectRelationList {
 	}
 
 
-	public function export(?string $perspective = null) {
+	public function export(?string $perspective = null) : void {
 		if(empty($this->relations)){
-			return null;
+			return;
+		}
+
+		foreach($this->relations as &$relation){
+			$relation->export($perspective);
+		}
+	}
+
+
+	public function each(callable $callback) { # function($value){}
+		if(empty($this->relations)){
+			return;
 		}
 
 		foreach($this->relations as $relation){
-			$relation->export($perspective);
+			$callback($relation);
+		}
+	}
+
+
+	public function foreach(callable $callback) { # function($key, $value){}
+		if(empty($this->relations)){
+			return;
 		}
 
-		return array_values($this->relations);
+		foreach($this->relations as $i => $relation){
+			$callback($i, $relation);
+		}
 	}
 
 

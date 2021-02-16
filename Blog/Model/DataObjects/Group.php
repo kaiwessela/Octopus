@@ -5,10 +5,9 @@ use \Blog\Model\DataObjects\Lists\PersonList;
 use \Blog\Model\DataObjects\Relations\Lists\PersonGroupRelationList;
 
 class Group extends DataObject {
-	public string 								$name;
-	public ?string 								$description;
-	public PersonList|array|null 				$persons;
-	public PersonGroupRelationList|array|null 	$personrelations;
+	public string 					$name;
+	public ?string 					$description;
+	public ?PersonGroupRelationList $personrelations;
 
 #	@inherited
 #	public $id;
@@ -29,6 +28,10 @@ class Group extends DataObject {
 		'personrelations' => PersonGroupRelationList::class
 	];
 
+	const PSEUDOLISTS = [
+		'persons' => [PersonList::class, 'personrelations']
+	];
+
 
 	public function load(array $data, bool $norecursion = false) : void {
 		$this->req('empty');
@@ -47,8 +50,6 @@ class Group extends DataObject {
 		if(!$norecursion){
 			$this->personrelations = empty($row['persongrouprelation_id']) ? null : new PersonGroupRelationList();
 			$this->personrelations?->load($data, $this);
-			$this->persons = empty($this->personrelations?->relations) ? null : new PersonList();
-			$this->persons?->load_from_relationlist($this->personrelations);
 		}
 
 		$this->set_new(false);

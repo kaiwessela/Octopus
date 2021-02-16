@@ -5,10 +5,9 @@ use \Blog\Model\DataObjects\Lists\PostList;
 use \Blog\Model\DataObjects\Relations\Lists\PostColumnRelationList;
 
 class Column extends DataObject {
-	public string 								$name;
-	public ?string 								$description;
-	public PostList|array|null 					$posts;
-	public PostColumnRelationList|array|null 	$postrelations;
+	public string 					$name;
+	public ?string 					$description;
+	public ?PostColumnRelationList 	$postrelations;
 
 #	@inherited
 #	public string $id;
@@ -25,8 +24,11 @@ class Column extends DataObject {
 	const PROPERTIES = [
 		'name' => '.{1,30}',
 		'description' => null,
-		'posts' => PostList::class,
 		'postrelations' => PostColumnRelationList::class
+	];
+
+	const PSEUDOLISTS = [
+		'posts' => [PostList::class, 'postrelations']
 	];
 
 
@@ -47,8 +49,6 @@ class Column extends DataObject {
 		if(!$norecursion){
 			$this->postrelations = empty($row['postcolumnrelation_id']) ? null : new PostColumnRelationList();
 			$this->postrelations?->load($data, $this);
-			$this->posts = empty($this->postrelations?->relations) ? null : new PostList();
-			$this->posts?->load_from_relationlist($this->postrelations);
 		}
 
 		$this->set_new(false);

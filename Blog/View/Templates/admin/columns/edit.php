@@ -66,7 +66,7 @@
 	</label>
 	<div class="relationinput nojs" data-type="Post" data-unique="true" data-for="posts" data-selectmodal="posts-select">
 		<div class="objects">
-			<?php if($Column?->postrelations){ foreach($Column->postrelations as $i => $rel){ ?>
+			<?php $Column?->postrelations?->foreach(function($i, $rel) use ($Column){ ?>
 				<div class="relation" data-i="<?= $i ?>" data-exists="true">
 					<input type="hidden" name="postrelations[<?= $i ?>][id]" value="<?= $rel->id ?>">
 					<input type="hidden" name="postrelations[<?= $i ?>][action]" class="action" value="ignore">
@@ -76,7 +76,7 @@
 					<button type="button" class="red" data-action="remove">Entfernen</button>
 					<button type="button" data-action="restore">Entf. rückgängig</button>
 				</div>
-			<?php }} ?>
+			<?php }); ?>
 			<template>
 				<div class="relation" data-i="{{i}}" data-exists="false">
 					<input type="hidden" name="postrelations[{{i}}][action]" class="action" value="new">

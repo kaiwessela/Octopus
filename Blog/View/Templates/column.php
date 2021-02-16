@@ -31,11 +31,7 @@
 				<p>Keine Artikel gefunden.</p>
 				<?php } ?>
 
-				<?php
-				foreach($Column->posts as $post){
-					include COMPONENT_PATH . 'preview-post.php';
-				}
-				?>
+				<?php $Column->each(function($post) use ($server){ include COMPONENT_PATH . 'preview-post.php'; }); ?>
 			</section>
 		</main>
 		<?php include COMPONENT_PATH . 'footer.php'; ?>

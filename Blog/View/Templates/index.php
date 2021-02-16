@@ -12,11 +12,7 @@
 			</section>
 			<section>
 				<h2>Neueste Posts</h2>
-				<?php
-				foreach($Post as $post){
-					include COMPONENT_PATH . 'preview-post.php';
-				}
-				?>
+				<?php $Post->each(function($post) use ($server) { include COMPONENT_PATH . 'preview-post.php'; }); ?>
 			</section>
 		</main>
 		<?php include COMPONENT_PATH . 'footer.php'; ?>

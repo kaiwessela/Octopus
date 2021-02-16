@@ -25,11 +25,7 @@
 				<p>Keine Artikel gefunden.</p>
 				<?php } ?>
 
-<?php
-foreach($Post as $post){
-	include COMPONENT_PATH . 'preview-post.php';
-}
-?>
+				<?php $Post->each(function($post) use ($server){ include COMPONENT_PATH . 'preview-post.php'; }); ?>
 
 			</section>
 		</main>

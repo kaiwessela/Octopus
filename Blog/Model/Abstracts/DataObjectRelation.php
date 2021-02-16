@@ -11,6 +11,9 @@ use Blog\Model\Exceptions\MissingValueException;
 use Blog\Model\Exceptions\RelationNonexistentException;
 
 abstract class DataObjectRelation {
+
+	// FIXME fix uninitialized properties
+
 	public string $id;
 
 	private bool $new;
@@ -157,11 +160,7 @@ abstract class DataObjectRelation {
 	}
 
 
-	public function export(?string $perspective) : ?DataObjectRelation {
-		if($this->is_empty()){
-			return null;
-		}
-
+	public function export(?string $perspective) : void {
 		$this->disabled = true;
 
 		foreach($this::OBJECTS as $property => $class){
@@ -169,8 +168,6 @@ abstract class DataObjectRelation {
 				$this->$property = null;
 			}
 		}
-
-		return $this;
 	}
 
 

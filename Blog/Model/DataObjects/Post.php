@@ -8,16 +8,15 @@ use \Blog\Model\DataTypes\Timestamp;
 use \Blog\Model\DataTypes\MarkdownContent;
 
 class Post extends DataObject {
-	public ?string 								$overline;
-	public string 								$headline;
-	public ?string 								$subline;
-	public ?string 								$teaser;
-	public string 								$author;
-	public Timestamp 							$timestamp;
-	public ?Image 								$image;
-	public ?MarkdownContent 					$content;
-	public ColumnList|array|null 				$columns;
-	public PostColumnRelationList|array|null 	$columnrelations;
+	public ?string 					$overline;
+	public string 					$headline;
+	public ?string 					$subline;
+	public ?string 					$teaser;
+	public string 					$author;
+	public Timestamp 				$timestamp;
+	public ?Image 					$image;
+	public ?MarkdownContent 		$content;
+	public ?PostColumnRelationList 	$columnrelations;
 
 #	@inherited
 #	public string $id;
@@ -40,8 +39,11 @@ class Post extends DataObject {
 		'timestamp' => Timestamp::class,
 		'image' => Image::class,
 		'content' => MarkdownContent::class,
-		'columns' => ColumnList::class,
 		'columnrelations' => PostColumnRelationList::class
+	];
+
+	const PSEUDOLISTS = [
+		'columns' => [ColumnList::class, 'columnrelations']
 	];
 
 
@@ -73,8 +75,6 @@ class Post extends DataObject {
 		if(!$norecursion){
 			$this->columnrelations = empty($row['postcolumnrelation_id']) ? null : new PostColumnRelationList();
 			$this->columnrelations?->load($data, $this);
-			$this->columns = empty($this->columnrelations?->relations) ? null : new ColumnList();
-			$this->columns?->load_from_relationlist($this->columnrelations);
 		}
 
 		$this->set_new(false);

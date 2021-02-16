@@ -157,11 +157,8 @@ abstract class Controller {
 			$this->pagination = new Pagination($current_page, $objects_per_page, $total_objects, $base_path, $structure);
 		}
 
-		$export = [];
-		foreach($this->object->objects as $object){
-			$export[] = $object->export();
-		}
-		return $export;
+		$this->object->export();
+		return $this->object;
 	}
 
 	protected function export_single() {
@@ -175,7 +172,8 @@ abstract class Controller {
 			$this->pagination = new Pagination($current_page, $objects_per_page, $total_objects, $base_path, $structure);
 		}
 
-		return $this->object->export();
+		$this->object->export();
+		return $this->object;
 	}
 
 

@@ -16,8 +16,6 @@ use InvalidArgumentException;
 use Exception;
 use TypeError;
 
-// TODO escape html characters to prevent xss
-
 abstract class DataObject {
 	public string $id;
 	public string $longid;
@@ -341,6 +339,23 @@ abstract class DataObject {
 				$this->$property->export($this::class);
 			}
 		}
+	}
+
+
+	public function staticize() : ?array {
+		$result = [];
+
+		foreach(array_merge($this::PROPERTIES, $this::PSEUDOLISTS) as $property => $definition){
+			if($this->$property instanceof DataObjectRelation || $this->$property instanceof DataObjectRelationList){
+				$result[$property] = $this->$property->staticize($this::class);
+			} else if(is_object($this->$property)){
+				$result[$property] = $this->$property->staticize();
+			} else {
+				$result[$property] = $this->$property;
+			}
+		}
+
+		return $result;
 	}
 
 

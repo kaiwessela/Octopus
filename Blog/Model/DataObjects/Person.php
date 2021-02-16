@@ -50,10 +50,8 @@ class Person extends DataObject {
 		$this->image = empty($row['image_id']) ? null : new Image();
 		$this->image?->load($row);
 
-		if(!$norecursion){
-			$this->grouprelations = empty($row['persongrouprelation_id']) ? null : new PersonGroupRelationList();
-			$this->grouprelations?->load($data, $this);
-		}
+		$this->grouprelations = ($norecursion || empty($row['persongrouprelation_id'])) ? null : new PersonGroupRelationList();
+		$this->grouprelations?->load($data, $this);
 
 		$this->set_new(false);
 		$this->set_empty(false);

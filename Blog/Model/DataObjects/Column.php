@@ -46,10 +46,8 @@ class Column extends DataObject {
 		$this->name = $row['column_name'];
 		$this->description = $row['column_description'];
 
-		if(!$norecursion){
-			$this->postrelations = empty($row['postcolumnrelation_id']) ? null : new PostColumnRelationList();
-			$this->postrelations?->load($data, $this);
-		}
+		$this->postrelations = ($norecursion || empty($row['postcolumnrelation_id'])) ? null : new PostColumnRelationList();
+		$this->postrelations?->load($data, $this);
 
 		$this->set_new(false);
 		$this->set_empty(false);

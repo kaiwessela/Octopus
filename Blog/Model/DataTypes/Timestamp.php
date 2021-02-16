@@ -82,5 +82,9 @@ class Timestamp implements DataType {
 			default 			=> $format
 		});
 	}
+
+	public function staticize() {
+		return $this->iso();
+	}
 }
 ?>

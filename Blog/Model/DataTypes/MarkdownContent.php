@@ -27,5 +27,9 @@ class MarkdownContent implements DataType {
 
 		return $this->parsed;
 	}
+
+	public function staticize() {
+		return $this->parse();
+	}
 }
 ?>

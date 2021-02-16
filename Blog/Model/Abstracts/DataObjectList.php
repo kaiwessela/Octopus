@@ -7,6 +7,9 @@ use Blog\Model\Exceptions\EmptyResultException;
 use InvalidArgumentException;
 
 abstract class DataObjectList {
+
+	// TODO remove relationlists on staticize (and maybe on export) because they are definitely null in lists and might cause confusion because in single they are not null
+
 	public array $objects;
 	public int $count;
 
@@ -154,6 +157,17 @@ abstract class DataObjectList {
 		foreach($this->objects as &$obj){
 			$obj?->export();
 		}
+	}
+
+
+	public function staticize() : ?array {
+		$result = [];
+
+		foreach($this->objects as $object){
+			$result[] = $object->staticize();
+		}
+
+		return $result;
 	}
 
 

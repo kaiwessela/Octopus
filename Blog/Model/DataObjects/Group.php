@@ -47,10 +47,8 @@ class Group extends DataObject {
 		$this->name = $row['group_name'];
 		$this->description = $row['group_description'];
 
-		if(!$norecursion){
-			$this->personrelations = empty($row['persongrouprelation_id']) ? null : new PersonGroupRelationList();
-			$this->personrelations?->load($data, $this);
-		}
+		$this->personrelations = ($norecursion || empty($row['persongrouprelation_id'])) ? null : new PersonGroupRelationList();
+		$this->personrelations?->load($data, $this);
 
 		$this->set_new(false);
 		$this->set_empty(false);

@@ -72,10 +72,8 @@ class Post extends DataObject {
 		$this->content = empty($row['post_content'])
 		? null : new MarkdownContent($row['post_content']);
 
-		if(!$norecursion){
-			$this->columnrelations = empty($row['postcolumnrelation_id']) ? null : new PostColumnRelationList();
-			$this->columnrelations?->load($data, $this);
-		}
+		$this->columnrelations = ($norecursion || empty($row['postcolumnrelation_id'])) ? null : new PostColumnRelationList();
+		$this->columnrelations?->load($data, $this);
 
 		$this->set_new(false);
 		$this->set_empty(false);

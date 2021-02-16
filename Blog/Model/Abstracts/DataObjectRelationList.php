@@ -154,7 +154,7 @@ abstract class DataObjectRelationList {
 	}
 
 
-	public function export(?string $perspective = null) : void {
+	public function export(string $perspective) : void {
 		if(empty($this->relations)){
 			return;
 		}
@@ -162,6 +162,17 @@ abstract class DataObjectRelationList {
 		foreach($this->relations as &$relation){
 			$relation->export($perspective);
 		}
+	}
+
+
+	public function staticize(string $perspective) : ?array {
+		$result = [];
+
+		foreach($this->relations as $relation){
+			$result[] = $relation->staticize($perspective);
+		}
+
+		return $result;
 	}
 
 

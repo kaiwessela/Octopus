@@ -169,7 +169,7 @@ class APIEndpointHandler {
 
 			# everything worked, return objects
 			$this->response->set_response_code(200);
-			$this->response->set_result($backend_class->export());
+			$this->response->set_result($backend_class->staticize());
 			$this->response->send();
 
 		} else if($this->request->identifier == 'new') {
@@ -208,7 +208,7 @@ class APIEndpointHandler {
 
 			# everything worked, return object
 			$this->response->set_response_code(200);
-			$this->response->set_result($backend_class);
+			$this->response->set_result($backend_class->staticize());
 			$this->response->send();
 
 		} else if($this->request->identifier == 'count'){
@@ -265,7 +265,7 @@ class APIEndpointHandler {
 		if(empty($this->request->action)){
 			# no action specified -> return instance of class
 			$this->response->set_response_code(200);
-			$this->response->set_result($backend_class->export());
+			$this->response->set_result($backend_class->staticize());
 			$this->response->send();
 
 		} else if($this->request->action == 'count'){
@@ -310,7 +310,7 @@ class APIEndpointHandler {
 
 			# everything worked, return object
 			$this->response->set_response_code(200);
-			$this->response->set_result($backend_class->export());
+			$this->response->set_result($backend_class->staticize());
 			$this->response->send();
 
 		} else if($this->request->action == 'delete'){
@@ -327,7 +327,7 @@ class APIEndpointHandler {
 
 			# everything worked, return object
 			$this->response->set_response_code(200);
-			$this->response->set_result($backend_class->export());
+			$this->response->set_result($backend_class->staticize());
 			$this->response->send();
 
 		} else {

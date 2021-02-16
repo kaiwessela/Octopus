@@ -160,7 +160,7 @@ abstract class DataObjectRelation {
 	}
 
 
-	public function export(?string $perspective) : void {
+	public function export(string $perspective) : void {
 		$this->disabled = true;
 
 		foreach($this::OBJECTS as $property => $class){
@@ -168,6 +168,27 @@ abstract class DataObjectRelation {
 				$this->$property = null;
 			}
 		}
+	}
+
+
+	public function staticize(string $perspective) : ?array {
+		$result = [];
+
+		foreach($this::OBJECTS as $property => $class){
+			if($perspective != $class){
+				$result[$property] = $this->$property->staticize();
+			}
+		}
+
+		foreach($this::PROPERTIES as $property => $definition){
+			if(is_object($this->$property)){
+				$result[$property] = $this->$property->staticize();
+			} else {
+				$result[$property] = $this->$property;
+			}
+		}
+
+		return $result;
 	}
 
 

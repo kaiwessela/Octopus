@@ -28,7 +28,8 @@ spl_autoload_register(function($name){
 	}
 });
 
-require_once '../../libs/Astronauth/autoloader.php';
+require_once '../../vendor/kaiwessela/astronauth/autoloader.php';
+require_once '../../vendor/kaiwessela/parsedownforblog/autoloader.php';
 
 $endpoint = new \Blog\APIEndpointHandler();
 $endpoint->handle();

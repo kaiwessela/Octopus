@@ -6,7 +6,7 @@ use \Blog\Model\DataObjects\Proposal;
 class ProposalList extends DataObjectList {
 
 #	@inherited
-#	public $objects;	{alias $proposals}
+#	public $objects;
 #	public $count;
 #
 #	private $new;

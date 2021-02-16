@@ -6,7 +6,7 @@ use \Blog\Model\DataObjects\Column;
 class ColumnList extends DataObjectList {
 
 	#	@inherited
-	#	public $objects;	{alias $columns}
+	#	public $objects;
 	#	public $count;
 	#
 	#	private $new;

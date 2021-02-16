@@ -6,7 +6,7 @@ use \Blog\Model\DataObjects\Group;
 class GroupList extends DataObjectList {
 
 	#	@inherited
-	#	public $objects;	{alias $groups}
+	#	public $objects;
 	#	public $count;
 	#
 	#	private $new;

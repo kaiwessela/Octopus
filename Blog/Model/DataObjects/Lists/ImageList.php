@@ -6,7 +6,7 @@ use \Blog\Model\DataObjects\Image;
 class ImageList extends DataObjectList {
 
 #	@inherited
-#	public $objects;	{alias $images}
+#	public $objects;
 #	public $count;
 #
 #	private $new;

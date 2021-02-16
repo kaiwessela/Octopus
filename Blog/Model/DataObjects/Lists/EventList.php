@@ -6,7 +6,7 @@ use \Blog\Model\DataObjects\Event;
 class EventList extends DataObjectList {
 
 #	@inherited
-#	public $objects;	{alias $posts}
+#	public $objects;
 #	public $count;
 #
 #	private $new;

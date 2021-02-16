@@ -342,11 +342,13 @@ abstract class DataObject {
 	}
 
 
-	public function staticize() : ?array {
+	public function staticize(bool $norelations = false) : ?array {
 		$result = [];
 
-		foreach(array_merge($this::PROPERTIES, $this::PSEUDOLISTS) as $property => $definition){
-			if($this->$property instanceof DataObjectRelation || $this->$property instanceof DataObjectRelationList){
+		foreach(array_merge($this::PROPERTIES, ($norelations) ? [] : $this::PSEUDOLISTS) as $property => $definition){
+			if($norelations && is_subclass_of($definition, DataObjectRelationList::class)){
+				continue;
+			} else if($this->$property instanceof DataObjectRelationList){
 				$result[$property] = $this->$property->staticize($this::class);
 			} else if(is_object($this->$property)){
 				$result[$property] = $this->$property->staticize();

@@ -6,7 +6,7 @@ use \Blog\Model\DataObjects\Person;
 class PersonList extends DataObjectList {
 
 #	@inherited
-#	public $objects;	{alias $persons}
+#	public $objects;
 #	public $count;
 #
 #	private $new;

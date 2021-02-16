@@ -11,9 +11,6 @@ use Blog\Model\Exceptions\MissingValueException;
 use Blog\Model\Exceptions\RelationNonexistentException;
 
 abstract class DataObjectRelation {
-
-	// FIXME fix uninitialized properties
-
 	public string $id;
 
 	private bool $new;
@@ -176,7 +173,7 @@ abstract class DataObjectRelation {
 
 		foreach($this::OBJECTS as $property => $class){
 			if($perspective != $class){
-				$result[$property] = $this->$property->staticize();
+				$result[$property] = $this->$property->staticize(norelations:true);
 			}
 		}
 

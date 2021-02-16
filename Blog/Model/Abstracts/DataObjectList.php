@@ -7,9 +7,6 @@ use Blog\Model\Exceptions\EmptyResultException;
 use InvalidArgumentException;
 
 abstract class DataObjectList {
-
-	// TODO remove relationlists on staticize (and maybe on export) because they are definitely null in lists and might cause confusion because in single they are not null
-
 	public array $objects;
 	public int $count;
 
@@ -44,9 +41,6 @@ abstract class DataObjectList {
 		$this->req('empty');
 
 		$query = $this->pull_query($limit, $offset, $options);
-
-		// IDEA use subqueries to pull relations as well (maybe optionally)
-
 		$s = $pdo->prepare($query);
 
 		if(!$s->execute([])){
@@ -75,27 +69,6 @@ abstract class DataObjectList {
 #	  - $data: an array of arrays which contain the values for one DataObject
 
 		$this->req('empty');
-
-		/* row buffer to use on sql statements with relation joins. currently not necessary.
-		$i = 0;
-		$last_id = null;
-		$row_buffer = [];
-
-		foreach($data as $row){ // IDEA sql 'group by'
-			if($row[0] == $last_id){
-				$row_buffer[$i][] = $row;
-			} else {
-				$i++;
-				$row_buffer[$i] = [];
-				$row_buffer[$i][] = $row;
-				$last_id = $row[0];
-			}
-		}
-
-		foreach($row_buffer as $data){
-			$this->objects[] = $this::load_each($data);
-		}
-		*/
 
 		$class = $this::OBJECT_CLASS;
 		foreach($data as $row){
@@ -164,7 +137,7 @@ abstract class DataObjectList {
 		$result = [];
 
 		foreach($this->objects as $object){
-			$result[] = $object->staticize();
+			$result[] = $object->staticize(norelations:true);
 		}
 
 		return $result;
@@ -188,26 +161,5 @@ abstract class DataObjectList {
 			return $this->count;
 		}
 	}
-
-
-	function __get($name) {
-#	@action:
-#	  - create custom alias for $objects
-
-		if($name == $this::OBJECTS_ALIAS){
-			return $this->objects;
-		}
-	}
-
-
-	function __set($name, $value) {
-#	@action:
-#	  - create custom alias for $objects
-
-		if($name == $this::OBJECTS_ALIAS){
-			$this->objects = $value;
-		}
-	}
-
 }
 ?>

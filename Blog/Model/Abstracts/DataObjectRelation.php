@@ -148,7 +148,7 @@ abstract class DataObjectRelation {
 			}
 
 			try {
-				$this->$property = $input;
+				$this->$property = htmlspecialchars($input);
 			} catch(TypeError $e){
 				$errors->push(new IllegalValueException($property, $input, $definition));
 			}

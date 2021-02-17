@@ -25,13 +25,17 @@ abstract class DataObject {
 	private bool $new;
 	private bool $empty;
 	private bool $disabled;
+	private array $pseudo_cache;
 
-	const IGNORE_PULL_LIMIT = false; // TODO why do we need this?
+#	tells pull functions to ignore $limit and $offset.
+#	used on all single objects because they always only return one row.
+#	also used on some multi objects (i.e. Post), where you always want ALL children to be pulled:
+#	on Post, you do not want only a few Columns included, but on Columns, you want to specify how
+#	many Posts you want to be pulled as children.
+	const IGNORE_PULL_LIMIT = false;
 
 	const PROPERTIES = [];
 	const PSEUDOLISTS = [];
-
-	// TODO where do we need count queries? check this in all dataobjects
 
 
 	use DataObjectTrait;
@@ -46,6 +50,7 @@ abstract class DataObject {
 		$this->set_empty();
 		$this->count = null;
 		$this->disabled = false;
+		$this->pseudo_cache = [];
 	}
 
 
@@ -63,7 +68,7 @@ abstract class DataObject {
 	}
 
 
-	public function count() : int {
+	public function count() : ?int {
 #	@requirements:
 #	  - this object must be configured to contain a list of DatabaseObjects, else return null
 #	@action:
@@ -343,7 +348,10 @@ abstract class DataObject {
 
 
 	public function staticize(bool $norelations = false) : ?array {
-		$result = [];
+		$result = [
+			'id' => $this->id,
+			'longid' => $this->longid
+		];
 
 		foreach(array_merge($this::PROPERTIES, ($norelations) ? [] : $this::PSEUDOLISTS) as $property => $definition){
 			if($norelations && is_subclass_of($definition, DataObjectRelationList::class)){
@@ -361,9 +369,12 @@ abstract class DataObject {
 	}
 
 
-	function __get($property) { // TESTING; validate, use caching at least on disabled objects
-		// FIXME 'uninitialized' in result
+	function __get($property) {
 		if(!empty($this::PSEUDOLISTS[$property])){
+			if($this->disabled && !empty($this->pseudo_cache[$property])){
+				return $this->pseudo_cache[$property];
+			}
+
 			$class = $this::PSEUDOLISTS[$property][0];
 			$reference = $this::PSEUDOLISTS[$property][1];
 
@@ -372,6 +383,7 @@ abstract class DataObject {
 
 			if($this->disabled){
 				$res->export();
+				$this->pseudo_cache[$property] = $res;
 			}
 
 			return $res;

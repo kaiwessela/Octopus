@@ -45,11 +45,11 @@ class Response {
 	}
 
 	public function send() {
+		http_response_code($this->response_code);
+
 		foreach($this->headers as $header){
 			header($header);
 		}
-
-		http_response_code($this->response_code);
 
 		echo json_encode($this->response, \JSON_THROW_ON_ERROR);
 

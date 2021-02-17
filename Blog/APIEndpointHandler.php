@@ -125,6 +125,14 @@ class APIEndpointHandler {
 				$backend_class = new \Blog\Model\DataObjects\Group();
 			}
 
+		} else if($this->request->class == 'proposals'){
+			# class Proposal requested
+			if($use_list){
+				$backend_class = new \Blog\Model\DataObjects\Lists\ProposalList();
+			} else {
+				$backend_class = new \Blog\Model\DataObjects\Proposal();
+			}
+
 		} else {
 			# invalid class requested, answer with error
 			$this->response->set_response_code(400);
@@ -275,6 +283,12 @@ class APIEndpointHandler {
 			} catch(DatabaseException $e){
 				$this->response->set_response_code(500);
 				$this->response->set_error_message($e->getMessage());
+				$this->response->send();
+			}
+
+			if($count === null){
+				$this->response->set_response_code(400);
+				$this->response->set_error_message('API: invalid action for this class.');
 				$this->response->send();
 			}
 

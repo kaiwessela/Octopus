@@ -169,7 +169,9 @@ abstract class DataObjectRelation {
 
 
 	public function staticize(string $perspective) : ?array {
-		$result = [];
+		$result = [
+			'id' => $this->id
+		];
 
 		foreach($this::OBJECTS as $property => $class){
 			if($perspective != $class){

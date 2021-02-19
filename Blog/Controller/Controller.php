@@ -76,6 +76,7 @@ abstract class Controller {
 						return;
 					}
 				} else {
+					$this->object = null;
 					$this->status = 24;
 				}
 
@@ -157,7 +158,7 @@ abstract class Controller {
 			$this->pagination = new Pagination($current_page, $objects_per_page, $total_objects, $base_path, $structure);
 		}
 
-		$this->object->export();
+		$this->object?->export();
 		return $this->object;
 	}
 
@@ -172,7 +173,7 @@ abstract class Controller {
 			$this->pagination = new Pagination($current_page, $objects_per_page, $total_objects, $base_path, $structure);
 		}
 
-		$this->object->export();
+		$this->object?->export();
 		return $this->object;
 	}
 

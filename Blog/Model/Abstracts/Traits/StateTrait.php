@@ -1,5 +1,6 @@
 <?php
 namespace Blog\Model\Abstracts\Traits;
+use \Blog\Model\Exceptions\WrongObjectStateException;
 
 trait StateTrait {
 
@@ -39,20 +40,20 @@ trait StateTrait {
 	}
 
 	protected function require_not_new() : void {
-		if(!$this->is_new()){
-			throw new WrongObjectStateException('new');
+		if($this->is_new()){
+			throw new WrongObjectStateException('not new');
 		}
 	}
 
 	protected function require_empty() : void {
-		if(!$this->is_new()){
-			throw new WrongObjectStateException('new');
+		if(!$this->is_empty()){
+			throw new WrongObjectStateException('empty');
 		}
 	}
 
 	protected function require_not_empty() : void {
-		if(!$this->is_new()){
-			throw new WrongObjectStateException('new');
+		if($this->is_empty()){
+			throw new WrongObjectStateException('not empty');
 		}
 	}
 }

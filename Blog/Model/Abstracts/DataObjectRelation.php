@@ -19,15 +19,18 @@ abstract class DataObjectRelation {
 	const OBJECTS = [];
 	const PROPERTIES = [];
 
-
 	use DBTrait;
 	use StateTrait;
 
+	private bool $new;
+	private bool $empty;
+	private bool $disabled;
+
 
 	function __construct() {
-		private bool $new = false;
-		private bool $empty = true;
-		private bool $disabled = false;
+		$this->new = false;
+		$this->empty = true;
+		$this->disabled = false;
 	}
 
 
@@ -90,7 +93,7 @@ abstract class DataObjectRelation {
 		if(!$this->is_new() && $data['id'] != $this->id){
 			$errors->push(new IdentifierMismatchException('id', $data['id'], $this));
 		}
-		
+
 
 		foreach($this::OBJECTS as $name => $class){
 			if($this->$name?->is_new()){

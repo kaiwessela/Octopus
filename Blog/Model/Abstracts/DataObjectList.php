@@ -13,15 +13,18 @@ abstract class DataObjectList {
 
 	const OBJECT_CLASS = null;
 
-
 	use DBTrait;
 	use StateTrait;
 
+	private bool $new;
+	private bool $empty;
+	private bool $disabled;
+
 
 	function __construct() {
-		private bool $new = false;
-		private bool $empty = true;
-		private bool $disabled = false;
+		$this->new = false;
+		$this->empty = true;
+		$this->disabled = false;
 
 		$this->objects = [];
 	}

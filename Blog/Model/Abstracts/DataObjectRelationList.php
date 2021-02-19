@@ -13,15 +13,15 @@ abstract class DataObjectRelationList {
 	private array $deletions;
 	private array $updates;
 
-
 	const RELATION_CLASS = null;
-
 
 	use DBTrait;
 
+	private bool $disabled;
+
 
 	function __construct() {
-		private bool $disabled = false;
+		$this->disabled = false;
 
 		$this->relations = [];
 		$this->updates = [];

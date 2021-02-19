@@ -33,7 +33,7 @@ class Column extends DataObject {
 
 
 	public function load(array $data, bool $norecursion = false) : void {
-		$this->require_empty()
+		$this->require_empty();
 
 		if(is_array($data[0])){
 			$row = $data[0];

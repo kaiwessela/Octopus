@@ -36,9 +36,12 @@ abstract class DataObject {
 	const PROPERTIES = [];
 	const PSEUDOLISTS = [];
 
-
 	use DBTrait;
 	use StateTrait;
+
+	private bool $disabled;
+	private bool $new;
+	private bool $empty;
 
 
 	abstract public function load(array $data) : void;
@@ -46,9 +49,9 @@ abstract class DataObject {
 
 
 	function __construct() {
-		private bool $disabled = false;
-		private bool $new = false;
-		private bool $empty = true;
+		$this->disabled = false;
+		$this->new = false;
+		$this->empty = true;
 
 		$this->count = null;
 		$this->pseudo_cache = [];

@@ -43,7 +43,7 @@ class PostColumnRelation extends DataObjectRelation {
 
 
 	public function load(array $data, /*Post|Column*/ $object) : void {
-		$this->req('empty');
+		$this->require_empty();
 
 		if($object instanceof Post){
 			$this->post = &$object;
@@ -59,7 +59,7 @@ class PostColumnRelation extends DataObjectRelation {
 
 		$this->id = $data['postcolumnrelation_id'];
 
-		$this->set_empty(false);
+		$this->set_not_empty();
 	}
 
 

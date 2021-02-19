@@ -26,7 +26,7 @@ class Page extends DataObject {
 
 
 	public function load(array $data, bool $norecursion = false) : void {
-		$this->req('empty');
+		$this->require_empty();
 
 		if(is_array($data[0])){
 			$row = $data[0];
@@ -41,8 +41,8 @@ class Page extends DataObject {
 		$this->content = empty($row['page_content'])
 			? null : new MarkdownContent($row['page_content']);
 
-		$this->set_new(false);
-		$this->set_empty(false);
+		$this->set_not_new();
+		$this->set_not_empty();
 	}
 
 

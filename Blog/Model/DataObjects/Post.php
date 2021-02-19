@@ -48,7 +48,7 @@ class Post extends DataObject {
 
 
 	public function load(array $data, bool $norecursion = false) : void {
-		$this->req('empty');
+		$this->require_empty();
 
 		if(is_array($data[0])){
 			$row = $data[0];
@@ -75,8 +75,8 @@ class Post extends DataObject {
 		$this->columnrelations = ($norecursion || empty($row['postcolumnrelation_id'])) ? null : new PostColumnRelationList();
 		$this->columnrelations?->load($data, $this);
 
-		$this->set_new(false);
-		$this->set_empty(false);
+		$this->set_not_new();
+		$this->set_not_empty();
 	}
 
 
@@ -98,13 +98,6 @@ class Post extends DataObject {
 		}
 
 		return $values;
-	}
-
-
-	protected function push_children() : void {
-		if($this->image?->is_new()){
-			$this->image->push();
-		}
 	}
 
 

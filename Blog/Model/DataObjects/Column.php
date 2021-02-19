@@ -33,7 +33,7 @@ class Column extends DataObject {
 
 
 	public function load(array $data, bool $norecursion = false) : void {
-		$this->req('empty');
+		$this->require_empty()
 
 		if(is_array($data[0])){
 			$row = $data[0];
@@ -49,8 +49,8 @@ class Column extends DataObject {
 		$this->postrelations = ($norecursion || empty($row['postcolumnrelation_id'])) ? null : new PostColumnRelationList();
 		$this->postrelations?->load($data, $this);
 
-		$this->set_new(false);
-		$this->set_empty(false);
+		$this->set_not_new();
+		$this->set_not_empty();
 	}
 
 

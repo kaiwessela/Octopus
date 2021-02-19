@@ -1,8 +1,8 @@
 <?php
 namespace Blog\Model\Abstracts;
-use \Blog\Model\DataObjectTrait;
+use \Blog\Model\Abstracts\Traits\DBTrait;
+use \Blog\Model\Abstracts\Traits\StateTrait;
 use \Blog\Model\Abstracts\DataType;
-use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\Abstracts\DataObjectList;
 use \Blog\Model\Abstracts\DataObjectRelationList;
 use \Blog\Model\Exceptions\DatabaseException;
@@ -12,6 +12,8 @@ use \Blog\Model\Exceptions\InputFailedException;
 use \Blog\Model\Exceptions\IllegalValueException;
 use \Blog\Model\Exceptions\MissingValueException;
 use \Blog\Model\Exceptions\RelationNonexistentException;
+use \Blog\Model\Exceptions\IdentifierCollisionException;
+use \Blog\Model\Exceptions\IdentifierMismatchException;
 use InvalidArgumentException;
 use Exception;
 use TypeError;
@@ -22,9 +24,6 @@ abstract class DataObject {
 
 	public ?int $count;
 
-	private bool $new;
-	private bool $empty;
-	private bool $disabled;
 	private array $pseudo_cache;
 
 #	tells pull functions to ignore $limit and $offset.
@@ -38,7 +37,8 @@ abstract class DataObject {
 	const PSEUDOLISTS = [];
 
 
-	use DataObjectTrait;
+	use DBTrait;
+	use StateTrait;
 
 
 	abstract public function load(array $data) : void;
@@ -46,10 +46,11 @@ abstract class DataObject {
 
 
 	function __construct() {
-		$this->set_new(false);
-		$this->set_empty();
+		private bool $disabled = false;
+		private bool $new = false;
+		private bool $empty = true;
+
 		$this->count = null;
-		$this->disabled = false;
 		$this->pseudo_cache = [];
 	}
 
@@ -61,10 +62,9 @@ abstract class DataObject {
 #	  - set this->new to true
 #	  - set this->empty to false
 
-		$this->req('empty');
-		$this->generate_id();
+		$this->require_empty();
+		$this->id = bin2hex(random_bytes(4));
 		$this->set_new();
-		$this->set_empty();
 	}
 
 
@@ -75,7 +75,7 @@ abstract class DataObject {
 #	  - return the number of objects of this type stored in the database
 #	@return: integer
 
-		$this->req('not empty');
+		$this->require_not_empty();
 
 		if(empty($this::COUNT_QUERY)){
 			return null;
@@ -102,7 +102,7 @@ abstract class DataObject {
 #	  - $limit: the amount of objects to be selected
 #	  - $offset: the amount of objects to be skipped at the beginning; ignored if $limit == null
 
-		$this->req('empty');
+		$this->require_empty();
 		$pdo = $this->open_pdo();
 
 		$values = ['id' => $identifier];
@@ -137,7 +137,7 @@ abstract class DataObject {
 #	  - upload (insert/update) this object and all its children to the database
 #	  - set this->new to false
 
-		$this->req('not empty');
+		$this->require_not_empty();
 		$pdo = $this->open_pdo();
 
 		if($this->is_new()){
@@ -149,7 +149,7 @@ abstract class DataObject {
 		if(!$s->execute($this->db_export())){
 			throw new DatabaseException($s);
 		} else {
-			$this->set_new(false);
+			$this->set_not_new();
 		}
 
 		foreach($this::PROPERTIES as $property => $definition){
@@ -167,8 +167,8 @@ abstract class DataObject {
 #	  - delete this object in the database
 #	  - set this->new to true
 
-		$this->req('not empty');
-		$this->req('not new');
+		$this->require_not_empty();
+		$this->require_not_new();
 		$pdo = $this->open_pdo();
 
 		$s = $pdo->prepare($this::DELETE_QUERY);
@@ -191,11 +191,35 @@ abstract class DataObject {
 
 		$errors = new InputFailedException();
 
-		try {
-			$this->import_id_and_longid($data['id'] ?? null, $data['longid'] ?? null);
-		} catch(InputFailedException $e){
-			$errors->merge($e);
+		if($this->is_new()){
+			$pattern = '^[a-z0-9-]{9,128}$';
+
+			if(empty($data['longid'])){
+				$errors->push(new MissingValueException('longid', $pattern));
+			} else if(!preg_match("/$pattern/", $data['longid'])){
+				$errors->push(new IllegalValueException('longid', $data['longid'], $pattern));
+			}
+
+			try {
+				$existing = new $this;
+				$existing->pull($data['longid']);
+			} catch(EmptyResultException $e){
+				$this->longid = $data['longid'];
+			}
+
+			if(empty($this->longid)){
+				$errors->push(new IdentifierCollisionException($data['longid'], $existing));
+			}
+		} else {
+			if($data['id'] != $this->id){
+				$errors->push(new IdentifierMismatchException('id', $data['id'], $this));
+			}
+
+			if($data['longid'] != $this->longid){
+				$errors->push(new IdentifierMismatchException('longid', $data['longid'], $this));
+			}
 		}
+
 
 		foreach($this::PROPERTIES as $property => $definition){
 			$input = $data[$property] ?? null;
@@ -330,12 +354,12 @@ abstract class DataObject {
 			throw $errors;
 		}
 
-		$this->set_empty(false);
+		$this->set_not_empty();
 	}
 
 
 	public function export() : void {
-		$this->disabled = true;
+		$this->disable();
 
 		foreach($this as $property => $value){
 			if($value instanceof DataObject || $value instanceof DataObjectList){

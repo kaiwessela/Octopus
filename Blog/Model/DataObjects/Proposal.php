@@ -35,7 +35,7 @@ class Proposal extends DataObject {
 
 
 	public function load(array $data, bool $norecursion = false) : void {
-		$this->req('empty');
+		$this->require_empty();
 
 		if(is_array($data[0])){
 			$row = $data[0];
@@ -57,8 +57,8 @@ class Proposal extends DataObject {
 		$this->votes = empty($row['proposal_votes'])
 			? null : json_decode($row['proposal_votes'], true, 512, \JSON_THROW_ON_ERROR);
 
-		$this->set_new(false);
-		$this->set_empty(false);
+		$this->set_not_new();
+		$this->set_not_empty();
 	}
 
 

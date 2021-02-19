@@ -1,42 +1,40 @@
 <?php
 namespace Blog\Model\Abstracts;
-use Blog\Model\DataObjectTrait;
-use Blog\Model\Abstracts\DataObject;
-use Blog\Model\Exceptions\DatabaseException;
-use Blog\Model\Exceptions\EmptyResultException;
-use Blog\Model\Exceptions\InputFailedException;
-use Blog\Model\Exceptions\IdentifierMismatchException;
-use Blog\Model\Exceptions\IllegalValueException;
-use Blog\Model\Exceptions\MissingValueException;
-use Blog\Model\Exceptions\RelationNonexistentException;
+use \Blog\Model\Abstracts\Traits\DBTrait;
+use \Blog\Model\Abstracts\Traits\StateTrait;
+use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\Exceptions\DatabaseException;
+use \Blog\Model\Exceptions\EmptyResultException;
+use \Blog\Model\Exceptions\InputFailedException;
+use \Blog\Model\Exceptions\IdentifierMismatchException;
+use \Blog\Model\Exceptions\IllegalValueException;
+use \Blog\Model\Exceptions\MissingValueException;
+use \Blog\Model\Exceptions\RelationNonexistentException;
 
 abstract class DataObjectRelation {
 	public string $id;
 
-	private bool $new;
-	private bool $empty;
-	private bool $disabled;
 
 	const UNIQUE = true;
 	const OBJECTS = [];
 	const PROPERTIES = [];
 
-	use DataObjectTrait;
+
+	use DBTrait;
+	use StateTrait;
 
 
 	function __construct() {
-		$this->new = false;
-		$this->empty = true;
-		$this->disabled = false;
+		private bool $new = false;
+		private bool $empty = true;
+		private bool $disabled = false;
 	}
 
+
 	public function generate(/*DataObject*/ $object) : void {
-		$this->req('empty');
-
-		$this->generate_id();
-
+		$this->require_empty();
+		$this->id = bin2hex(random_bytes(4));
 		$this->set_new();
-		$this->set_empty(false);
 	}
 
 
@@ -48,7 +46,7 @@ abstract class DataObjectRelation {
 #	  - upload (insert/update) this object to the database
 #	  - set this->new to false
 
-		$this->req('not empty');
+		$this->require_not_empty();
 		$pdo = $this->open_pdo();
 
 		if($this->is_new()){
@@ -62,7 +60,7 @@ abstract class DataObjectRelation {
 		if(!$s->execute($this->db_export())){
 			throw new DatabaseException($s);
 		} else {
-			$this->set_new(false);
+			$this->set_not_new();
 		}
 	}
 
@@ -72,8 +70,8 @@ abstract class DataObjectRelation {
 #	  - delete this object in the database
 #	  - set this->new to true
 
-		$this->req('not empty');
-		$this->req('not new');
+		$this->require_not_empty();
+		$this->require_not_new();
 		$pdo = $this->open_pdo();
 
 		$s = $pdo->prepare($this::DELETE_QUERY);
@@ -88,10 +86,11 @@ abstract class DataObjectRelation {
 	public function import(array $data) : void {
 		$errors = new InputFailedException();
 
-		$id = $data['id'] ?? null;
-		if(!$this->is_new() && $id != $this->id){
-			$errors->push(new IdentifierMismatchException('id', $id, $this));
+
+		if(!$this->is_new() && $data['id'] != $this->id){
+			$errors->push(new IdentifierMismatchException('id', $data['id'], $this));
 		}
+		
 
 		foreach($this::OBJECTS as $name => $class){
 			if($this->$name?->is_new()){

@@ -1,31 +1,29 @@
 <?php
 namespace Blog\Model\Abstracts;
-use Blog\Model\DataObjectTrait;
-use Blog\Model\Abstracts\DataObject;
-use Blog\Model\Exceptions\DatabaseException;
-use Blog\Model\Exceptions\EmptyResultException;
+use \Blog\Model\Abstracts\Traits\DBTrait;
+use \Blog\Model\Abstracts\Traits\StateTrait;
+use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\Exceptions\DatabaseException;
+use \Blog\Model\Exceptions\EmptyResultException;
 use InvalidArgumentException;
 
 abstract class DataObjectList {
 	public array $objects;
 	public int $count;
 
-	private bool $new;
-	private bool $empty;
-	private bool $disabled;
-
 	const OBJECT_CLASS = null;
 
 
-	use DataObjectTrait;
+	use DBTrait;
+	use StateTrait;
 
 
 	function __construct() {
-		$this->objects = [];
+		private bool $new = false;
+		private bool $empty = true;
+		private bool $disabled = false;
 
-		$this->set_new(false);
-		$this->set_empty();
-		$this->disabled = false;
+		$this->objects = [];
 	}
 
 
@@ -38,7 +36,7 @@ abstract class DataObjectList {
 #	  - $offset: the amount of objects to be skipped at the beginning; ignored if $limit == null
 
 		$pdo = $this->open_pdo();
-		$this->req('empty');
+		$this->require_empty();
 
 		$query = $this->pull_query($limit, $offset, $options);
 		$s = $pdo->prepare($query);
@@ -68,7 +66,7 @@ abstract class DataObjectList {
 #	@params:
 #	  - $data: an array of arrays which contain the values for one DataObject
 
-		$this->req('empty');
+		$this->require_empty();
 
 		$class = $this::OBJECT_CLASS;
 		foreach($data as $row){
@@ -77,19 +75,19 @@ abstract class DataObjectList {
 			$this->objects[] = $obj;
 		}
 
-		$this->set_new(false);
-		$this->set_empty(false);
+		$this->set_not_new();
+		$this->set_not_empty();
 	}
 
 
 	public function load_from_relationlist(DataObjectRelationList $relationlist) : void {
-		$this->req('empty');
+		$this->require_empty();
 
 		foreach($relationlist->relations as $relation){
 			$this->objects[] = $relation->get_object($this::OBJECT_CLASS);
 		}
 
-		$this->set_empty(false);
+		$this->set_not_empty();
 	}
 
 

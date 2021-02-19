@@ -48,7 +48,7 @@ class PersonGroupRelation extends DataObjectRelation {
 
 
 	public function load(array $data, /*Person|Group*/ $object) : void {
-		$this->req('empty');
+		$this->require_empty();
 
 		if($object instanceof Person){
 			$this->person = &$object;
@@ -66,7 +66,7 @@ class PersonGroupRelation extends DataObjectRelation {
 		$this->number = (int) $data['persongrouprelation_number'];
 		$this->role = $data['persongrouprelation_role'];
 
-		$this->set_empty(false);
+		$this->set_not_empty();
 	}
 
 

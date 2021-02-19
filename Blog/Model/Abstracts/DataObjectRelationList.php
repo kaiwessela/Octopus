@@ -1,7 +1,7 @@
 <?php
 namespace Blog\Model\Abstracts;
+use \Blog\Model\Abstracts\Traits\DBTrait;
 use \Blog\Model\Abstracts\DataObject;
-use \Blog\Model\DataObjectTrait;
 use \Blog\Model\Abstracts\DataObjectRelation;
 use \Blog\Model\Exceptions\InputFailedException;
 use \Blog\Model\Exceptions\DatabaseException;
@@ -13,16 +13,17 @@ abstract class DataObjectRelationList {
 	private array $deletions;
 	private array $updates;
 
-	private bool $disabled;
 
 	const RELATION_CLASS = null;
 
-	use DataObjectTrait;
+
+	use DBTrait;
 
 
 	function __construct() {
+		private bool $disabled = false;
+
 		$this->relations = [];
-		$this->disabled = false;
 		$this->updates = [];
 		$this->deletions = [];
 	}

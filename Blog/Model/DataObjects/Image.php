@@ -31,7 +31,8 @@ class Image extends DataObject {
 	const PROPERTIES = [
 		'description' => '.{0,100}',
 		'copyright' => '.{0,100}',
-		'data' => 'custom'
+		'data' => 'custom',
+		'extension' => 'custom'
 	];
 
 

@@ -111,7 +111,7 @@
 					<article>
 						<label>
 							<input type="radio" name="result" value="{{id}}" {{current}}>
-							<img src="<?= $server->url ?>/<?= $server->dyn_img_path ?>/{{longid}}/original.{{extension}}">
+							<img src="<?= $server->url . $server->dyn_img_path ?>{{longid}}/original.{{extension}}">
 						</label>
 					</article>
 				</template>
@@ -185,7 +185,7 @@
 	</template>
 	<template data-state="set">
 		<figure>
-			<img src="<?= $server->url ?>/<?= $server->dyn_img_path ?>/{{longid}}/original.{{extension}}" alt="{{description}}">
+			<img src="<?= $server->url . $server->dyn_img_path ?>{{longid}}/original.{{extension}}" alt="{{description}}">
 			<figcaption>{{longid}}</figcaption>
 		</figure>
 	</template>

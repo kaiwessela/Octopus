@@ -76,9 +76,11 @@ class Image extends DataObject {
 
 
 	public function push() : void {
+		$impush = $this->is_new();
+
 		parent::push();
 
-		if($this->is_new()){
+		if($impush){
 			$this->imagemanager->write($this->longid);
 			$this->imagemanager->push();
 		}

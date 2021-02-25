@@ -105,6 +105,7 @@ abstract class DataObjectList {
 	}
 
 
+	// FIXME this returns an int if callback is an each-type callback
 	public function foreach(callable $callback) { # function($key, $value){}
 		if(empty($this->objects)){
 			return;

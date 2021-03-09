@@ -9,6 +9,7 @@ use \Blog\Model\Exceptions\EmptyResultException;
 use Exception;
 use JsonException;
 use PDO;
+use finfo;
 
 class FileManager {
 
@@ -21,8 +22,8 @@ class FileManager {
 			throw new Exception('FileManager | Upload » invalid request Content-Type.');
 		}
 
-		$mimeinfo = finfo_open(FILEINFO_MIME_TYPE);
-		$extninfo = finfo_open(FILEINFO_EXTENSION);
+		$mimeinfo = new finfo(FILEINFO_MIME_TYPE);
+		$extninfo = new finfo(FILEINFO_EXTENSION);
 
 		if($mode == 'post'){
 			if(!isset($_FILES[$property]['error']) || is_array($_FILES[$property]['error'])){
@@ -50,7 +51,7 @@ class FileManager {
 
 			$filedata = file_get_contents($_FILES[$property]['tmp_name']);
 
-			$sent_mime = $_FILES[$property]['mime'];
+			$sent_mime = $_FILES[$property]['type'];
 			$sent_extension = array_reverse(explode('.', $_FILES[$property]['name']))[0];
 
 			$finfo_mime = $mimeinfo->file($_FILES[$property]['tmp_name']);
@@ -58,7 +59,7 @@ class FileManager {
 
 		} else if($mode == 'json'){
 			try {
-				$input = json_decode(file_get_contents('php://input'), true, default, \JSON_THROW_ON_ERROR);
+				$input = json_decode(file_get_contents('php://input'), assoc:true, options:\JSON_THROW_ON_ERROR);
 			} catch(JsonException $e){
 				throw new Exception('FileManager | Upload » json decoding failed.');
 			}
@@ -95,7 +96,7 @@ class FileManager {
 			throw new Exception('FileManager | Upload » sent and read mime types do not match.');
 		}
 
-		return new File($mime_type, $extension, $filedata);
+		return new File($finfo_mime, $extension, $filedata);
 	}
 
 
@@ -172,22 +173,22 @@ class FileManager {
 
 
 	private static function filename(Medium $medium, ?string $variant) : string {
-		$dirconfig = MediaConfig::DIRECTORIES[$medium->class];
+		$dirconfig = MediaConfig::DIRECTORIES[$medium::$class];
 
 		if(!is_array($dirconfig) || !isset($dirconfig[0]) || !isset($dirconfig[1])){
-			throw new Exception("FileManager | Config » illegal value: DIRECTORIES[$medium->class].");
+			throw new Exception("FileManager | Config » illegal value: DIRECTORIES.");
 		}
 
 		if(preg_match('/\.\./', $dirconfig[0] . '/' . $dirconfig[1])){
 			throw new Exception("FileManager | Config » illegal directory upwards navigation.");
 		}
 
-		$id_and_variant = $medium->id . ($variant === null) ? '' : '_'.$variant;
-		$longid_and_variant = $medium->longid . ($variant === null) ? '' : '_'.$variant;
+		$id_and_variant = $medium->id . (($variant === null) ? '' : '_'.$variant);
+		$longid_and_variant = $medium->longid . (($variant === null) ? '' : '_'.$variant);
 
 		return $_SERVER['DOCUMENT_ROOT'] . DIRECTORY_SEPARATOR . $dirconfig[0] . DIRECTORY_SEPARATOR
-			. str_replace(['$ID', '$LONGID', '$ID&VARIANT', '$LONGID&VARIANT', '$EXTENSION'],
-			[$medium->id, $medium->longid, $id_and_variant, $longid_and_variant, $medium->extension],
+			. str_replace(['$ID&VARIANT', '$LONGID&VARIANT', '$ID', '$LONGID', '$EXTENSION'],
+			[$id_and_variant, $longid_and_variant, $medium->id, $medium->longid, $medium->extension],
 			$dirconfig[1]);
 	}
 
@@ -234,7 +235,7 @@ class FileManager {
 			return;
 		}
 
-		if(!mkdir($path, default, true)){
+		if(!mkdir($path, recursive:true)){
 			throw new Exception("FileManager | mkdir » failed to create $path.");
 		}
 	}

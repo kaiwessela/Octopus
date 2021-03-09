@@ -34,7 +34,7 @@ abstract class Medium extends DataObject {
 
 	const PROPERTIES = [
 		'description' => '.{0,250}',
-		'copyright' => '.{o,250}',
+		'copyright' => '.{0,250}',
 		'alternative' => '.{0,250}',
 		'file' => 'custom',
 		'type' => 'custom',
@@ -51,8 +51,8 @@ abstract class Medium extends DataObject {
 			'audio' => new Audio(),
 			'image' => new Image(),
 			'video' => new Video(),
-			default => throw new Exception() // TODO
-		}
+			default => throw new Exception('invalid class.')
+		};
 
 		$object->load($data, $norecursion);
 		return $object;
@@ -68,7 +68,7 @@ abstract class Medium extends DataObject {
 			$row = $data;
 		}
 
-		if($row['medium_class'] != $this->class){
+		if($row['medium_class'] != $this::$class){
 			throw new Exception('class mismatch.');
 		}
 
@@ -80,7 +80,7 @@ abstract class Medium extends DataObject {
 		$this->copyright = $row['medium_copyright'];
 		$this->alternative = $row['medium_alternative'];
 		$this->variants = empty($row['medium_variants'])
-			? null : json_decode($row['medium_variants'], true, default, \JSON_THROW_ON_ERROR);
+			? null : json_decode($row['medium_variants'], true, 512, \JSON_THROW_ON_ERROR);
 
 		$this->set_not_new();
 		$this->set_not_empty();
@@ -119,6 +119,7 @@ abstract class Medium extends DataObject {
 			$values['longid'] = $this->longid;
 			$values['class'] = static::$class;
 			$values['type'] = $this->type;
+			$values['extension'] = $this->extension;
 			$values['variants'] = json_encode($this->variants, \JSON_THROW_ON_ERROR);
 		}
 
@@ -131,15 +132,15 @@ abstract class Medium extends DataObject {
 			return null;
 		}
 
-		$id_and_variant = $this->id . ($variant === null) ? '' : '_'.$variant;
-		$longid_and_variant = $this->longid . ($variant === null) ? '' : '_'.$variant;
+		$id_and_variant = $this->id . (($variant === null) ? '' : '_'.$variant);
+		$longid_and_variant = $this->longid . (($variant === null) ? '' : '_'.$variant);
 
 		return Config::SERVER_URL . DIRECTORY_SEPARATOR
-			. MediaConfig::DIRECTORIES[$this->class][0] . DIRECTORY_SEPARATOR
+			. MediaConfig::DIRECTORIES[$this::$class][0] . DIRECTORY_SEPARATOR
 			. str_replace(
-				['$ID', '$LONGID', '$ID&VARIANT', '$LONGID&VARIANT', '$EXTENSION'],
-				[$this->id, $this->longid, $id_and_variant, $longid_and_variant, $this->extension],
-				MediaConfig::DIRECTORIES[$this->class][1]
+				['$ID&VARIANT', '$LONGID&VARIANT', '$ID', '$LONGID', '$EXTENSION'],
+				[$id_and_variant, $longid_and_variant, $this->id, $this->longid, $this->extension],
+				MediaConfig::DIRECTORIES[$this::$class][1]
 			);
 	}
 
@@ -148,9 +149,9 @@ abstract class Medium extends DataObject {
 
 	const INSERT_QUERY = <<<SQL
 INSERT INTO media
-(medium_id, medium_longid, medium_class, medium_type, medium_description, medium_copyright,
+(medium_id, medium_longid, medium_class, medium_type, medium_extension, medium_description, medium_copyright,
 medium_alternative, medium_variants)
-VALUES (:id, :longid, :class, :type, :description, :copyright, :alternative, :variants)
+VALUES (:id, :longid, :class, :type, :extension, :description, :copyright, :alternative, :variants)
 SQL; #---|
 
 	const UPDATE_QUERY = <<<SQL

@@ -1,7 +1,7 @@
 <?php
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
-use \Blog\Model\DataObjects\Image;
+use \Blog\Model\DataObjects\Media\Image;
 use \Blog\Model\DataObjects\Lists\ColumnList;
 use \Blog\Model\DataObjects\Relations\Lists\PostColumnRelationList;
 use \Blog\Model\DataTypes\Timestamp;

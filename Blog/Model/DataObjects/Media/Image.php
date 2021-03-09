@@ -27,9 +27,15 @@ class Image extends Medium {
 
 		if(in_array($file->type, MediaConfig::RESIZABLE_IMAGE_TYPES)){
 			foreach(array_keys(MediaConfig::IMAGE_RESIZE_WIDTHS) as $width){
-				$this->files[$width] = $file->resize($width, upscaling:false);
-				$this->versions[] = $width;
+				$resized = $file->resize($width, upscaling:false);
+
+				if($resized != null){
+					$this->files[$width] = $resized;
+					$this->variants[] = $width;
+				}
 			}
+		} else {
+			$this->variants = null;
 		}
 	}
 
@@ -71,8 +77,8 @@ class Image extends Medium {
 
 
 	const PULL_QUERY = <<<SQL
-SELECT * FROM media WHERE media_class = 'image' AND
-(media_id = :id OR media_longid = :id)
+SELECT * FROM media WHERE medium_class = 'image' AND
+(medium_id = :id OR medium_longid = :id)
 SQL; #---|
 
 }

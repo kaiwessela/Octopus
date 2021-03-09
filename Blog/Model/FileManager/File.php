@@ -20,7 +20,7 @@ class File {
 		$this->imagesize = null;
 	}
 
-	public function resize(string $size_name, bool $upscaling = true) : File {
+	public function resize(string $size_name, bool $upscaling = true) : ?File {
 		if(!$this->is_resizable()){
 			throw new Exception('File | Resize » file is not resizable.');
 		}
@@ -37,6 +37,10 @@ class File {
 		$width = $size[0];
 		$quality = $size[1];
 
+		if(!$upscaling && $width >= $this->width){
+			return null;
+		}
+
 		if(!$resource = imagecreatefromstring($this->data)){
 			throw new Exception('File | GD » error creating image resource from data.');
 		}
@@ -48,7 +52,7 @@ class File {
 		ob_start();
 		switch($this->imagetype){
 			case IMAGETYPE_BMP:
-				imagebmp($scaled_resource, default, true);
+				imagebmp($scaled_resource, null, true);
 				break;
 
 			case IMAGETYPE_GIF:
@@ -57,11 +61,11 @@ class File {
 
 			case IMAGETYPE_JPEG:
 				imageinterlace($scaled_resource, 1);
-				imagejpeg($scaled_resource, default, $quality);
+				imagejpeg($scaled_resource, null, $quality);
 				break;
 
 			case IMAGETYPE_PNG:
-				imagepng($scaled_resource, default, 9, PNG_ALL_FILTERS);
+				imagepng($scaled_resource, null, 9, PNG_ALL_FILTERS);
 				break;
 
 			case IMAGETYPE_WBMP:
@@ -69,7 +73,7 @@ class File {
 				break;
 
 			case IMAGETYPE_WEBP:
-				imagewebp($scaled_resource, default, $quality);
+				imagewebp($scaled_resource, null, $quality);
 				break;
 
 			case IMAGETYPE_XBM:
@@ -118,7 +122,7 @@ class File {
 				'width' => $this->imagesize[0],
 				'height' => $this->imagesize[1],
 				'imagetype' => $this->imagesize[2]
-			}
+			};
 		}
 	}
 

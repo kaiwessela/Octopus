@@ -37,7 +37,7 @@
 	<!-- DESCRIPTION -->
 	<label for="description">
 		<span class="name">Beschreibung</span>
-		<span class="conditions">optional, bis zu 100 Zeichen</span>
+		<span class="conditions">optional, bis zu 250 Zeichen</span>
 		<span class="infos">
 			Die Beschreibung wird als Alternativtext angezeigt, wenn das Bild nicht geladen
 			werden kann. Sie sollte den Bildinhalt wiedergeben.
@@ -45,12 +45,12 @@
 	</label>
 	<input type="text" size="60"
 		id="description" name="description" value="<?= $Image?->description ?>"
-		maxlength="100">
+		maxlength="250">
 
 	<!-- COPYRIGHT -->
 	<label for="copyright">
 		<span class="name">Urheberrechtshinweis</span>
-		<span class="conditions">optional, bis zu 100 Zeichen</span>
+		<span class="conditions">optional, bis zu 250 Zeichen</span>
 		<span class="infos">
 			Der Urbeherrechtshinweis kann genutzt werden, um Lizensierungsinformationen zu dem Bild
 			zur Verfügung zu stellen. Er wird normalerweise unterhalb des Bildes angezeigt.
@@ -58,18 +58,31 @@
 	</label>
 	<input type="text" size="50"
 		id="copyright" name="copyright" value="<?= $Image?->copyright ?>"
-		maxlength="100">
+		maxlength="250">
+
+	<!-- ALTERNATIVE -->
+	<label for="copyright">
+		<span class="name">Alternativtext</span>
+		<span class="conditions">optional, bis zu 250 Zeichen</span>
+		<span class="infos">
+			Der Alternativtext wird angezeigt, wenn das Bild nicht geladen werden kann oder der
+			Benutzer einen Screenreader nutzt. Er sollte den Bildinhalt möglichst genau wiedergeben.
+		</span>
+	</label>
+	<input type="text" size="50"
+		id="alternative" name="alternative" value="<?= $Image?->alternative ?>"
+		maxlength="250">
 
 
 <?php if($ImageController->request->action == 'new'){ // TODO TODO TODO see in backend how invalid image requests are handled ?>
 
 	<!-- IMAGEFILE -->
-	<label for="imagefile">
+	<label for="file">
 		<span class="name">Datei</span>
 		<span class="conditions">erforderlich; PNG, JPEG oder GIF</span>
 	</label>
 	<input type="file" class="file"
-		id="imagefile" name="imagedata" required>
+		id="file" name="file" required>
 
 <?php } ?>
 

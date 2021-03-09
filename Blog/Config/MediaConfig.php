@@ -59,6 +59,6 @@ class MediaConfig {
 		# required (not checked): (id&variant | longid&variant), extension
 	];
 
-	const MAX_UPLOAD_SIZE = 1000000;
+	const MAX_UPLOAD_SIZE = 10000000;
 }
 ?>

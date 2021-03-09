@@ -24,6 +24,7 @@ class Video extends Medium {
 		$this->type = $file->type;
 		$this->extension = $file->extension;
 		$this->files['original'] => $file;
+		$this->variants = null;
 	}
 
 
@@ -45,8 +46,8 @@ class Video extends Medium {
 
 
 	const PULL_QUERY = <<<SQL
-SELECT * FROM media WHERE media_class = 'video' AND
-(media_id = :id OR media_longid = :id)
+SELECT * FROM media WHERE medium_class = 'video' AND
+(medium_id = :id OR medium_longid = :id)
 SQL; #---|
 
 }

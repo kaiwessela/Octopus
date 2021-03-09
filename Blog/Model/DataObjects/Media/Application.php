@@ -23,7 +23,7 @@ class Application extends Medium {
 
 		$this->type = $file->type;
 		$this->extension = $file->extension;
-		$this->files['original'] => $file;
+		$this->files['original'] = $file;
 		$this->variants = null;
 	}
 

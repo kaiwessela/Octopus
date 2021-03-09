@@ -18,7 +18,7 @@ class PostList extends DataObjectList {
 
 	const SELECT_QUERY = <<<SQL
 SELECT * FROM posts
-LEFT JOIN images ON image_id = post_image_id
+LEFT JOIN media ON medium_id = post_image_id
 ORDER BY post_timestamp DESC
 SQL; #---|
 

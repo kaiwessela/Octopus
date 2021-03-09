@@ -23,7 +23,7 @@ class FileManager {
 		}
 
 		$mimeinfo = new finfo(FILEINFO_MIME_TYPE);
-		$extninfo = new finfo(FILEINFO_EXTENSION);
+		// $extninfo = new finfo(FILEINFO_EXTENSION);
 
 		if($mode == 'post'){
 			if(!isset($_FILES[$property]['error']) || is_array($_FILES[$property]['error'])){
@@ -55,7 +55,6 @@ class FileManager {
 			$sent_extension = array_reverse(explode('.', $_FILES[$property]['name']))[0];
 
 			$finfo_mime = $mimeinfo->file($_FILES[$property]['tmp_name']);
-			$finfo_extensions = explode('/', $extninfo->file($_FILES[$property]['tmp_name']));
 
 		} else if($mode == 'json'){
 			try {
@@ -83,17 +82,16 @@ class FileManager {
 			}
 
 			$finfo_mime = $mimeinfo->buffer($filedata);
-			$finfo_extensions = explode('/', $extninfo->buffer($filedata))[0];
-		}
-
-		if(empty($sent_extension) || !in_array($sent_extension, $finfo_extensions)){
-			$extension = $finfo_extensions[0];
-		} else {
-			$extension = $sent_extension;
 		}
 
 		if($sent_mime !== $finfo_mime){
 			throw new Exception('FileManager | Upload » sent and read mime types do not match.');
+		}
+
+		if(empty($sent_extension) || !in_array($sent_extension, self::EXTENSIONS[$finfo_mime])){
+			$extension = self::EXTENSIONS[$finfo_mime][0];
+		} else {
+			$extension = $sent_extension;
 		}
 
 		return new File($finfo_mime, $extension, $filedata);
@@ -252,6 +250,43 @@ INSERT INTO mediafiles
 (mediafile_medium_id, mediafile_variant, mediafile_type, mediafile_extension, mediafile_data)
 VALUES (:id, :variant, :type, :extension, :data)
 SQL; #---|
+
+
+	const EXTENSIONS = [ // TODO missing and not the best solution
+		'application/gzip' => ['gz'],
+		'application/javascript' => ['js'],
+		'application/json' => ['json'],
+		'application/msexcel' => ['xls', 'xla'],
+		'application/mspowerpoint' => ['ppt', 'ppz', 'pps', 'pot'],
+		'application/msword' => ['doc', 'dot'],
+		'application/octet-stream' => ['txt'],
+		'application/pdf' => ['pdf'],
+		'application/rtf' => ['rtf'],
+		'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => ['xlsx'],
+		'application/vnd.openxmlformats-officedocument.wordprocessingml.sheet' => ['docx'],
+		'application/xhtml+xml' => ['htm', 'html'],
+		'application/xml' => ['xml'],
+		'application/x-latex' => ['latex'],
+		'application/x-tar' => ['tar'],
+		'application/x-tex' => ['tex'],
+		'application/zip' => ['zip'],
+		'audio/mpeg' => ['mp3'],
+		'audio/mp4' => ['mp4'],
+		'audio/ogg' => ['ogg'],
+		'audio/wav' => ['wav'],
+		'image/bmp' => ['bmp'],
+		'image/gif' => ['gif'],
+		'image/jpeg' => ['jpg', 'jpeg'],
+		'image/png' => ['png'],
+		'image/svg+xml' => ['svg'],
+		'image/tiff' => ['tiff', 'tif'],
+		'image/vnd.wap.wbmp' => ['wbmp'],
+		'image/x-icon' => ['ico'],
+		'video/mpeg' => ['mpeg'],
+		'video/mp4' => ['mp4'],
+		'video/ogg' => ['ogg'],
+		'video/webm' => ['webm']
+	];
 
 
 }

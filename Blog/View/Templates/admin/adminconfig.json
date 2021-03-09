@@ -131,6 +131,39 @@
 			}
 		}
 	},
+	"applications": {
+		"controller_var": "ApplicationController",
+		"object_var": "Application",
+		"lang": {
+			"singular": "Datei",
+			"plural": "Dateien",
+			"plural_nominativ": "Dateien",
+			"plural_dativ": "Dateien",
+			"message": {
+				"created": "Die Datei wurde erfolgreich hochgeladen.",
+				"edited": "Die Datei wurden erfolgreich bearbeitet.",
+				"deleted": "Die Datei wurde gelöscht.",
+				"empty": "Es sind noch keine Dateien vorhanden."
+			},
+			"list": {
+				"title": "Alle Dateien",
+				"linktext": "Zurück zu allen Dateien"
+			},
+			"show": {
+				"title": "Datei anzeigen"
+			},
+			"new": {
+				"title": "Neue Datei hochladen",
+				"linktext": "Neue Datei hochladen"
+			},
+			"edit": {
+				"title": "Datei bearbeiten"
+			},
+			"delete": {
+				"title": "Datei löschen"
+			}
+		}
+	},
 	"persons": {
 		"controller_var": "PersonController",
 		"object_var": "Person",

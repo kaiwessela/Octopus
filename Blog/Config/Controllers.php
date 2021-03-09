@@ -5,6 +5,7 @@ class Controllers {
 	const REGISTERED = [
 		'EventController',
 		'ImageController',
+		'ApplicationController',
 		'PageController',
 		'PersonController',
 		'PostController',
@@ -18,6 +19,8 @@ class Controllers {
 		'events'	=> 'EventController',
 		'image'		=> 'ImageController',
 		'images'	=> 'ImageController',
+		'application' => 'ApplicationController',
+		'applications' => 'ApplicationController',
 		'page'		=> 'PageController',
 		'pages'		=> 'PageController',
 		'person'	=> 'PersonController',

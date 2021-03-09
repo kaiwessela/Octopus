@@ -18,7 +18,7 @@ class PersonList extends DataObjectList {
 
 	const SELECT_QUERY = <<<SQL
 SELECT * FROM persons
-LEFT JOIN images ON image_id = person_image_id
+LEFT JOIN media ON medium_id = person_image_id
 ORDER BY person_name
 SQL; #---|
 

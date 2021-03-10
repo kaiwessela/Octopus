@@ -34,6 +34,18 @@
 
 <?php } ?>
 
+	<!-- TITLE -->
+	<label for="title">
+		<span class="name">Titel</span>
+		<span class="conditions">optional, bis zu 60 Zeichen</span>
+		<span class="infos">
+			Der Titel des Bildes.
+		</span>
+	</label>
+	<input type="text" size="50"
+		id="title" name="title" value="<?= $Image?->title ?>"
+		maxlength="60">
+
 	<!-- DESCRIPTION -->
 	<label for="description">
 		<span class="name">Beschreibung</span>
@@ -74,7 +86,7 @@
 		maxlength="250">
 
 
-<?php if($ImageController->request->action == 'new'){ // TODO TODO TODO see in backend how invalid image requests are handled ?>
+<?php if($ImageController->request->action == 'new'){ ?>
 
 	<!-- IMAGEFILE -->
 	<label for="file">
@@ -83,6 +95,27 @@
 	</label>
 	<input type="file" class="file"
 		id="file" name="file" required>
+
+<?php } else if($ImageController->request->action == 'edit'){ ?>
+
+	<!-- REWRITE -->
+	<label for="rewrite">
+		<span class="name">Bildgrößen neu berechnen</span>
+		<span class="infos">
+			Damit werden die automatisch verkleinerten Bildversionen, die im Dateisystem gespeichert
+			sind, neu berechnet. Auswählen, wenn Fehler bei den Versionen erkannt wurden.
+		</span>
+	</label>
+	<label class="checkbodge turn-around">
+		<span class="label-field">Neu berechnen</span>
+		<input type="checkbox" id="rewrite" name="rewrite" value="true">
+		<span class="bodgecheckbox">
+			<span class="bodgetick">
+				<span class="bodgetick-down"></span>
+				<span class="bodgetick-up"></span>
+			</span>
+		</span>
+	</label>
 
 <?php } ?>
 

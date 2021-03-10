@@ -98,7 +98,7 @@ class FileManager {
 	}
 
 
-	public static function pull(string $id, string $variant = null) : File {
+	public static function pull(string $id, string $variant = 'original') : File {
 		$pdo = new PDO(
 			'mysql:host=' . Config::DB_HOST . ';dbname=' . Config::DB_NAME,
 			Config::DB_USER,
@@ -118,7 +118,36 @@ class FileManager {
 	}
 
 
-	public static function push(File $file, Medium $medium, ?string $variant = null) : void {
+	public static function pull_all(string $id) : array {
+		$pdo = new PDO(
+			'mysql:host=' . Config::DB_HOST . ';dbname=' . Config::DB_NAME,
+			Config::DB_USER,
+			Config::DB_PASSWORD,
+			[PDO::ATTR_PERSISTENT => true]
+		);
+
+		$s = $pdo->prepare(self::PULL_ALL_QUERY);
+		if(!$s->execute(['id' => $id])){
+			throw new DatabaseException($s);
+		} else if($s->rowCount() == 0){
+			throw new EmptyResultException('', '');
+		} else {
+			$res = [];
+			while($r = $s->fetch()){
+				$file = new File($r['mediafile_type'], $r['mediafile_extension'], $r['mediafile_data']);
+
+				if($r['mediafile_variant'] == null){
+					$res['original'] = $file;
+				} else {
+					$res[$r['mediafile_variant']] = $file;
+				}
+			}
+			return $res;
+		}
+	}
+
+
+	public static function push(File $file, Medium $medium, string $variant = 'original') : void {
 		$pdo = new PDO(
 			'mysql:host=' . Config::DB_HOST . ';dbname=' . Config::DB_NAME,
 			Config::DB_USER,
@@ -141,7 +170,7 @@ class FileManager {
 	}
 
 
-	public static function write(File $file, Medium $medium, ?string $variant = null) : void {
+	public static function write(File $file, Medium $medium, string $variant = 'original') : void {
 		$filename = self::filename($medium, $variant);
 		$directory = preg_replace('/\/[^\/]*$/', '', $filename);
 
@@ -157,9 +186,9 @@ class FileManager {
 	}
 
 
-	public static function erase(Medium $medium, bool $all = false, ?string $variant = null) : void {
+	public static function erase(Medium $medium, bool $all = false, string $variant = 'original') : void {
 		if($all){
-			$filename = preg_replace('/\/[^\/]*$/', '', self::filename($medium, null));
+			$filename = preg_replace('/\/[^\/]*$/', '', self::filename($medium, $variant));
 		} else {
 			$filename = self::filename($medium, $variant);
 		}
@@ -170,7 +199,7 @@ class FileManager {
 	}
 
 
-	private static function filename(Medium $medium, ?string $variant) : string {
+	private static function filename(Medium $medium, string $variant) : string {
 		$dirconfig = MediaConfig::DIRECTORIES[$medium::$class];
 
 		if(!is_array($dirconfig) || !isset($dirconfig[0]) || !isset($dirconfig[1])){
@@ -181,6 +210,10 @@ class FileManager {
 			throw new Exception("FileManager | Config » illegal directory upwards navigation.");
 		}
 
+		if($variant == 'original'){
+			$variant = null;
+		}
+
 		$id_and_variant = $medium->id . (($variant === null) ? '' : '_'.$variant);
 		$longid_and_variant = $medium->longid . (($variant === null) ? '' : '_'.$variant);
 
@@ -188,6 +221,41 @@ class FileManager {
 			. str_replace(['$ID&VARIANT', '$LONGID&VARIANT', '$ID', '$LONGID', '$EXTENSION'],
 			[$id_and_variant, $longid_and_variant, $medium->id, $medium->longid, $medium->extension],
 			$dirconfig[1]);
+	}
+
+
+	public static function scan(Medium $medium) : array {
+		if($medium->is_new()){
+			throw new Exception("FileManager | Scan » medium must not be new.");
+		}
+
+		$result = [];
+
+		try {
+			$result['db'] = self::pull_all($medium->id);
+		} catch(EmptyResultException $e){
+			$result['db'] = null;
+		}
+
+		$finfo = new finfo(FILEINFO_MIME_TYPE);
+
+		$orig_filename = self::filename($medium, 'original');
+		$result['storage'] = [
+			'original' => [
+				'found' => file_exists($orig_filename),
+				'mime' => $finfo->file($orig_filename)
+			]
+		];
+
+		foreach($medium->variants as $variant){
+			$filename = self::filename($medium, $variant);
+			$result['storage'][$variant] = [
+				'found' => file_exists($filename),
+				'mime' => $finfo->file($filename)
+			];
+		}
+
+		return $result;
 	}
 
 
@@ -242,6 +310,11 @@ class FileManager {
 	const PULL_QUERY = <<<SQL
 SELECT * FROM mediafiles
 WHERE mediafile_medium_id = :id AND mediafile_variant = :variant
+SQL; #---|
+
+
+	const PULL_ALL_QUERY = <<<SQL
+SELECT * FROM mediafiles WHERE mediafile_medium_id = :id
 SQL; #---|
 
 

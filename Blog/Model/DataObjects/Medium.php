@@ -13,6 +13,7 @@ abstract class Medium extends DataObject {
 #	public string $class;
 	public string $type;
 	public string $extension;
+	public ?string $title;
 	public ?string $description;
 	public ?string $copyright;
 	public ?string $alternative;
@@ -33,13 +34,15 @@ abstract class Medium extends DataObject {
 	const IGNORE_PULL_LIMIT = true;
 
 	const PROPERTIES = [
+		'title' => '.{0,60}',
 		'description' => '.{0,250}',
 		'copyright' => '.{0,250}',
 		'alternative' => '.{0,250}',
 		'file' => 'custom',
 		'type' => 'custom',
 		'extension' => 'custom',
-		'variants' => 'custom'
+		'variants' => 'custom',
+		'rewrite' => 'custom'
 	];
 
 
@@ -76,6 +79,7 @@ abstract class Medium extends DataObject {
 		$this->longid = $row['medium_longid'];
 		$this->type = $row['medium_type'];
 		$this->extension = $row['medium_extension'];
+		$this->title = $row['medium_title'];
 		$this->description = $row['medium_description'];
 		$this->copyright = $row['medium_copyright'];
 		$this->alternative = $row['medium_alternative'];
@@ -93,10 +97,14 @@ abstract class Medium extends DataObject {
 
 
 	public function push() : void {
-		$this->write_file();
-		$this->push_file();
+		$push_and_write = $this->is_new();
 
 		parent::push();
+
+		if($push_and_write){
+			$this->write_file();
+			$this->push_file();
+		}
 	}
 
 
@@ -110,9 +118,11 @@ abstract class Medium extends DataObject {
 	protected function db_export() : array {
 		$values = [
 			'id' => $this->id,
+			'title' => $this->title,
 			'description' => $this->description,
 			'copyright' => $this->copyright,
-			'alternative' => $this->alternative
+			'alternative' => $this->alternative,
+			'variants' => json_encode($this->variants, \JSON_THROW_ON_ERROR)
 		];
 
 		if($this->is_new()){
@@ -120,20 +130,19 @@ abstract class Medium extends DataObject {
 			$values['class'] = static::$class;
 			$values['type'] = $this->type;
 			$values['extension'] = $this->extension;
-			$values['variants'] = json_encode($this->variants, \JSON_THROW_ON_ERROR);
 		}
 
 		return $values;
 	}
 
 
-	public function src(?string $variant = null) : ?string {
-		if($variant != null && !in_array($variant, $this->variants)){
+	public function src(string $variant = 'original') : ?string {
+		if(!in_array($variant, $this->variants)){
 			return null;
 		}
 
-		$id_and_variant = $this->id . (($variant === null) ? '' : '_'.$variant);
-		$longid_and_variant = $this->longid . (($variant === null) ? '' : '_'.$variant);
+		$id_and_variant = $this->id . (($variant == 'original') ? '' : '_'.$variant);
+		$longid_and_variant = $this->longid . (($variant == 'original') ? '' : '_'.$variant);
 
 		return Config::SERVER_URL . DIRECTORY_SEPARATOR
 			. MediaConfig::DIRECTORIES[$this::$class][0] . DIRECTORY_SEPARATOR
@@ -149,16 +158,18 @@ abstract class Medium extends DataObject {
 
 	const INSERT_QUERY = <<<SQL
 INSERT INTO media
-(medium_id, medium_longid, medium_class, medium_type, medium_extension, medium_description, medium_copyright,
+(medium_id, medium_longid, medium_class, medium_type, medium_extension, medium_title, medium_description, medium_copyright,
 medium_alternative, medium_variants)
-VALUES (:id, :longid, :class, :type, :extension, :description, :copyright, :alternative, :variants)
+VALUES (:id, :longid, :class, :type, :extension, :title, :description, :copyright, :alternative, :variants)
 SQL; #---|
 
 	const UPDATE_QUERY = <<<SQL
 UPDATE media SET
+	medium_title = :title,
 	medium_description = :description,
 	medium_copyright = :copyright,
-	medium_alternative = :alternative
+	medium_alternative = :alternative,
+	medium_variants = :variants
 WHERE medium_id = :id
 SQL; #---|
 

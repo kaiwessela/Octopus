@@ -10,11 +10,14 @@ class Image extends Medium {
 
 
 	protected function import_custom(string $property, array $data) : void {
-		if($property != 'file' || !$this->is_new()){
+		if($this->is_new() && $property == 'file'){
+			$file = FileManager::receive('file');
+		} else if(!$this->is_new() && $property == 'rewrite' && $data['rewrite'] == true){
+			$file = FileManager::pull($this->id);
+		} else {
 			return;
 		}
 
-		$file = FileManager::receive('file');
 		$variants = [];
 
 		if(!in_array($file->type, MediaConfig::IMAGE_TYPES)){
@@ -24,6 +27,7 @@ class Image extends Medium {
 		$this->type = $file->type;
 		$this->extension = $file->extension;
 		$this->files['original'] = $file;
+		$this->variants = ['original'];
 
 		if(in_array($file->type, MediaConfig::RESIZABLE_IMAGE_TYPES)){
 			foreach(array_keys(MediaConfig::IMAGE_RESIZE_WIDTHS) as $width){
@@ -34,29 +38,24 @@ class Image extends Medium {
 					$this->variants[] = $width;
 				}
 			}
-		} else {
-			$this->variants = null;
+		}
+
+		if($property == 'rewrite'){
+			FileManager::erase($this, true);
+			$this->write_file();
 		}
 	}
 
 
 	protected function write_file() : void {
-		if($this->is_new()){
-			foreach($this->files as $variant => $file){
-				if($variant == 'original'){
-					$variant = null;
-				}
-
-				FileManager::write($file, $this, $variant);
-			}
+		foreach($this->files as $variant => $file){
+			FileManager::write($file, $this, $variant);
 		}
 	}
 
 
 	protected function push_file() : void {
-		if($this->is_new()){
-			FileManager::push($this->files['original'], $this);
-		}
+		FileManager::push($this->files['original'], $this);
 	}
 
 

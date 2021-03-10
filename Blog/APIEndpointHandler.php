@@ -80,9 +80,9 @@ class APIEndpointHandler {
 		} else if($this->request->class == 'images'){
 			# class Image requested
 			if($use_list){
-				$backend_class = new \Blog\Model\DataObjects\Lists\ImageList();
+				$backend_class = new \Blog\Model\DataObjects\Lists\Media\ImageList();
 			} else {
-				$backend_class = new \Blog\Model\DataObjects\Image();
+				$backend_class = new \Blog\Model\DataObjects\Media\Image();
 			}
 
 		} else if($this->request->class == 'persons'){

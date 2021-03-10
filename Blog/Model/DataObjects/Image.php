@@ -8,7 +8,7 @@ use \Blog\Model\ImageManager\Exceptions\ImageManagerException;
 use \Blog\Config\ImageManager as ImageManagerConfig;
 use \Blog\Config\Config;
 
-class Image extends DataObject {
+class Image extends DataObject { // DEPRECATED
 	public string 	$extension;
 	public ?string 	$description;
 	public ?string 	$copyright;

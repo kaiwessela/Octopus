@@ -1,21 +1,21 @@
 <form action="#" method="post" enctype="multipart/form-data" class="images edit">
 
-<?php if($ImageController->request->action == 'new'){ ?>
+<?php if($ApplicationController->request->action == 'new'){ ?>
 
 	<!-- LONGID -->
 	<label for="longid">
-		<span class="name">Bild-ID</span>
+		<span class="name">Dateiname</span>
 		<span class="conditions">
 			erforderlich; 9 bis 60 Zeichen, nur Kleinbuchstaben (a-z), Ziffern (0-9) und
 			Bindestriche (-)
 		</span>
 		<span class="infos">
-			Die Bild-ID wird in der URL verwendet und sollte den Bildinhalt kurz
-			beschreiben.
+			Der Dateiname wird als Name der Datei verwendet und sollte auf den Inhalt der Datei
+			hinweisen.
 		</span>
 	</label>
 	<input type="text" size="40" autocomplete="off"
-		id="longid" name="longid" value="<?= $Image?->longid ?>"
+		id="longid" name="longid" value="<?= $Application?->longid ?>"
 		minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required>
 
 <?php } else { ?>
@@ -23,28 +23,16 @@
 	<label for="id">
 		<span class="name">ID</span>
 	</label>
-	<input type="text" id="id" name="id" value="<?= $Image?->id ?>" size="8" readonly>
+	<input type="text" id="id" name="id" value="<?= $Application?->id ?>" size="8" readonly>
 
 	<label for="longid">
-		<span class="name">Long-ID</span>
+		<span class="name">Dateiname/Long-ID</span>
 	</label>
-	<input type="text" id="longid" name="longid" value="<?= $Image?->longid ?>" size="40" readonly>
+	<input type="text" id="longid" name="longid" value="<?= $Application?->longid ?>" size="40" readonly>
 
-	<img src="<?= $Image->src() ?>" alt="[ANZEIGEFEHLER]">
+	<a href="<?= $Application->src() ?>">Datei: <?= $Application->longid.'.'.$Application->extension ?></a>
 
 <?php } ?>
-
-	<!-- TITLE -->
-	<label for="title">
-		<span class="name">Titel</span>
-		<span class="conditions">optional, bis zu 60 Zeichen</span>
-		<span class="infos">
-			Der Titel des Bildes.
-		</span>
-	</label>
-	<input type="text" size="50"
-		id="title" name="title" value="<?= $Image?->title ?>"
-		maxlength="60">
 
 	<!-- DESCRIPTION -->
 	<label for="description">
@@ -56,7 +44,7 @@
 		</span>
 	</label>
 	<input type="text" size="60"
-		id="description" name="description" value="<?= $Image?->description ?>"
+		id="description" name="description" value="<?= $Application?->description ?>"
 		maxlength="250">
 
 	<!-- COPYRIGHT -->
@@ -69,7 +57,7 @@
 		</span>
 	</label>
 	<input type="text" size="50"
-		id="copyright" name="copyright" value="<?= $Image?->copyright ?>"
+		id="copyright" name="copyright" value="<?= $Application?->copyright ?>"
 		maxlength="250">
 
 	<!-- ALTERNATIVE -->
@@ -82,11 +70,11 @@
 		</span>
 	</label>
 	<input type="text" size="50"
-		id="alternative" name="alternative" value="<?= $Image?->alternative ?>"
+		id="alternative" name="alternative" value="<?= $Application?->alternative ?>"
 		maxlength="250">
 
 
-<?php if($ImageController->request->action == 'new'){ ?>
+<?php if($ApplicationController->request->action == 'new'){ // TODO TODO TODO see in backend how invalid image requests are handled ?>
 
 	<!-- IMAGEFILE -->
 	<label for="file">
@@ -95,27 +83,6 @@
 	</label>
 	<input type="file" class="file"
 		id="file" name="file" required>
-
-<?php } else if($ImageController->request->action == 'edit'){ ?>
-
-	<!-- REWRITE -->
-	<label for="rewrite">
-		<span class="name">Bildgrößen neu berechnen</span>
-		<span class="infos">
-			Damit werden die automatisch verkleinerten Bildversionen, die im Dateisystem gespeichert
-			sind, neu berechnet. Auswählen, wenn Fehler bei den Versionen erkannt wurden.
-		</span>
-	</label>
-	<label class="checkbodge turn-around">
-		<span class="label-field">Neu berechnen</span>
-		<input type="checkbox" id="rewrite" name="rewrite" value="true">
-		<span class="bodgecheckbox">
-			<span class="bodgetick">
-				<span class="bodgetick-down"></span>
-				<span class="bodgetick-up"></span>
-			</span>
-		</span>
-	</label>
 
 <?php } ?>
 

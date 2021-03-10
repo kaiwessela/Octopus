@@ -1,7 +1,7 @@
 <?php
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
-use \Blog\Model\DataObjects\Image;
+use \Blog\Model\DataObjects\Media\Image;
 use \Blog\Model\DataObjects\Lists\ColumnList;
 use \Blog\Model\DataObjects\Relations\Lists\PostColumnRelationList;
 use \Blog\Model\DataTypes\Timestamp;
@@ -66,7 +66,7 @@ class Post extends DataObject {
 
 		$this->timestamp = new Timestamp($row['post_timestamp']);
 
-		$this->image = empty($row['image_id']) ? null : new Image();
+		$this->image = empty($row['medium_id']) ? null : new Image();
 		$this->image?->load($data);
 
 		$this->content = empty($row['post_content'])
@@ -103,7 +103,7 @@ class Post extends DataObject {
 
 	const PULL_QUERY = <<<SQL
 SELECT * FROM posts
-LEFT JOIN images ON image_id = post_image_id
+LEFT JOIN media ON medium_id = post_image_id
 LEFT JOIN postcolumnrelations ON postcolumnrelation_post_id = post_id
 LEFT JOIN columns ON column_id = postcolumnrelation_column_id
 WHERE post_id = :id OR post_longid = :id

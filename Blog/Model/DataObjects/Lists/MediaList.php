@@ -1,9 +1,9 @@
 <?php
 namespace Blog\Model\DataObjects\Lists;
 use \Blog\Model\Abstracts\DataObjectList;
-use \Blog\Model\DataObjects\Post;
+use \Blog\Model\DataObjects\Medium;
 
-class PostList extends DataObjectList {
+class MediaList extends DataObjectList {
 
 #	@inherited
 #	public $objects;
@@ -12,18 +12,17 @@ class PostList extends DataObjectList {
 #	private $new;
 #	private $empty;
 
-	const OBJECT_CLASS = Post::class;
-	const OBJECTS_ALIAS = 'posts';
+	const OBJECT_CLASS = Medium::class;
+	const OBJECTS_ALIAS = 'media';
 
 
 	const SELECT_QUERY = <<<SQL
-SELECT * FROM posts
-LEFT JOIN media ON medium_id = post_image_id
-ORDER BY post_timestamp DESC
+SELECT * FROM media
+ORDER BY medium_longid
 SQL; #---|
 
 	const COUNT_QUERY = <<<SQL
-SELECT COUNT(*) FROM posts
+SELECT COUNT(*) FROM media
 SQL; #---|
 
 }

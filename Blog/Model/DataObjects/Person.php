@@ -1,7 +1,7 @@
 <?php
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
-use \Blog\Model\DataObjects\Image;
+use \Blog\Model\DataObjects\Media\Image;
 use \Blog\Model\DataObjects\Lists\GroupList;
 use \Blog\Model\DataObjects\Relations\Lists\PersonGroupRelationList;
 
@@ -47,7 +47,7 @@ class Person extends DataObject {
 		$this->longid = $row['person_longid'];
 		$this->name = $row['person_name'];
 
-		$this->image = empty($row['image_id']) ? null : new Image();
+		$this->image = empty($row['medium_id']) ? null : new Image();
 		$this->image?->load($row);
 
 		$this->grouprelations = ($norecursion || empty($row['persongrouprelation_id'])) ? null : new PersonGroupRelationList();
@@ -75,7 +75,7 @@ class Person extends DataObject {
 
 	const PULL_QUERY = <<<SQL
 SELECT * FROM persons
-LEFT JOIN images ON image_id = person_image_id
+LEFT JOIN media ON medium_id = person_image_id
 LEFT JOIN persongrouprelations ON persongrouprelation_person_id = person_id
 LEFT JOIN groups ON group_id = persongrouprelation_group_id
 WHERE person_id = :id OR person_longid = :id

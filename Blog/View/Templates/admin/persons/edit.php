@@ -1,3 +1,5 @@
+<?php use \Blog\Config\MediaConfig; ?>
+
 <form action="#" method="post" class="persons edit">
 
 <?php if($PersonController->request->action == 'new'){ ?>
@@ -111,7 +113,7 @@
 					<article>
 						<label>
 							<input type="radio" name="result" value="{{id}}" {{current}}>
-							<img src="<?= $server->url . $server->dyn_img_path ?>{{longid}}/original.{{extension}}">
+							<img src="<?= $server->url ?>/resources/images/dynamic/{{longid}}/{{longid}}.{{extension}}">
 						</label>
 					</article>
 				</template>
@@ -133,44 +135,65 @@
 					Bindestriche (-)
 				</span>
 				<span class="infos">
-					Die Bild-ID wird in der URL verwendet und sollte den Bildinhalt kurz
-					beschreiben.
+					Die Bild-ID wird in der URL verwendet und sollte auf den Titel oder Inhalt
+					hinweisen.
 				</span>
 			</label>
 			<input type="text" size="40" autocomplete="off"
 				id="image-upload-longid" name="longid"
 				minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required>
 
+			<label for="image-upload-title">
+				<span class="name">Titel</span>
+				<span class="conditions">optional, bis zu 60 Zeichen</span>
+				<span class="infos">Der Titel des Bildes.</span>
+			</label>
+			<input type="text" size="40"
+				id="image-upload-title" name="title"
+				maxlength="60">
+
 			<label for="image-upload-description">
 				<span class="name">Beschreibung</span>
-				<span class="conditions">optional, bis zu 100 Zeichen</span>
+				<span class="conditions">optional, bis zu 250 Zeichen</span>
 				<span class="infos">
-					Die Beschreibung wird als Alternativtext angezeigt, wenn das Bild nicht geladen
-					werden kann. Sie sollte den Bildinhalt wiedergeben.
+					Eine kurze Beschreibung des Bildes.
 				</span>
 			</label>
-			<input type="text" size="60"
+			<input type="text" size="80"
 				id="image-upload-description" name="description"
-				maxlength="100">
+				maxlength="250">
 
 			<label for="image-upload-copyright">
 				<span class="name">Urheberrechtshinweis</span>
-				<span class="conditions">optional, bis zu 100 Zeichen</span>
+				<span class="conditions">optional, bis zu 250 Zeichen</span>
 				<span class="infos">
-					Der Urbeherrechtshinweis kann genutzt werden, um Lizensierungsinformationen zu dem Bild
-					zur Verfügung zu stellen. Er wird normalerweise unterhalb des Bildes angezeigt.
+					Der Urbeherrechtshinweis kann genutzt werden, um den Urheber des Bildes und die Lizenz,
+					unter der es zur Verfügung steht, anzugeben.
 				</span>
 			</label>
-			<input type="text" size="50"
+			<input type="text" size="80"
 				id="image-upload-copyright" name="copyright"
-				maxlength="100">
+				maxlength="250">
 
-			<label for="image-upload-imagedata">
+			<label for="image-upload-alternative">
+				<span class="name">Alternativtext</span>
+				<span class="conditions">optional, bis zu 250 Zeichen</span>
+				<span class="infos">
+					Der Alternativtext wird angezeigt, wenn das Bild nicht geladen werden kann oder der
+					Benutzer einen Screenreader nutzt. Er sollte den Bildinhalt wiedergeben.
+				</span>
+			</label>
+			<input type="text" size="80"
+				id="image-upload-alternative" name="alternative"
+				maxlength="250">
+
+			<label for="image-upload-file">
 				<span class="name">Datei</span>
-				<span class="conditions">erforderlich; PNG, JPEG oder GIF</span>
+				<span class="conditions">erforderlich</span>
 			</label>
 			<input type="file" class="file"
-				id="image-upload-imagedata" name="imagedata" required>
+				id="image-upload-file" name="file" required
+				accept="<?= implode(', ', MediaConfig::IMAGE_TYPES); ?>">
 
 			<button type="submit" data-action="submit" class="green">Hochladen</button>
 			<button type="button" data-action="close" class="red">Schließen</button>
@@ -185,7 +208,7 @@
 	</template>
 	<template data-state="set">
 		<figure>
-			<img src="<?= $server->url . $server->dyn_img_path ?>{{longid}}/original.{{extension}}" alt="{{description}}">
+			<img src="<?= $server->url ?>/resources/images/dynamic/{{longid}}/{{longid}}.{{extension}}" alt="{{alternative}}">
 			<figcaption>{{longid}}</figcaption>
 		</figure>
 	</template>

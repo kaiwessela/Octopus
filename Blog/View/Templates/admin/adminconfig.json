@@ -135,32 +135,32 @@
 		"controller_var": "ApplicationController",
 		"object_var": "Application",
 		"lang": {
-			"singular": "Datei",
-			"plural": "Dateien",
-			"plural_nominativ": "Dateien",
-			"plural_dativ": "Dateien",
+			"singular": "Dokument",
+			"plural": "Dokumente",
+			"plural_nominativ": "Dokumente",
+			"plural_dativ": "Dokumenten",
 			"message": {
-				"created": "Die Datei wurde erfolgreich hochgeladen.",
-				"edited": "Die Datei wurden erfolgreich bearbeitet.",
-				"deleted": "Die Datei wurde gelöscht.",
+				"created": "Das Dokument wurde erfolgreich hochgeladen.",
+				"edited": "Das Dokument wurden erfolgreich bearbeitet.",
+				"deleted": "Das Dokument wurde gelöscht.",
 				"empty": "Es sind noch keine Dateien vorhanden."
 			},
 			"list": {
-				"title": "Alle Dateien",
-				"linktext": "Zurück zu allen Dateien"
+				"title": "Alle Dokumente",
+				"linktext": "Zurück zu allen Dokumenten"
 			},
 			"show": {
-				"title": "Datei anzeigen"
+				"title": "Dokument anzeigen"
 			},
 			"new": {
-				"title": "Neue Datei hochladen",
-				"linktext": "Neue Datei hochladen"
+				"title": "Neues Dokument hochladen",
+				"linktext": "Neues Dokument hochladen"
 			},
 			"edit": {
-				"title": "Datei bearbeiten"
+				"title": "Dokumentdaten bearbeiten"
 			},
 			"delete": {
-				"title": "Datei löschen"
+				"title": "Dokument löschen"
 			}
 		}
 	},

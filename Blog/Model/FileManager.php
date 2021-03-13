@@ -239,19 +239,11 @@ class FileManager {
 
 		$finfo = new finfo(FILEINFO_MIME_TYPE);
 
-		$orig_filename = self::filename($medium, 'original');
-		$result['storage'] = [
-			'original' => [
-				'found' => file_exists($orig_filename),
-				'mime' => $finfo->file($orig_filename)
-			]
-		];
-
 		foreach($medium->variants as $variant){
 			$filename = self::filename($medium, $variant);
 			$result['storage'][$variant] = [
 				'found' => file_exists($filename),
-				'mime' => $finfo->file($filename)
+				'mime' => @$finfo->file($filename)
 			];
 		}
 

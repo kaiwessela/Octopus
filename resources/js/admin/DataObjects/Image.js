@@ -12,10 +12,13 @@ class Image extends DataObject {
 		super.properties = [
 			'id',
 			'longid',
+			'type',
 			'extension',
+			'title',
 			'description',
 			'copyright',
-			'imagedata'
+			'alternative',
+			'file'
 		];
 	}
 
@@ -30,7 +33,7 @@ class Image extends DataObject {
 					if(elem.children[i].name == 'id'){
 						this.id = elem.children[i].value;
 						this.isNew = false;
-					} else if(elem.children[i].name == 'imagedata'){
+					} else if(elem.children[i].name == 'file'){
 						continue;
 					} else {
 						this[elem.children[i].name] = elem.children[i].value;
@@ -50,7 +53,7 @@ class Image extends DataObject {
 				reject();
 			}
 
-			filereader.readAsDataURL(elem.querySelector('[name=imagedata]').files[0]);
+			filereader.readAsDataURL(elem.querySelector('[name=file]').files[0]);
 		});
 	}
 }

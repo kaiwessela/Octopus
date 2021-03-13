@@ -24,20 +24,16 @@ class Application extends Medium {
 		$this->type = $file->type;
 		$this->extension = $file->extension;
 		$this->files['original'] = $file;
-		$this->variants = null;
+		$this->variants = ['original'];
 	}
 
 
 	protected function write_file() : void {
-		if($this->is_new()){
-			FileManager::write($this->files['original'], $this);
-		}
+		FileManager::write($this->files['original'], $this);
 	}
 
 	protected function push_file() : void {
-		if($this->is_new()){
-			FileManager::push($this->files['original'], $this);
-		}
+		FileManager::push($this->files['original'], $this);
 	}
 
 	protected function erase_file() : void {

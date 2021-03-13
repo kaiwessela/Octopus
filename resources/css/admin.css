@@ -170,6 +170,10 @@ table tr > td:first-child {
 	padding-right: 1rem;
 }
 
+table th {
+	text-align: left;
+}
+
 div {
 	margin: 0.5rem 0;
 }
@@ -337,7 +341,8 @@ button {
 
 a.button.gray,
 button.gray,
-.message.gray {
+.message.gray,
+span.tag.gray {
 	--background-color: var(--shiny-gray);
 	--border-color: var(--gray);
 }
@@ -345,28 +350,32 @@ button.gray,
 a.button.blue,
 button.blue,
 .message.blue,
-button.current {
+button.current,
+span.tag.blue {
 	--background-color: var(--shiny-blue);
 	--border-color: var(--blue);
 }
 
 a.button.green,
 button.green,
-.message.green {
+.message.green,
+span.tag.green {
 	--background-color: var(--shiny-green);
 	--border-color: var(--green);
 }
 
 a.button.red,
 button.red,
-.message.red {
+.message.red,
+span.tag.red {
 	--background-color: var(--shiny-red);
 	--border-color: var(--red);
 }
 
 a.button.yellow,
 button.yellow,
-.message.yellow {
+.message.yellow,
+span.tag.yellow {
 	--background-color: var(--shiny-yellow);
 	--border-color: var(--yellow);
 }
@@ -385,6 +394,19 @@ button.back::before {
 	font-weight: 800;
 	padding-right: 0.25em;
 	color: var(--border-color);
+}
+
+span.tag {
+	--background-color: var(--shiny-gray);
+	display: inline-block;
+	padding: 0.25em;
+	margin: 0 0.25rem;
+	font-family: 'Open Sans';
+	font-size: 1em;
+	text-decoration: none;
+	color: var(--black);
+	background-color: var(--background-color);
+	border-radius: 0.25em;
 }
 
 .grid {

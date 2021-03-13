@@ -85,6 +85,14 @@ class APIEndpointHandler {
 				$backend_class = new \Blog\Model\DataObjects\Media\Image();
 			}
 
+		} else if($this->request->class == 'applications'){
+			# class Image requested
+			if($use_list){
+				$backend_class = new \Blog\Model\DataObjects\Lists\Media\ApplicationList();
+			} else {
+				$backend_class = new \Blog\Model\DataObjects\Media\Application();
+			}
+
 		} else if($this->request->class == 'persons'){
 			# class Person requested
 			if($use_list){
@@ -128,9 +136,9 @@ class APIEndpointHandler {
 		} else if($this->request->class == 'proposals'){
 			# class Proposal requested
 			if($use_list){
-				$backend_class = new \Blog\Model\DataObjects\Lists\ProposalList();
+				$backend_class = new \Blog\Model\DataObjects\Lists\MotionList();
 			} else {
-				$backend_class = new \Blog\Model\DataObjects\Proposal();
+				$backend_class = new \Blog\Model\DataObjects\Motion();
 			}
 
 		} else {

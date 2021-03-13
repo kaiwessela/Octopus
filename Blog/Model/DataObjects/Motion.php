@@ -3,12 +3,14 @@ namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\DataTypes\Timestamp;
 use \Blog\Model\DataTypes\MarkdownContent;
+use \Blog\Model\DataObjects\Media\Application;
 use \Blog\Model\Exceptions\MissingValueException;
 use \Blog\Model\Exceptions\IllegalValueException;
 
-class Proposal extends DataObject {
+class Motion extends DataObject {
 	public string 			$title;
 	public ?MarkdownContent $description;
+	public ?Application		$document;
 	public Timestamp		$timestamp;
 	public string 			$status;
 	public ?array 			$votes;
@@ -28,6 +30,7 @@ class Proposal extends DataObject {
 	const PROPERTIES = [
 		'title' => '.{0,80}',
 		'description' => MarkdownContent::class,
+		'document' => Application::class,
 		'timestamp' => Timestamp::class,
 		'status' => '.{0,20}',
 		'votes' => 'custom'
@@ -43,19 +46,22 @@ class Proposal extends DataObject {
 			$row = $data;
 		}
 
-		$this->id = $row['proposal_id'];
-		$this->longid = $row['proposal_longid'];
-		$this->title = $row['proposal_title'];
-		$this->status = $row['proposal_status'];
+		$this->id = $row['motion_id'];
+		$this->longid = $row['motion_longid'];
+		$this->title = $row['motion_title'];
+		$this->status = $row['motion_status'];
 
-		$this->description = empty($row['proposal_description'])
-			? null : new MarkdownContent($row['proposal_description']);
+		$this->description = empty($row['motion_description'])
+			? null : new MarkdownContent($row['motion_description']);
 
-		$this->timestamp = empty($row['proposal_timestamp'])
-			? null : new Timestamp($row['proposal_timestamp']);
+		$this->document = empty($row['medium_id']) ? null : new Application();
+		$this->document?->load($data);
 
-		$this->votes = empty($row['proposal_votes'])
-			? null : json_decode($row['proposal_votes'], true, 512, \JSON_THROW_ON_ERROR);
+		$this->timestamp = empty($row['motion_timestamp'])
+			? null : new Timestamp($row['motion_timestamp']);
+
+		$this->votes = empty($row['motion_votes'])
+			? null : json_decode($row['motion_votes'], true, 512, \JSON_THROW_ON_ERROR);
 
 		$this->set_not_new();
 		$this->set_not_empty();
@@ -89,17 +95,13 @@ class Proposal extends DataObject {
 				throw new IllegalValueException('amount', $v['amount'], 'int');
 			}
 
-			if(empty($v['vote'])){
-				$vt = null;
-			} else if($v['vote'] === 'false') {
-				$vt = false;
-			} else {
-				$vt = (bool) $v['vote'];
+			if(!in_array($v['vote'], ['yes', 'no', 'abstention'])){
+				throw new IllegalValueException('vote', $v['vote'], '(yes|no|abstention)');
 			}
 
 			$this->votes[] = [
 				'party' => $v['party'],
-				'vote' => $vt,
+				'vote' => $v['vote'],
 				'amount' => $v['amount']
 			];
 		}
@@ -113,7 +115,8 @@ class Proposal extends DataObject {
 			'description' => (string) $this->description,
 			'timestamp' => (string) $this->timestamp,
 			'status' => $this->status,
-			'votes' => json_encode($this->votes, \JSON_THROW_ON_ERROR)
+			'votes' => json_encode($this->votes, \JSON_THROW_ON_ERROR),
+			'document_id' => $this->document?->id
 		];
 
 		if($this->is_new()){
@@ -125,22 +128,24 @@ class Proposal extends DataObject {
 
 
 	const PULL_QUERY = <<<SQL
-SELECT * FROM proposals
-WHERE proposal_id = :id OR proposal_longid = :id
+SELECT * FROM motions
+LEFT JOIN media ON medium_id = motion_document_id 
+WHERE motion_id = :id OR motion_longid = :id
 SQL; #---|
 
 
 	const COUNT_QUERY = null;
 
 	const INSERT_QUERY = <<<SQL
-INSERT INTO proposals (
-	proposal_id,
-	proposal_longid,
-	proposal_title,
-	proposal_description,
-	proposal_timestamp,
-	proposal_status,
-	proposal_votes
+INSERT INTO motions (
+	motion_id,
+	motion_longid,
+	motion_title,
+	motion_description,
+	motion_timestamp,
+	motion_status,
+	motion_votes,
+	motion_document_id
 ) VALUES (
 	:id,
 	:longid,
@@ -148,25 +153,27 @@ INSERT INTO proposals (
 	:description,
 	:timestamp,
 	:status,
-	:votes
+	:votes,
+	:document_id
 )
 SQL; #---|
 
 
 	const UPDATE_QUERY = <<<SQL
-UPDATE proposals SET
-	proposal_title = :title,
-	proposal_description = :description,
-	proposal_timestamp = :timestamp,
-	proposal_status = :status,
-	proposal_votes = :votes
-WHERE proposal_id = :id
+UPDATE motions SET
+	motion_title = :title,
+	motion_description = :description,
+	motion_timestamp = :timestamp,
+	motion_status = :status,
+	motion_votes = :votes,
+	motion_document_id = :document_id
+WHERE motion_id = :id
 SQL; #---|
 
 
 	const DELETE_QUERY = <<<SQL
-DELETE FROM proposals
-WHERE proposal_id = :id
+DELETE FROM motions
+WHERE motion_id = :id
 SQL; #---|
 
 }

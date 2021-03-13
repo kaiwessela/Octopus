@@ -170,6 +170,7 @@
 		<script src="<?= $server->url ?>/resources/js/admin/GetClass.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/DataObject.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Image.js"></script>
+		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Application.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Person.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Group.js"></script>
 		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Post.js"></script>

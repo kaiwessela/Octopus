@@ -1,4 +1,4 @@
-class Image extends DataObject {
+class Application extends DataObject {
 	constructor() {
 		super();
 
@@ -7,11 +7,10 @@ class Image extends DataObject {
 		this.title;
 		this.description;
 		this.copyright;
-		this.alternative;
 		this.file;
 
-		super._type = 'Image';
-		super._apiname = 'images';
+		super._type = 'Application';
+		super._apiname = 'applications';
 		super.properties = [
 			'id',
 			'longid',
@@ -28,7 +27,7 @@ class Image extends DataObject {
 	extractFromElement(elem) {
 		return new Promise((resolve, reject) => {
 			if(!elem instanceof HTMLElement){
-				throw 'Image.extractFromElement(): elem is not an HTMLElement.';
+				throw 'Application.extractFromElement(): elem is not an HTMLElement.';
 			}
 
 			for(var i = 0; i < elem.children.length; i++){

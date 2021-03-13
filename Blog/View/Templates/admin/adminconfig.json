@@ -263,9 +263,9 @@
 			}
 		}
 	},
-	"proposals": {
-		"controller_var": "ProposalController",
-		"object_var": "Proposal",
+	"motions": {
+		"controller_var": "MotionController",
+		"object_var": "Motion",
 		"lang": {
 			"singular": "Antrag",
 			"plural": "Anträge",

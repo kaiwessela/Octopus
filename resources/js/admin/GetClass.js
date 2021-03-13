@@ -2,6 +2,7 @@ function µ(name) {
 	switch (name) {
 		case 'DataObject': return new DataObject();
 		case 'Image': return new Image();
+		case 'Application': return new Application();
 		case 'Person': return new Person();
 		case 'Group': return new Group();
 		case 'Post': return new Post();

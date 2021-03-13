@@ -51,10 +51,10 @@ class MediaConfig {
 
 	const DIRECTORIES = [
 	#						BASEDIR						FILENAME
-		'image' 		=> ['resources/images/dynamic',	'$LONGID/$LONGID&VARIANT.$EXTENSION'	],
-		'audio' 		=> ['resources/audio/dynamic',	'$LONGID.$EXTENSION'					],
-		'video' 		=> ['resources/video/dynamic',	'$LONGID.$EXTENSION'					],
-		'application' 	=> ['resources/files/dynamic',	'$LONGID.$EXTENSION'					]
+		'image' 		=> ['media/images',		'$LONGID/$LONGID&VARIANT.$EXTENSION'	],
+		'audio' 		=> ['media/audio',		'$LONGID.$EXTENSION'					],
+		'video' 		=> ['media/video',		'$LONGID.$EXTENSION'					],
+		'application' 	=> ['media/documents',	'$LONGID.$EXTENSION'					]
 		# possible values: $ID, $LONGID, $ID&VARIANT, $LONGID&VARIANT, $EXTENSION
 		# required (not checked): (id&variant | longid&variant), extension
 	];

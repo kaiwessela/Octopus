@@ -46,7 +46,7 @@
 	<!-- DESCRIPTION -->
 	<label for="description">
 		<span class="name">Beschreibung</span>
-		<span class="conditions">optional</span>
+		<span class="conditions">optional, Markdown-Schreibweise möglich</span>
 		<span class="infos">Die Beschreibung des Antrags.</span>
 	</label>
 	<textarea id="description" name="description"
@@ -54,12 +54,10 @@
 
 	<!-- TIMESTAMP -->
 	<label for="timestamp">
-		<span class="name">Veröffentlichungsdatum und -uhrzeit</span>
+		<span class="name">Sitzungsdatum und -uhrzeit</span>
 		<span class="conditions">erforderlich</span>
 		<span class="infos">
-			Datum und Uhrzeit der Veröffentlichung. Hat derzeit nur eine informierende Funktion,
-			Artikel mit Datum in der Zukunft werden trotzdem angezeigt. Es ist aber eine Funktion
-			zur terminierten Veröffentlichung geplant.
+			Datum und Uhrzeit der Sitzung, auf der der Antrag gestellt wurde oder werden soll.
 		</span>
 	</label>
 	<input type="text" size="19"

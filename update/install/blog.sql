@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Erstellungszeit: 18. Jan 2021 um 15:34
--- Server-Version: 10.5.8-MariaDB-3
+-- Erstellungszeit: 16. Mrz 2021 um 18:07
+-- Server-Version: 10.5.9-MariaDB-1
 -- PHP-Version: 8.0.1
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -67,27 +67,51 @@ CREATE TABLE `groups` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `imagefiles`
+-- Tabellenstruktur für Tabelle `media`
 --
 
-CREATE TABLE `imagefiles` (
-  `imagefile_id` varchar(8) NOT NULL,
-  `imagefile_data` longblob NOT NULL
+CREATE TABLE `media` (
+  `medium_id` varchar(8) NOT NULL,
+  `medium_longid` varchar(60) NOT NULL,
+  `medium_class` set('application','audio','image','video') NOT NULL,
+  `medium_type` varchar(80) NOT NULL,
+  `medium_extension` varchar(10) NOT NULL,
+  `medium_title` varchar(60) DEFAULT NULL,
+  `medium_description` varchar(250) DEFAULT NULL,
+  `medium_copyright` varchar(250) DEFAULT NULL,
+  `medium_alternative` varchar(250) DEFAULT NULL,
+  `medium_variants` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`medium_variants`))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `images`
+-- Tabellenstruktur für Tabelle `mediafiles`
 --
 
-CREATE TABLE `images` (
-  `image_id` varchar(8) NOT NULL,
-  `image_longid` varchar(60) NOT NULL,
-  `image_extension` varchar(4) NOT NULL,
-  `image_description` varchar(100) DEFAULT NULL,
-  `image_copyright` varchar(100) DEFAULT NULL,
-  `image_sizes` varchar(255) NOT NULL
+CREATE TABLE `mediafiles` (
+  `mediafile_medium_id` varchar(8) NOT NULL,
+  `mediafile_variant` varchar(60) DEFAULT NULL,
+  `mediafile_type` varchar(80) NOT NULL,
+  `mediafile_extension` varchar(10) NOT NULL,
+  `mediafile_data` longblob NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `motions`
+--
+
+CREATE TABLE `motions` (
+  `motion_id` varchar(8) NOT NULL,
+  `motion_longid` varchar(60) NOT NULL,
+  `motion_title` varchar(80) NOT NULL,
+  `motion_description` text DEFAULT NULL,
+  `motion_timestamp` datetime NOT NULL,
+  `motion_status` varchar(20) NOT NULL,
+  `motion_votes` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `motion_document_id` varchar(8) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -187,17 +211,25 @@ ALTER TABLE `groups`
   ADD UNIQUE KEY `group_longid` (`group_longid`);
 
 --
--- Indizes für die Tabelle `imagefiles`
+-- Indizes für die Tabelle `media`
 --
-ALTER TABLE `imagefiles`
-  ADD UNIQUE KEY `imagefile_id` (`imagefile_id`);
+ALTER TABLE `media`
+  ADD PRIMARY KEY (`medium_id`),
+  ADD UNIQUE KEY `medium_longid` (`medium_longid`);
 
 --
--- Indizes für die Tabelle `images`
+-- Indizes für die Tabelle `mediafiles`
 --
-ALTER TABLE `images`
-  ADD PRIMARY KEY (`image_id`),
-  ADD UNIQUE KEY `image_longid` (`image_longid`);
+ALTER TABLE `mediafiles`
+  ADD UNIQUE KEY `mediafile_variant` (`mediafile_variant`,`mediafile_medium_id`);
+
+--
+-- Indizes für die Tabelle `motions`
+--
+ALTER TABLE `motions`
+  ADD PRIMARY KEY (`motion_id`),
+  ADD UNIQUE KEY `proposal_longid` (`motion_longid`),
+  ADD KEY `motion_document_id` (`motion_document_id`);
 
 --
 -- Indizes für die Tabelle `pages`
@@ -243,10 +275,16 @@ ALTER TABLE `posts`
 --
 
 --
--- Constraints der Tabelle `imagefiles`
+-- Constraints der Tabelle `mediafiles`
 --
-ALTER TABLE `imagefiles`
-  ADD CONSTRAINT `imagefiles_ibfk_1` FOREIGN KEY (`imagefile_id`) REFERENCES `images` (`image_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `mediafiles`
+  ADD CONSTRAINT `mediafiles_ibfk_1` FOREIGN KEY (`mediafile_medium_id`) REFERENCES `media` (`medium_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints der Tabelle `motions`
+--
+ALTER TABLE `motions`
+  ADD CONSTRAINT `motion_document` FOREIGN KEY (`motion_document_id`) REFERENCES `media` (`medium_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints der Tabelle `persongrouprelations`
@@ -259,7 +297,7 @@ ALTER TABLE `persongrouprelations`
 -- Constraints der Tabelle `persons`
 --
 ALTER TABLE `persons`
-  ADD CONSTRAINT `persons_ibfk_1` FOREIGN KEY (`person_image_id`) REFERENCES `images` (`image_id`) ON DELETE SET NULL ON UPDATE CASCADE;
+  ADD CONSTRAINT `persons_ibfk_1` FOREIGN KEY (`person_image_id`) REFERENCES `media` (`medium_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints der Tabelle `postcolumnrelations`
@@ -272,7 +310,7 @@ ALTER TABLE `postcolumnrelations`
 -- Constraints der Tabelle `posts`
 --
 ALTER TABLE `posts`
-  ADD CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`post_image_id`) REFERENCES `images` (`image_id`) ON DELETE SET NULL ON UPDATE CASCADE;
+  ADD CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`post_image_id`) REFERENCES `media` (`medium_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

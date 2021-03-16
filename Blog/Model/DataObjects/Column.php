@@ -73,7 +73,7 @@ class Column extends DataObject {
 SELECT * FROM columns
 LEFT JOIN postcolumnrelations ON postcolumnrelation_column_id = column_id
 LEFT JOIN posts ON post_id = postcolumnrelation_post_id
-LEFT JOIN images ON image_id = post_image_id
+LEFT JOIN media ON medium_id = post_image_id
 WHERE column_id = :id OR column_longid = :id
 ORDER BY post_timestamp DESC
 SQL; #---|

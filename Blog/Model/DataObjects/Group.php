@@ -74,7 +74,7 @@ class Group extends DataObject {
 SELECT * FROM groups
 LEFT JOIN persongrouprelations ON persongrouprelation_group_id = group_id
 LEFT JOIN persons ON person_id = persongrouprelation_person_id
-LEFT JOIN images ON image_id = person_image_id
+LEFT JOIN media ON medium_id = person_image_id
 WHERE group_id = :id OR group_longid = :id
 ORDER BY persongrouprelation_number
 SQL; #---|

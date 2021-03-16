@@ -133,7 +133,7 @@ class APIEndpointHandler {
 				$backend_class = new \Blog\Model\DataObjects\Group();
 			}
 
-		} else if($this->request->class == 'proposals'){
+		} else if($this->request->class == 'motions'){
 			# class Proposal requested
 			if($use_list){
 				$backend_class = new \Blog\Model\DataObjects\Lists\MotionList();

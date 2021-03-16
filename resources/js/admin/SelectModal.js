@@ -2,6 +2,7 @@ class SelectModal extends Modal {
 	constructor() {
 		super();
 
+		this.input;
 		this.type;
 		this.template;
 		this.pagination;
@@ -47,7 +48,7 @@ class SelectModal extends Modal {
 			var dummy = document.createElement('div');
 			var html = obj.insertIn(this.template);
 
-			if(this.value == obj.id){
+			if(this.input.value == obj.id){
 				dummy.innerHTML = html.replace(/{{current}}/g, 'checked');
 			} else {
 				dummy.innerHTML = html.replace(/{{current}}/g, '');

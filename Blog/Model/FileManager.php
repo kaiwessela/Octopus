@@ -58,7 +58,7 @@ class FileManager {
 
 		} else if($mode == 'json'){
 			try {
-				$input = json_decode(file_get_contents('php://input'), assoc:true, options:\JSON_THROW_ON_ERROR);
+				$input = json_decode(file_get_contents('php://input'), true, 512, \JSON_THROW_ON_ERROR);
 			} catch(JsonException $e){
 				throw new Exception('FileManager | Upload » json decoding failed.');
 			}
@@ -68,10 +68,10 @@ class FileManager {
 				throw new Exception('FileManager | Upload » no file was uploaded.');
 			}
 
-			preg_match('/$data:(.+);base64,/', $filedata_raw, $matches);
+			preg_match('/^data:(.+);base64,/', $filedata_raw, $matches);
 			$sent_mime = $matches[1] ?? null;
 
-			$filedata_b64 = preg_replace('/$data:(.+);base64,/', '', $filedata_raw);
+			$filedata_b64 = preg_replace('/^data:(.+);base64,/', '', $filedata_raw);
 			if(empty($filedata_b64)){
 				throw new Exception('FileManager | Upload » no file was uploaded.');
 			}

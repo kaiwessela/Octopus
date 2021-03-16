@@ -185,7 +185,7 @@
 					<article>
 						<label>
 							<input type="radio" name="result" value="{{id}}" {{current}}>
-							<img src="<?= $server->url ?>/resources/images/dynamic/{{longid}}/{{longid}}.{{extension}}">
+							<img src="<?= $server->url ?>/media/images/{{longid}}/{{longid}}.{{extension}}">
 						</label>
 					</article>
 				</template>
@@ -280,7 +280,7 @@
 	</template>
 	<template data-state="set">
 		<figure>
-			<img src="<?= $server->url ?>/resources/images/dynamic/{{longid}}/{{longid}}.{{extension}}" alt="{{alternative}}">
+			<img src="<?= $server->url ?>/media/images/{{longid}}/{{longid}}.{{extension}}" alt="{{alternative}}">
 			<figcaption>{{longid}}</figcaption>
 		</figure>
 	</template>

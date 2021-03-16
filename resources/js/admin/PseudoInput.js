@@ -35,6 +35,8 @@ class PseudoInput {
 		this.selectModal.onSubmit = () => { this.set(this.selectModal.value); };
 		this.uploadModal.onSubmit = () => { this.set(this.uploadModal.value); };
 
+		this.selectModal.input = this;
+
 		var selectBtns = this.elem.querySelectorAll('[data-action=select]');
 		var uploadBtns = this.elem.querySelectorAll('[data-action=upload]');
 		var clearBtns = this.elem.querySelectorAll('[data-action=clear]');
@@ -56,7 +58,7 @@ class PseudoInput {
 
 	clear() {
 		this.elem.querySelector('.object').innerHTML = this.emptyTemplate;
-
+		this.value = '';
 		this.state = 'clear';
 	}
 

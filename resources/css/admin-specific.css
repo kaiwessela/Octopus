@@ -38,6 +38,7 @@ section.list.applications {
 
 .application {
 	display: flex;
+	align-items: flex-start;
 	gap: 1rem;
 	padding: 0.25rem;
 	background-color: #00000011;
@@ -61,7 +62,6 @@ section.list.applications {
 }
 
 .application code {
-	display: block;
 	margin: 0.5rem 0;
 }
 

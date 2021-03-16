@@ -155,13 +155,21 @@
 		<form action="#" method="GET">
 			<section class="objects">
 				<template>
-					<article>
-						<label>
+					<label class="application">
+
+						<label class="radiobodge">
 							<input type="radio" name="result" value="{{id}}" {{current}}>
-							<code>{{longid}}.{{extension}}</code>
-							<h3>{{title}}</h3>
+							<div class="bodgeradio">
+								<div class="bodgetick"></div>
+							</div>
 						</label>
-					</article>
+
+						<img src="<?= $server->url ?>/resources/images/icons/{{type}}.svg">
+						<div class="label">
+							<h2 class="title">{{title}}</h2>
+							<code>{{longid}}</code>
+						</div>
+					</label>
 				</template>
 			</section>
 			<button type="submit" data-action="submit" class="blue">Auswählen</button>
@@ -241,8 +249,13 @@
 		<p>Kein Dokument ausgewählt.</p>
 	</template>
 	<template data-state="set">
-		<code>{{longid}}.{{extension}}</code>
-		<h2>{{title}}</h2>
+		<article class="application">
+			<img src="<?= $server->url ?>/resources/images/icons/{{type}}.svg">
+			<div class="label">
+				<h2 class="title">{{title}}</h2>
+				<code>{{longid}}</code>
+			</div>
+		</article>
 	</template>
 	<button type="button" class="green" data-action="upload">Neues Dokument hochladen</button>
 	<button type="button" class="blue" data-action="select">Aus vorhandenen auswählen</button>

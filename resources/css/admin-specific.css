@@ -30,6 +30,42 @@ form.images img {
 }
 
 
+section.list.applications {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1rem;
+}
+
+.application {
+	display: flex;
+	gap: 1rem;
+	padding: 0.25rem;
+	background-color: #00000011;
+	border-radius: 0.5rem;
+}
+
+.application img {
+	width: 20%;
+	height: auto;
+	margin: 0;
+	filter: drop-shadow(0 0 0.25rem #00000022);
+}
+
+.application .label {
+	margin: 0;
+}
+
+.application h2, .application h3 {
+	font-size: 1.1rem;
+	margin: 0;
+}
+
+.application code {
+	display: block;
+	margin: 0.5rem 0;
+}
+
+
 
 .selectmodal[data-type=Image] .objects {
 	display: grid;
@@ -71,6 +107,18 @@ form.images img {
 }
 
 
+.selectmodal[data-type=Application] .objects {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1rem;
+	margin: 1rem 0;
+}
+
+.selectmodal[data-type=Application] .objects label {
+	margin: 0;
+}
+
+
 
 .pseudoinput[data-type=Image] {
 	width: max-content;
@@ -108,4 +156,15 @@ form.images img {
 	height: 14.5rem;
 	width: 100%;
 	object-fit: contain;
+}
+
+
+.pseudoinput[data-type=Application] article.application {
+	margin: 2rem 4rem;
+	padding: 0.75rem;
+}
+
+.pseudoinput[data-type=Application] .object .title {
+	font-family: 'Open Sans';
+	font-size: 1.5rem;
 }

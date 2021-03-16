@@ -68,6 +68,10 @@ class Image extends Medium {
 		$sources = [];
 
 		foreach($this->variants as $variant){
+			if(empty(MediaConfig::IMAGE_RESIZE_WIDTHS[$variant])){
+				continue;
+			}
+
 			$sources[] = $this->src($variant).' '.MediaConfig::IMAGE_RESIZE_WIDTHS[$variant][0].'w';
 		}
 

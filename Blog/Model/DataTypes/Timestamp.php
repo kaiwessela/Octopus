@@ -22,6 +22,7 @@ class Timestamp implements DataType {
 	const YEAR = '%Y';
 	const HOUR = '%k';
 	const MINUTE = '%M';
+	const SECOND = '%S';
 
 
 	function __construct($value) { // load data from database
@@ -85,6 +86,32 @@ class Timestamp implements DataType {
 
 	public function staticize() {
 		return $this->iso();
+	}
+
+	public function now(string $accuracy = 'D') : bool {
+		$format = match($accuracy){
+			self::SECOND, 	's' => 'Y.m.d-H:i:s',
+			self::MINUTE, 	'm' => 'Y.m.d-H:i',
+			self::HOUR, 	'h' => 'Y.m.d-H',
+			self::DAY, 		'D' => 'Y.m.d',
+			self::MONTH, 	'M' => 'Y.m',
+			self::YEAR, 	'Y' => 'Y',
+			default => 'Y.m.d'
+		};
+
+		return date($format, $this->unix) === date($format, time());
+	}
+
+	public function future(string $accuracy = 'D') : bool {
+		return !$this->now($accuracy) && ($this->unix > time());
+	}
+
+	public function past(string $accuracy = 'D') : bool {
+		return !$this->now($accuracy) && ($this->unix < time());
+	}
+
+	public function today() : bool {
+		return $this->now('D');
 	}
 }
 ?>

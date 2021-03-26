@@ -22,16 +22,9 @@ abstract class DataObject {
 	public string $id;
 	public string $longid;
 
-	public ?int $count;
-
 	private array $pseudo_cache;
 
-#	tells pull functions to ignore $limit and $offset.
-#	used on all single objects because they always only return one row.
-#	also used on some multi objects (i.e. Post), where you always want ALL children to be pulled:
-#	on Post, you do not want only a few Columns included, but on Columns, you want to specify how
-#	many Posts you want to be pulled as children.
-	const IGNORE_PULL_LIMIT = false;
+	const PAGINATABLE = false;
 
 	const PROPERTIES = [];
 	const PSEUDOLISTS = [];
@@ -53,7 +46,6 @@ abstract class DataObject {
 		$this->new = false;
 		$this->empty = true;
 
-		$this->count = null;
 		$this->pseudo_cache = [];
 	}
 
@@ -71,31 +63,6 @@ abstract class DataObject {
 	}
 
 
-	public function count() : ?int {
-#	@requirements:
-#	  - this object must be configured to contain a list of DatabaseObjects, else return null
-#	@action:
-#	  - return the number of objects of this type stored in the database
-#	@return: integer
-
-		$this->require_not_empty();
-
-		if(empty($this::COUNT_QUERY)){
-			return null;
-		}
-
-		$pdo = $this->open_pdo();
-
-		$s = $pdo->prepare($this::COUNT_QUERY);
-		if(!$s->execute(['id' => $this->id])){
-			throw new DatabaseException($s);
-		} else {
-			$this->count = (int) $s->fetch()[0];
-			return $this->count;
-		}
-	}
-
-
 	public function pull(string $identifier, ?int $limit = null, ?int $offset = null, ?array $options = null) : void {
 #	@action:
 #	  - select one object from the database
@@ -110,10 +77,11 @@ abstract class DataObject {
 
 		$values = ['id' => $identifier];
 
-		if($this::IGNORE_PULL_LIMIT){
-			$query = $this->pull_query(options: $options);
-		} else {
+		if($this::PAGINATABLE){
 			$query = $this->pull_query($limit, $offset, $options);
+		} else {
+			# ignore limit and offset because it has no effect
+			$query = $this->pull_query(options: $options);
 		}
 
 		$s = $pdo->prepare($query);

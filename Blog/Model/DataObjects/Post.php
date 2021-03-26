@@ -22,13 +22,11 @@ class Post extends DataObject {
 #	public string $id;
 #	public string $longid;
 #
-#	public ?int $count;
-#
 #	private bool $new;
 #	private bool $empty;
 #	private bool $disabled;
-
-	const IGNORE_PULL_LIMIT = true;
+#
+#	const PAGINATABLE = false;
 
 	const PROPERTIES = [
 		'overline' => '.{0,25}',
@@ -108,8 +106,6 @@ LEFT JOIN postcolumnrelations ON postcolumnrelation_post_id = post_id
 LEFT JOIN columns ON column_id = postcolumnrelation_column_id
 WHERE post_id = :id OR post_longid = :id
 SQL; #---|
-
-	const COUNT_QUERY = null;
 
 	const INSERT_QUERY = <<<SQL
 INSERT INTO posts (

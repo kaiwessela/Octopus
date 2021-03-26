@@ -1,37 +1,31 @@
 <div class="pagination">
 	<?php
-	foreach($pagination->items as $item){
-		if($item->template == 'first'){
-			?>
-			<a href="<?= $server->url . $item->href ?>"
-				class="pagination-item first-last <?php if($item->disabled){ ?>disabled<?php } ?>"
-				title="<?= $item->title ?>">
-				Erste
-			</a>
-			<?php
-		} else if($item->template == 'last'){
-			?>
-			<a href="<?= $server->url . $item->href ?>"
-				class="pagination-item first-last <?php if($item->disabled){ ?>disabled<?php } ?>"
-				title="<?= $item->title ?>">
-				Letzte
-			</a>
-			<?php
-		} else if($item->template == 'current'){
-			?>
-			<div class="pagination-item current <?php if($item->disabled){ ?>disabled<?php } ?>">
-				<?= $item->target ?>
-			</div>
-			<?php
-		} else {
-			?>
-			<a href="<?= $server->url . $item->href ?>"
-				class="pagination-item default <?php if($item->disabled){ ?>disabled<?php } ?>"
-				title="<?= $item->title ?>">
-				<?= $item->target ?>
-			</a>
-			<?php
+	foreach($pagination->items as $page){
+		if(!$page->is_first() && !$page->is_last()
+			&& ($page->difference_to_current() > 3 && $page->difference_to_current() != 10)){
+
+			continue;
 		}
+
+		if($page->is_current()){
+			$title = 'Aktuelle Seite';
+			$class = 'current';
+		} else if($page->is_first()){
+			$title = 'Erste Seite';
+			$class = 'first-last';
+		} else if($page->is_last()){
+			$title = 'Letzte Seite';
+			$class = 'first-last';
+		} else {
+			$title = $page->number;
+			$class = 'current';
+		}
+
+		?>
+		<a href="<?= $page->href() ?>" class="pagination-item <?= $class ?>" title="<?= $title ?>">
+			<?= $page->number ?>
+		</a>
+		<?php
 	}
 	?>
 </div>

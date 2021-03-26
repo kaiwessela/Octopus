@@ -11,13 +11,11 @@ class Page extends DataObject {
 #	public string $id;
 #	public string $longid;
 #
-#	public ?int $count;
-#
 #	private bool $new;
 #	private bool $empty;
 #	private bool $disabled;
-
-	const IGNORE_PULL_LIMIT = true;
+#
+#	const PAGINATABLE = false;
 
 	const PROPERTIES = [
 		'title' => '.{1,60}',
@@ -65,8 +63,6 @@ class Page extends DataObject {
 SELECT * FROM pages
 WHERE page_id = :id OR page_longid = :id
 SQL; #---|
-
-	const COUNT_QUERY = null;
 
 	const INSERT_QUERY = <<<SQL
 INSERT INTO pages (page_id, page_longid, page_title, page_content)

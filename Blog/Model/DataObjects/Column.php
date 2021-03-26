@@ -1,6 +1,7 @@
 <?php
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\Abstracts\Traits\Paginatable;
 use \Blog\Model\DataObjects\Lists\PostList;
 use \Blog\Model\DataObjects\Relations\Lists\PostColumnRelationList;
 
@@ -18,8 +19,9 @@ class Column extends DataObject {
 #	private bool $new;
 #	private bool $empty;
 #	private bool $disabled;
-#
-#	const IGNORE_PULL_LIMIT = false;
+
+	use Paginatable;
+	const PAGINATABLE = true;
 
 	const PROPERTIES = [
 		'name' => '.{1,30}',

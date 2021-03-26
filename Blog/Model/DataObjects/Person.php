@@ -14,13 +14,11 @@ class Person extends DataObject {
 #	public string $id;
 #	public string $longid;
 #
-#	public ?int $count;
-#
 #	private bool $new;
 #	private bool $empty;
 #	private bool $disabled;
-
-	const IGNORE_PULL_LIMIT = true;
+#
+#	const PAGINATABLE = false;
 
 	const PROPERTIES = [
 		'name' => '.{1,50}',
@@ -80,9 +78,6 @@ LEFT JOIN persongrouprelations ON persongrouprelation_person_id = person_id
 LEFT JOIN groups ON group_id = persongrouprelation_group_id
 WHERE person_id = :id OR person_longid = :id
 SQL; #---|
-
-
-	const COUNT_QUERY = null;
 
 
 	const INSERT_QUERY = <<<SQL

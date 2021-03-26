@@ -2,6 +2,7 @@
 namespace Blog\Model\Abstracts;
 use \Blog\Model\Abstracts\Traits\DBTrait;
 use \Blog\Model\Abstracts\Traits\StateTrait;
+use \Blog\Model\Abstracts\Traits\Paginatable;
 use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\Exceptions\DatabaseException;
 use \Blog\Model\Exceptions\EmptyResultException;
@@ -9,12 +10,14 @@ use InvalidArgumentException;
 
 abstract class DataObjectList {
 	public array $objects;
-	public int $count;
 
 	const OBJECT_CLASS = null;
 
 	use DBTrait;
 	use StateTrait;
+
+	const PAGINATABLE = true;
+	use Paginatable;
 
 	private bool $new;
 	private bool $empty;
@@ -143,25 +146,6 @@ abstract class DataObjectList {
 		}
 
 		return $result;
-	}
-
-
-	public function count() : int {
-#	@action:
-#	  - return the number of objects of this type stored in the database
-#	  - store this number in this->count
-#	@return:
-#		integer
-
-		$pdo = $this->open_pdo();
-
-		$s = $pdo->prepare($this::COUNT_QUERY);
-		if(!$s->execute([])){
-			throw new DatabaseException($s);
-		} else {
-			$this->count = (int) $s->fetch()[0];
-			return $this->count;
-		}
 	}
 }
 ?>

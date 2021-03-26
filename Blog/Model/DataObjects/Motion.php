@@ -19,13 +19,11 @@ class Motion extends DataObject {
 #	public string $id;
 #	public string $longid;
 #
-#	public ?int $count;
-#
 #	private bool $new;
 #	private bool $empty;
 #	private bool $disabled;
-
-	const IGNORE_PULL_LIMIT = true;
+#
+#	const PAGINATABLE = false;
 
 	const PROPERTIES = [
 		'title' => '.{0,80}',
@@ -129,12 +127,10 @@ class Motion extends DataObject {
 
 	const PULL_QUERY = <<<SQL
 SELECT * FROM motions
-LEFT JOIN media ON medium_id = motion_document_id 
+LEFT JOIN media ON medium_id = motion_document_id
 WHERE motion_id = :id OR motion_longid = :id
 SQL; #---|
 
-
-	const COUNT_QUERY = null;
 
 	const INSERT_QUERY = <<<SQL
 INSERT INTO motions (

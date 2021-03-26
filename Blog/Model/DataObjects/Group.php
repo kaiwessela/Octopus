@@ -1,6 +1,7 @@
 <?php
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
+use \Blog\Model\Abstracts\Traits\Paginatable;
 use \Blog\Model\DataObjects\Lists\PersonList;
 use \Blog\Model\DataObjects\Relations\Lists\PersonGroupRelationList;
 
@@ -18,8 +19,9 @@ class Group extends DataObject {
 #	private $disabled;
 #
 #	private $relationlist;
-#
-#	const IGNORE_PULL_LIMIT = false;
+
+	use Paginatable;
+	const PAGINATABLE = true;
 
 	const PROPERTIES = [
 		'name' => '.{1,30}',

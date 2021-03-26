@@ -23,15 +23,13 @@ abstract class Medium extends DataObject {
 #	public string $id;
 #	public string $longid;
 #
-#	public ?int $count;
-#
 #	private bool $new;
 #	private bool $empty;
 #	private bool $disabled;
+#
+#	const PAGINATABLE = false;
 
-	protected ?array $files;
-
-	const IGNORE_PULL_LIMIT = true;
+	protected ?array $files
 
 	const PROPERTIES = [
 		'title' => '.{0,60}',
@@ -153,8 +151,6 @@ abstract class Medium extends DataObject {
 			);
 	}
 
-
-	const COUNT_QUERY = null;
 
 	const INSERT_QUERY = <<<SQL
 INSERT INTO media

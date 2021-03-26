@@ -15,13 +15,11 @@ class Event extends DataObject {
 #	public string $id;
 #	public string $longid;
 #
-#	public ?int $count;
-#
 #	private bool $new;
 #	private bool $empty;
 #	private bool $disabled;
-
-	const IGNORE_PULL_LIMIT = true;
+#
+#	const PAGINATABLE = false;
 
 	const PROPERTIES = [
 		'title' => '.{1,50}',
@@ -79,9 +77,6 @@ class Event extends DataObject {
 SELECT * FROM events
 WHERE event_id = :id OR event_longid = :id
 SQL; #---|
-
-
-	const COUNT_QUERY = null;
 
 
 	const INSERT_QUERY = <<<SQL

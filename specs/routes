@@ -16,3 +16,70 @@
 		}
 	}
 }
+
+
+===========================
+NEW:
+===========================
+
+string | PathPattern | Wildcard | RegEx: {
+	'template': templateName,
+	['objects': {
+		objectName: {
+			['as': string],
+			['action': 'show'] | 'new' | 'edit' | 'delete',
+			'identifier': string | Substitution,
+			['options': {…}]
+		}
+		OR
+		listObjectName: {
+			['as': string],
+			'amount': int,
+			['page': 1] | int | Substitution,
+			['options': {…}]
+		}
+		OR
+		combinedObjectName: {
+			['as': string],
+			['action': 'show'] | 'new' | 'edit' | 'delete',
+			'identifier': string | Substitution,
+			'amount': int,
+			['page': 1] | int | Substitution,
+			['options': {…}]
+		}
+	}],
+	['controllers': {
+		controllerName: {
+			…
+		}
+	}]
+}
+
+
+$PathPattern :=
+$Wildcard := / | ?
+
+$Substitution := /int[\|int] | ?int[\|int]
+
+string | $PathPattern | $Wildcard | $RegEx => [
+	template ?=> string,
+	methods ?=> array(GET,POST),  - default ignore
+	contentTypes ?=> array(string),  - if methods contains POST; else and default ignore
+	objects ?=> [
+		string | $Substitution => [
+			as ?=> string,
+			action ?=> list | count | show | edit | delete,
+			options ?=> […]
+
+			identifier => string | $Substitution,  - if action = show | edit | delete; else and default ignore
+
+			amount ?=> int | $Substitution,  - required if action = list
+			page ?=> int | $Substitution,  - default 1
+		],
+		~
+	],
+	controllers ?=> [
+		string | $Substitution => […],
+		~
+	]
+]

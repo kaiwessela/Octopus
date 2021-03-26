@@ -1,6 +1,11 @@
 BUGS:
-- 
+-
 
 
 PLANNED CHANGES:
 - remove subline from Post
+
+- rewrite / reorganise count() functions in DataObjects/-Lists
+- rewrite / reorganise InputExceptions (especially improve the frontend messages)
+
+- include Endpoint.send() into Response.send()

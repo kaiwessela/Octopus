@@ -56,8 +56,8 @@ class PathNotation {
 	}
 
 
-	public function match($path) {
-
+	public function match(string $path) {
+		return preg_match($this->resolve(), $path);
 	}
 }
 ?>

@@ -29,7 +29,7 @@ abstract class Medium extends DataObject {
 #
 #	const PAGINATABLE = false;
 
-	protected ?array $files
+	protected ?array $files;
 
 	const PROPERTIES = [
 		'title' => '.{0,60}',

@@ -2,7 +2,7 @@
 namespace Blog\Controller;
 use Exception;
 
-class Response {
+class Response { // TODO default content-type, maybe default code
 	public int $code;
 	public string $content_type;
 	public array $headers;

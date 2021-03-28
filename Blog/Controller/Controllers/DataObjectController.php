@@ -1,27 +1,27 @@
 <?php
 namespace Blog\Controller\Controllers;
 use \Astronauth\Main as Astronauth;
+use \Blog\Controller\Controller;
 use \Blog\Controller\Call;
+use \Blog\Controller\Request;
 use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\Abstracts\DataObjectList;
+use \Blog\Controller\Pagination\Pagination;
+use \Blog\Model\Exceptions\InputFailedException;
+use \Blog\Controller\Substitution;
 use Exception;
 
-class DataObjectController {
+class DataObjectController extends Controller {
 	public Request $request;
 	public Astronauth $astronauth;
 
 	public int $status;
 	public Call $call;
+
 	public DataObject|DataObjectList|null $object;
 
 	public ?Pagination $pagination;
 	public ?InputFailedException $errors;
-
-
-	function __construct(Request &$request, Astronauth &$astronauth) {
-		$this->request = &$request;
-		$this->astronauth = &$astronauth;
-	}
 
 
 	public function prepare(Call $call) : void {
@@ -49,7 +49,7 @@ class DataObjectController {
 				throw new Exception('DataObjectCtl. | Prepare » invalid identifier.');
 			}
 
-			$check_amount_and_page = $call->dataobject::CONTAINER;
+			$check_amount_and_page = $call->dataobject::PAGINATABLE;
 		}
 
 		if($check_amount_and_page){
@@ -63,7 +63,8 @@ class DataObjectController {
 		}
 
 		$this->call = $call;
-		$this->object = new {$call->dataobject}();
+		$on = $call->dataobject;
+		$this->object = new $on();
 		$this->errors = null;
 	}
 
@@ -116,7 +117,7 @@ class DataObjectController {
 			// TODO
 
 		} else {
-			if($this->call->action == 'show' && $this->object::CONTAINER){
+			if($this->call->action == 'show' && $this->object::PAGINATABLE){
 				$limit = $this->call->amount;
 				$offset = is_null($this->call->page)
 					? null : ($this->call->amount * ($this->call->page - 1));
@@ -150,7 +151,7 @@ class DataObjectController {
 		}
 	}
 
-	public function export() { // TODO maybe rename
+	public function process() : void { // TODO maybe rename
 		// TODO error handling
 
 		if($this->object::PAGINATABLE && !empty($this->call->options['pagination'])){

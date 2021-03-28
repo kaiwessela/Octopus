@@ -49,7 +49,19 @@ class ControllerConfig {
 		'Motion' 		=> Motion::class,
 		'Page' 			=> Page::class,
 		'Person' 		=> Person::class,
-		'Post' 			=> Post::class
+		'Post' 			=> Post::class,
+		'media' 		=> Medium::class, // TEMP from here
+		'applications' 	=> Application::class,
+		'audios' 		=> Audio::class,
+		'images' 		=> Image::class,
+		'videos' 		=> Video::class,
+		'columns' 		=> Column::class,
+		'events' 		=> Event::class,
+		'groups' 		=> Group::class,
+		'motions' 		=> Motion::class,
+		'pages' 		=> Page::class,
+		'persons' 		=> Person::class,
+		'posts' 		=> Post::class,
 	];
 
 	const DATA_OBJECT_LISTS = [
@@ -65,14 +77,14 @@ class ControllerConfig {
 		Page::class 		=> PageList::class,
 		Person::class 		=> PersonList::class,
 		Post::class 		=> PostList::class
-	]
+	];
 
 	const DATA_OBJECT_CONTROLLERS = [
-		Medium::class 		=> MediaController::class,
-		Application::class 	=> MediaController::class,
-		Audio::class 		=> MediaController::class,
-		Image::class 		=> MediaController::class,
-		Video::class 		=> MediaController::class,
+		Medium::class 		=> DataObjectController::class,
+		Application::class 	=> DataObjectController::class,
+		Audio::class 		=> DataObjectController::class,
+		Image::class 		=> DataObjectController::class,
+		Video::class 		=> DataObjectController::class,
 		Column::class 		=> DataObjectController::class,
 		Event::class 		=> DataObjectController::class,
 		Group::class 		=> DataObjectController::class,

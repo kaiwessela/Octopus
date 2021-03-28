@@ -1,5 +1,5 @@
 <?php
-namespace Blog\Model\Abstracts\Traits\Paginatable;
+namespace Blog\Model\Abstracts\Traits;
 use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\Exceptions\DatabaseException;
 

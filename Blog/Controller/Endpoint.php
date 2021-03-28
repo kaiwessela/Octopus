@@ -2,18 +2,25 @@
 namespace Blog\Controller;
 use \Astronauth\Main as Astronauth;
 use \Blog\Config\Config;
+use \Blog\Config\Site;
+use \Blog\Controller\Request;
+use \Blog\Controller\Response;
+use \Blog\Controller\PathNotation;
+use \Blog\Controller\Call;
 use Exception;
 
 class Endpoint {
 	public Request $request;
 	public Response $response;
 	public Astronauth $astronauth;
+	public string $template_path;
+	public string $template;
 	public ?array $calls;
 	public ?array $controllers;
 	public bool $require_auth;
 
 
-	function __construct() {
+	function __construct(string $template_path) {
 		setlocale(\LC_ALL, Config::SERVER_LANG . '.utf-8');
 
 		if(Config::DEBUG_MODE){
@@ -22,6 +29,12 @@ class Endpoint {
 		} else {
 			ini_set('display_errors', '0');
 			error_reporting(0);
+		}
+
+		if(is_dir($template_path)){
+			$this->template_path = rtrim($template_path, '/') . '/';
+		} else {
+			exit('invalid template path.');
 		}
 
 		set_exception_handler(function($exception){
@@ -33,10 +46,14 @@ class Endpoint {
 
 			http_response_code($code);
 
-			if(file_exists(/**/ . $code . '.php')){ // TODO template dir
-				include /**/ . $code . '.php';
+			if(!Config::DEBUG_MODE){
+				unset($exception);
+			}
+
+			if(file_exists($this->template_path . $code . '.php')){
+				include $this->template_path . $code . '.php';
 			} else {
-				include /**/ . 'error.php';
+				include $this->template_path . 'error.php';
 			}
 
 			exit;
@@ -49,6 +66,9 @@ class Endpoint {
 		$this->astronauth->authenticate();
 
 		$this->require_auth = false;
+
+		$this->calls = [];
+		$this->controllers = [];
 	}
 
 
@@ -61,6 +81,7 @@ class Endpoint {
 
 		foreach($routes as $pn => $rt){
 			$pathnotation = new PathNotation($pn);
+
 			if($pathnotation->match(trim($this->request->path, '/'))){
 				$route = $rt;
 				break;
@@ -100,12 +121,12 @@ class Endpoint {
 		}
 
 
-		foreach($route['controllers'] as $class => $settings){
-			$this->calls[] = new Call($class, $settings, 'controller');
+		foreach($route['controllers'] ?? [] as $class => $settings){
+			$this->calls[] = new Call($class, $settings, 'controller', $this->request);
 		}
 
-		foreach($route['objects'] as $class => $settings){
-			$this->calls[] = new Call($class, $settings, 'object');
+		foreach($route['objects'] ?? [] as $class => $settings){
+			$this->calls[] = new Call($class, $settings, 'object', $this->request);
 		}
 	}
 
@@ -124,12 +145,18 @@ class Endpoint {
 		}
 
 		if($this->require_auth && !$this->astronauth->is_authenticated()){
+			// TEMP
+			http_response_code(403);
+			header('Location: ' . Config::SERVER_URL . '/astronauth/signin');
+			exit;
+
 			// 403 Forbidden
-			throw new Exception('Forbidden', 403);
+			//throw new Exception('Forbidden', 403);
 		}
 
 		foreach($this->calls as $call){
-			$this->controllers[$call->varname] = new {$call->controller}($this->request, $this->astronauth);
+			$cls = $call->controller;
+			$this->controllers[$call->varname] = new $cls($this->request, $this->astronauth);
 			$this->controllers[$call->varname]->prepare($call);
 		}
 	}
@@ -145,6 +172,7 @@ class Endpoint {
 
 
 	public function send() {
+		// TEMP TEMP TEMP
 		global $server;
 		global $site;
 		global $astronauth;
@@ -154,8 +182,8 @@ class Endpoint {
 			'version' => Config::VERSION,
 			'url' => Config::SERVER_URL,
 			'lang' => Config::SERVER_LANG,
-			'dyn_img_path' => Config::DYNAMIC_IMAGE_PATH, // DEPRECATED
-			'path' => $this->path
+			'dyn_img_path' => Config::DYNAMIC_IMAGE_PATH, // DEPRECATED,
+			'path' => trim($this->request->path, '/')
 		];
 
 		$site = (object)[
@@ -163,8 +191,7 @@ class Endpoint {
 			'twitter' => Site::TWITTER_SITE
 		];
 
-		$astronauth; // TODO
-		$exception; // TODO
+		$astronauth = $this->astronauth;
 
 		foreach($this->controllers as $varname => $controller){
 			$conname = $varname . 'Controller';
@@ -177,10 +204,13 @@ class Endpoint {
 			}
 
 			$$conname = $controller;
-			$$varname = $controller->export();
+			$controller->process();
+			$$varname = $controller->object;
 		}
 
 		$this->response->send();
+
+		require $this->template_path . $this->template . '.php';
 	}
 
 

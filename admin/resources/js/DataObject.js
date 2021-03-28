@@ -61,11 +61,11 @@ class DataObject {
 			ajax.responseType = 'json';
 			ajax.onreadystatechange = () => {
 				if(ajax.readyState == 4){
-					if(ajax.response.response_code == '200 OK'){
+					if(ajax.response.code == '200 OK'){
 						this.load(ajax.response.result);
 						resolve();
 					} else {
-						reject(ajax.response.error_message);
+						reject(ajax.response.error.message);
 					}
 				}
 			}
@@ -80,10 +80,10 @@ class DataObject {
 			ajax.responseType = 'json';
 			ajax.onreadystatechange = () => {
 				if(ajax.readyState == 4){
-					if(ajax.response.response_code == '200 OK'){
+					if(ajax.response.code == '200 OK'){
 						resolve(ajax.response.result);
 					} else {
-						reject(ajax.response.error_message);
+						reject(ajax.response.error.message);
 					}
 				}
 			}
@@ -98,7 +98,7 @@ class DataObject {
 			ajax.responseType = 'json';
 			ajax.onreadystatechange = () => {
 				if(ajax.readyState == 4){
-					if(ajax.response.response_code == '200 OK'){
+					if(ajax.response.code == '200 OK'){
 						var results = [];
 						ajax.response.result.forEach((data) => {
 							var object = µ(this._type);
@@ -107,7 +107,7 @@ class DataObject {
 						});
 						resolve(results);
 					} else {
-						reject(ajax.response.error_message);
+						reject(ajax.response.error.message);
 					}
 				}
 			}
@@ -136,10 +136,10 @@ class DataObject {
 			ajax.responseType = 'json';
 			ajax.onreadystatechange = () => {
 				if(ajax.readyState == 4){
-					if(ajax.response.response_code == '200 OK'){
+					if(ajax.response.code == '200 OK'){
 						resolve(ajax.response.result);
 					} else {
-						reject(ajax.response.error_message);
+						reject(ajax.response.error.message);
 					}
 				}
 			}

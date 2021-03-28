@@ -26,19 +26,11 @@ class DataObjectController extends Controller {
 
 	public function prepare(Call $call) : void {
 		if(is_subclass_of($call->dataobject, DataObjectList::class)){
-			if($call->action != 'list'){
+			if(!in_array($call->action, ['list', 'count'])){
 				throw new Exception('DataObjectCtl. | Prepare » invalid action for list.');
 			}
 
-			$check_amount_and_page = true;
-
-			if(!is_int($call->amount)){
-				throw new Exception('DataObjectCtl. | Prepare » invalid amount.');
-			}
-
-			if(!is_int($call->page)){
-				throw new Exception('DataObjectCtl. | Prepare » invalid page.');
-			}
+			$check_amount_and_page = ($call->action == 'list');
 
 		} else if(is_subclass_of($call->dataobject, DataObject::class)){
 			if(!in_array($call->action, ['show', 'new', 'edit', 'delete'])){
@@ -114,7 +106,8 @@ class DataObjectController extends Controller {
 			}
 
 		} else if($this->call->action == 'count'){
-			// TODO
+			$this->object->count();
+			$this->status = 20;
 
 		} else {
 			if($this->call->action == 'show' && $this->object::PAGINATABLE){

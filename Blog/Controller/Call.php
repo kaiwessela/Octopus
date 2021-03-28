@@ -53,7 +53,7 @@ class Call {
 
 
 			$this->action = $settings['action'];
-			if($this->action == 'list'){ // TODO count action
+			if(in_array($this->action, ['list', 'count'])){
 
 				$dataobject = ControllerConfig::REGISTERED_DATA_OBJECTS[$doname];
 				$this->dataobject = ControllerConfig::DATA_OBJECT_LISTS[$dataobject];
@@ -63,16 +63,18 @@ class Call {
 					throw new Exception('Call » invalid dataobject.');
 				}
 
-				$amount = new Substitution($settings['amount'], $request, 10);
-				$this->amount = (int) $amount->resolve();
-				if(empty($this->amount) || !is_int($this->amount)){
-					throw new Exception("Call » invalid amount on '$name'.");
-				}
+				if($this->action == 'list'){
+					$amount = new Substitution($settings['amount'], $request, 10);
+					$this->amount = (int) $amount->resolve();
+					if(empty($this->amount) || !is_int($this->amount)){
+						throw new Exception("Call » invalid amount on '$name'.");
+					}
 
-				$page = new Substitution($settings['page'], $request, 1);
-				$this->page = (int) $page->resolve();
-				if(empty($this->page) || !is_int($this->page)){
-					throw new Exception("Call » invalid page on '$name'.");
+					$page = new Substitution($settings['page'], $request, 1);
+					$this->page = (int) $page->resolve();
+					if(empty($this->page) || !is_int($this->page)){
+						throw new Exception("Call » invalid page on '$name'.");
+					}
 				}
 
 			} else if(in_array($this->action, ['new', 'show', 'edit', 'delete'])){

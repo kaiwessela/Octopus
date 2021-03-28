@@ -162,7 +162,7 @@
 							</div>
 						</label>
 
-						<img src="<?= $server->url ?>/resources/images/icons/{{type}}.svg">
+						<img src="<?= $server->url ?>/admin/resources/icons/{{type}}.svg">
 						<div class="label">
 							<h2 class="title">{{title}}</h2>
 							<code>{{longid}}</code>
@@ -248,7 +248,7 @@
 	</template>
 	<template data-state="set">
 		<article class="application">
-			<img src="<?= $server->url ?>/resources/images/icons/{{type}}.svg">
+			<img src="<?= $server->url ?>/admin/resources/icons/{{type}}.svg">
 			<div class="label">
 				<h2 class="title">{{title}}</h2>
 				<code>{{longid}}</code>

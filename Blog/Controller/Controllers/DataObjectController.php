@@ -121,6 +121,9 @@ class DataObjectController extends Controller {
 				$limit = $this->call->amount;
 				$offset = is_null($this->call->page)
 					? null : ($this->call->amount * ($this->call->page - 1));
+			} else {
+				$limit = null;
+				$offset = null;
 			}
 
 			try {

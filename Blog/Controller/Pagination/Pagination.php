@@ -41,7 +41,7 @@ class Pagination {
 		$this->total_objects = $count;
 
 		for($i = 1; $i <= ceil($this->total_objects / $this->objects_per_page); $i++){
-			$items[$i] = new Item($i, $this);
+			$this->items[$i] = new Item($i, $this);
 		}
 	}
 
@@ -56,6 +56,10 @@ class Pagination {
 
 	public function last_page() : ?int {
 		return ($this->is_empty()) ? null : ceil($this->total_objects / $this->objects_per_page);
+	}
+
+	public function current_item() : ?Item {
+		return $this->items[$this->current_page] ?? null;
 	}
 
 	public function page_exists(int $page) : bool {

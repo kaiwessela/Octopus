@@ -5,8 +5,8 @@
 <html lang="de">
 	<head>
 		<meta charset="utf-8">
-		<link rel="stylesheet" type="text/css" href="<?= $server->url ?>/resources/css/admin.css">
-		<link rel="stylesheet" type="text/css" href="<?= $server->url ?>/resources/css/admin-specific.css">
+		<link rel="stylesheet" type="text/css" href="<?= $server->url ?>/admin/resources/css/style.css">
+		<link rel="stylesheet" type="text/css" href="<?= $server->url ?>/admin/resources/css/object-specific.css">
 		<title><?php // TODO:  ?></title>
 	</head>
 	<body>
@@ -161,25 +161,25 @@
 			</p>
 		</footer>
 
-		<script src="<?= $server->url ?>/resources/js/admin/GetClass.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/DataObject.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Image.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Application.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Person.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Group.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Post.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/DataObjects/Column.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/Modal.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/Pagination.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/SelectModal.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/MultiSelectModal.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/UploadModal.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/PseudoInput.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/Relation.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/RelationInput.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/ListInput.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/TimeInput.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/invoke.js"></script>
-		<script src="<?= $server->url ?>/resources/js/admin/validate.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/GetClass.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/DataObject.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/DataObjects/Image.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/DataObjects/Application.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/DataObjects/Person.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/DataObjects/Group.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/DataObjects/Post.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/DataObjects/Column.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/Modal.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/Pagination.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/SelectModal.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/MultiSelectModal.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/UploadModal.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/PseudoInput.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/Relation.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/RelationInput.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/ListInput.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/TimeInput.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/invoke.js"></script>
+		<script src="<?= $server->url ?>/admin/resources/js/validate.js"></script>
 	</body>
 </html>

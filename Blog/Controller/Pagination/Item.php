@@ -1,5 +1,6 @@
 <?php
 namespace Blog\Controller\Pagination;
+use \Blog\Config\Config;
 use \Blog\Controller\Pagination\Pagination;
 use Exception;
 
@@ -56,7 +57,7 @@ class Item {
 	}
 
 	public function href() : string {
-		return str_replace('{page}', $this->number, $this->pagination->url_scheme);
+		return Config::SERVER_URL . '/' . str_replace('{page}', $this->number, $this->pagination->url_scheme);
 	}
 }
 ?>

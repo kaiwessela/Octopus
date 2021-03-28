@@ -1,6 +1,6 @@
 <article>
 	<article class="application">
-		<img src="<?= $server->url ?>/resources/images/icons/<?= $obj->type ?>.svg">
+		<img src="<?= $server->url ?>/admin/resources/icons/<?= $obj->type ?>.svg">
 		<div class="label">
 			<h2><?= $obj->title ?></h2>
 			<code><?= $obj->longid ?></code>

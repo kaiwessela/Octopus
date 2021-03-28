@@ -1,0 +1,281 @@
+{
+	"pages": {
+		"lang": {
+			"singular": "Seite",
+			"plural": "Seiten",
+			"plural_nominativ": "Seiten",
+			"plural_dativ": "Seiten",
+			"message": {
+				"created": "Die Seite wurde erfolgreich erstellt.",
+				"edited": "Die bearbeitete Seite wurde erfolgreich gespeichert.",
+				"deleted": "Die Seite wurde gelöscht.",
+				"empty": "Es sind noch keine Seiten vorhanden."
+			},
+			"list": {
+				"title": "Alle Seiten",
+				"linktext": "Zurück zu allen Seiten"
+			},
+			"show": {
+				"title": "Seite anzeigen"
+			},
+			"new": {
+				"title": "Neue Seite erstellen",
+				"linktext": "Neue Seite erstellen"
+			},
+			"edit": {
+				"title": "Seite bearbeiten"
+			},
+			"delete": {
+				"title": "Seite entfernen"
+			}
+		}
+	},
+	"posts": {
+		"lang": {
+			"singular": "Artikel",
+			"plural": "Artikel",
+			"plural_nominativ": "Artikel",
+			"plural_dativ": "Artikeln",
+			"message": {
+				"created": "Der Artikel wurde erfolgreich hinzugefügt.",
+				"edited": "Der bearbeitete Artikel wurde erfolgreich gespeichert.",
+				"deleted": "Der Artikel wurde gelöscht.",
+				"empty": "Es sind noch keine Artikel vorhanden."
+			},
+			"list": {
+				"title": "Alle Artikel",
+				"linktext": "Zurück zu allen Artikeln"
+			},
+			"show": {
+				"title": "Artikel anzeigen"
+			},
+			"new": {
+				"title": "Neuen Artikel schreiben",
+				"linktext": "Neuen Artikel schreiben"
+			},
+			"edit": {
+				"title": "Artikel bearbeiten"
+			},
+			"delete": {
+				"title": "Artikel entfernen"
+			}
+		}
+	},
+	"columns": {
+		"lang": {
+			"singular": "Rubrik",
+			"plural": "Rubriken",
+			"plural_nominativ": "Rubriken",
+			"plural_dativ": "Rubriken",
+			"message": {
+				"created": "Die Rubrik wurde erfolgreich hinzugefügt.",
+				"edited": "Die bearbeitete Rubrik wurde erfolgreich gespeichert.",
+				"deleted": "Die Rubrik wurde gelöscht.",
+				"empty": "Es sind noch keine Rubriken vorhanden."
+			},
+			"list": {
+				"title": "Alle Rubriken",
+				"linktext": "Zurück zu allen Rubriken"
+			},
+			"show": {
+				"title": "Rubrik anzeigen"
+			},
+			"new": {
+				"title": "Neue Rubrik erstellen",
+				"linktext": "Neue Rubrik erstellen"
+			},
+			"edit": {
+				"title": "Rubrik bearbeiten"
+			},
+			"delete": {
+				"title": "Rubrik entfernen"
+			}
+		}
+	},
+	"images": {
+		"lang": {
+			"singular": "Bild",
+			"plural": "Bilder",
+			"plural_nominativ": "Bilder",
+			"plural_dativ": "Bildern",
+			"message": {
+				"created": "Das Bild wurde erfolgreich hochgeladen.",
+				"edited": "Die Bilddaten wurden erfolgreich bearbeitet.",
+				"deleted": "Das Bild wurde gelöscht.",
+				"empty": "Es sind noch keine Bilder vorhanden."
+			},
+			"list": {
+				"title": "Alle Bilder",
+				"linktext": "Zurück zu allen Bildern"
+			},
+			"show": {
+				"title": "Bild anzeigen"
+			},
+			"new": {
+				"title": "Neues Bild hochladen",
+				"linktext": "Neues Bild hochladen"
+			},
+			"edit": {
+				"title": "Bilddaten bearbeiten"
+			},
+			"delete": {
+				"title": "Bild löschen"
+			}
+		}
+	},
+	"applications": {
+		"lang": {
+			"singular": "Dokument",
+			"plural": "Dokumente",
+			"plural_nominativ": "Dokumente",
+			"plural_dativ": "Dokumenten",
+			"message": {
+				"created": "Das Dokument wurde erfolgreich hochgeladen.",
+				"edited": "Das Dokument wurden erfolgreich bearbeitet.",
+				"deleted": "Das Dokument wurde gelöscht.",
+				"empty": "Es sind noch keine Dateien vorhanden."
+			},
+			"list": {
+				"title": "Alle Dokumente",
+				"linktext": "Zurück zu allen Dokumenten"
+			},
+			"show": {
+				"title": "Dokument anzeigen"
+			},
+			"new": {
+				"title": "Neues Dokument hochladen",
+				"linktext": "Neues Dokument hochladen"
+			},
+			"edit": {
+				"title": "Dokumentdaten bearbeiten"
+			},
+			"delete": {
+				"title": "Dokument löschen"
+			}
+		}
+	},
+	"persons": {
+		"lang": {
+			"singular": "Person",
+			"plural": "Personen",
+			"plural_nominativ": "Personen",
+			"plural_dativ": "Personen",
+			"message": {
+				"created": "Das Profil wurde erfolgreich hinzugefügt.",
+				"edited": "Das bearbeitete Profil wurde erfolgreich gespeichert.",
+				"deleted": "Das Profil wurde gelöscht.",
+				"empty": "Es sind noch keine Profile vorhanden."
+			},
+			"list": {
+				"title": "Alle Personen",
+				"linktext": "Zurück zu allen Personen"
+			},
+			"show": {
+				"title": "Profil anzeigen"
+			},
+			"new": {
+				"title": "Neues Profil hinzufügen",
+				"linktext": "Neues Profil hinzufügen"
+			},
+			"edit": {
+				"title": "Profil bearbeiten"
+			},
+			"delete": {
+				"title": "Profil entfernen"
+			}
+		}
+	},
+	"groups": {
+		"lang": {
+			"singular": "Gruppe",
+			"plural": "Gruppen",
+			"plural_nominativ": "Gruppen",
+			"plural_dativ": "Gruppen",
+			"message": {
+				"created": "Die Gruppe wurde erfolgreich erstellt.",
+				"edited": "Die bearbeitete Gruppe wurde erfolgreich gespeichert.",
+				"deleted": "Die Gruppe wurde gelöscht.",
+				"empty": "Es sind noch keine Gruppen vorhanden."
+			},
+			"list": {
+				"title": "Alle Gruppen",
+				"linktext": "Zurück zu allen Gruppen"
+			},
+			"show": {
+				"title": "Gruppe anzeigen"
+			},
+			"new": {
+				"title": "Neue Gruppe erstellen",
+				"linktext": "Neue Gruppe erstellen"
+			},
+			"edit": {
+				"title": "Gruppe bearbeiten"
+			},
+			"delete": {
+				"title": "Gruppe entfernen"
+			}
+		}
+	},
+	"events": {
+		"lang": {
+			"singular": "Termin",
+			"plural": "Termine",
+			"plural_nominativ": "Termine",
+			"plural_dativ": "Terminen",
+			"message": {
+				"created": "Der Termin wurde erfolgreich erstellt.",
+				"edited": "Der bearbeitete Termin wurde erfolgreich gespeichert.",
+				"deleted": "Der Termin wurde gelöscht.",
+				"empty": "Es sind noch keine Termine vorhanden."
+			},
+			"list": {
+				"title": "Alle Termine",
+				"linktext": "Zurück zu allen Terminen"
+			},
+			"show": {
+				"title": "Termin anzeigen"
+			},
+			"new": {
+				"title": "Neuen Termin erstellen",
+				"linktext": "Neuen Termin erstellen"
+			},
+			"edit": {
+				"title": "Termin bearbeiten"
+			},
+			"delete": {
+				"title": "Termin löschen"
+			}
+		}
+	},
+	"motions": {
+		"lang": {
+			"singular": "Antrag",
+			"plural": "Anträge",
+			"plural_nominativ": "Anträge",
+			"plural_dativ": "Anträgen",
+			"message": {
+				"created": "Der Antrag wurde erfolgreich erstellt.",
+				"edited": "Der bearbeitete Antrag wurde erfolgreich gespeichert.",
+				"deleted": "Der Antrag wurde gelöscht.",
+				"empty": "Es sind noch keine Anträge vorhanden."
+			},
+			"list": {
+				"title": "Alle Anträge",
+				"linktext": "Zurück zu allen Anträgen"
+			},
+			"show": {
+				"title": "Antrag anzeigen"
+			},
+			"new": {
+				"title": "Neuen Antrag erstellen",
+				"linktext": "Neuen Antrag erstellen"
+			},
+			"edit": {
+				"title": "Antrag bearbeiten"
+			},
+			"delete": {
+				"title": "Antrag löschen"
+			}
+		}
+	}
+}

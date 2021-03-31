@@ -10,9 +10,11 @@ use \Blog\Controller\Call;
 use Exception;
 
 class Endpoint {
+	private bool $aborted;
 	public Request $request;
 	public Response $response;
 	public Astronauth $astronauth;
+	public ?Exception $exception;
 	public string $template_path;
 	public string $template;
 	public ?array $calls;
@@ -37,33 +39,14 @@ class Endpoint {
 			exit('invalid template path.');
 		}
 
-		set_exception_handler(function($exception){
-			$code = $exception->getCode();
-
-			if(!isset(Response::RESPONSE_CODES[$code])){
-				$code = 500;
-			}
-
-			http_response_code($code);
-
-			if(!Config::DEBUG_MODE){
-				unset($exception);
-			}
-
-			if(file_exists($this->template_path . $code . '.php')){
-				include $this->template_path . $code . '.php';
-			} else {
-				include $this->template_path . 'error.php';
-			}
-
-			exit;
-		});
-
 		$this->request = new Request();
 		$this->response = new Response();
 
 		$this->astronauth = new Astronauth();
 		$this->astronauth->authenticate();
+
+		$this->aborted = false;
+		$this->exception = null;
 
 		$this->require_auth = false;
 
@@ -73,100 +56,132 @@ class Endpoint {
 
 
 	public function route(array $routes) {
-		$this->calls = [];
-
-		if(!is_array($routes) || empty($routes)){
-			throw new Exception('Router » routes is not an array or empty.');
-		}
-
-		foreach($routes as $pn => $rt){
-			$pathnotation = new PathNotation($pn);
-
-			if($pathnotation->match(trim($this->request->path, '/'))){
-				$route = $rt;
-				break;
-			}
-		}
-
-		if(!isset($route)){
-			// no route found - 404
-			$this->response->set_code(404);
+		if($this->aborted){
 			return;
 		}
 
-		$this->template = $route['template']; // TODO validity check and more and new everything
-		if(empty($this->template)){
-			throw new Exception("Router » invalid template: '$this->template'.");
-		}
+		try {
 
-
-		if(isset($route['methods'])){
-			if(!is_array($route['methods'])){
-				throw new Exception('Router » invalid methods.');
+			if(!is_array($routes) || empty($routes)){
+				throw new Exception('Router » routes is not an array or empty.');
 			}
 
-			$this->request->merge_allowed_methods($route['methods']);
-		}
+			foreach($routes as $pn => $rt){
+				$pathnotation = new PathNotation($pn);
 
-		if(isset($route['contentTypes'])){
-			if(!is_array($route['contentTypes'])){
-				throw new Exception('Router » invalid contentTypes.');
+				if($pathnotation->match(trim($this->request->path, '/'))){
+					$route = $rt;
+					break;
+				}
 			}
 
-			$this->request->merge_allowed_content_types($route['contentTypes']);
-		}
+			if(!isset($route)){
+				// no route found - 404
+				$this->abort(404);
+				return;
+			}
 
-		if(isset($route['require_auth']) && $route['require_auth'] == true){
-			$this->require_auth = true;
-		}
+			$this->template = $route['template']; // TODO validity check and more and new everything
+			if(empty($this->template)){
+				throw new Exception("Router » invalid template: '$this->template'.");
+			}
 
 
-		foreach($route['controllers'] ?? [] as $class => $settings){
-			$this->calls[] = new Call($class, $settings, 'controller', $this->request);
-		}
+			if(isset($route['methods'])){
+				if(!is_array($route['methods'])){
+					throw new Exception('Router » invalid methods.');
+				}
 
-		foreach($route['objects'] ?? [] as $class => $settings){
-			$this->calls[] = new Call($class, $settings, 'object', $this->request);
+				$this->request->merge_allowed_methods($route['methods']);
+			}
+
+			if(isset($route['contentTypes'])){
+				if(!is_array($route['contentTypes'])){
+					throw new Exception('Router » invalid contentTypes.');
+				}
+
+				$this->request->merge_allowed_content_types($route['contentTypes']);
+			}
+
+			if(isset($route['require_auth']) && $route['require_auth'] == true){
+				$this->require_auth = true;
+			}
+
+
+			foreach($route['controllers'] ?? [] as $class => $settings){
+				$this->calls[] = new Call($class, $settings, 'controller', $this->request);
+			}
+
+			foreach($route['objects'] ?? [] as $class => $settings){
+				$this->calls[] = new Call($class, $settings, 'object', $this->request);
+			}
+
+		} catch(Exception $e){
+			$this->abort($e->getCode(), $e);
+			return;
 		}
 	}
 
 
-	public function prepare() {
-		$this->controllers = [];
-
-		if($this->request->check_method() == false){
-			// 405 Method Not Allowed
-			throw new Exception('Method Not Allowed', 405);
+	public function prepare() : void {
+		if($this->aborted){
+			return;
 		}
 
-		if($this->request->check_content_type() == false){
-			// 415 Unsupported Media Type
-			throw new Exception('Unsupported Media Type', 415);
-		}
+		try {
 
-		if($this->require_auth && !$this->astronauth->is_authenticated()){
-			// TEMP
-			http_response_code(403);
-			header('Location: ' . Config::SERVER_URL . '/astronauth/signin');
-			exit;
+			if($this->request->check_method() == false){
+				// 405 Method Not Allowed
+				$this->abort(405);
+				return;
+			}
 
-			// 403 Forbidden
-			//throw new Exception('Forbidden', 403);
-		}
+			if($this->request->check_content_type() == false){
+				// 415 Unsupported Media Type
+				$this->abort(415);
+				return;
+			}
 
-		foreach($this->calls as $call){
-			$cls = $call->controller;
-			$this->controllers[$call->varname] = new $cls($this->request, $this->astronauth);
-			$this->controllers[$call->varname]->prepare($call);
+			if($this->require_auth && !$this->astronauth->is_authenticated()){
+				// TEMP
+				http_response_code(403);
+				header('Location: ' . Config::SERVER_URL . '/astronauth/signin');
+				exit;
+
+				// 403 Forbidden
+				//$this->response->set_code(403);
+				//return;
+			}
+
+			foreach($this->calls as $call){
+				$cls = $call->controller;
+				$this->controllers[$call->varname] = new $cls($this->request, $this->astronauth);
+				$this->controllers[$call->varname]->prepare($call);
+			}
+
+		} catch(Exception $e){
+			$this->abort($e->getCode(), $e);
+			return;
 		}
 	}
 
 
 	public function execute() {
-		foreach($this->controllers as &$controller){
-			$controller->execute();
+		if($this->aborted){
+			return;
+		}
 
-			// TODO error handling (also in prepare)
+		try {
+
+			foreach($this->controllers as &$controller){
+				$controller->execute();
+
+				// TODO status code handling
+			}
+
+		} catch(Exception $e){
+			$this->abort($e->getCode(), $e);
+			return;
 		}
 	}
 
@@ -192,6 +207,7 @@ class Endpoint {
 		];
 
 		$astronauth = $this->astronauth;
+		$exception = $this->exception;
 
 		foreach($this->controllers as $varname => $controller){
 			$conname = $varname . 'Controller';
@@ -200,6 +216,7 @@ class Endpoint {
 			global $$varname;
 
 			if(isset($$conname) || isset($$varname)){
+				continue;
 				// Exception
 			}
 
@@ -211,6 +228,19 @@ class Endpoint {
 		$this->response->send();
 
 		require $this->template_path . $this->template . '.php';
+	}
+
+
+	private function abort(mixed $code, ?Exception $e = null) : void {
+		$this->aborted = true;
+
+		try {
+			$this->response->set_code($code);
+		} catch(Exception $f){
+			$this->response->set_code(500);
+		}
+
+		$this->exception = $e;
 	}
 
 

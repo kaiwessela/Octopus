@@ -2,17 +2,15 @@
 namespace Blog\Controller;
 use Exception;
 
-class Response { // TODO default content-type, maybe default code
+class Response { 
 	public int $code;
 	public string $content_type;
 	public array $headers;
 
-	public string $template;
-
 
 	function __construct() {
-		$this->code = 0;
-		$this->content_type = '';
+		$this->code = 200;
+		$this->content_type = 'text/html';
 		$this->headers = [];
 	}
 

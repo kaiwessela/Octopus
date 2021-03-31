@@ -1,25 +1,21 @@
 <?php
 session_start();
 
-spl_autoload_register(function($name){
-	$file = __DIR__ . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $name) . '.php';
+require_once __DIR__ . '/Blog/autoloader.php';
+require_once __DIR__ . '/vendor/kaiwessela/astronauth/autoloader.php';
+require_once __DIR__ . '/vendor/kaiwessela/parsedownforblog/autoloader.php';
 
-	if(file_exists($file)){
-		require_once $file;
-	}
-});
+$endpoint = new \Blog\Controller\Endpoint(__DIR__.'/templates');
+$endpoint->route(require __DIR__.'/routes.php');
+$endpoint->prepare();
+$endpoint->execute();
 
-spl_autoload_register(function($name){
-	if($name == 'Astronauth\Config\Config'){
-		require_once __DIR__ . DIRECTORY_SEPARATOR . 'Blog/Config/Astronauth.php';
-	}
-});
+if($endpoint->response->code == 404){
+	$endpoint->template = '404';
+} else if($endpoint->response->code >= 400){
+	$endpoint->template = 'error';
+}
 
-require_once 'vendor/kaiwessela/astronauth/autoloader.php';
-require_once 'vendor/kaiwessela/parsedownforblog/autoloader.php';
+$endpoint->send();
 
-define('TEMPLATE_PATH', __DIR__ . '/Blog/View/Templates/');
-define('COMPONENT_PATH', __DIR__ . '/Blog/View/Components/');
-
-$endpoint = new \Blog\EndpointHandler();
 ?>

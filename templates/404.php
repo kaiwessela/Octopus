@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="de">
 	<head>
-		<?php include COMPONENT_PATH . 'head.php'; ?>
+		<?php include 'components/head.php'; ?>
 		<title>Fehler 404 – <?= $site->title ?></title>
 	</head>
 	<body>
-		<?php include COMPONENT_PATH . 'header.php'; ?>
+		<?php include 'components/header.php'; ?>
 		<main>
 			<section>
 				<header class="highlighted">
-					<h1>Fehler 404</h1>
+					<h1>Seite nicht gefunden (Fehler 404)</h1>
 				</header>
 				<p>
 					Es tut uns leid, aber es scheint, als sei diese Seite nicht vorhanden.<br>
@@ -19,7 +19,7 @@
 				</p>
 			</section>
 		</main>
-		<?php include COMPONENT_PATH . 'footer.php'; ?>
-		<?php include COMPONENT_PATH . 'scripts.php'; ?>
+		<?php include 'components/footer.php'; ?>
+		<?php include 'components/scripts.php'; ?>
 	</body>
 </html>

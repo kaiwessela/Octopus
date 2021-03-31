@@ -207,7 +207,8 @@ class Endpoint {
 		];
 
 		$astronauth = $this->astronauth;
-		$exception = $this->exception;
+
+		$exception = (Config::DEBUG_MODE) ? $this->exception : null;
 
 		foreach($this->controllers as $varname => $controller){
 			$conname = $varname . 'Controller';

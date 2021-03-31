@@ -8,6 +8,7 @@ use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\Abstracts\DataObjectList;
 use \Blog\Controller\Pagination\Pagination;
 use \Blog\Model\Exceptions\InputFailedException;
+use \Blog\Model\Exceptions\EmptyResultException;
 use \Blog\Controller\Substitution;
 use Exception;
 

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 	<head>
-		<?php include COMPONENT_PATH . 'head.php'; ?>
+		<?php include 'components/head.php'; ?>
 		<title><?= $Post->headline ?> – <?= $site->title ?></title>
 		<link rel="canonical" href="<?= $server->url ?>/posts/<?= $Post->longid ?>">
 		<meta name="author" content="<?= $Post->author ?>">
@@ -24,7 +24,7 @@
 		<meta property="og:description" content="<?= $Post->teaser ?>">
 	</head>
 	<body>
-		<?php include COMPONENT_PATH . 'header.php'; ?>
+		<?php include 'components/header.php'; ?>
 		<main>
 			<article class="post">
 				<header>
@@ -53,7 +53,7 @@
 				<?= $Post->content?->parse() ?>
 			</article>
 		</main>
-		<?php include COMPONENT_PATH . 'footer.php'; ?>
-		<?php include COMPONENT_PATH . 'scripts.php'; ?>
+		<?php include 'components/footer.php'; ?>
+		<?php include 'components/scripts.php'; ?>
 	</body>
 </html>

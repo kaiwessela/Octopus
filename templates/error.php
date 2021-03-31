@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="de">
 	<head>
-		<?php include COMPONENT_PATH . 'head.php'; ?>
-		<title>Fehler 500 – <?= $site->title ?></title>
+		<?php include 'components/head.php'; ?>
+		<title>Fehler <?= $this->response->code ?> – <?= $site->title ?></title>
 	</head>
 	<body>
-		<?php include COMPONENT_PATH . 'header.php'; ?>
+		<?php include 'components/header.php'; ?>
 		<main>
 			<section>
 				<header class="highlighted">
-					<h1>Fehler 500</h1>
+					<h1>Fehler <?= $this->response->code ?></h1>
 					<p>Es ist ein unerwarteter Fehler aufgetreten.</p>
 				</header>
 				<?php if(!empty($exception)){ ?>
@@ -32,7 +32,7 @@
 				<?php } ?>
 			</section>
 		</main>
-		<?php include COMPONENT_PATH . 'footer.php'; ?>
-		<?php include COMPONENT_PATH . 'scripts.php'; ?>
+		<?php include 'components/footer.php'; ?>
+		<?php include 'components/scripts.php'; ?>
 	</body>
 </html>

@@ -4,6 +4,10 @@ BUGS:
 
 PLANNED CHANGES:
 - remove subline from Post
+- add only-id and only-longid option for pull functions (identifier)
+- add empty functions for paginatables
+
+- make endpoint (or Request, Response ...) accessible for templates
 
 - rewrite / reorganise count() functions in DataObjects/-Lists
 - rewrite / reorganise InputExceptions (especially improve the frontend messages)

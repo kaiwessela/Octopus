@@ -18,7 +18,7 @@ class Pagination {
 		}
 
 		if($amount === null){
-			$amount = $count; // TODO might cause division by zero
+			$amount = $count;
 		} else if($amount <= 0){
 			throw new Exception('Pagination » amount must be positive.');
 		}

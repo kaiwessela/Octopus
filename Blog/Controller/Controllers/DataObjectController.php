@@ -33,23 +33,24 @@ class DataObjectController extends Controller {
 			$check_amount_and_page = ($call->action == 'list');
 
 		} else if(is_subclass_of($call->dataobject, DataObject::class)){
-			if(!in_array($call->action, ['show', 'new', 'edit', 'delete'])){
+			if(!in_array($call->action, ['show', 'new', 'edit', 'delete', 'count'])){
 				throw new Exception('DataObjectCtl. | Prepare » invalid action.');
 			}
 
-			if(!is_string($call->identifier)){
+			if(!is_string($call->identifier) && $call->action != 'new'){
 				throw new Exception('DataObjectCtl. | Prepare » invalid identifier.');
 			}
 
-			$check_amount_and_page = $call->dataobject::PAGINATABLE;
+			$check_amount_and_page = false;
 		}
 
 		if($check_amount_and_page){
-			if(!is_int($call->amount)){
+			// TODO not necessary, validation takes place in call
+			if(!is_int($call->amount) && !is_null($call->amount)){
 				throw new Exception('DataObjectCtl. | Prepare » invalid amount.');
 			}
 
-			if(!is_int($call->page)){
+			if(!is_int($call->page) && !is_null($call->page)){
 				throw new Exception('DataObjectCtl. | Prepare » invalid page.');
 			}
 		}
@@ -105,7 +106,7 @@ class DataObjectController extends Controller {
 				$this->status = 24;
 			}
 
-		} else if($this->call->action == 'count'){
+		} else if($this->call->action == 'count' && $this->object instanceof DataObjectList){
 			$this->object->count();
 			$this->status = 20;
 
@@ -126,9 +127,13 @@ class DataObjectController extends Controller {
 				return;
 			}
 
-			if($this->request->is_get() || $this->call->action == 'show'){
+			if($this->call->action == 'count'){
+				$this->object->count();
 				$this->status = 20;
-				return;
+
+			} else if($this->request->is_get() || $this->call->action == 'show'){
+				$this->status = 20;
+
 			} else if($this->call->action == 'edit'){
 				try {
 					$this->object->import($this->request->post);
@@ -137,12 +142,12 @@ class DataObjectController extends Controller {
 				} catch(InputFailedException $e){
 					$this->status = 41;
 					$this->errors = $e;
-					return;
 				}
+
 			} else if($this->call->action == 'delete'){
 				$this->object->delete();
 				$this->status = 23;
-				return;
+
 			}
 		}
 	}
@@ -150,7 +155,7 @@ class DataObjectController extends Controller {
 	public function process() : void { // TODO maybe rename
 		// TODO error handling
 
-		if($this->object::PAGINATABLE && !empty($this->call->options['pagination'])){
+		if(!is_null($this->object) && $this->object::PAGINATABLE && !empty($this->call->options['pagination'])){
 			$url_substitution = new Substitution($this->call->options['pagination'], $this->request);
 			$url_scheme = $url_substitution->resolve();
 

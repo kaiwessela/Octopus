@@ -1,5 +1,10 @@
 <?php
 	$adminconfig = (array) json_decode(file_get_contents(__DIR__ . '/adminconfig.json'));
+
+	$name = explode('/', $server->path)[1] ?? '';
+	$config = $adminconfig[$name] ?? null;
+
+	$Controller = $ObjectController ?? null;
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -7,7 +12,7 @@
 		<meta charset="utf-8">
 		<link rel="stylesheet" type="text/css" href="<?= $server->url ?>/admin/resources/css/style.css">
 		<link rel="stylesheet" type="text/css" href="<?= $server->url ?>/admin/resources/css/object-specific.css">
-		<title><?php // TODO:  ?></title>
+		<title><?= $config->lang->{$Controller?->call->action}?->title ?? 'Startseite' ?> – Admin-Bereich</title>
 	</head>
 	<body>
 		<header>
@@ -26,11 +31,11 @@
 			<ul>
 				<li><a <?php if($server->path == 'admin'){ ?>class="current" <?php } ?>href="<?= $server->url ?>/admin">Startseite</a></li>
 
-				<?php foreach($adminconfig as $name => $config){ ?>
+				<?php foreach($adminconfig as $nm => $cfg){ ?>
 				<li><a
-					<?php if($server->path == 'admin/' . $name){ ?>class="current" <?php } ?>
-					href="<?= $server->url ?>/admin/<?= $name ?>">
-						<?= $config->lang->plural ?>
+					<?php if($nm == $name){ ?>class="current" <?php } ?>
+					href="<?= $server->url ?>/admin/<?= $nm ?>">
+						<?= $cfg->lang->plural ?>
 				</a></li>
 				<?php } ?>
 			</ul>
@@ -38,16 +43,10 @@
 		<main>
 
 <?php
-	$name = explode('/', $server->path)[1] ?? '';
-	$config = $adminconfig[$name] ?? null;
-
-	$Controller = $ObjectController;
-
 	if(empty($config)){
 		require __DIR__ . '/main.php';
 
 	} else {
-
 		switch($Controller->call->action){
 			case 'list': 	?><h1><?= $config->lang->list->title	?></h1><?php break;
 			case 'show':	?><h1><?= $config->lang->show->title	?></h1><?php break;
@@ -76,7 +75,7 @@
 			?><div class="message green"><?= $config->lang->message->empty ?></div><?php
 		} else if($Controller->status('unprocessable')){
 			?><div class="message red">Die hochgeladenen Daten sind fehlerhaft!</div>
-			<ul><?php foreach($Controller->errors['import'] as $error){ ?>
+			<ul><?php foreach($Controller->errors->export() as $error){ ?>
 				<li><code><?= $error['field'] ?></code>: <?= $error['type'] ?></li>
 			<?php } ?></ul><?php
 		}

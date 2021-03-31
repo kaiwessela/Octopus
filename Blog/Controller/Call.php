@@ -17,10 +17,10 @@ class Call {
 	public string $action;
 	public array $options;
 
-	public string $identifier;
+	public ?string $identifier;
 
-	public int $amount;
-	public int $page;
+	public ?int $amount;
+	public ?int $page;
 
 
 
@@ -35,86 +35,86 @@ class Call {
 			$this->dataobject = null;
 
 		} else if($mode == 'object'){
-			$dosubs = new Substitution($name, $request);
-			$doname = $dosubs->resolve();
-
-			if(empty(ControllerConfig::REGISTERED_DATA_OBJECTS[$doname])){
-				throw new Exception("Call » data object not found: '$doname'.");
+			$objectname = Substitution::new($name, $request)->resolve();
+			if(empty(ControllerConfig::REGISTERED_DATA_OBJECTS[$objectname])){
+				throw new Exception("Call » data object not found: '$objectname'.");
 			}
 
-
-			$this->varname = $settings['as'] ?? $doname;
+			$this->varname = $settings['as'] ?? $objectname;
 			if(!is_string($this->varname)){
-				throw new Exception("Call » invalid 'as' value or object name on '$name'.");
+				throw new Exception("Call » invalid varname: '$this->varname'.");
 			}
-			// TODO check if varname is set where it should be set as a global variable
 
 			$this->options = $settings['options'] ?? [];
+			$this->action = $settings['action'] ?? '';
 
-
-			$this->action = $settings['action'];
-			if(in_array($this->action, ['list', 'count'])){
-
-				$dataobject = ControllerConfig::REGISTERED_DATA_OBJECTS[$doname];
-				$this->dataobject = ControllerConfig::DATA_OBJECT_LISTS[$dataobject];
-				$this->controller = ControllerConfig::DATA_OBJECT_CONTROLLERS[$dataobject];
-
-				if(!is_subclass_of($this->dataobject, DataObjectList::class)){
-					throw new Exception('Call » invalid dataobject.');
+			if(isset($settings['identifier']) || $this->action == 'new'){
+				if($this->action != 'new'){
+					$this->identifier = Substitution::new($settings['identifier'], $request)->resolve();
+					if(!is_string($this->identifier)){
+						throw new Exception("Call » invalid identifier: '$this->identifier'.");
+					}
+				} else {
+					$this->identifier = null;
 				}
 
-				if($this->action == 'list'){
-					$amount = new Substitution($settings['amount'], $request, 10);
-					$this->amount = (int) $amount->resolve();
-					if(empty($this->amount) || !is_int($this->amount)){
-						throw new Exception("Call » invalid amount on '$name'.");
-					}
-
-					$page = new Substitution($settings['page'], $request, 1);
-					$this->page = (int) $page->resolve();
-					if(empty($this->page) || !is_int($this->page)){
-						throw new Exception("Call » invalid page on '$name'.");
-					}
-				}
-
-			} else if(in_array($this->action, ['new', 'show', 'edit', 'delete'])){
-
-				$this->dataobject = ControllerConfig::REGISTERED_DATA_OBJECTS[$doname];
+				$this->dataobject = ControllerConfig::REGISTERED_DATA_OBJECTS[$objectname];
 				$this->controller = ControllerConfig::DATA_OBJECT_CONTROLLERS[$this->dataobject];
 
 				if(!is_subclass_of($this->dataobject, DataObject::class)){
-					throw new Exception('Call » invalid dataobject.');
+					throw new Exception("Call » invalid dataobject: '$this->dataobject'.");
 				}
 
-				$identifier = new Substitution($settings['identifier'], $request);
-				$this->identifier = $identifier->resolve();
-				if(empty($this->identifier) || !is_string($this->identifier)){
-					throw new Exception("Call » invalid identifier on '$name'.");
-				}
-
-				if($this->dataobject::PAGINATABLE){
-					$amount = new Substitution($settings['amount'], $request, 10);
-					$this->amount = (int) $amount->resolve();
-					if(empty($this->amount) || !is_int($this->amount)){
-						throw new Exception("Call » invalid amount on '$name'.");
+				if($this->action == 'count'){
+					if(!$this->dataobject::PAGINATABLE){
+						throw new Exception('Call » dataobject not countable.');
 					}
 
-					$page = new Substitution($settings['page'], $request, 1);
-					$this->page = (int) $page->resolve();
-					if(empty($this->page) || !is_int($this->page)){
-						throw new Exception("Call » invalid page on '$name'.");
-					}
+					$supports_amount_and_page = false;
+				} else if(in_array($this->action, ['new', 'show', 'edit', 'delete'])){
+					$supports_amount_and_page = $this->dataobject::PAGINATABLE;
+				} else {
+					throw new Exception("Call » invalid action: '$this->action'.");
 				}
 
 			} else {
-				throw new Exception("Call » invalid action '$this->action' on '$name'.");
+				$this->identifier = null;
+
+				$objectclass = ControllerConfig::REGISTERED_DATA_OBJECTS[$objectname];
+				$this->dataobject = ControllerConfig::DATA_OBJECT_LISTS[$objectclass];
+				$this->controller = ControllerConfig::DATA_OBJECT_CONTROLLERS[$objectclass];
+
+				if(!is_subclass_of($this->dataobject, DataObjectList::class)){
+					throw new Exception("Call » invalid dataobject: '$this->dataobject'.");
+				}
+
+				if($this->action == 'list'){
+					$supports_amount_and_page = true;
+				} else if($this->action == 'count'){
+					$supports_amount_and_page = false;
+				} else {
+					throw new Exception("Call » invalid action: '$this->action'.");
+				}
 			}
 
+			if($supports_amount_and_page){
+				$this->amount = Substitution::new($settings['amount'] ?? null, $request, numeric:true)->resolve();
+				if(!is_null($this->amount) && (!is_int($this->amount) || $this->amount <= 0)){
+					throw new Exception("Call » invalid amount: '$this->amount'.");
+				}
+
+				$this->page = Substitution::new($settings['page'] ?? null, $request, numeric:true)->resolve();
+				if(!is_null($this->page) && (!is_int($this->page) || $this->page <= 0)){
+					throw new Exception("Call » invalid page: '$this->page'.");
+				}
+			} else {
+				$this->amount = null;
+				$this->page = null;
+			}
 
 			if(empty($this->controller)){
 				throw new Exception("Call » no matching controller found on '$name'.");
 			}
-
 
 		} else {
 			throw new Exception("Call » invalid mode: '$mode'.");

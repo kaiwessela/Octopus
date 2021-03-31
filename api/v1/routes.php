@@ -52,6 +52,17 @@ return [
 			]
 		]
 	],
+	'api/v1/*/*{8,60}/count' => [
+		'template' => '200',
+		'methods' => ['GET'],
+		'objects' => [
+			'/3' => [
+				'as' => 'Object',
+				'action' => 'count',
+				'identifier' => '/4'
+			]
+		]
+	],
 	'api/v1/*/*{8,60}/edit' => [
 		'template' => '200',
 		'methods' => ['POST'],

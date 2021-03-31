@@ -7,6 +7,8 @@ class Response { // TODO default content-type, maybe default code
 	public string $content_type;
 	public array $headers;
 
+	public string $template;
+
 
 	function __construct() {
 		$this->code = 0;
@@ -16,7 +18,7 @@ class Response { // TODO default content-type, maybe default code
 
 
 	public function set_code(int $code) : void {
-		if($code >= 100 && $code < 600){
+		if(isset($this::RESPONSE_CODES[$code])){
 			$this->code = $code;
 		} else {
 			throw new Exception('Response » invalid code.');

@@ -303,12 +303,12 @@ abstract class DataObject {
 			}
 
 			if($mode == 'relationlist') {
-				if(empty($input)){
-					continue;
-				}
-
 				if(empty($this->$property)){
 					$this->$property = new $definition();
+				}
+
+				if(empty($input)){
+					continue;
 				}
 
 				try {

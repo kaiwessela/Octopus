@@ -36,7 +36,7 @@ SELECT * FROM events
 SQL; #---|
 
 	const COUNT_QUERY = <<<SQL
-SELECT COUNT(*) FROM posts
+SELECT COUNT(*) FROM events
 SQL; #---|
 
 }

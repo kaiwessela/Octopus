@@ -62,11 +62,11 @@ class Request {
 	}
 
 	public function GET($key) {
-
+		return $this->get[$key] ?? null;
 	}
 
 	public function POST($key) {
-
+		return $this->post[$key] ?? null;
 	}
 
 

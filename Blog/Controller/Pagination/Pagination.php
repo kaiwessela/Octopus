@@ -12,16 +12,20 @@ class Pagination {
 	public array $items;
 
 
-	function __construct(int $page, int $amount, int $count, string $url_scheme) {
+	function __construct(?int $page, ?int $amount, int $count, string $url_scheme) {
 		if($count < 0){
 			throw new Exception('Pagination » count cannot be negative.');
 		}
 
-		if($amount <= 0){
+		if($amount === null){
+			$amount = $count; // TODO might cause division by zero
+		} else if($amount <= 0){
 			throw new Exception('Pagination » amount must be positive.');
 		}
 
-		if($page < 0){
+		if($page === null){
+			$page = 1;
+		} else if($page < 0){
 			throw new Exception('Pagination » page cannot be negative.');
 		} else if($page == 0 && $count != 0){
 			throw new Exception('Pagination » page cannot be 0 when count is positive.');
@@ -33,15 +37,19 @@ class Pagination {
 		if($count == 0){
 			$this->current_page = 0;
 			$this->total_objects = 0;
-			$this->pages = [];
+			$this->items = [];
 			return;
 		}
 
 		$this->current_page = $page;
 		$this->total_objects = $count;
 
-		for($i = 1; $i <= ceil($this->total_objects / $this->objects_per_page); $i++){
-			$this->items[$i] = new Item($i, $this);
+		if($this->objects_per_page == 0){
+			$this->items = [];
+		} else {
+			for($i = 1; $i <= ceil($this->total_objects / $this->objects_per_page); $i++){
+				$this->items[$i] = new Item($i, $this);
+			}
 		}
 	}
 

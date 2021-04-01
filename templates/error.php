@@ -2,14 +2,14 @@
 <html lang="de">
 	<head>
 		<?php include 'components/head.php'; ?>
-		<title>Fehler <?= $this->response->code ?> – <?= $site->title ?></title>
+		<title>Fehler <?= $response->code ?> – <?= $site->title ?></title>
 	</head>
 	<body>
 		<?php include 'components/header.php'; ?>
 		<main>
 			<section>
 				<header class="highlighted">
-					<h1>Fehler <?= $this->response->code ?></h1>
+					<h1>Fehler <?= $response->code ?></h1>
 					<p>Es ist ein unerwarteter Fehler aufgetreten.</p>
 				</header>
 				<?php if(!empty($exception)){ ?>

@@ -177,7 +177,13 @@ class Endpoint {
 				$controller->execute();
 
 				// TEMP
-				if($controller->status(44) || $controller->status(24)){
+				$error_on_not_found = $controller->call->options['404-on-not-found'] ?? true;
+				if($controller->status(44) && $error_on_not_found){
+					$this->abort(404);
+				}
+
+				$error_on_empty = $controller->call->options['404-on-empty'] ?? false;
+				if($controller->status(24) && $error_on_empty){
 					$this->abort(404);
 				}
 

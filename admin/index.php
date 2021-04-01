@@ -12,5 +12,10 @@ $endpoint->require_auth = true;
 $endpoint->route(require __DIR__.'/routes.php');
 $endpoint->prepare();
 $endpoint->execute();
+
+if($endpoint->response->code != 200){
+	$endpoint->template = 'error';
+}
+
 $endpoint->send();
 ?>

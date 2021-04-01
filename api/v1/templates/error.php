@@ -1,6 +1,6 @@
 {
 	"motd": "<?= $site->title ?? 'Site' ?> Blog API v1 - failed.",
-	"code": <?= json_encode($this->response->code) // TODO ?>,
+	"code": <?= json_encode($response->code) // TODO ?>,
 
 	<?php if(isset($exception)){ ?>
 	"error": {

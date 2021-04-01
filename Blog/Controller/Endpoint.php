@@ -187,48 +187,51 @@ class Endpoint {
 
 
 	public function send() {
-		// TEMP TEMP TEMP
-		global $server;
-		global $site;
-		global $astronauth;
-		global $exception;
-
 		$server = (object)[
 			'version' => Config::VERSION,
 			'url' => Config::SERVER_URL,
 			'lang' => Config::SERVER_LANG,
-			'dyn_img_path' => Config::DYNAMIC_IMAGE_PATH, // DEPRECATED,
-			'path' => trim($this->request->path, '/')
+			'path' => trim($this->request->path, '/') // DEPRECATED or change
 		];
 
-		$site = (object)[
+		$site = (object)[ // DEPRECATED
 			'title' => Site::TITLE,
 			'twitter' => Site::TWITTER_SITE
 		];
 
 		$astronauth = $this->astronauth;
-
 		$exception = (Config::DEBUG_MODE) ? $this->exception : null;
 
-		foreach($this->controllers as $varname => $controller){
-			$conname = $varname . 'Controller';
+		$controllers = &$this->controllers;
+		$response = &$this->response;
 
-			global $$conname;
-			global $$varname;
+		$template = $this->template_path . $this->template . '.php'; // TEMP
 
-			if(isset($$conname) || isset($$varname)){
-				continue;
-				// Exception
+		$send = static function() use ($server, $site, $astronauth, $exception, &$controllers, &$response, $template){
+			foreach($controllers as $varname => &$controller){
+				$conname = $varname . 'Controller';
+
+				if(isset($$conname) || isset($$varname)){
+					continue;
+					// TODO Exception
+				}
+
+				$$conname = &$controller;
+				$controller->process();
+				$$varname = &$controller->object;
 			}
 
-			$$conname = $controller;
-			$controller->process();
-			$$varname = $controller->object;
-		}
+			unset($conname);
+			unset($varname);
+			unset($controller);
+			unset($controllers);
 
-		$this->response->send();
+			$response->send();
 
-		require $this->template_path . $this->template . '.php';
+			require $template;
+		};
+
+		$send();
 	}
 
 

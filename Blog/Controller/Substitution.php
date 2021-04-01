@@ -25,20 +25,18 @@ class Substitution {
 	public function resolve() : string|int|float|null {
 		if(!isset($this->result)){
 			$regex = '/(^|{)(([\/])([0-9]+)|([\?])([A-Za-z0-9-_.]+))(\|([A-Za-z0-9-_.]+))?(}|$)/';
-			$request = $this->request;
-			$numeric = $this->numeric;
 
-			$result = preg_replace_callback($regex, function($matches) use ($request, $numeric){
+			$result = preg_replace_callback($regex, function($matches){
 				if(!empty($matches[3]) && $matches[3] == '/'){
 					# path mode
-					$segments = explode('/', trim($request->path, '/'));
+					$segments = explode('/', trim($this->request->path, '/'));
 					$replacement = $segments[$matches[4] - 1] ?? null;
 				} else if($matches[5] == '?'){
 					# query mode
-					$replacement = $request->GET($matches[6]);
+					$replacement = $this->request->GET($matches[6]);
 				}
 
-				if($replacement == '' || $replacement == null || ($numeric && !is_numeric($replacement))){
+				if($replacement == '' || $replacement == null || ($this->numeric && !is_numeric($replacement))){
 					$replacement = $matches[8] ?? '';
 				}
 

@@ -71,7 +71,7 @@
 			?><div class="message green"><?= $config->lang->message->edited ?></div><?php
 		} else if($Controller->status('deleted')){
 			?><div class="message green"><?= $config->lang->message->deleted ?></div><?php
-		} else if($controller->call->action == 'list' && $Controller->status('empty')){
+		} else if($Controller->call->action == 'list' && $Controller->status('empty')){
 			?><div class="message green"><?= $config->lang->message->empty ?></div><?php
 		} else if($Controller->status('unprocessable')){
 			?><div class="message red">Die hochgeladenen Daten sind fehlerhaft!</div>
@@ -97,7 +97,7 @@
 				</a><?php
 			}
 
-			if($controller->call->action != 'delete'){
+			if($Controller->call->action != 'delete'){
 				?><a class="button red"
 					href="<?= $server->url ?>/admin/<?= $name ?>/<?= $Object->id ?>/delete">
 						Entfernen

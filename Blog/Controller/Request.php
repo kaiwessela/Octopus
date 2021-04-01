@@ -22,7 +22,7 @@ class Request {
 	function __construct() {
 		$this->url = $_SERVER['REQUEST_URI'];
 		$this->host = $_SERVER['HTTP_HOST'];
-		$this->path = $_SERVER['SCRIPT_URL'] ?? null;
+		$this->path = explode('?', $_SERVER['REQUEST_URI'], 2)[0] ?? null;
 		$this->query = $_SERVER['QUERY_STRING'] ?? null;
 
 		$this->get = $_GET;

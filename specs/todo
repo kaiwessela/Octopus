@@ -1,11 +1,11 @@
 BUGS:
-- /admin/columns/show and /admin/groups/show
+-
 
 
 PLANNED CHANGES:
+- new SiteConfig (or no SiteConfig at all)
 - remove subline from Post
 - add only-id and only-longid option for pull functions (identifier)
-- add empty functions for paginatables
 
 - make endpoint (or Request, Response ...) accessible for templates
 
@@ -13,3 +13,13 @@ PLANNED CHANGES:
 - rewrite / reorganise InputExceptions (especially improve the frontend messages)
 
 - include Endpoint.send() into Response.send()
+- Controller status (error) handling (fully / customizable)
+- Object alias tables
+
+- Endpoint template handling and checking
+
+- new/better auth/permission system
+
+- get rid of MediaController
+
+- remove and reorganize Config::SERVER_URL

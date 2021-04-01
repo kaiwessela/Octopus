@@ -80,11 +80,11 @@ class ControllerConfig {
 	];
 
 	const DATA_OBJECT_CONTROLLERS = [
-		Medium::class 		=> DataObjectController::class,
-		Application::class 	=> DataObjectController::class,
-		Audio::class 		=> DataObjectController::class,
-		Image::class 		=> DataObjectController::class,
-		Video::class 		=> DataObjectController::class,
+		Medium::class 		=> MediaController::class,
+		Application::class 	=> MediaController::class,
+		Audio::class 		=> MediaController::class,
+		Image::class 		=> MediaController::class,
+		Video::class 		=> MediaController::class,
 		Column::class 		=> DataObjectController::class,
 		Event::class 		=> DataObjectController::class,
 		Group::class 		=> DataObjectController::class,

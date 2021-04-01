@@ -21,7 +21,7 @@
 
 				<?php include 'components/pagination.php'; ?>
 
-				<?php if($PostController->status('empty')){ ?>
+				<?php if($Post->empty()){ ?>
 				<p>Keine Artikel gefunden.</p>
 			<?php } else { $Post->each(function($post) use ($server){ include 'components/preview-post.php'; }); } ?>
 

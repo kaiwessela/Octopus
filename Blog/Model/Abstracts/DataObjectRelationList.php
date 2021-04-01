@@ -199,6 +199,16 @@ abstract class DataObjectRelationList {
 	}
 
 
+	public function amount() : int {
+		return count($this->relations);
+	}
+
+
+	public function empty() : bool {
+		return ($this->amount() == 0);
+	}
+
+
 	abstract protected function db_valuestring(int $index) : string;
 	abstract protected function db_idstring(int $index) : string;
 	abstract protected function db_values(int $index, string $relation_id) : array;

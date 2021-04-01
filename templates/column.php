@@ -21,7 +21,7 @@
 
 				<?php include 'components/pagination.php'; ?>
 
-				<?php if(count($Column->objects ?? []) == 0){ ?>
+				<?php if($Column->empty()){ ?>
 				<p>Keine Artikel gefunden.</p>
 				<?php } else { $Column->each(function($post) use ($server){ include 'components/preview-post.php'; }); } ?>
 			</section>

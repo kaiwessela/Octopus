@@ -176,6 +176,11 @@ class Endpoint {
 			foreach($this->controllers as &$controller){
 				$controller->execute();
 
+				// TEMP
+				if($controller->status(44) || $controller->status(24)){
+					$this->abort(404);
+				}
+
 				// TODO status code handling
 			}
 

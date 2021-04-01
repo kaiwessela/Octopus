@@ -71,6 +71,11 @@ class Column extends DataObject {
 	}
 
 
+	public function amount() : int {
+		return $this->postrelations?->amount() ?? 0;
+	}
+
+
 	const PULL_QUERY = <<<SQL
 SELECT * FROM columns
 LEFT JOIN postcolumnrelations ON postcolumnrelation_column_id = column_id

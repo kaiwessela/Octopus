@@ -147,5 +147,10 @@ abstract class DataObjectList {
 
 		return $result;
 	}
+
+
+	public function amount() : int {
+		return count($this->objects);
+	}
 }
 ?>

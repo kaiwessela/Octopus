@@ -29,5 +29,13 @@ trait Paginatable {
 
 		return $this->count;
 	}
+
+
+	abstract public function amount() : int;
+
+
+	public function empty() : bool {
+		return ($this->amount() == 0);
+	}
 }
 ?>

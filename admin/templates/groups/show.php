@@ -4,9 +4,7 @@
 	<p><?= $Object->description ?></p>
 
 	<h2>Mitglieder:</h2>
-	<ul>
-	<?php foreach($Object->personrelations as $rel){ ?>
+	<ul><?php $Object->personrelations?->each(function($rel){ ?>
 		<li><code><?= $rel->person->longid ?></code> <strong><?= $rel->person->name ?></strong></li>
-	<?php } ?>
-</ul>
+	<?php }); ?></ul>
 </section>

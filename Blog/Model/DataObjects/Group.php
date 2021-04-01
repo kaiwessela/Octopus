@@ -72,6 +72,11 @@ class Group extends DataObject {
 	}
 
 
+	public function amount() : int {
+		return $this->personrelations?->amount() ?? 0;
+	}
+
+
 	const PULL_QUERY = <<<SQL
 SELECT * FROM groups
 LEFT JOIN persongrouprelations ON persongrouprelation_group_id = group_id

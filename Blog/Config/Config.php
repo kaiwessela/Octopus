@@ -26,11 +26,8 @@ class Config {
 	const DB_USER = 'user'; # username of your database user
 	const DB_PASSWORD = 'password'; # password of your database user
 
-	# WEBSITE CONFIGURATION
-	const DYNAMIC_IMAGE_PATH = '/resources/images/dynamic/';
-
 	# BLOG VERSION
 	# just informational purpose - do not edit
-	const VERSION = 'v0.11.0-beta';
+	const VERSION = 'v0.12.0-beta';
 }
 ?>

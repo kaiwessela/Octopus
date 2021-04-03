@@ -35,6 +35,13 @@ class EventList extends DataObjectList {
 SELECT * FROM events
 SQL; #---|
 
+
+	const SELECT_IDS_QUERY = <<<SQL
+SELECT * FROM events
+WHERE event_id IN 
+SQL; #---|
+
+
 	const COUNT_QUERY = <<<SQL
 SELECT COUNT(*) FROM events
 SQL; #---|

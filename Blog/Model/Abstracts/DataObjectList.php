@@ -32,6 +32,25 @@ abstract class DataObjectList {
 	}
 
 
+	public function pull_by_ids(array $idlist) : void {
+		$this->require_empty();
+		$pdo = $this->open_pdo();
+
+		if(empty($idlist)){
+			return;
+		}
+
+		$query = $this::SELECT_IDS_QUERY . ' (' . implode(', ', array_fill(0, count($idlist), '?')) . ')';
+		$s = $pdo->prepare($query);
+
+		if(!$s->execute(array_values($idlist))){
+			throw new DatabaseException($s);
+		} else if($s->rowCount() != 0){
+			$htis->load($s->fetchAll());
+		}
+	}
+
+
 	public function pull(?int $limit = null, ?int $offset = null, ?array $options = null) : void {
 #	@action:
 #	  - select multiple objects from the database
@@ -40,8 +59,8 @@ abstract class DataObjectList {
 #	  - $limit: the amount of objects to be selected
 #	  - $offset: the amount of objects to be skipped at the beginning; ignored if $limit == null
 
-		$pdo = $this->open_pdo();
 		$this->require_empty();
+		$pdo = $this->open_pdo();
 
 		$query = $this->pull_query($limit, $offset, $options);
 		$s = $pdo->prepare($query);

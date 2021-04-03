@@ -21,6 +21,13 @@ SELECT * FROM groups
 ORDER BY group_name
 SQL; #---|
 
+
+	const SELECT_IDS_QUERY = <<<SQL
+SELECT * FROM groups
+WHERE group_id IN 
+SQL; #---|
+
+
 	const COUNT_QUERY = <<<SQL
 SELECT COUNT(*) FROM groups
 SQL; #---|

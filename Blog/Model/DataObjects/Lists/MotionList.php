@@ -21,6 +21,12 @@ SELECT * FROM motions
 ORDER BY motion_timestamp DESC
 SQL; #---|
 
+	const SELECT_IDS_QUERY = <<<SQL
+SELECT * FROM motions
+WHERE motion_id IN 
+SQL; #---|
+
+
 	const COUNT_QUERY = <<<SQL
 SELECT COUNT(*) FROM motions
 SQL; #---|

@@ -21,6 +21,13 @@ SELECT * FROM media
 ORDER BY medium_longid
 SQL; #---|
 
+
+	const SELECT_IDS_QUERY = <<<SQL
+SELECT * FROM media
+WHERE medium_id IN
+SQL; #---|
+
+
 	const COUNT_QUERY = <<<SQL
 SELECT COUNT(*) FROM media
 SQL; #---|

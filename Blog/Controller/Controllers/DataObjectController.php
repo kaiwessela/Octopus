@@ -87,7 +87,6 @@ class DataObjectController extends Controller {
 				$this->status = 20;
 			} catch(EmptyResultException $e){
 				$this->status = 24;
-				return;
 			}
 
 		} else if($this->call->action == 'new'){
@@ -112,17 +111,8 @@ class DataObjectController extends Controller {
 			$this->status = 20;
 
 		} else {
-			if($this->call->action == 'show' && $this->object::PAGINATABLE){
-				$limit = $this->call->amount;
-				$offset = is_null($this->call->page)
-					? null : ($this->call->amount * ($this->call->page - 1));
-			} else {
-				$limit = null;
-				$offset = null;
-			}
-
 			try {
-				$this->object->pull($this->call->identifier, $limit, $offset, $this->call->options);
+				$this->object->pull($this->call->identifier);
 			} catch(EmptyResultException $e){
 				$this->status = 44;
 				return;
@@ -132,8 +122,22 @@ class DataObjectController extends Controller {
 				$this->object->count();
 				$this->status = 20;
 
-			} else if($this->request->is_get() || $this->call->action == 'show'){
-				$this->status = 20;
+			} else if($this->call->action == 'show'){
+				if($this->object::PAGINATABLE){
+					$limit = $this->call->amount;
+					$offset = is_null($this->call->page)
+						? null : ($this->call->amount * ($this->call->page - 1));
+
+					try {
+						$this->object->pull_relations($limit, $offset);
+						$this->status = 20;
+					} catch(EmptyResultException $e){
+						$this->status = 24;
+					}
+
+				} else {
+					$this->status = 20;
+				}
 
 			} else if($this->call->action == 'edit'){
 				try {

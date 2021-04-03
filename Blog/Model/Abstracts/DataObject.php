@@ -63,7 +63,7 @@ abstract class DataObject {
 	}
 
 
-	public function pull(string $identifier, ?int $limit = null, ?int $offset = null, ?array $options = null) : void {
+	public function pull(string $identifier) : void {
 #	@action:
 #	  - select one object from the database
 #	  - call this->load to assign the received data to this object
@@ -75,31 +75,15 @@ abstract class DataObject {
 		$this->require_empty();
 		$pdo = $this->open_pdo();
 
-		$values = ['id' => $identifier];
-
-		if($this::PAGINATABLE){
-			$query = $this->pull_query($limit, $offset, $options);
-		} else {
-			# ignore limit and offset because it has no effect
-			$query = $this->pull_query(options: $options);
-		}
-
+		$query = $this::PULL_QUERY;
 		$s = $pdo->prepare($query);
-
-		if(!$s->execute($values)){
+		if(!$s->execute(['id' => $identifier])){
 			throw new DatabaseException($s);
 		} else if($s->rowCount() == 0){
 			throw new EmptyResultException($query);
 		} else {
 			$this->load($s->fetchAll());
 		}
-	}
-
-
-	protected function pull_query(?int $limit = null, ?int $offset = null, ?array $options = null) : string {
-		$query = $this::PULL_QUERY;
-		$query .= ($limit) ? (($offset) ? " LIMIT $offset, $limit" : " LIMIT $limit") : null;
-		return $query;
 	}
 
 

@@ -39,8 +39,15 @@ class Column extends DataObject {
 
 		if(is_array($data[0])){
 			$row = $data[0];
+			$this->count = null;
 		} else {
 			$row = $data;
+
+			if($norecursion){
+				$this->count = null;
+			} else {
+				$this->count = (empty($row['postcolumnrelation_id'])) ? 0 : (int) $row['count'];
+			}
 		}
 
 		$this->id = $row['column_id'];
@@ -48,11 +55,19 @@ class Column extends DataObject {
 		$this->name = $row['column_name'];
 		$this->description = $row['column_description'];
 
-		$this->postrelations = ($norecursion || empty($row['postcolumnrelation_id'])) ? null : new PostColumnRelationList();
-		$this->postrelations?->load($data, $this);
+		$this->postrelations = null;
 
 		$this->set_not_new();
 		$this->set_not_empty();
+	}
+
+
+	public function load_relations(array $data) : void {
+		$this->require_not_empty();
+		$this->require_not_new();
+
+		$this->postrelations = (empty($data)) ? null : new PostColumnRelationList();
+		$this->postrelations?->load($data, $this);
 	}
 
 
@@ -77,25 +92,23 @@ class Column extends DataObject {
 
 
 	const PULL_QUERY = <<<SQL
-SELECT * FROM columns
+SELECT *, COUNT(*) AS 'count' FROM columns
 LEFT JOIN postcolumnrelations ON postcolumnrelation_column_id = column_id
-LEFT JOIN posts ON post_id = postcolumnrelation_post_id
-LEFT JOIN media ON medium_id = post_image_id
 WHERE column_id = :id OR column_longid = :id
-ORDER BY post_timestamp DESC
 SQL; #---|
 
 
-	const COUNT_QUERY = <<<SQL
-SELECT COUNT(*) FROM postcolumnrelations WHERE postcolumnrelation_column_id = :id
+	const PULL_OBJECTS_QUERY = <<<SQL
+SELECT * FROM postcolumnrelations
+LEFT JOIN posts ON post_id = postcolumnrelation_post_id
+LEFT JOIN media ON medium_id = post_image_id
+WHERE postcolumnrelation_column_id = :id
 SQL; #---|
 
 
 	const INSERT_QUERY = <<<SQL
-INSERT INTO columns
-	(column_id, column_longid, column_name, column_description)
-VALUES
-	(:id, :longid, :name, :description)
+INSERT INTO columns (column_id, column_longid, column_name, column_description)
+VALUES (:id, :longid, :name, :description)
 SQL; #---|
 
 

@@ -9,7 +9,7 @@ PLANNED CHANGES:
 
 - make endpoint (or Request, Response ...) accessible for templates
 
-- rewrite / reorganise count() functions in DataObjects/-Lists
+- rewrite / reorganise count() functions in DataObjects/-Lists (and fix the bodgy paginatable pull solution)
 - rewrite / reorganise InputExceptions (especially improve the frontend messages)
 
 - include Endpoint.send() into Response.send()
@@ -23,3 +23,30 @@ PLANNED CHANGES:
 - get rid of MediaController
 
 - remove and reorganize Config::SERVER_URL
+
+- reorganize alias/as in routes
+
+
+
+
+----------------
+Idee: DataObjectCollection
+- gespeichert als JSON in einem Container-Objekt
+	-> Mischung aus DataObject und DataType
+- Format:
+	{
+		type_1: [object_id_1, object_id_2, …],
+		type_2: …,
+		…
+	}
+	oder
+	{
+		name_1: {'type': type_1, 'ids' => [object_id_1, object_id_2], (options/tags: […])}
+		…
+	}
+- Jeder Typ wird einzeln gepullt; Dafür sind neue Pull-Funktionen zumindest in DataObjectLists nötig,
+	die das Pullen einer spezifischen Liste von IDs erlauben.
+- Objekte und evtl. auch Listen sollen in Markdown-Text eingebunden werden können, z.B. per [[object]].
+	-> erfordert neuen MarkdownContent, der zum Parsen Templates mitgegeben werden müssen.
+		Ähnlich wie bei den each-Funktionen. Bei fehlenden Templates wird das Objekt ignoriert.
+		(evtl. mit Umschaltung, ob ignoriert oder die ID ausgegeben werden soll)

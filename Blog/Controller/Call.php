@@ -25,17 +25,19 @@ class Call {
 
 
 	function __construct(string $name, array $settings, string $mode, Request &$request) {
+		$cname = rtrim($name, '*'); // Group, Group*, Group** etc. becomes Group
+
 		if($mode == 'controller'){
-			if(empty(ControllerConfig::REGISTERED_CONTROLLERS[$name])){
+			if(empty(ControllerConfig::REGISTERED_CONTROLLERS[$cname])){
 				throw new Exception("Call » controller not found: '$name'.");
 			}
 
-			$this->controller = ControllerConfig::REGISTERED_CONTROLLERS[$name];
+			$this->controller = ControllerConfig::REGISTERED_CONTROLLERS[$cname];
 			$this->settings = $settings;
 			$this->dataobject = null;
 
 		} else if($mode == 'object'){
-			$objectname = Substitution::new($name, $request)->resolve();
+			$objectname = Substitution::new($cname, $request)->resolve();
 			if(empty(ControllerConfig::REGISTERED_DATA_OBJECTS[$objectname])){
 				throw new Exception("Call » data object not found: '$objectname'.");
 			}

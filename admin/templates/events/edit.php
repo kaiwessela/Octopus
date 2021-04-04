@@ -13,7 +13,7 @@
 			Die Termin-ID wird in der URL verwendet und entspricht meistens dem Titel.
 		</span>
 	</label>
-	<input type="text" size="40" autocomplete="off"
+	<input type="text" size="60" autocomplete="off"
 		id="longid" name="longid" value="<?= $Object?->longid ?>"
 		minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required>
 
@@ -27,29 +27,29 @@
 	<label for="longid">
 		<span class="name">Long-ID</span>
 	</label>
-	<input type="text" id="longid" name="longid" value="<?= $Object?->longid ?>" size="40" readonly>
+	<input type="text" id="longid" name="longid" value="<?= $Object?->longid ?>" size="60" readonly>
 
 <?php } ?>
 
 	<!-- TITLE -->
 	<label for="title">
 		<span class="name">Titel</span>
-		<span class="conditions">erforderlich, 1 bis 50 Zeichen</span>
+		<span class="conditions">erforderlich, 1 bis 100 Zeichen</span>
 		<span class="infos">Der Titel der Veranstaltung.</span>
 	</label>
-	<input type="text" size="40"
+	<input type="text" size="100"
 		id="title" name="title" value="<?= $Object?->title ?>"
-		maxlength="50" required>
+		maxlength="100" required>
 
 	<!-- ORGANISATION -->
 	<label for="organisation">
 		<span class="name">Organisation</span>
-		<span class="conditions">erforderlich, 1 bis 40 Zeichen</span>
+		<span class="conditions">erforderlich, 1 bis 60 Zeichen</span>
 		<span class="infos">Die Organisation, die zur Veranstaltung eingeladen hat.</span>
 	</label>
-	<input type="text" size="30"
+	<input type="text" size="60"
 		id="organisation" name="organisation" value="<?= $Object?->organisation ?>"
-		maxlength="40" required>
+		maxlength="60" required>
 
 	<!-- TIMESTAMP -->
 	<label for="timeinput">
@@ -63,21 +63,21 @@
 	<!-- LOCATION -->
 	<label for="location">
 		<span class="name">Ort</span>
-		<span class="conditions">optional, bis zu 60 Zeichen</span>
+		<span class="conditions">optional, bis zu 100 Zeichen</span>
 		<span class="infos">Der Ort der Veranstaltung.</span>
 	</label>
-	<input type="text" size="40"
+	<input type="text" size="100"
 		id="location" name="location" value="<?= $Object?->location ?>"
-		maxlength="60">
+		maxlength="100">
 
 	<!-- DESCRIPTION -->
 	<label for="description">
 		<span class="name">Beschreibung</span>
-		<span class="conditions">optional</span>
+		<span class="conditions">optional, Markdown erlaubt</span>
 		<span class="infos">Beschreibung der Veranstaltung.</span>
 	</label>
 	<textarea id="description" name="description"
-		cols="60" rows="5"><?= $Object?->description ?></textarea>
+		cols="80" rows="20"><?= $Object?->description ?></textarea>
 
 	<!-- CANCELLED -->
 	<label for="cancelled">

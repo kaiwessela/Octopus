@@ -1,15 +1,18 @@
-section.list.images {
+section.list.images,
+section.list.persons {
 	display: grid;
 	grid-template-columns: 1fr 1fr 1fr;
 	gap: 1rem;
 }
 
-section.list.images article {
+section.list.images article,
+section.list.persons article {
 	margin: 0;
 	box-sizing: border-box;
 }
 
-section.list.images img {
+section.list.images img,
+section.list.persons img {
 	height: 12rem;
 	width: 100%;
 	object-fit: contain;
@@ -17,8 +20,8 @@ section.list.images img {
 	background-color: #00000022;
 }
 
-section.show.images img,
-form.images img {
+form.images img,
+section.show img {
 	height: auto;
 	max-height: 50vh;
 	margin: 1rem 0;
@@ -35,6 +38,28 @@ section.list.applications {
 	grid-template-columns: 1fr 1fr;
 	gap: 1rem;
 }
+
+
+section.posts article .headline {
+	font-size: 1.4rem;
+	margin: 0.25em 0;
+}
+
+section.posts article .overline {
+	font-weight: 600;
+}
+
+section.posts article .subline {
+	font-size: 1.1rem;
+	font-weight: 500;
+	font-style: italic;
+	margin: 0 0 0.25em;
+}
+
+section.posts article .author {
+	color: var(--dark-gray);
+}
+
 
 .application {
 	display: flex;

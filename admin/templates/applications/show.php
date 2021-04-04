@@ -6,5 +6,34 @@
 		<tr><td><em>Beschreibung:</em></td><td><?= $Object->description ?></td></tr>
 		<tr><td><em>Urheberrechtshinweis:</em></td><td><?= $Object->copyright; ?></td></tr>
 	</table>
-	<p><a href="<?= $Object->src() ?>">Datei: <?= $Object->longid.'.'.$Object->extension ?></a></p>
+
+	<h2>Dateien</h2>
+
+	<table>
+		<tr>
+			<th>Variante</th>
+			<th>MIME-Typ</th>
+			<th>Speicherort</th>
+			<th>Link zur Datei</th>
+		</tr>
+	<?php $scan = $Controller->scan(); foreach($scan['storage'] as $variant => $status){ ?>
+		<tr>
+			<td><em><?= $variant ?></em></td>
+			<td><code><?= $status['mime'] ?? '' ?></code></td>
+			<td>
+				<?php if($status['found']){ ?>
+				<span class="tag green">Dateisystem</span>
+				<?php } else { ?>
+				<span class="tag yellow">Nicht im Dateisystem gefunden</span>
+				<?php }
+				if(isset($scan['db'][$variant])){ ?>
+				<span class="tag blue">Datenbank</span>
+				<?php } ?>
+			</td>
+			<td>
+				<a href="<?= $Object->src($variant) ?>" class="button gray"><?= $Object->longid.'.'.$Object->extension ?></a>
+			</td>
+		</tr>
+	<?php } ?>
+	</table>
 </section>

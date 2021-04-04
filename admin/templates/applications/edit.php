@@ -15,7 +15,7 @@
 			Die Dokumenten-ID wird in der URL verwendet und sollte auf Titel oder Inhalt hinweisen.
 		</span>
 	</label>
-	<input type="text" size="40" autocomplete="off"
+	<input type="text" size="60" autocomplete="off"
 		id="longid" name="longid" value="<?= $Object?->longid ?>"
 		minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required>
 
@@ -29,23 +29,23 @@
 	<label for="longid">
 		<span class="name">Long-ID</span>
 	</label>
-	<input type="text" id="longid" name="longid" value="<?= $Object?->longid ?>" size="40" readonly>
+	<input type="text" id="longid" name="longid" value="<?= $Object?->longid ?>" size="60" readonly>
 
-	<p><a href="<?= $Object->src() ?>">Datei: <?= $Object->longid.'.'.$Object->extension ?></a></p>
+	<p><a class="button blue" href="<?= $Object->src() ?>">Datei: <?= $Object->longid.'.'.$Object->extension ?></a></p>
 
 <?php } ?>
 
 	<!-- TITLE -->
 	<label for="title">
 		<span class="name">Titel</span>
-		<span class="conditions">optional, bis zu 60 Zeichen</span>
+		<span class="conditions">optional, bis zu 140 Zeichen</span>
 		<span class="infos">
 			Der Titel des Dokuments.
 		</span>
 	</label>
-	<input type="text" size="40"
+	<input type="text" size="100"
 		id="title" name="title" value="<?= $Object?->title ?>"
-		maxlength="60">
+		maxlength="140">
 
 	<!-- DESCRIPTION -->
 	<label for="description">
@@ -55,7 +55,7 @@
 			Eine kurze Beschreibung des Dokumentinhalts.
 		</span>
 	</label>
-	<input type="text" size="60"
+	<input type="text" size="100"
 		id="description" name="description" value="<?= $Object?->description ?>"
 		maxlength="250">
 
@@ -68,7 +68,7 @@
 			Lizenz, unter der es zur Verfügung steht, anzugeben.
 		</span>
 	</label>
-	<input type="text" size="50"
+	<input type="text" size="100"
 		id="copyright" name="copyright" value="<?= $Object?->copyright ?>"
 		maxlength="250">
 

@@ -28,6 +28,6 @@ class Config {
 
 	# BLOG VERSION
 	# just informational purpose - do not edit
-	const VERSION = 'v0.12.1-beta';
+	const VERSION = 'v0.12.2-beta';
 }
 ?>

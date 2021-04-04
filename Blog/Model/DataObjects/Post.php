@@ -29,11 +29,11 @@ class Post extends DataObject {
 #	const PAGINATABLE = false;
 
 	const PROPERTIES = [
-		'overline' => '.{0,25}',
-		'headline' => '.{1,60}',
-		'subline' => '.{0,40}',
+		'overline' => '.{0,50}',
+		'headline' => '.{1,100}',
+		'subline' => '.{0,100}',
 		'teaser' => null,
-		'author' => '.{1,50}',
+		'author' => '.{1,100}',
 		'timestamp' => Timestamp::class,
 		'image' => Image::class,
 		'content' => MarkdownContent::class,

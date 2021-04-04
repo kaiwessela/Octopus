@@ -4,10 +4,11 @@ use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\Abstracts\Traits\Paginatable;
 use \Blog\Model\DataObjects\Lists\PersonList;
 use \Blog\Model\DataObjects\Relations\Lists\PersonGroupRelationList;
+use \Blog\Model\DataTypes\MarkdownContent;
 
 class Group extends DataObject {
 	public string 					$name;
-	public ?string 					$description;
+	public ?MarkdownContent 		$description;
 	public ?PersonGroupRelationList $personrelations;
 
 #	@inherited
@@ -24,8 +25,8 @@ class Group extends DataObject {
 	const PAGINATABLE = true;
 
 	const PROPERTIES = [
-		'name' => '.{1,30}',
-		'description' => null,
+		'name' => '.{1,60}',
+		'description' => MarkdownContent::class,
 		'personrelations' => PersonGroupRelationList::class
 	];
 
@@ -53,7 +54,9 @@ class Group extends DataObject {
 		$this->id = $row['group_id'];
 		$this->longid = $row['group_longid'];
 		$this->name = $row['group_name'];
-		$this->description = $row['group_description'];
+
+		$this->description = empty($row['group_description'])
+		? null : new MarkdownContent($row['group_description']);
 
 		$this->personrelations = null;
 
@@ -102,7 +105,7 @@ SQL; #---|
 SELECT * FROM persongrouprelations
 LEFT JOIN persons ON person_id = persongrouprelation_person_id
 LEFT JOIN media ON medium_id = person_image_id
-WHERE persogrouprelation_group_id = :id
+WHERE persongrouprelation_group_id = :id
 SQL; #---|
 
 

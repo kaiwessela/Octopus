@@ -2,14 +2,15 @@
 namespace Blog\Model\DataObjects;
 use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\DataTypes\Timestamp;
+use \Blog\Model\DataTypes\MarkdownContent;
 
 class Event extends DataObject {
-	public string 		$title;
-	public string 		$organisation;
-	public Timestamp 	$timestamp;
-	public ?string 		$location;
-	public ?string 		$description;
-	public ?bool 		$cancelled;
+	public string 			$title;
+	public string 			$organisation;
+	public Timestamp 		$timestamp;
+	public ?string 			$location;
+	public ?MarkdownContent $description;
+	public ?bool 			$cancelled;
 
 #	@inherited
 #	public string $id;
@@ -22,11 +23,11 @@ class Event extends DataObject {
 #	const PAGINATABLE = false;
 
 	const PROPERTIES = [
-		'title' => '.{1,50}',
-		'organisation' => '.{1,40}',
+		'title' => '.{1,100}',
+		'organisation' => '.{1,60}',
 		'timestamp' => Timestamp::class,
-		'location' => '.{0,60}',
-		'description' => null,
+		'location' => '.{0,100}',
+		'description' => MarkdownContent::class,
 		'cancelled' => null
 	];
 
@@ -46,8 +47,10 @@ class Event extends DataObject {
 		$this->organisation = $row['event_organisation'];
 		$this->timestamp = new Timestamp($row['event_timestamp']);
 		$this->location = $row['event_location'];
-		$this->description = $row['event_description'];
 		$this->cancelled = (bool) $row['event_cancelled'];
+
+		$this->description = empty($row['event_description'])
+		? null : new MarkdownContent($row['event_description']);
 
 		$this->set_not_new();
 		$this->set_not_empty();

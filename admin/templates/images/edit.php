@@ -15,7 +15,7 @@
 			Die Bild-ID wird in der URL verwendet und sollte auf den Titel oder Inhalt hinweisen.
 		</span>
 	</label>
-	<input type="text" size="40" autocomplete="off"
+	<input type="text" size="60" autocomplete="off"
 		id="longid" name="longid" value="<?= $Object?->longid ?>"
 		minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required>
 
@@ -29,23 +29,23 @@
 	<label for="longid">
 		<span class="name">Long-ID</span>
 	</label>
-	<input type="text" id="longid" name="longid" value="<?= $Object?->longid ?>" size="40" readonly>
+	<input type="text" id="longid" name="longid" value="<?= $Object?->longid ?>" size="60" readonly>
 
-	<img src="<?= $Object->src() ?>" alt="[ANZEIGEFEHLER]">
+	<img src="<?= $Object->src() ?>" alt="<?= $Object->alternative ?>">
 
 <?php } ?>
 
 	<!-- TITLE -->
 	<label for="title">
 		<span class="name">Titel</span>
-		<span class="conditions">optional, bis zu 60 Zeichen</span>
+		<span class="conditions">optional, bis zu 140 Zeichen</span>
 		<span class="infos">
 			Der Titel des Bildes.
 		</span>
 	</label>
-	<input type="text" size="40"
+	<input type="text" size="100"
 		id="title" name="title" value="<?= $Object?->title ?>"
-		maxlength="60">
+		maxlength="140">
 
 	<!-- DESCRIPTION -->
 	<label for="description">
@@ -101,9 +101,9 @@
 
 	<!-- REWRITE -->
 	<label for="rewrite">
-		<span class="name">Bilddateien wiederherstellen oder neu berechnen</span>
+		<span class="name">Bilddateien wiederherstellen und neu berechnen</span>
 		<span class="infos">
-			Damit werden die automatisch verkleinerten Bildversionen, die im Dateisystem gespeichert
+			Damit werden die automatisch herunterskalierten Bildversionen, die im Dateisystem gespeichert
 			sind, neu berechnet und gespeichert. Auswählen, falls Fehler bei den Versionen erkannt
 			wurden.
 		</span>

@@ -15,7 +15,7 @@
 			Die Personen-ID wird in der URL verwendet und entspricht meistens dem Namen.
 		</span>
 	</label>
-	<input type="text" size="40" autocomplete="off"
+	<input type="text" size="60" autocomplete="off"
 		id="longid" name="longid" value="<?= $Object?->longid ?>"
 		minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required>
 
@@ -29,21 +29,21 @@
 	<label for="longid">
 		<span class="name">Long-ID</span>
 	</label>
-	<input type="text" id="longid" name="longid" value="<?= $Object?->longid ?>" size="40" readonly>
+	<input type="text" id="longid" name="longid" value="<?= $Object?->longid ?>" size="60" readonly>
 
 <?php } ?>
 
 	<!-- NAME -->
 	<label for="name">
 		<span class="name">Name</span>
-		<span class="conditions">erforderlich, 1 bis 50 Zeichen</span>
+		<span class="conditions">erforderlich, 1 bis 60 Zeichen</span>
 		<span class="infos">
 			Der vollständige Name der Person.
 		</span>
 	</label>
-	<input type="text" size="30"
+	<input type="text" size="60"
 		id="name" name="name" value="<?= $Object?->name ?>"
-		maxlength="50" required>
+		maxlength="60" required>
 
 	<!-- IMAGE -->
 	<label for="image_id">
@@ -57,9 +57,21 @@
 		id="image_id" name="image_id" value="<?= $Object?->image?->id ?>"
 		minlength="8" maxlength="8">
 
+	<!-- PROFILE -->
+	<label for="profile">
+		<span class="name">Steckbrief</span>
+		<span class="conditions">
+			optional, Markdown-Schreibweise möglich
+			(<a href="https://de.wikipedia.org/wiki/Markdown">Wikipedia: Markdown</a>)
+		</span>
+		<span class="infos">z.B. Biografie, Persönliches, sonstige Informationen</span>
+	</label>
+	<textarea id="profile" name="profile"
+		cols="100" rows="20"><?= $Object?->profile ?></textarea>
+
 	<!-- GROUPS -->
 	<label>
-		<span class="name">Gruppenmitgliedschaften</span>
+		<span class="name">Gruppenzugehörigkeiten</span>
 		<span class="conditions">optional, Mehrfacheintrag möglich</span>
 		<span class="info">
 			Änderungen werden lokal zwischengespeichert und beim Abschicken übernommen.

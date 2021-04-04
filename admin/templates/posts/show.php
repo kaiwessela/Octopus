@@ -9,10 +9,23 @@
 		<tr><td><em>Autor:</em></td><td><?= $Object->author ?></td></tr>
 		<tr><td><em>Datum und Uhrzeit:</em></td><td><?= $Object->timestamp?->format('datetime') ?></td></tr>
 		<tr>
+			<td><em>Rubriken:</em></td>
+			<td>
+			<?php $Object->columnrelations?->each(function($r) use ($server){ ?>
+				<a href="<?= $server->url ?>/admin/columns/<?= $r->column->id ?>" class="button">
+					<?= $r->column->name ?>
+				</a>
+			<?php }); ?>
+			</td>
+		</tr>
+		<tr>
 			<td><em>Artikelbild:</em></td>
 			<td>
-				<?php if($Object->image){ ?>
-				<img src="<?= $Object->image->src() ?>" alt="<?= $Object->image->description ?>">
+				<?php if(!empty($Object->image)){ ?>
+				<a href="<?= $server->url ?>/admin/images/<?= $Object->image->id ?>" class="button">
+					<?= $Object->image->title ?? $Object->image->longid ?>
+				</a>
+				<img src="<?= $Object->image->src() ?>" alt="<?= $Object->image->alternative ?>">
 				<?php } ?>
 			</td>
 		</tr>

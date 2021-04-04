@@ -156,6 +156,8 @@ abstract class DataObjectRelation {
 		if(!$errors->is_empty()){
 			throw $errors;
 		}
+
+		$this->set_not_empty();
 	}
 
 

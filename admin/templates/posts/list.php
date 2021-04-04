@@ -1,8 +1,10 @@
-<article>
+<article class="post">
 	<code><?= $obj->longid ?></code>
-	<small><?= $obj->author ?>, <?= $obj->timestamp->format('date_short') ?></small>
-	<h2><?= $obj->headline ?></h2>
-	<strong><?= $obj?->subline ?></strong>
+	<p class="overline"><?= $obj->overline ?></p>
+	<h2 class="headline"><?= $obj->headline ?></h2>
+	<p class="subline"><?= $obj->subline ?></p>
+	<p class="author"><?= $obj->timestamp->format('date_short') ?> – <?= $obj->author ?></p>
+	<p class="teaser"><?= $obj->teaser ?></p>
 	<div>
 		<a class="button blue"
 			href="<?= $server->url ?>/admin/posts/<?= $obj->id ?>">Ansehen</a>

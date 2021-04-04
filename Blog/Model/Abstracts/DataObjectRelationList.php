@@ -193,7 +193,7 @@ abstract class DataObjectRelationList {
 			return;
 		}
 
-		foreach($this->relations as $i => $relation){
+		foreach(array_values($this->relations) as $i => $relation){
 			$callback($i, $relation);
 		}
 	}

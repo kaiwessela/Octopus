@@ -32,7 +32,7 @@ abstract class Medium extends DataObject {
 	protected ?array $files;
 
 	const PROPERTIES = [
-		'title' => '.{0,60}',
+		'title' => '.{0,140}',
 		'description' => '.{0,250}',
 		'copyright' => '.{0,250}',
 		'alternative' => '.{0,250}',

@@ -1,12 +1,16 @@
 <section class="columns show">
-	<code><?= $Object->longid ?></code>
-	<h1><?= $Object->name ?></h1>
-	<p><?= $Object->description ?></p>
+	<table>
+		<tr><td><em>ID:</em></td><td><code><?= $Object->id ?></code></td></tr>
+		<tr><td><em>Long-ID:</em></td><td><code><?= $Object->longid ?></code></td></tr>
+		<tr><td><em>Name:</em></td><td><?= $Object->name ?></td></tr>
+	</table>
+	<h2>Artikel:</h2>
 
-	<?php $Object->postrelations?->each(function($rel){ ?>
-		<article>
-			<code><?= $rel->post->longid ?></code>
-			<h2><?= $rel->post->headline ?></h2>
-		</article>
-	<?php }); ?>
+	<p>
+		<?php $Object->postrelations?->each(function($rel) use ($server){ ?>
+		<a class="button gray" href="<?= $server->url ?>/admin/posts/<?= $rel->post->id ?>">
+			<?= $rel->post->headline ?>
+		</a>
+		<?php }); ?>
+	</p>
 </section>

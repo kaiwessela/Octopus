@@ -29,19 +29,19 @@
 	<label for="longid">
 		<span class="name">Long-ID</span>
 	</label>
-	<input type="text" id="longid" name="longid" value="<?= $Object?->longid ?>" size="40" readonly>
+	<input type="text" id="longid" name="longid" value="<?= $Object?->longid ?>" size="60" readonly>
 
 <?php } ?>
 
 	<!-- TITLE -->
 	<label for="title">
 		<span class="name">Titel</span>
-		<span class="conditions">erforderlich, 1 bis 80 Zeichen</span>
+		<span class="conditions">erforderlich, 1 bis 140 Zeichen</span>
 		<span class="infos">Der Titel des Antrags.</span>
 	</label>
-	<input type="text" size="60"
+	<input type="text" size="100"
 		id="title" name="title" value="<?= $Object?->title ?>"
-		maxlength="80" required>
+		maxlength="140" required>
 
 	<!-- DESCRIPTION -->
 	<label for="description">
@@ -50,7 +50,7 @@
 		<span class="infos">Die Beschreibung des Antrags.</span>
 	</label>
 	<textarea id="description" name="description"
-		cols="70" rows="10"><?= $Object?->description ?></textarea>
+		cols="80" rows="15"><?= $Object?->description ?></textarea>
 
 	<!-- TIMESTAMP -->
 	<label for="timestamp">
@@ -69,7 +69,7 @@
 		<span class="name">Status</span>
 		<span class="conditions">erforderlich</span>
 		<span class="infos">
-
+			Bearbeitungsstand, in dem sich der Antrag aktuell befindet.
 		</span>
 	</label>
 	<select id="status" name="status">
@@ -131,7 +131,7 @@
 	<label for="document_id">
 		<span class="name">Dokument</span>
 		<span class="conditions">optional</span>
-		<span class="infos">Das Antragsdokument</span>
+		<span class="infos">Das Antragsdokument.</span>
 	</label>
 	<input type="text" class="imageinput" size="8"
 		id="document_id" name="document_id" value="<?= $Object?->document?->id ?>"

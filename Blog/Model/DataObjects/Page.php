@@ -18,7 +18,7 @@ class Page extends DataObject {
 #	const PAGINATABLE = false;
 
 	const PROPERTIES = [
-		'title' => '.{1,60}',
+		'title' => '.{1,100}',
 		'content' => MarkdownContent::class
 	];
 

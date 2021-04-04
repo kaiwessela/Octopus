@@ -15,7 +15,7 @@
 			Die Post-ID wird in der URL verwendet und entspricht oftmals ungefähr der Überschrift.
 		</span>
 	</label>
-	<input type="text" size="40" autocomplete="off"
+	<input type="text" size="60" autocomplete="off"
 		id="longid" name="longid" value="<?= $Object?->longid ?>"
 		minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required>
 
@@ -29,70 +29,69 @@
 	<label for="longid">
 		<span class="name">Long-ID</span>
 	</label>
-	<input type="text" id="longid" name="longid" value="<?= $Object?->longid ?>" size="40" readonly>
+	<input type="text" id="longid" name="longid" value="<?= $Object?->longid ?>" size="60" readonly>
 
 <?php } ?>
 
 	<!-- OVERLINE -->
 	<label for="overline">
 		<span class="name">Dachzeile</span>
-		<span class="conditions">optional, bis zu 25 Zeichen</span>
+		<span class="conditions">optional, bis zu 50 Zeichen</span>
 		<span class="infos">
-			Die Dachzeile steht direkt über der Überschrift und beinhaltet meist ein kurzes
-			Stichwort, das das Thema des Artikels angibt.
+			Die Dachzeile steht direkt über der Überschrift und beinhaltet meist Stichwörter,
+			die auf das Thema des Artikels hinweisen.
 		</span>
 	</label>
-	<input type="text" size="20"
+	<input type="text" size="50"
 		id="overline" name="overline" value="<?= $Object?->overline ?>"
-		maxlength="25">
+		maxlength="50">
 
 	<!-- HEADLINE -->
 	<label for="headline">
 		<span class="name">Schlagzeile</span>
-		<span class="conditions">erforderlich, 1 bis 60 Zeichen</span>
+		<span class="conditions">erforderlich, 1 bis 100 Zeichen</span>
 		<span class="infos">
 			Die Schlagzeile ist die Überschrift des Artikels und fasst die Kernaussage prägnant
 			zusammen.
 		</span>
 	</label>
-	<input type="text" size="40"
+	<input type="text" size="100"
 		id="headline" name="headline" value="<?= $Object?->headline ?>"
-		maxlength="60" required>
+		maxlength="100" required>
 
 	<!-- SUBLINE -->
 	<label for="subline">
 		<span class="name">Unterzeile</span>
-		<span class="conditions">optional, bis zu 40 Zeichen</span>
+		<span class="conditions">optional, bis zu 100 Zeichen</span>
 		<span class="infos">
 			Die Unterzeile steht unterhalb der Schlagzeile und ergänzt diese um weitere
 			Informationen.
 		</span>
 	</label>
-	<input type="text" size="30"
+	<input type="text" size="100"
 		id="subline" name="subline" value="<?= $Object?->subline ?>"
-		maxlength="40">
+		maxlength="100">
 
 	<!-- TEASER -->
 	<label for="teaser">
 		<span class="name">Teaser</span>
 		<span class="conditions">optional</span>
 		<span class="infos">
-			Der Teaser wird nur in der Artikelvorschau angezeigt. Er fasst den Artikel kurz
-			zusammen und soll zum Weiterlesen anregen.
+			Eine kurze Zusammenfassung des Artikels, die in der Vorschau angezeigt wird.
 		</span>
 	</label>
 	<textarea id="teaser" name="teaser"
-		cols="50" rows="3"><?= $Object?->teaser ?></textarea>
+		cols="80" rows="5"><?= $Object?->teaser ?></textarea>
 
 	<!-- AUTHOR -->
 	<label for="author">
 		<span class="name">Autor</span>
-		<span class="conditions">erforderlich, 1 bis 50 Zeichen</span>
-		<span class="infos">Der Autor des Artikels.</span>
+		<span class="conditions">erforderlich, 1 bis 100 Zeichen</span>
+		<span class="infos">Der Autor oder die Autoren des Artikels.</span>
 	</label>
-	<input type="text" size="30"
+	<input type="text" size="100"
 		id="author" name="author" value="<?= $Object?->author ?>"
-		maxlength="50" required>
+		maxlength="100" required>
 
 	<!-- TIMESTAMP -->
 	<label for="timestamp">
@@ -113,8 +112,8 @@
 		<span class="name">Artikelbild</span>
 		<span class="conditions">optional</span>
 		<span class="infos">
-			Das Artikelbild wird prominent zwischen Überschrift und Inhalt sowie in der
-			Artikelvorschau angezeigt.
+			Das Hauptbild des Artikels. Wird in der Vorschau und zwischen Titel und Inhalt
+			dargestellt.
 		</span>
 	</label>
 	<input type="text" class="imageinput" size="8"
@@ -131,7 +130,7 @@
 		<span class="infos">Der eigentliche Inhalt des Artikels</span>
 	</label>
 	<textarea id="content" name="content"
-		cols="80" rows="20"><?= $Object?->content ?></textarea>
+		cols="100" rows="40"><?= $Object?->content ?></textarea>
 
 	<!-- COLUMNS -->
 	<label>

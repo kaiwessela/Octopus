@@ -13,7 +13,7 @@
 			Die Rubrik-ID wird in der URL verwendet und entspricht oftmals ungefähr dem Namen.
 		</span>
 	</label>
-	<input type="text" size="40" autocomplete="off"
+	<input type="text" size="60" autocomplete="off"
 		id="longid" name="longid" value="<?= $Object?->longid ?>"
 		minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required>
 
@@ -27,33 +27,33 @@
 	<label for="longid">
 		<span class="name">Long-ID</span>
 	</label>
-	<input type="text" id="longid" name="longid" value="<?= $Object?->longid ?>" size="40" readonly>
+	<input type="text" id="longid" name="longid" value="<?= $Object?->longid ?>" size="60" readonly>
 
 <?php } ?>
 
 	<!-- NAME -->
 	<label for="name">
 		<span class="name">Name</span>
-		<span class="conditions">erforderlich, 1 bis 30 Zeichen</span>
+		<span class="conditions">erforderlich, 1 bis 60 Zeichen</span>
 		<span class="infos">
 			Der Name der Rubrik.
 		</span>
 	</label>
-	<input type="text" size="30"
+	<input type="text" size="60"
 		id="name" name="name" value="<?= $Object?->name ?>"
-		maxlength="30" required>
+		maxlength="60" required>
 
 
 	<!-- DESCRIPTION -->
 	<label for="description">
 		<span class="name">Beschreibung</span>
-		<span class="conditions">optional</span>
+		<span class="conditions">optional, Markdown erlaubt</span>
 		<span class="infos">
 			Die Beschreibung der Rubrik.
 		</span>
 	</label>
 	<textarea id="description" name="description"
-		cols="50" rows="3"><?= $Object?->description ?></textarea>
+		cols="80" rows="10"><?= $Object?->description ?></textarea>
 
 
 	<!-- POSTS -->

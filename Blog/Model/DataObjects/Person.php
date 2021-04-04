@@ -4,9 +4,11 @@ use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\DataObjects\Media\Image;
 use \Blog\Model\DataObjects\Lists\GroupList;
 use \Blog\Model\DataObjects\Relations\Lists\PersonGroupRelationList;
+use \Blog\Model\DataTypes\MarkdownContent;
 
 class Person extends DataObject {
 	public string 					$name;
+	public ?MarkdownContent 		$profile;
 	public ?Image 					$image;
 	public ?PersonGroupRelationList $grouprelations;
 
@@ -21,7 +23,8 @@ class Person extends DataObject {
 #	const PAGINATABLE = false;
 
 	const PROPERTIES = [
-		'name' => '.{1,50}',
+		'name' => '.{1,60}',
+		'profile' => MarkdownContent::class,
 		'image' => Image::class,
 		'groups' => GroupList::class,
 		'grouprelations' => PersonGroupRelationList::class
@@ -44,6 +47,9 @@ class Person extends DataObject {
 		$this->id = $row['person_id'];
 		$this->longid = $row['person_longid'];
 		$this->name = $row['person_name'];
+
+		$this->profile = empty($row['person_profile'])
+			? null : new MarkdownContent($row['person_profile']);
 
 		$this->image = empty($row['medium_id']) ? null : new Image();
 		$this->image?->load($row);

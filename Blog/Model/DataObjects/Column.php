@@ -4,10 +4,11 @@ use \Blog\Model\Abstracts\DataObject;
 use \Blog\Model\Abstracts\Traits\Paginatable;
 use \Blog\Model\DataObjects\Lists\PostList;
 use \Blog\Model\DataObjects\Relations\Lists\PostColumnRelationList;
+use \Blog\Model\DataTypes\MarkdownContent;
 
 class Column extends DataObject {
 	public string 					$name;
-	public ?string 					$description;
+	public ?MarkdownContent			$description;
 	public ?PostColumnRelationList 	$postrelations;
 
 #	@inherited
@@ -24,8 +25,8 @@ class Column extends DataObject {
 	const PAGINATABLE = true;
 
 	const PROPERTIES = [
-		'name' => '.{1,30}',
-		'description' => null,
+		'name' => '.{1,60}',
+		'description' => MarkdownContent::class,
 		'postrelations' => PostColumnRelationList::class
 	];
 
@@ -53,7 +54,9 @@ class Column extends DataObject {
 		$this->id = $row['column_id'];
 		$this->longid = $row['column_longid'];
 		$this->name = $row['column_name'];
-		$this->description = $row['column_description'];
+
+		$this->description = empty($row['column_description'])
+		? null : new MarkdownContent($row['column_description']);
 
 		$this->postrelations = null;
 

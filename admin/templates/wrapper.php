@@ -83,14 +83,14 @@
 		if($Controller->call->action != 'list' && $Controller->call->action != 'new'){
 			?><div><?php
 
-			if($Controller->call->action != 'show'){
+			if($Controller->call->action != 'show' && !$Controller->status('deleted')){
 				?><a class="button blue"
 					href="<?= $server->url ?>/admin/<?= $name ?>/<?= $Object->id ?>">
 						Ansehen
 				</a><?php
 			}
 
-			if($Controller->call->action != 'edit'){
+			if($Controller->call->action != 'edit' && !$Controller->status('deleted')){
 				?><a class="button yellow"
 					href="<?= $server->url ?>/admin/<?= $name ?>/<?= $Object->id ?>/edit">
 						Bearbeiten
@@ -156,7 +156,7 @@
 				Diese Seite nutzt »Blog« von Kai Florian Wessela in der Version <?= $server->version ?>.<br>
 				Diese Software ist freie Software, lizensiert unter MIT-Lizenz und abrufbar unter
 				<a href="https://github.com/kaiwessela/blog">github.com/kaiwessela/blog</a>.<br>
-				Copyright © 2020 Kai Florian Wessela – <a href="https://wessela.eu">wessela.eu</a>
+				Copyright © 2020-2021 Kai Florian Wessela – <a href="https://wessela.eu">wessela.eu</a>
 			</p>
 		</footer>
 

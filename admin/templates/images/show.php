@@ -1,5 +1,5 @@
 <section class="images show">
-	<img src="<?= $Object->src() ?>" alt="[ANZEIGEFEHLER] Hier sollte das Bild angezeigt werden">
+	<img src="<?= $Object->src() ?>" alt="<?= $Object->alternative ?>">
 	<table>
 		<tr><td><em>ID:</em></td><td><code><?= $Object->id ?></code></td></tr>
 		<tr><td><em>Long-ID:</em></td><td><code><?= $Object->longid ?></code></td></tr>

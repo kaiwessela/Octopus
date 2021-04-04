@@ -121,23 +121,25 @@ class DataObjectController extends Controller {
 			if($this->call->action == 'count'){
 				$this->object->count();
 				$this->status = 20;
+				return;
 
-			} else if($this->call->action == 'show'){
-				if($this->object::PAGINATABLE){
-					$limit = $this->call->amount;
-					$offset = is_null($this->call->page)
-						? null : ($this->call->amount * ($this->call->page - 1));
+			} else if($this->object::PAGINATABLE){
+				$limit = $this->call->amount;
+				$offset = is_null($this->call->page)
+					? null : ($this->call->amount * ($this->call->page - 1));
 
-					try {
-						$this->object->pull_relations($limit, $offset);
-						$this->status = 20;
-					} catch(EmptyResultException $e){
-						$this->status = 24;
-					}
-
-				} else {
+				try {
+					$this->object->pull_relations($limit, $offset);
 					$this->status = 20;
+				} catch(EmptyResultException $e){
+					$this->status = 24;
 				}
+			} else {
+				$this->status = 20;
+			}
+
+			if($this->request->is_get() || $this->call->action == 'show'){
+				return;
 
 			} else if($this->call->action == 'edit'){
 				try {

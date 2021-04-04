@@ -26,7 +26,7 @@ class Motion extends DataObject {
 #	const PAGINATABLE = false;
 
 	const PROPERTIES = [
-		'title' => '.{0,80}',
+		'title' => '.{0,140}',
 		'description' => MarkdownContent::class,
 		'document' => Application::class,
 		'timestamp' => Timestamp::class,
@@ -71,7 +71,7 @@ class Motion extends DataObject {
 			return;
 		}
 
-		$value = $data['votes'];
+		$value = $data['votes'] ?? null;
 
 		if(!is_array($value)){
 			$this->votes = null;

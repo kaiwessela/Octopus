@@ -79,10 +79,14 @@ abstract class DataObject {
 		$s = $pdo->prepare($query);
 		if(!$s->execute(['id' => $identifier])){
 			throw new DatabaseException($s);
-		} else if($s->rowCount() == 0){
-			throw new EmptyResultException($query);
 		} else {
-			$this->load($s->fetchAll());
+			$r = $s->fetchAll();
+
+			if($s->rowCount() == 0 || empty($r[0][0])){
+				throw new EmptyResultException($query);
+			} else {
+				$this->load($r);
+			}
 		}
 	}
 

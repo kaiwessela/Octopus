@@ -14,7 +14,7 @@
 			entspricht oftmals ungefähr dem Titel.
 		</span>
 	</label>
-	<input type="text" size="40" autocomplete="off"
+	<input type="text" size="60" autocomplete="off"
 		id="longid" name="longid" value="<?= $Object?->longid ?>"
 		minlength="9" maxlength="60" pattern="^[a-z0-9-]*$" required>
 
@@ -28,22 +28,22 @@
 	<label for="longid">
 		<span class="name">Long-ID</span>
 	</label>
-	<input type="text" id="longid" name="longid" value="<?= $Object?->longid ?>" size="40" readonly>
+	<input type="text" id="longid" name="longid" value="<?= $Object?->longid ?>" size="60" readonly>
 
 <?php } ?>
 
 	<!-- TITLE -->
 	<label for="title">
 		<span class="name">Titel</span>
-		<span class="conditions">erforderlich, 1 bis 60 Zeichen</span>
+		<span class="conditions">erforderlich, 1 bis 100 Zeichen</span>
 		<span class="infos">
 			Der Titel der Seite steht u.a. im Fenstertitel des Browsers und sollte
 			einen Hinweis auf den Inhalt geben.
 		</span>
 	</label>
-	<input type="text" size="40"
+	<input type="text" size="100"
 		id="title" name="title" value="<?= $Object?->title ?>"
-		maxlength="60" required>
+		maxlength="100" required>
 
 	<!-- CONTENT -->
 	<label for="content">
@@ -52,10 +52,9 @@
 			optional, HTML und Markdown-Schreibweise möglich
 			(<a href="https://de.wikipedia.org/wiki/Markdown">Wikipedia: Markdown</a>)
 		</span>
-		<span class="infos">Der eigentliche Inhalt der Seite.</span>
 	</label>
 	<textarea id="content" name="content"
-		cols="80" rows="20"><?= $Object?->content ?></textarea>
+		cols="100" rows="40"><?= $Object?->content ?></textarea>
 
 	<button type="submit" class="blue">Speichern</button>
 </form>

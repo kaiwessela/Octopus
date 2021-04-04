@@ -1,7 +1,10 @@
 <article>
-	<em><?= $obj->timestamp?->format('datetime_long') ?></em>
+	<code><?= $obj->longid ?></code>
 	<h2><?= $obj->title ?></h2>
-	<p><code><?= $obj->longid ?></code> – <em><?= $obj->organisation ?></em></p>
+	<em><?= $obj->organisation ?></em>
+	<em><?= $obj->timestamp?->format('datetime_long') ?></em>
+	<em><?= $obj->location ?></em>
+	<p><?php if($obj->cancelled){ ?><span class="tag red">Abgesagt</span><?php } ?></p>
 	<div>
 		<a class="button blue"
 			href="<?= $server->url ?>/admin/events/<?= $obj->id ?>">Ansehen</a>

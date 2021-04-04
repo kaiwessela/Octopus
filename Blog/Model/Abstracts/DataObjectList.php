@@ -153,7 +153,7 @@ abstract class DataObjectList {
 			$pdo = $this->open_pdo();
 
 			$s = $pdo->prepare($this::COUNT_QUERY);
-			if(!$s->execute($values)){
+			if(!$s->execute()){
 				throw new DatabaseException($s);
 			} else {
 				$this->count = (int) $s->fetch()[0];

@@ -40,15 +40,14 @@ class Column extends DataObject {
 
 		if(is_array($data[0])){
 			$row = $data[0];
-			$this->count = null;
 		} else {
 			$row = $data;
+		}
 
-			if($norecursion){
-				$this->count = null;
-			} else {
-				$this->count = (empty($row['postcolumnrelation_id'])) ? 0 : (int) $row['count'];
-			}
+		if($norecursion){
+			$this->count = null;
+		} else {
+			$this->count = (empty($row['postcolumnrelation_id'])) ? 0 : (int) $row['count'];
 		}
 
 		$this->id = $row['column_id'];
@@ -106,6 +105,7 @@ SELECT * FROM postcolumnrelations
 LEFT JOIN posts ON post_id = postcolumnrelation_post_id
 LEFT JOIN media ON medium_id = post_image_id
 WHERE postcolumnrelation_column_id = :id
+ORDER BY post_timestamp DESC
 SQL; #---|
 
 

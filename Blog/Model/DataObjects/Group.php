@@ -40,15 +40,14 @@ class Group extends DataObject {
 
 		if(is_array($data[0])){
 			$row = $data[0];
-			$this->count = null;
 		} else {
 			$row = $data;
+		}
 
-			if($norecursion){
-				$this->count = null;
-			} else {
-				$this->count = (empty($row['persongrouprelation_id'])) ? 0 : (int) $row['count'];
-			}
+		if($norecursion){
+			$this->count = null;
+		} else {
+			$this->count = (empty($row['persongrouprelation_id'])) ? 0 : (int) $row['count'];
 		}
 
 		$this->id = $row['group_id'];
@@ -106,6 +105,7 @@ SELECT * FROM persongrouprelations
 LEFT JOIN persons ON person_id = persongrouprelation_person_id
 LEFT JOIN media ON medium_id = person_image_id
 WHERE persongrouprelation_group_id = :id
+ORDER BY persongrouprelation_number
 SQL; #---|
 
 

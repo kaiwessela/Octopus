@@ -46,7 +46,7 @@ class MultiSelectModal extends Modal {
 	}
 
 	async loadMore() {
-		var objs = await µ(this.type).pullList(this.objectsPerPage, Object.keys(this.objects).length);
+		var objs = await µ(this.type).pullList(this.objectsPerPage, Math.ceil(Object.keys(this.objects).length / this.objectsPerPage) + 1);
 		objs.forEach((obj) => {
 			var dummy = document.createElement('div');
 			dummy.innerHTML = obj.insertIn(this.template);

@@ -249,6 +249,10 @@ class Endpoint {
 	private function abort(mixed $code, ?Exception $e = null) : void {
 		$this->aborted = true;
 
+		if(!is_int($code)){
+			$code = 500;
+		}
+
 		try {
 			$this->response->set_code($code);
 		} catch(Exception $f){

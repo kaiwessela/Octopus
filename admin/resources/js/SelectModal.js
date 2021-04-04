@@ -43,7 +43,7 @@ class SelectModal extends Modal {
 
 		this.objects.forEach((el) => { el.remove(); });
 
-		var objs = await µ(this.type).pullList(this.objectsPerPage, (page - 1) * this.objectsPerPage);
+		var objs = await µ(this.type).pullList(this.objectsPerPage, page);
 		objs.forEach((obj) => {
 			var dummy = document.createElement('div');
 			var html = obj.insertIn(this.template);

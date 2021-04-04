@@ -92,7 +92,7 @@ class DataObject {
 		});
 	}
 
-	pullList(limit = null, offset = null) {
+	pullList(amount = null, page = null) {
 		return new Promise((resolve, reject) => {
 			var ajax = new XMLHttpRequest();
 			ajax.responseType = 'json';
@@ -112,11 +112,11 @@ class DataObject {
 				}
 			}
 
-			if(Number.isInteger(limit) && limit > 0){
-				if(Number.isInteger(offset) && offset > 0){
-					ajax.open('GET', '/api/v1/'+this._apiname+'?limit='+limit+'&offset='+offset, true);
+			if(Number.isInteger(amount) && amount > 0){
+				if(Number.isInteger(page) && page > 0){
+					ajax.open('GET', '/api/v1/'+this._apiname+'?amount='+amount+'&page='+page, true);
 				} else {
-					ajax.open('GET', '/api/v1/'+this._apiname+'?limit='+limit, true);
+					ajax.open('GET', '/api/v1/'+this._apiname+'?amount='+amount, true);
 				}
 			} else {
 				ajax.open('GET', '/api/v1/'+this._apiname, true);

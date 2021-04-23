@@ -22,6 +22,13 @@ LEFT JOIN media ON medium_id = post_image_id
 ORDER BY post_timestamp DESC
 SQL; #---|
 
+
+	const SELECT_IDS_QUERY = <<<SQL
+SELECT * FROM posts
+WHERE post_id IN 
+SQL; #---|
+
+
 	const COUNT_QUERY = <<<SQL
 SELECT COUNT(*) FROM posts
 SQL; #---|

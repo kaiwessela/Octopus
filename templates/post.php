@@ -50,7 +50,15 @@
 				</figure>
 				<?php } ?>
 
-				<?= $Post->content?->parse() ?>
+
+				<?php $Post->content?->echo(function($object, $type){
+					?>
+					<img src="<?= $object->src() ?>">
+					<p><?= $type ?> | <?= $object->longid ?></p>
+					<?php
+				}, $Post->collection); ?>
+
+				<!-- $Post->content?->parse() -->
 			</article>
 		</main>
 		<?php include 'components/footer.php'; ?>

@@ -28,6 +28,11 @@ SELECT * FROM pages
 ORDER BY page_title
 SQL; #---|
 
+	const SELECT_IDS_QUERY = <<<SQL
+SELECT * FROM pages
+WHERE page_id IN 
+SQL; #---|
+
 	const COUNT_QUERY = <<<SQL
 SELECT COUNT(*) FROM pages
 SQL; #---|

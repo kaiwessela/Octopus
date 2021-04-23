@@ -21,6 +21,13 @@ SELECT * FROM columns
 ORDER BY column_name
 SQL; #---|
 
+
+	const SELECT_IDS_QUERY = <<<SQL
+SELECT * FROM columns
+WHERE column_id IN 
+SQL; #---|
+
+
 	const COUNT_QUERY = <<<SQL
 SELECT COUNT(*) FROM columns
 SQL; #---|

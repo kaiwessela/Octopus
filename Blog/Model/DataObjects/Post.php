@@ -6,6 +6,7 @@ use \Blog\Model\DataObjects\Lists\ColumnList;
 use \Blog\Model\DataObjects\Relations\Lists\PostColumnRelationList;
 use \Blog\Model\DataTypes\Timestamp;
 use \Blog\Model\DataTypes\MarkdownContent;
+use \Blog\Model\Abstracts\DataObjectCollection;
 
 class Post extends DataObject {
 	public ?string 					$overline;
@@ -17,6 +18,7 @@ class Post extends DataObject {
 	public ?Image 					$image;
 	public ?MarkdownContent 		$content;
 	public ?PostColumnRelationList 	$columnrelations;
+	public ?DataObjectCollection	$collection;
 
 #	@inherited
 #	public string $id;
@@ -36,8 +38,13 @@ class Post extends DataObject {
 		'author' => '.{1,50}',
 		'timestamp' => Timestamp::class,
 		'image' => Image::class,
-		'content' => MarkdownContent::class,
-		'columnrelations' => PostColumnRelationList::class
+		'content' => [
+			'type' => MarkdownContent::class,
+			'allow_html' => true,
+			'collection' => 'collection'
+		],
+		'columnrelations' => PostColumnRelationList::class,
+		'collection' => DataObjectCollection::class
 	];
 
 	const PSEUDOLISTS = [
@@ -73,6 +80,9 @@ class Post extends DataObject {
 		$this->columnrelations = ($norecursion || empty($row['postcolumnrelation_id'])) ? null : new PostColumnRelationList();
 		$this->columnrelations?->load($data, $this);
 
+		$this->collection = (empty($row['post_collection'])) ? null : new DataObjectCollection(json_decode($row['post_collection'], true));
+		$this->collection?->pull(); // TODO prevent pulling on multi
+
 		$this->set_not_new();
 		$this->set_not_empty();
 	}
@@ -88,7 +98,8 @@ class Post extends DataObject {
 			'author' => $this->author,
 			'timestamp' => (string) $this->timestamp,
 			'image_id' => $this->image?->id,
-			'content' => (string) $this->content
+			'content' => (string) $this->content,
+			// 'collection' => $this->colletion->db_export()
 		];
 
 		if($this->is_new()){

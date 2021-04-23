@@ -5,6 +5,7 @@ use \Blog\Model\Abstracts\Traits\StateTrait;
 use \Blog\Model\Abstracts\DataType;
 use \Blog\Model\Abstracts\DataObjectList;
 use \Blog\Model\Abstracts\DataObjectRelationList;
+use \Blog\Model\Abstracts\DataObjectCollection;
 use \Blog\Model\Exceptions\DatabaseException;
 use \Blog\Model\Exceptions\InputException;
 use \Blog\Model\Exceptions\EmptyResultException;
@@ -179,6 +180,17 @@ abstract class DataObject {
 		foreach($this::PROPERTIES as $property => $definition){
 			$input = $data[$property] ?? null;
 
+			if(is_array($definition)){ # enable extended (array) definitions
+				if(empty($definition['type'])){
+					throw new Exception("Invalid definition for $property: missing type.");
+				}
+
+				$options = $definition;
+				$definition = $definition['type'];
+			} else {
+				$options = null;
+			}
+
 			if($definition == null){ # property is only defined by its PHP type
 				$mode = 'as-is';
 			} else if($definition == 'custom'){
@@ -192,6 +204,9 @@ abstract class DataObject {
 			} else if(is_subclass_of($definition, DataObjectRelationList::class)){
 				$mode = 'relationlist';
 			} else if(is_subclass_of($definition, DataObjectList::class)){
+				continue;
+			} else if($definition instanceof DataObjectCollection){
+				// TEMP
 				continue;
 			} else {
 				throw new Exception("Invalid definition '$definition' for $property.");

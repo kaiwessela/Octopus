@@ -46,7 +46,7 @@ abstract class DataObjectList {
 		if(!$s->execute(array_values($idlist))){
 			throw new DatabaseException($s);
 		} else if($s->rowCount() != 0){
-			$htis->load($s->fetchAll());
+			$this->load($s->fetchAll());
 		}
 	}
 
@@ -96,7 +96,7 @@ abstract class DataObjectList {
 		foreach($data as $row){
 			$obj = new $class();
 			$obj->load($row);
-			$this->objects[] = $obj;
+			$this->objects[$obj->id] = $obj;
 		}
 
 		$this->set_not_new();
@@ -112,6 +112,11 @@ abstract class DataObjectList {
 		}
 
 		$this->set_not_empty();
+	}
+
+
+	public function get(string $id) : ?DataObject {
+		return $this->objects[$id] ?? null;
 	}
 
 

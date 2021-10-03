@@ -24,11 +24,11 @@ class Post extends DataObject {
 #	public string $id;
 #	public string $longid;
 #
-#	private bool $new;
-#	private bool $empty;
-#	private bool $disabled;
+#	private array $cycle
 #
 #	const PAGINATABLE = false;
+
+	const DB_PREFIX = 'post';
 
 	const PROPERTIES = [
 		'overline' => '.{0,50}',
@@ -47,7 +47,7 @@ class Post extends DataObject {
 		'collection' => DataObjectCollection::class
 	];
 
-	const PSEUDOLISTS = [
+	const RELATIONLIST_EXTRACTS = [
 		'columns' => [ColumnList::class, 'columnrelations']
 	];
 

@@ -1,7 +1,7 @@
 <?php
 namespace Blog\Model\Abstracts;
-use \Blog\Model\Abstracts\Traits\DBTrait;
-use \Blog\Model\Abstracts\Traits\StateTrait;
+use \Blog\Model\Abstracts\Traits\DatabaseAccess;
+use \Blog\Model\Abstracts\Traits\Cycle;
 use \Blog\Model\Abstracts\DataType;
 use \Blog\Model\Abstracts\DataObjectList;
 use \Blog\Model\Abstracts\DataObjectRelationList;
@@ -19,100 +19,193 @@ use InvalidArgumentException;
 use Exception;
 use TypeError;
 
+# What is a DataObject?
+# A DataObject is a collection of properties of a real thing. Any single object that is handled
+# by Octopus (i.e. a blog article, a person profile, an image etc.) is handled as an instance of
+# this class.
+# DataObjects have properties, in which the actual information is stored. A DataObject that
+# represents a person for example has the properties name, date of birth, etc.
+# As there are many different kinds of objects in the real world, it would not make much sense
+# to wedge all of them into the same class of DataObject. Therefore, for every different kind of
+# object, there is a separate class in Octopus defining specific properties for it. This class,
+# DataObject, is only the superclass for all of them, containing only properties and methods all
+# of these subclasses have in common (like the id and longid properties).
+# DataObjects are stored in a database. To make them handleable for Octopus, it is necessary to
+# transfer the data from the database into Octopus and, after editing, back from there into the
+# database. This class provides all necessary methods to perform such operations. In this sense,
+# it serves as a database abstraction layer, similar to an object-relational mapper.
+
+
 abstract class DataObject {
-	public string $id;
-	public string $longid;
+	protected string $id;		# string of excactly 8 base16 characters; unique identifier of the object; uneditable, randomly generated on create()
+	protected string $longid;	# string of 9-128 characters (a-z0-9-); another unique identifier; set by the human creating the object, uneditable
 
-	private array $pseudo_cache;
+	# this class uses the Properties trait which contains standard methods that handle the properties of this class
+	# for documentation on the following constants, check the Properties trait source file
+	use Properties;
 
-	const PAGINATABLE = false;
+	const DB_PREFIX; # prefix of this object's row names in the database (i.e. [prefix]_id, [prefix]_longid)
 
-	const PROPERTIES = [];
-	const PSEUDOLISTS = [];
+	const PROPERTIES = [
+		# 'id' => 'id',
+		# 'longid' => 'longid',
+		# ...property definitions for all other properties
+	];
 
-	use DBTrait;
-	use StateTrait;
+	const RELATIONLIST_EXTRACTS = [];
 
-	private bool $disabled;
-	private bool $new;
-	private bool $empty;
+	final const ALLOWED_PROPERTY_TYPES = ['special', 'primitive', 'object', 'custom'];
 
-
-	abstract public function load(array $data) : void;
-	abstract protected function db_export() : array;
+	protected DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
+	protected Cycle $cycle; # this class uses the Cycle class to control the order of its actions. see there for more.
 
 
-	function __construct() {
-		$this->disabled = false;
-		$this->new = false;
-		$this->empty = true;
 
-		$this->pseudo_cache = [];
+	# ==== STADIUM 1 METHODS (construction) ==== #
+
+	final function __construct() {
+		$this->db = new DatabaseAccess(); # prepare a connection to the database
+
+		$this->cycle = new Cycle([
+			['root', 'construct'],
+			['construct', 'init/load'],
+			['init/load', 'edit'], ['init/load', 'store/delete'], ['init/load', 'output'],
+			['edit', 'edit'], ['edit', 'store/delete'], ['edit', 'output'],
+			['store/delete', 'store/delete'], ['store/delete', 'output'], ['store/delete', 'edit'],
+			['output', 'output']
+		]);
+
+		$this->cycle->start();
 	}
 
 
-	public function generate() : void {
-#	@action:
-#	  - turn this empty object into a new object
-#	  - assign this object an id
-#	  - set this->new to true
-#	  - set this->empty to false
+	# ==== STADIUM 2 METHODS (initialization/loading) ==== #
 
-		$this->require_empty();
-		$this->id = bin2hex(random_bytes(4));
-		$this->set_new();
+	# the create function is used to initialize a new object that is not yet stored in the database
+	final public function create() : void {
+		$this->cycle->step('init/load');
+		$this->db->set_local();
+
+		$this->id = self::generate_id(); # generate and set a random, unique id for the object. see Properties trait
+
+		$this->create_custom(); # call the custom initialization function
 	}
 
+	# the custom initialization function can be used by concrete DataObject classes
+	# to add class-specific initialization procedures
+	protected function create_custom() : void {}
 
-	public function pull(string $identifier) : void {
-#	@action:
-#	  - select one object from the database
-#	  - call this->load to assign the received data to this object
-#	@params:
-#	  - $identifier: the id or longid of the requested object
-#	  - $limit: the amount of objects to be selected
-#	  - $offset: the amount of objects to be skipped at the beginning; ignored if $limit == null
 
-		$this->require_empty();
-		$pdo = $this->open_pdo();
+	# the pull function downloads object data from the database and uses load() to load it into this object
+	# @param $identifier, being the id or longid of an existing object, specifies which object's data to pull
+	final public function pull(string $identifier) : void {
+		$this->cycle->check_step('init/load'); # check is used here because pull failures are expected
+		$this->db->enable(); # connect to the database
 
 		$query = $this::PULL_QUERY;
-		$s = $pdo->prepare($query);
+		$s = $this->db->prepare($query);
 		if(!$s->execute(['id' => $identifier])){
+			# the database request has failed
 			throw new DatabaseException($s);
 		} else {
+			# the database request was successful
 			$r = $s->fetchAll();
 
 			if($s->rowCount() == 0 || empty($r[0][0])){
+				# the response is empty, meaning that no object with the requested identifier was found
 				throw new EmptyResultException($query);
 			} else {
+				# an object was found, use load() to load its data into this object
 				$this->load($r);
 			}
 		}
 	}
 
 
-	public function push() : void {
-#	@action:
-#	  - upload (insert/update) this object and all its children to the database
-#	  - set this->new to false
+	# the load function loads rows of object data from the database into this object
+	# @param $data: single fetched row or multiple rows from the database request's response
+	# @param $norelations: prevents loading of DataObjectRelation(List) properties. use to prevent an endless loop
+	# @param $nocollections: prevents loading of DataObjectCollection properties. mostly performance reasons
+	final public function load(array $data, bool $norelations = false, bool $nocollections = false) : void {
+		$this->cycle->check_step('init/load');
 
-		$this->require_not_empty();
-		$pdo = $this->open_pdo();
+		# use the load_properties() function from the Properties trait to load the properties
+		$this->load_properties($data, $norelations, $nocollections);
 
-		if($this->is_new()){
-			$s = $pdo->prepare($this::INSERT_QUERY);
-		} else {
-			$s = $pdo->prepare($this::UPDATE_QUERY);
+		$this->cycle->step('init/load');
+		$this->db->set_synced();
+	}
+
+
+	# ==== STADIUM 3 METHODS (editing) ==== #
+
+	# this function is used to edit multiple properties at once, for example to process POST data from an html
+	# form that contains data for multiple properties
+	# Important: this function edits the entire object, not only properties that are contained in $data.
+	# properties that don't have a value in $data are set to null, throwing an error if that is not possible.
+	# @param $input: [property_name => new_property_value, ...]
+	# @exceptions: InputFailedException
+	final public function receive_input(array $input) : void {
+		$this->cycle->check_step('edit');
+
+		# create a new container exception that buffers and stores all PropertyValueExceptions
+		# that occur during the editing of the properties (i.e. invalid or missing inputs)
+		$errors = new InputFailedException();
+
+		# loop through all property definitions and edit the respective properties
+		foreach($this::PROPERTIES as $name => $_){
+			try {
+				$this->edit_property($name, $input[$name] ?? null);
+			} catch(PropertyValueException $e){
+				$errors->push($e);
+			} catch(InputFailedException $e){
+				$errors->merge($e, $name);
+			}
 		}
 
-		if(!$s->execute($this->db_export())){
+		# if errors occured, throw the buffer exception containing them all
+		if(!$errors->is_empty()){
+			throw $errors;
+		}
+
+		$this->cycle->step('edit');
+	}
+
+
+	# ==== STADIUM 4 METHODS (storing/deleting) ==== #
+
+	# this function is used to upload this object's data into the database.
+	# if this object is not newly created and has not been altered, no database request is executed
+	# and this function simply returns null.
+	final public function push() : null|void {
+		$this->cycle->check_step('store/delete');
+
+		if($this->db->is_synced()){
+			# this object is not newly created and has not been altered, so just return null
+			$this->cycle->step('store/delete');
+			return null;
+		}
+
+		$this->db->enable();
+
+		if($this->db->is_local()){
+			# this object is not yet or not anymore stored in the database, so perform an insert query
+			$s = $this->db->prepare($this::INSERT_QUERY);
+		} else {
+			# this object is already stored in the database, but has been altered.
+			# perform an update query to update its database representation
+			$s = $this->db->prepare($this::UPDATE_QUERY);
+		}
+
+		if(!$s->execute($this->get_push_values())){
+			# the PDOStatement::execute has returned false, so an error occured performing the database request
 			throw new DatabaseException($s);
 		} else {
-			$this->set_not_new();
+			$this->cycle->step('store/delete');
+			$this->db->set_synced();
 		}
 
-		foreach($this::PROPERTIES as $property => $definition){
+		foreach($this::PROPERTIES as $property => $definition){ // TODO maybe move this up and use transactions
 			if(is_subclass_of($definition, DataObject::class)){
 				$this->$property?->push();
 			} else if(is_subclass_of($definition, DataObjectRelationList::class)){
@@ -122,244 +215,73 @@ abstract class DataObject {
 	}
 
 
-	public function delete() : void {
-#	@action:
-#	  - delete this object in the database
-#	  - set this->new to true
+	# this function erases this object out of the database.
+	# it does not erase children, but relations might be removed due to the mysql ON DELETE CASCADE constraint.
+	# if this object is not yet or anymore stored in the database, this function simply returns null without
+	# performing a database request
+	final public function delete() : null|void {
+		$this->cycle->check_step('store/delete');
 
-		$this->require_not_empty();
-		$this->require_not_new();
-		$pdo = $this->open_pdo();
+		if($this->db->is_local()){
+			# this object is not yet or not anymore stored in the database, so just return null
+			$this->cycle->step('store/delete');
+			return null;
+		}
 
-		$s = $pdo->prepare($this::DELETE_QUERY);
+		$this->db->enable();
+
+		$s = $this->db->prepare($this::DELETE_QUERY);
 		if(!$s->execute(['id' => $this->id])){
+			# the PDOStatement::execute has returned false, so an error occured performing the database request
 			throw new DatabaseException($s);
 		} else {
-			$this->set_new();
+			$this->cycle->step('store/delete');
+			$this->db->set_local();
 		}
 	}
 
 
-	protected function import_custom(string $property, array $data) : void {}
+	# ==== STADIUM 5 METHODS (output) ==== #
 
+	# this function disables the database access for this object and all other objects it contains.
+	# it should be called by all controllers handing over this object to templates etc. in order to output it.
+	# this is a safety feature that prevents templates from altering or deleting object data
+	final public function freeze() : void {
+		$this->cycle->step('output');
+		$this->db->disable();
 
-	public function import(array $data) : void {
-#	@action:
-#	  - import data received as array
-#	@params:
-#	  - data: array containing the data
-
-		$errors = new InputFailedException();
-
-		if($this->is_new()){
-			$pattern = '^[a-z0-9-]{9,128}$';
-
-			if(empty($data['longid'])){
-				$errors->push(new MissingValueException('longid', $pattern));
-			} else if(!preg_match("/$pattern/", $data['longid'])){
-				$errors->push(new IllegalValueException('longid', $data['longid'], $pattern));
-			}
-
-			try {
-				$existing = new $this;
-				$existing->pull($data['longid']);
-			} catch(EmptyResultException $e){
-				$this->longid = $data['longid'];
-			}
-
-			if(empty($this->longid)){
-				$errors->push(new IdentifierCollisionException($data['longid'], $existing));
-			}
-		} else {
-			if($data['id'] != $this->id){
-				$errors->push(new IdentifierMismatchException('id', $data['id'], $this));
-			}
-
-			if($data['longid'] != $this->longid){
-				$errors->push(new IdentifierMismatchException('longid', $data['longid'], $this));
-			}
-		}
-
-
-		foreach($this::PROPERTIES as $property => $definition){
-			$input = $data[$property] ?? null;
-
-			if(is_array($definition)){ # enable extended (array) definitions
-				if(empty($definition['type'])){
-					throw new Exception("Invalid definition for $property: missing type.");
-				}
-
-				$options = $definition;
-				$definition = $definition['type'];
-			} else {
-				$options = null;
-			}
-
-			if($definition == null){ # property is only defined by its PHP type
-				$mode = 'as-is';
-			} else if($definition == 'custom'){
-				$mode = 'custom';
-			} else if(!class_exists($definition)){ # definition is (at least should be) a regex
-				$mode = 'regex';
-			} else if(is_subclass_of($definition, DataType::class)){
-				$mode = 'datatype';
-			} else if(is_subclass_of($definition, DataObject::class)){
-				$mode = 'dataobject';
-			} else if(is_subclass_of($definition, DataObjectRelationList::class)){
-				$mode = 'relationlist';
-			} else if(is_subclass_of($definition, DataObjectList::class)){
-				continue;
-			} else if($definition instanceof DataObjectCollection){
-				// TEMP
-				continue;
-			} else {
-				throw new Exception("Invalid definition '$definition' for $property.");
-			}
-
-			if($mode == 'custom'){
-				try {
-					$this->import_custom($property, $data);
-				} catch(InputFailedException $e){
-					$errors->merge($e, $property);
-				} catch(InputException $e){
-					$errors->push($e);
-				}
-
-				continue;
-			}
-
-			if(empty($input) && in_array($mode, ['as-is', 'regex', 'datatype'])){
-				try {
-					$this->$property = null;
-				} catch(TypeError $e){
-					$errors->push(new MissingValueException($property, $definition));
-				}
-
-				continue;
-			}
-
-			if($mode == 'regex' || $mode == 'as-is'){
-				if($mode == 'regex'){
-					$regex = "/^$definition$/";
-					if(preg_match($regex, null) === false){ # check if definition is a valid regex
-						throw new Exception("Invalid regex for $property.");
-					} else if(!preg_match($regex, $input)){
-						$errors->push(new IllegalValueException($property, $input, $definition));
-						continue;
-					}
-				}
-
-				try {
-					$this->$property = htmlspecialchars($input);
-				} catch(TypeError $e){
-					$errors->push(new IllegalValueException($property, $input, $definition));
-				}
-
-				continue;
-			}
-
-			if($mode == 'datatype'){
-				try {
-					$this->$property = $definition::import($input, $errors);
-				} catch(InputException $e){
-					$e->field = $property;
-					$errors->push($e);
-				}
-
-				continue;
-			}
-
-			if($mode == 'dataobject'){
-				if(!empty($input['id']) || !empty($data[$property.'_id'])){
-					$input = $input['id'] ?? $data[$property.'_id'];
-					$object = new $definition();
-
-					try {
-						$object->pull($input);
-						$this->$property = $object;
-					} catch(EmptyResultException $e){
-						$errors->push(new RelationNonexistentException($property, $input, $definition));
-					}
-
-					continue;
-				} else if(is_array($input)){
-					$object = new $definition();
-
-					try {
-						$object->generate();
-						$object->import($input);
-						$this->$property = $object;
-					} catch(InputFailedException $e){
-						$errors->merge($e, $property);
-					}
-
-					continue;
-				} else {
-					try {
-						$this->$property = null;
-					} catch(TypeError $e){
-						$errors->push(new MissingValueException($property, $definition));
-					}
-
-					continue;
-				}
-			}
-
-			if($mode == 'relationlist') {
-				if(empty($this->$property)){
-					$this->$property = new $definition();
-				}
-
-				if(empty($input)){
-					continue;
-				}
-
-				try {
-					$this->$property->import($input, $this);
-				} catch(InputFailedException $e){
-					$errors->merge($e, $property);
-				}
-
-				continue;
-			}
-		}
-
-		if(!$errors->is_empty()){
-			throw $errors;
-		}
-
-		$this->set_not_empty();
-	}
-
-
-	public function export() : void {
-		$this->disable();
-
-		foreach($this as $property => $value){
-			if($value instanceof DataObject || $value instanceof DataObjectList){
-				$this->$property->export();
-			} else if($value instanceof DataObjectRelationList){
-				$this->$property->export($this::class);
-			}
-		}
-	}
-
-
-	public function staticize(bool $norelations = false) : ?array {
-		$result = [
-			'id' => $this->id,
-			'longid' => $this->longid
-		];
-
-		foreach(array_merge($this::PROPERTIES, ($norelations) ? [] : $this::PSEUDOLISTS) as $property => $definition){
-			if($norelations && is_subclass_of($definition, DataObjectRelationList::class)){
-				continue;
+		# loop through all properties and freeze them recursively if they are freezable
+		foreach($this::PROPERTIES as $property => $_){
+			if($this->$property instanceof DataObject){
+				$this->$property->freeze();
+			} else if($this->$property instanceof DataObjectList){
+				$this->$property->freeze();
 			} else if($this->$property instanceof DataObjectRelationList){
-				$result[$property] = $this->$property->staticize($this::class);
-			} else if(is_object($this->$property)){
-				$result[$property] = $this->$property->staticize();
-			} else {
-				$result[$property] = $this->$property;
+				$this->$property->freeze($this::class);
+			}
+		}
+	}
+
+
+	# this function transforms this object into an array containing all of its properties.
+	# properties that are objects themselves get also transformed into arrays using theír own arrayify functions.
+	final public function arrayify() : ?array {
+		$this->cycle->step('output');
+		$this->db->disable();
+
+		$result = [];
+
+		foreach($this::PROPERTIES as $property => $_){
+			# use arrayify functions on object properties to turn them into an array
+			# copy all property values into $result
+			$result[$property] = match(true){
+				$this->$property instanceof DataObject ||
+				$this->$property instanceof DataObjectList ||
+				$this->$property instanceof DataObjectCollection
+					=> $this->$property->arrayify(),
+				$this->$property instanceof DataObjectRelationList
+					=> $this->$property->arrayify($this::class), # see DORelationList on why $this::class arg. is needed
+				default => $this->$property;
 			}
 		}
 
@@ -367,25 +289,46 @@ abstract class DataObject {
 	}
 
 
+
+	### HELPER METHODS
+
 	function __get($property) {
-		if(!empty($this::PSEUDOLISTS[$property])){
-			if($this->disabled && !empty($this->pseudo_cache[$property])){
-				return $this->pseudo_cache[$property];
+		if(!empty($this::RELATIONLIST_EXTRACTS[$property])){
+			$object_list_class = $this::RELATIONLIST_EXTRACTS[$property][0];
+			$relationlist_name = $this::RELATIONLIST_EXTRACTS[$property][1];
+
+			if(!is_subclass_of($object_list_class, DataObjectList::class)){
+				// Exception
 			}
 
-			$class = $this::PSEUDOLISTS[$property][0];
-			$reference = $this::PSEUDOLISTS[$property][1];
-
-			$res = empty($this->$reference?->relations) ? null : new $class();
-			$res?->load_from_relationlist($this->$reference);
-
-			if($this->disabled){
-				$res->export();
-				$this->pseudo_cache[$property] = $res;
+			if(!$this->$relationlist_name instanceof DataObjectRelationList){
+				// Exception
 			}
 
-			return $res;
+			if(empty($this->$relationlist_name?->relations)){
+				$object_list = null;
+			} else {
+				$object_list = new $object_list_class();
+				$object_list->extract_from_relationlist($this->$relationlist_name);
+			}
+
+			if($this->is_frozen()){
+				$this->$property = $object_list;
+			}
+
+			return $object_list;
 		}
 	}
+
+
+	# ==== DATABASE QUERIES ==== #
+	const PULL_QUERY; # 'SELECT * FROM [table_name] [joins] WHERE [id_column] = :id OR [longid_column] = :id'
+	# join for DataObjects = 'LEFT JOIN [table_name] ON [id_column] = [local_id_column]'
+	# join for relations = 'LEFT JOIN [join_table_name] ON [join_obj_id_column] = [id_column]
+	#						LEFT JOIN [joined_table_name] ON [joined_id_column] = [join_obj_id_column]'
+
+	const INSERT_QUERY; # 'INSERT INTO [table_name] ([...column_names]) VALUES ([...placeholders])'
+	const UPDATE_QUERY; # 'UPDATE [table_name] SET [column_name] = [placeholder][, ...] WHERE [id_column] = :id'
+	const DELETE_QUERY; # 'DELETE FROM [table_name] WHERE [id_column] = :id'
 }
 ?>

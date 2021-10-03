@@ -13,8 +13,12 @@ class InputFailedException extends Exception implements Exportable { // TODO ren
 		$this->export_name = 'import';
 	}
 
-	public function push(InputException $exception) {
-		$this->exceptions[$exception->field] = $exception;
+	public function push(InputException $exception, $prefix = null) {
+		if(is_null($prefix)){
+			$this->exceptions[$exception->field] = $exception;
+		} else {
+			// prefix as in merge(); used in DORelationList
+		}
 	}
 
 	public function merge(InputFailedException $exception, $prefix = '') {

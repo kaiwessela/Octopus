@@ -21,6 +21,7 @@ PLANNED CHANGES:
 - new/better auth/permission system
 
 - get rid of MediaController
+- reorganize image resizing: allow custom options for the import/edit function
 
 - remove and reorganize Config::SERVER_URL
 

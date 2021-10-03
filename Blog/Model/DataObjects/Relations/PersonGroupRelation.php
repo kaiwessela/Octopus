@@ -39,7 +39,7 @@ class PersonGroupRelation extends DataObjectRelation {
 			$this->person = &$object;
 			$this->group = null;
 		} else if($object instanceof Group){
-			$this->group = &$group;
+			$this->group = &$object;
 			$this->person = null;
 		} else {
 			throw new TypeError('Invalid type of $object.');

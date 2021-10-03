@@ -2,6 +2,7 @@
 namespace Blog\Model\Exceptions;
 use Exception;
 use PDOStatement;
+use PDOException;
 use InvalidArgumentException;
 
 class DatabaseException extends Exception {
@@ -9,15 +10,16 @@ class DatabaseException extends Exception {
 	public $error_code;		# PDOStatement->errorCode
 	public $error_info;		# PDOStatement->errorInfo
 
-	function __construct($pdo_statement) {
+	function __construct(PDOStatement|PDOException $pdo) {
+		if($pdo instanceof PDOStatement){
+			// TODO
+		} else if($pdo instanceof PDOException){
 
-		if(!$pdo_statement instanceof PDOStatement){
-			throw new InvalidArgumentException('Invalid Argument; PDOStatement required; ' . serialize($pdo_statement));
 		}
 
-		$this->query = $pdo_statement->queryString;
-		$this->error_code = $pdo_statement->errorCode();
-		$this->error_info = $pdo_statement->errorInfo();
+		$this->query = $pdo->queryString;
+		$this->error_code = $pdo->errorCode();
+		$this->error_info = $pdo->errorInfo();
 
 		parent::__construct("Database Exception - [$this->error_code]: " . implode('; ', $this->error_info) . "; '$this->query'");
 	}

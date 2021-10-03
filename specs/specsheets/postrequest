@@ -1,0 +1,15 @@
+POST REQUEST FOR DATAOBJECTS:
+
+REQUEST = [
+	('id' = string,) only for existing objects
+	'longid' = string,
+	property_name = PRIMITIVE | DATAOBJECT | RELATIONLIST | ...,
+	(...)
+]
+
+PRIMITIVE = string | BOOL | INT | FLOAT
+BOOL = bool | 'true' | 'false'
+INT = int | string(/*[0-9]+$/)
+FLOAT = float | string(/*[0-9]+[\.,][0-9]+$/)
+
+DATAOBJECT = string(object_id) |  

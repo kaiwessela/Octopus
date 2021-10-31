@@ -1,11 +1,5 @@
-<?php // CODE ok, COMMENTS --, IMPORTS --
-namespace Blog\Model\Abstracts;
-use \Blog\Model\Abstracts\Traits\DatabaseAccess;
-use \Blog\Model\Abstracts\Traits\Cycle;
-use \Blog\Model\Abstracts\DataObject;
-use \Blog\Model\Exceptions\DatabaseException;
-use \Blog\Model\Exceptions\EmptyResultException;
-use InvalidArgumentException;
+<?php // CODE ??, COMMENTS --, IMPORTS --
+namespace Blog\Core\Model;
 
 # What is a DataObjectList?
 # A DataObjectList is pretty much what the name suggests: A list of DataObjects of the same class.

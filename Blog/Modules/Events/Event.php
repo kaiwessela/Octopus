@@ -1,86 +1,38 @@
-<?php
-namespace Blog\Model\DataObjects;
-use \Blog\Model\Abstracts\DataObject;
-use \Blog\Model\DataTypes\Timestamp;
-use \Blog\Model\DataTypes\MarkdownContent;
+<?php # Event.php 2021-10-04 beta
+namespace Blog\Modules\Events;
+use \Blog\Core\Model\DataObject;
+use \Blog\Modules\DataTypes\MarkdownContent;
+use \Blog\Modules\DataTypes\Timestamp;
 
 class Event extends DataObject {
-	public string 			$title;
-	public string 			$organisation;
-	public Timestamp 		$timestamp;
-	public ?string 			$location;
-	public ?MarkdownContent $description;
-	public ?bool 			$cancelled;
+	# inherited from DataObject:
+	# protected string $id;
+	# protected string $longid;
 
-#	@inherited
-#	public string $id;
-#	public string $longid;
-#
-#	private bool $new;
-#	private bool $empty;
-#	private bool $disabled;
-#
-#	const PAGINATABLE = false;
+	protected string 			$title;
+	protected string 			$organisation;
+	protected Timestamp 		$timestamp;
+	protected ?string 			$location;
+	protected ?MarkdownContent 	$description;
+	protected ?bool 			$cancelled;
+
 
 	const PROPERTIES = [
+		'id' => 'id',
+		'longid' => 'longid',
 		'title' => '.{1,100}',
 		'organisation' => '.{1,60}',
 		'timestamp' => Timestamp::class,
 		'location' => '.{0,100}',
 		'description' => MarkdownContent::class,
-		'cancelled' => null
+		'cancelled' => 'bool'
 	];
 
 
-	public function load(array $data, bool $norecursion = false) : void {
-		$this->require_empty();
-
-		if(is_array($data[0])){
-			$row = $data[0];
-		} else {
-			$row = $data;
-		}
-
-		$this->id = $row['event_id'];
-		$this->longid = $row['event_longid'];
-		$this->title = $row['event_title'];
-		$this->organisation = $row['event_organisation'];
-		$this->timestamp = new Timestamp($row['event_timestamp']);
-		$this->location = $row['event_location'];
-		$this->cancelled = (bool) $row['event_cancelled'];
-
-		$this->description = empty($row['event_description'])
-		? null : new MarkdownContent($row['event_description']);
-
-		$this->set_not_new();
-		$this->set_not_empty();
-	}
+	const DB_PREFIX = 'event';
 
 
-	protected function db_export() : array {
-		$values = [
-			'id' => $this->id,
-			'title' => $this->title,
-			'organisation' => $this->organisation,
-			'timestamp' => (string) $this->timestamp,
-			'location' => $this->location,
-			'description' => $this->description,
-			'cancelled' => (int) $this->cancelled
-		];
-
-		if($this->is_new()){
-			$values['longid'] = $this->longid;
-		}
-
-		return $values;
-	}
-
-
-	const PULL_QUERY = <<<SQL
-SELECT * FROM events
-WHERE event_id = :id OR event_longid = :id
-SQL; #---|
-
+	const PULL_QUERY = 'SELECT * FROM events WHERE event_id = :id OR event_longid = :id';
 
 	const INSERT_QUERY = <<<SQL
 INSERT INTO events (
@@ -104,7 +56,6 @@ INSERT INTO events (
 )
 SQL; #---|
 
-
 	const UPDATE_QUERY = <<<SQL
 UPDATE events SET
 	event_title = :title,
@@ -116,11 +67,7 @@ UPDATE events SET
 WHERE event_id = :id
 SQL; #---|
 
-
-	const DELETE_QUERY = <<<SQL
-DELETE FROM events
-WHERE event_id = :id
-SQL; #---|
+	const DELETE_QUERY = 'DELETE FROM events WHERE event_id = :id';
 
 }
 ?>

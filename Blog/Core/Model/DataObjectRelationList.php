@@ -1,11 +1,5 @@
-<?php
-namespace Blog\Model\Abstracts;
-use \Blog\Model\Abstracts\Traits\DBTrait;
-use \Blog\Model\Abstracts\DataObject;
-use \Blog\Model\Abstracts\DataObjectRelation;
-use \Blog\Model\Exceptions\InputFailedException;
-use \Blog\Model\Exceptions\DatabaseException;
-use \Blog\Model\Exceptions\RelationCollisionException;
+<?php // CODE ??, COMMENTS --, IMPORTS --
+namespace Blog\Core\Model;
 
 abstract class DataObjectRelationList {
 	protected DataObject $base_object;

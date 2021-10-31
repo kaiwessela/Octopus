@@ -1,155 +1,185 @@
-<?php
-namespace Blog\Model\DataObjects;
-use \Blog\Model\Abstracts\DataObject;
-use \Blog\Model\Abstracts\DataObjects\Media\Application;
-use \Blog\Model\Abstracts\DataObjects\Media\Audio;
-use \Blog\Model\Abstracts\DataObjects\Media\Image;
-use \Blog\Model\Abstracts\DataObjects\Media\Video;
+<?php # Medium.php 2021-10-04 beta
+namespace Blog\Modules\Media;
+use \Blog\Core\Model\DataObject;
+use \Blog\Modules\Media\Application;
+use \Blog\Modules\Media\Audio;
+use \Blog\Modules\Media\Image;
+use \Blog\Modules\Media\Video;
+
+// not ideal from here
 use \Blog\Config\Config;
 use \Blog\Config\MediaConfig;
 use Exception;
 
 abstract class Medium extends DataObject {
-#	public string $class;
-	public string $type;
-	public string $extension;
-	public ?string $title;
-	public ?string $description;
-	public ?string $copyright;
-	public ?string $alternative;
-	public ?array $variants;
+	# inherited from DataObject:
+	# protected string $id;
+	# protected string $longid;
 
-#	@inherited
-#	public string $id;
-#	public string $longid;
-#
-#	private bool $new;
-#	private bool $empty;
-#	private bool $disabled;
-#
-#	const PAGINATABLE = false;
+	protected ?string 	$name;
+	protected ?string 	$description;
+	protected ?string 	$alternative;
+	protected ?string 	$copyright;
+	protected string 	$mime_type;
+	protected string 	$extension;
+	protected ?array 	$variants; // TODO check structure and ?
 
-	protected ?array $files;
+	protected ?File $file;
+	protected ?array $variant_files;
 
-	const PROPERTIES = [
-		'title' => '.{0,140}',
+
+	const PROPERTIES = [ // DEPRECATED
+		'id' => 'id',
+		'longid' => 'longid',
+		'name' => '.{0,140}',
 		'description' => '.{0,250}',
-		'copyright' => '.{0,250}',
 		'alternative' => '.{0,250}',
+		'copyright' => '.{0,250}',
 		'file' => 'custom',
 		'type' => 'custom',
 		'extension' => 'custom',
-		'variants' => 'custom',
-		'rewrite' => 'custom'
+		'variants' => 'custom'
 	];
 
 
-	public static function create_and_load(array $data, bool $norecursion = false) : Medium {
-		$class = $data['medium_class'] ?? $data[0]['medium_class'] ?? null;
+	const DB_PREFIX = 'medium';
 
-		$object = match($class){
-			'application' => new Application(),
-			'audio' => new Audio(),
-			'image' => new Image(),
-			'video' => new Video(),
-			default => throw new Exception('invalid class.')
-		};
 
-		$object->load($data, $norecursion);
-		return $object;
+	abstract protected function autoversion() : void;
+
+
+	public function pull_file() : void {
+		// TODO cycle check
+
+		if($this->db->is_local()){
+			throw new Exception(); // TODO -- no file to pull
+		}
+
+
 	}
 
 
-	public function load(array $data, bool $norecursion = false) : void {
-		$this->require_empty();
+	protected function load_custom_property(string $name, mixed $value, ?PropertyDefinition $def = null) : void {
+		if($name === 'variants'){
+			json_decode($value, true, default, \JSON_THROW_ON_ERROR);
+		}
+	}
 
-		if(is_array($data[0])){
-			$row = $data[0];
+
+	protected function edit_custom_property(string $name, mixed $input, ?PropertyDefinition $def = null) : void {
+		if($name !== 'file' || !$this->db->is_local()){
+			return;
+		}
+
+		# $name === 'file' && $this->db->is_local()
+
+		$file = File::receive('file', $input);
+		$file->variant = 'original';
+
+		if($file::class !== $this::FILE_CLASS){
+			throw new Exception();
+		}
+
+		$allowed_mime_types = Config::get('Modules.'.$this::class.'.allowed_mime_types', 'array');
+		if(!in_array($file->mime_type, $allowed_mime_types)){
+			throw new Exception();
+		}
+
+		$this->file = $file;
+		$this->mime_type = $file->mime_type;
+		$this->extension = $file->extension;
+		$this->files['original'] = $file;
+		$this->variants = [];
+
+		$this->autoversion();
+	}
+
+
+	protected function get_custom_push_values(string $property) : array {
+		if($property === 'file'){
+			return $this->files['original']->data; // TODO fix this for null etc.
+		}
+	}
+
+
+	protected function push_custom_after() : void {
+		$this->write();
+	}
+
+	protected function delete_custom() : void {
+		$this->erase();
+	}
+
+
+	protected function write() : void {
+		$path = $this->compute_path();
+		$this->file->write($path, overwrite:true);
+
+		foreach($variant_files as $file){
+			$path = $_SERVER['DOCUMENT_ROOT'] . DIRECTORY_SEPARATOR . $this->compute_path($file->variant);
+			$file->write($path, overwrite:true);
+		}
+	}
+
+	protected function erase(?string $variant = null) : void {
+		if($variant === null){
+			$this->erase('original');
+
+			foreach($this->variants as $variant => $_){
+				$this->erase($variant);
+			}
 		} else {
-			$row = $data;
-		}
-
-		if($row['medium_class'] != $this::$class){
-			throw new Exception('class mismatch.');
-		}
-
-		$this->id = $row['medium_id'];
-		$this->longid = $row['medium_longid'];
-		$this->type = $row['medium_type'];
-		$this->extension = $row['medium_extension'];
-		$this->title = $row['medium_title'];
-		$this->description = $row['medium_description'];
-		$this->copyright = $row['medium_copyright'];
-		$this->alternative = $row['medium_alternative'];
-		$this->variants = empty($row['medium_variants'])
-			? null : json_decode($row['medium_variants'], true, 512, \JSON_THROW_ON_ERROR);
-
-		$this->set_not_new();
-		$this->set_not_empty();
-	}
-
-
-	protected function check_class(string $class) : bool {
-		return ($class == $this->class);
-	}
-
-
-	public function push() : void {
-		$push_and_write = $this->is_new();
-
-		parent::push();
-
-		if($push_and_write){
-			$this->write_file();
-			$this->push_file();
+			$path = $_SERVER['DOCUMENT_ROOT'] . DIRECTORY_SEPARATOR . $this->compute_path($variant);
+			File::erase($path, recursive:true);
 		}
 	}
 
+	protected function scan() : array {
 
-	public function delete() : void {
-		parent::delete();
-
-		$this->erase_file();
 	}
 
+	protected function compute_path(string $variant = 'original') : string {
+		$path = trim(Config::get('Modules.'.$this::class.'.directory', 'string'), DIRECTORY_SEPARATOR);
 
-	protected function db_export() : array {
-		$values = [
-			'id' => $this->id,
-			'title' => $this->title,
-			'description' => $this->description,
-			'copyright' => $this->copyright,
-			'alternative' => $this->alternative,
-			'variants' => json_encode($this->variants, \JSON_THROW_ON_ERROR)
-		];
+		$path = str_replace('{id}', $this->id, $path);
+		$path = str_replace('{longid}', $this->longid, $path);
+		$path = str_replace('{extension}', $this->extension, $path);
+		$path = str_replace('{variant}', $variant, $path);
 
-		if($this->is_new()){
-			$values['longid'] = $this->longid;
-			$values['class'] = static::$class;
-			$values['type'] = $this->type;
-			$values['extension'] = $this->extension;
-		}
+		$path = preg_replace_callback('/\{(.+)variant\}/', function($matches){
+			if($variant !== 'original'){
+				return '';
+			} else {
+				return $matches[1] . $variant;
+			}
+		}, $path);
 
-		return $values;
+		return $path;
 	}
 
 
 	public function src(string $variant = 'original') : ?string {
-		if(!in_array($variant, $this->variants)){
+		// TODO cycle check
+
+		if($variant !== 'original' && !isset($this->variants[$variant])){
 			return null;
 		}
 
-		$id_and_variant = $this->id . (($variant == 'original') ? '' : '_'.$variant);
-		$longid_and_variant = $this->longid . (($variant == 'original') ? '' : '_'.$variant);
-
-		return Config::SERVER_URL . DIRECTORY_SEPARATOR
-			. MediaConfig::DIRECTORIES[$this::$class][0] . DIRECTORY_SEPARATOR
-			. str_replace(
-				['$ID&VARIANT', '$LONGID&VARIANT', '$ID', '$LONGID', '$EXTENSION'],
-				[$id_and_variant, $longid_and_variant, $this->id, $this->longid, $this->extension],
-				MediaConfig::DIRECTORIES[$this::$class][1]
-			);
+		return /* TODO CURRENT_BASE_URL */ . DIRECTORY_SEPARATOR . $this->compute_path($variant);
 	}
+
+
+
+	const QUERY_PULL_LEAD = <<<SQL
+SELECT (medium_id, medium_longid, medium_class, medium_mime_type, medium_extension, medium_title, medium_description,
+medium_alternative, medium_copyright, medium_variants) FROM media
+SQL;
+
+	const QUERY_JOIN = <<<SQL
+LEFT JOIN media ()
+SQL;
+
+
 
 
 	const INSERT_QUERY = <<<SQL

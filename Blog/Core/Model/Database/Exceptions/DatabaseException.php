@@ -1,9 +1,8 @@
-<?php
-namespace Blog\Model\Exceptions;
+<?php // CODE --, COMMENTS --, IMPORTS ok
+namespace Blog\Core\Model\Database\Exceptions;
 use Exception;
 use PDOStatement;
 use PDOException;
-use InvalidArgumentException;
 
 class DatabaseException extends Exception {
 	public $query;			# original query

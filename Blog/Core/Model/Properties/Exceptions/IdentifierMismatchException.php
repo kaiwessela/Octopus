@@ -1,7 +1,9 @@
-<?php
-namespace Blog\Model\Properties\Exceptions;
-use \Blog\Model\Properties\Exceptions\PropertyValueException;
-use \Blog\Model\Abstracts\Traits\PropertyDefinition;
+<?php # IdentifierMismatchException.php 2021-10-04 beta
+namespace Blog\Core\Model\Properties\Exceptions;
+use \Blog\Core\Model\DataObject;
+use \Blog\Core\Model\DataObjectRelation;
+use \Blog\Core\Model\Properties\PropertyDefinition;
+use \Blog\Core\Model\Properties\Exceptions\PropertyValueException;
 
 class IdentifierMismatchException extends PropertyValueException {
 	# inherited from PropertyValueException:

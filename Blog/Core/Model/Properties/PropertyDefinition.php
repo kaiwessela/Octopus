@@ -1,5 +1,11 @@
-<?php
-namespace Blog\Model\Abstracts\Traits;
+<?php # PropertyDefinition.php 2021-10-04 beta
+namespace Blog\Core\Model\Properties;
+use \Blog\Core\Model\DataObject;
+use \Blog\Core\Model\DataObjectCollection;
+use \Blog\Core\Model\DataObjectRelationList;
+use \Blog\Core\Model\DataType;
+use \Blog\Core\Model\Properties\Exceptions\IllegalValueException;
+use Exception;
 
 # The following property classes and corresponding types exist:
 #	CLASS										TYPE
@@ -136,14 +142,14 @@ class PropertyDefinition {
 		if($this->type_is_special() && $this->class === 'longid'){
 			# validate a longid
 			if(!preg_match(self::LONGID_PATTERN, $input)){
-				throw new IllegalValueException(); // TODO
+				throw new IllegalValueException($this, $input);
 			}
 
 		} else if($this->type_is_primitive() && $this->class === 'string'){
 			if(!empty($constraints['pattern'])){ # pattern constraint
 				# match the input with the constraint pattern
 				if(!preg_match('/^'.$constraints['pattern'].'$/', $input)){
-					throw new IllegalValueException(); // TODO
+					throw new IllegalValueException($this, $input);
 				}
 			}
 

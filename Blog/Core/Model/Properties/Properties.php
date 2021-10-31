@@ -1,5 +1,5 @@
-<?php
-namespace Blog\Model\Abstracts\Traits;
+<?php // CODE ??, COMMENTS --, IMPORTS --
+namespace Blog\Core\Model\Properties;
 
 # This trait takes care about all standard operations for properties of DataObjects and friends,
 # which means: Definition, Validation, Transformation

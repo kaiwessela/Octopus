@@ -1,15 +1,5 @@
-<?php // CODE ok, COMMENTS ok, IMPORTS --
-namespace Blog\Model\Abstracts;
-use \Blog\Model\Abstracts\Traits\DBTrait;
-use \Blog\Model\Abstracts\Traits\StateTrait;
-use \Blog\Model\Abstracts\DataObject;
-use \Blog\Model\Exceptions\DatabaseException;
-use \Blog\Model\Exceptions\EmptyResultException;
-use \Blog\Model\Exceptions\InputFailedException;
-use \Blog\Model\Exceptions\IdentifierMismatchException;
-use \Blog\Model\Exceptions\IllegalValueException;
-use \Blog\Model\Exceptions\MissingValueException;
-use \Blog\Model\Exceptions\RelationNonexistentException;
+<?php // CODE ??, COMMENTS --, IMPORTS --
+namespace Blog\Core\Model;
 
 # What is a DataObjectRelation?
 # A DataObjectRelation is a construct used to create and store many-to-many relations between two classes of DataObjects.

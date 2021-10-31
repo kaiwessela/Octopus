@@ -1,5 +1,5 @@
-<?php
-namespace Blog\Model\Exceptions;
+<?php // CODE ??, COMMENTS --, IMPORTS ok
+namespace Blog\Core\Model\Cycle\Exceptions;
 use Exception;
 
 class OutOfCycleException extends Exception {

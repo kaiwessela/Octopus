@@ -1,66 +1,53 @@
-<?php
-namespace Blog\Model\DataObjects\Media;
-use \Blog\Model\DataObjects\Medium;
+<?php # Image.php 2021-10-04 beta
+namespace Blog\Modules\Media;
+use \Blog\Core\Model\DataObject;
+use \Blog\Modules\Media\Medium;
+
+// not ideal from here
 use \Blog\Model\FileManager;
 use \Blog\Model\Exceptions\IllegalValueException;
 use \Blog\Config\MediaConfig;
 
 class Image extends Medium {
-	public static string $class = 'image';
+	# inherited from DataObject:
+	# protected string $id;
+	# protected string $longid;
+
+	# inherited from Medium:
+	# protected ?string $name;
+	# protected ?string $copyright;
+	# protected string 	$type;
+	# protected string 	$extension;
+	# protected ?string $description;
+	# protected ?string $alternative;
+	# protected ?array 	$variants;
+
+	# protected ?File $file;
+	# protected ?array $variant_files;
+
+	const FILE_CLASS = ImageFile::class;
+	const DB_CLASS_STRING = 'image';
 
 
-	protected function import_custom(string $property, array $data) : void {
-		if($this->is_new() && $property == 'file'){
-			$file = FileManager::receive('file');
-		} else if(!$this->is_new() && $property == 'rewrite' && $data['rewrite'] == true){
-			$file = FileManager::pull($this->id);
-		} else {
+	protected function autoversion() : void {
+		$rules = Config::get('Modules.'.$this::class.'.autoversion_rules.'.$this->mime_type) ?? null;
+
+		if(!is_array($rules)){
 			return;
 		}
 
-		$variants = [];
-
-		if(!in_array($file->type, MediaConfig::IMAGE_TYPES)){
-			throw new IllegalValueException('file', '', 'image');
+		if($rules['resize'] === 'all' || is_array($rules['resize'])){
+			// TODO resize
 		}
 
-		$this->type = $file->type;
-		$this->extension = $file->extension;
-		$this->files['original'] = $file;
-		$this->variants = ['original'];
-
-		if(in_array($file->type, MediaConfig::RESIZABLE_IMAGE_TYPES)){
-			foreach(array_keys(MediaConfig::IMAGE_RESIZE_WIDTHS) as $width){
-				$resized = $file->resize($width, upscaling:false);
-
-				if($resized != null){
-					$this->files[$width] = $resized;
-					$this->variants[] = $width;
-				}
-			}
-		}
-
-		if($property == 'rewrite'){
-			FileManager::erase($this, true);
-			$this->write_file();
-		}
+		// TODO convert
 	}
 
 
-	protected function write_file() : void {
-		foreach($this->files as $variant => $file){
-			FileManager::write($file, $this, $variant);
-		}
-	}
+	public function srcset() : string {
+		// TODO cycle check
 
 
-	protected function push_file() : void {
-		FileManager::push($this->files['original'], $this);
-	}
-
-
-	protected function erase_file() : void {
-		FileManager::erase($this, true);
 	}
 
 
@@ -79,10 +66,18 @@ class Image extends Medium {
 	}
 
 
-	const PULL_QUERY = <<<SQL
-SELECT * FROM media WHERE medium_class = 'image' AND
-(medium_id = :id OR medium_longid = :id)
-SQL; #---|
+
+	const QUERY_PULL_BY_ID = self::QUERY_PULL_START . <<<SQL
+WHERE medium_id = :id AND medium_class = 'image'
+SQL;
+
+	const QUERY_PULL_BY_LONGID = self::QUERY_PULL_START . <<<SQL
+WHERE medium_longid = :id AND medium_class = 'image'
+SQL;
+
+	const QUERY_PULL_BY_ID_OR_LONGID = self::QUERY_PULL_START . <<<SQL
+WHERE (medium_id = :id OR medium_longid = :id) AND medium_class = 'image'
+SQL;
 
 }
 ?>

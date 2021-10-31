@@ -1,29 +1,23 @@
-<?php
-namespace Blog\Model\DataObjects;
-use \Blog\Model\Abstracts\DataObject;
-use \Blog\Model\DataTypes\Timestamp;
-use \Blog\Model\DataTypes\MarkdownContent;
-use \Blog\Model\DataObjects\Media\Application;
-use \Blog\Model\Exceptions\MissingValueException;
-use \Blog\Model\Exceptions\IllegalValueException;
+<?php # Motion.php 2021-10-04 beta
+namespace Blog\Modules\Motion;
+use \Blog\Core\Model\DataObject;
+use \Blog\Core\Model\Properties\Exceptions\PropertyValueException;
+use \Blog\Modules\DataTypes\MarkdownContent;
+use \Blog\Modules\DataTypes\Timestamp;
+use \Blog\Modules\Media\Application;
 
 class Motion extends DataObject {
-	public string 			$title;
-	public ?MarkdownContent $description;
-	public ?Application		$document;
-	public Timestamp		$timestamp;
-	public string 			$status;
-	public ?array 			$votes;
+	# inherited from DataObject:
+	# protected string $id;
+	# protected string $longid;
 
-#	@inherited
-#	public string $id;
-#	public string $longid;
-#
-#	private bool $new;
-#	private bool $empty;
-#	private bool $disabled;
-#
-#	const PAGINATABLE = false;
+	protected string 			$title;
+	protected ?MarkdownContent 	$description;
+	protected ?Application		$document;
+	protected Timestamp			$timestamp;
+	protected string 			$status;
+	protected ?array 			$votes;
+
 
 	const PROPERTIES = [
 		'title' => '.{0,140}',
@@ -35,93 +29,59 @@ class Motion extends DataObject {
 	];
 
 
-	public function load(array $data, bool $norecursion = false) : void {
-		$this->require_empty();
+	const DB_PREFIX = 'motion';
 
-		if(is_array($data[0])){
-			$row = $data[0];
-		} else {
-			$row = $data;
+
+	protected function load_custom_property(string $name, mixed $value, ?PropertyDefinition $def = null) : void {
+		if($name === 'votes'){
+			if(empty($value)){
+				$this->votes = null;
+			} else {
+				json_decode($value, true, default, \JSON_THROW_ON_ERROR);
+			}
 		}
-
-		$this->id = $row['motion_id'];
-		$this->longid = $row['motion_longid'];
-		$this->title = $row['motion_title'];
-		$this->status = $row['motion_status'];
-
-		$this->description = empty($row['motion_description'])
-			? null : new MarkdownContent($row['motion_description']);
-
-		$this->document = empty($row['medium_id']) ? null : new Application();
-		$this->document?->load($data);
-
-		$this->timestamp = empty($row['motion_timestamp'])
-			? null : new Timestamp($row['motion_timestamp']);
-
-		$this->votes = empty($row['motion_votes'])
-			? null : json_decode($row['motion_votes'], true, 512, \JSON_THROW_ON_ERROR);
-
-		$this->set_not_new();
-		$this->set_not_empty();
 	}
 
-
-	protected function import_custom(string $property, array $data) : void {
-		if($property != 'votes'){
-			return;
-		}
-
-		$value = $data['votes'] ?? null;
-
-		if(!is_array($value)){
-			$this->votes = null;
-			return;
-		}
-
-		$this->votes = [];
-
-		foreach($value as $v){
-			if(empty($v['party'])){
-				throw new MissingValueException('party', 'string <= 30');
-			} else if(!is_string($v['party']) || strlen($v['party']) > 30){
-				throw new IllegalValueException('party', $v['party'], 'string <= 30');
+	protected function edit_custom_property(string $name, mixed $input, ?PropertyDefinition $def = null) : void {
+		if($name === 'votes'){
+			if(!is_array($input)){
+				$this->$votes = null;
+				return;
 			}
 
-			if(empty($v['amount'])){
-				throw new MissingValueException('amount', 'int');
-			} else if(!is_numeric($v['amount'])){
-				throw new IllegalValueException('amount', $v['amount'], 'int');
-			}
+			$this->votes = [];
 
-			if(!in_array($v['vote'], ['yes', 'no', 'abstention'])){
-				throw new IllegalValueException('vote', $v['vote'], '(yes|no|abstention)');
-			}
+			foreach($input as $index => $vote){
+				if(empty($vote['party'])){
+					throw new PropertyValueException($def, "Vote $index: party missing.");
+				} else if(!is_string($vote['party']) || strlen($vote['party']) > 30){
+					throw new PropertyValueException($def, "Vote $index: party invalid.");
+				}
 
-			$this->votes[] = [
-				'party' => $v['party'],
-				'vote' => $v['vote'],
-				'amount' => $v['amount']
-			];
+				if(empty($vote['amount'])){
+					throw new PropertyValueException($def, "Vote $index: amount missing.");
+				} else if(!is_numeric($vote['amount'])){
+					throw new PropertyValueException($def, "Vote $index: amount invalid.");
+				}
+
+				if(!in_array($vote['vote'], ['yes', 'no', 'abstention'])){
+					throw new PropertyValueException($def, "Vote $index: vote invalid or missing.");
+				}
+
+				$this->votes[] = [
+					'party' => $vote['party'],
+					'vote' => $vote['vote'],
+					'amount' => $vote['amount']
+				]
+			}
 		}
 	}
 
 
-	protected function db_export() : array {
-		$values = [
-			'id' => $this->id,
-			'title' => $this->title,
-			'description' => (string) $this->description,
-			'timestamp' => (string) $this->timestamp,
-			'status' => $this->status,
-			'votes' => json_encode($this->votes, \JSON_THROW_ON_ERROR),
-			'document_id' => $this->document?->id
-		];
-
-		if($this->is_new()){
-			$values['longid'] = $this->longid;
+	protected function get_custom_push_values(string $property) : array {
+		if($property === 'votes'){
+			return ['votes' => json_encode($this->votes, \JSON_THROW_ON_ERROR)];
 		}
-
-		return $values;
 	}
 
 
@@ -130,7 +90,6 @@ SELECT * FROM motions
 LEFT JOIN media ON medium_id = motion_document_id
 WHERE motion_id = :id OR motion_longid = :id
 SQL; #---|
-
 
 	const INSERT_QUERY = <<<SQL
 INSERT INTO motions (
@@ -154,7 +113,6 @@ INSERT INTO motions (
 )
 SQL; #---|
 
-
 	const UPDATE_QUERY = <<<SQL
 UPDATE motions SET
 	motion_title = :title,
@@ -166,11 +124,7 @@ UPDATE motions SET
 WHERE motion_id = :id
 SQL; #---|
 
-
-	const DELETE_QUERY = <<<SQL
-DELETE FROM motions
-WHERE motion_id = :id
-SQL; #---|
+	const DELETE_QUERY = 'DELETE FROM motions WHERE motion_id = :id';
 
 }
 ?>

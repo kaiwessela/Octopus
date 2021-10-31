@@ -1,23 +1,5 @@
-<?php
-namespace Blog\Model\Abstracts;
-use \Blog\Model\Abstracts\Traits\DatabaseAccess;
-use \Blog\Model\Abstracts\Traits\Cycle;
-use \Blog\Model\Abstracts\DataType;
-use \Blog\Model\Abstracts\DataObjectList;
-use \Blog\Model\Abstracts\DataObjectRelationList;
-use \Blog\Model\Abstracts\DataObjectCollection;
-use \Blog\Model\Exceptions\DatabaseException;
-use \Blog\Model\Exceptions\InputException;
-use \Blog\Model\Exceptions\EmptyResultException;
-use \Blog\Model\Exceptions\InputFailedException;
-use \Blog\Model\Exceptions\IllegalValueException;
-use \Blog\Model\Exceptions\MissingValueException;
-use \Blog\Model\Exceptions\RelationNonexistentException;
-use \Blog\Model\Exceptions\IdentifierCollisionException;
-use \Blog\Model\Exceptions\IdentifierMismatchException;
-use InvalidArgumentException;
-use Exception;
-use TypeError;
+<?php // CODE ??, COMMENTS --, IMPORTS --
+namespace Blog\Core\Model;
 
 # What is a DataObject?
 # A DataObject is a collection of properties of a real thing. Any single object that is handled
@@ -111,7 +93,7 @@ abstract class DataObject {
 			# the database request was successful
 			$r = $s->fetchAll();
 
-			if($s->rowCount() == 0 || empty($r[0][0])){
+			if($s->rowCount() == 0 || empty($r[0][0])){ // TODO this is no more necessary; restructure
 				# the response is empty, meaning that no object with the requested identifier was found
 				throw new EmptyResultException($query);
 			} else {
@@ -184,11 +166,7 @@ abstract class DataObject {
 			# this object is not newly created and has not been altered, so just return null
 			$this->cycle->step('store/delete');
 			return null;
-		}
-
-		$this->db->enable();
-
-		if($this->db->is_local()){
+		} else if($this->db->is_local()){
 			# this object is not yet or not anymore stored in the database, so perform an insert query
 			$s = $this->db->prepare($this::INSERT_QUERY);
 		} else {
@@ -197,13 +175,17 @@ abstract class DataObject {
 			$s = $this->db->prepare($this::UPDATE_QUERY);
 		}
 
+		$this->push_custom_before();
+
 		if(!$s->execute($this->get_push_values())){
 			# the PDOStatement::execute has returned false, so an error occured performing the database request
 			throw new DatabaseException($s);
-		} else {
-			$this->cycle->step('store/delete');
-			$this->db->set_synced();
 		}
+
+		$this->push_custom_after();
+
+		$this->cycle->step('store/delete');
+		$this->db->set_synced();
 
 		foreach($this::PROPERTIES as $property => $definition){ // TODO maybe move this up and use transactions
 			if(is_subclass_of($definition, DataObject::class)){
@@ -213,6 +195,11 @@ abstract class DataObject {
 			}
 		}
 	}
+
+
+	protected function push_custom_before() : void {}
+
+	protected function push_custom_after() : void {}
 
 
 	# this function erases this object out of the database.
@@ -230,6 +217,8 @@ abstract class DataObject {
 
 		$this->db->enable();
 
+		$this->delete_custom();
+
 		$s = $this->db->prepare($this::DELETE_QUERY);
 		if(!$s->execute(['id' => $this->id])){
 			# the PDOStatement::execute has returned false, so an error occured performing the database request
@@ -239,6 +228,8 @@ abstract class DataObject {
 			$this->db->set_local();
 		}
 	}
+
+	protected function delete_custom() : void {}
 
 
 	# ==== STADIUM 5 METHODS (output) ==== #

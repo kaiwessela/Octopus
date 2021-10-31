@@ -1,5 +1,7 @@
-<?php
-namespace Blog\Model\Properties\Exceptions;
+<?php # PropertyValueException.php 2021-10-04 beta
+namespace Blog\Core\Model\Properties\Exceptions;
+use \Blog\Core\Model\Properties\PropertyDefinition;
+use Exception;
 
 class PropertyValueException extends Exception {
 	public PropertyDefinition $definition;

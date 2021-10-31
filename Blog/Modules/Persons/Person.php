@@ -1,80 +1,37 @@
-<?php
-namespace Blog\Model\DataObjects;
-use \Blog\Model\Abstracts\DataObject;
-use \Blog\Model\DataObjects\Media\Image;
-use \Blog\Model\DataObjects\Lists\GroupList;
-use \Blog\Model\DataObjects\Relations\Lists\PersonGroupRelationList;
-use \Blog\Model\DataTypes\MarkdownContent;
+<?php # Person.php 2021-10-04 beta
+namespace Blog\Modules\Persons;
+use \Blog\Core\Model\DataObject;
+use \Blog\Modules\DataTypes\MarkdownContent;
+use \Blog\Modules\Media\Image;
+use \Blog\Modules\Persons\PersonGroupRelationList;
+use \Blog\Modules\Persons\Groups\GroupList;
 
 class Person extends DataObject {
-	public string 					$name;
-	public ?MarkdownContent 		$profile;
-	public ?Image 					$image;
-	public ?PersonGroupRelationList $grouprelations;
+	# inherited from DataObject:
+	# protected string $id;
+	# protected string $longid;
 
-#	@inherited
-#	public string $id;
-#	public string $longid;
-#
-#	private bool $new;
-#	private bool $empty;
-#	private bool $disabled;
-#
-#	const PAGINATABLE = false;
+	protected string 					$name;
+	protected ?MarkdownContent 			$profile;
+	protected ?Image 					$image;
+	protected ?PersonGroupRelationList 	$grouprelations;
+
 
 	const PROPERTIES = [
+		'id' => 'id',
+		'longid' => 'longid',
 		'name' => '.{1,60}',
 		'profile' => MarkdownContent::class,
 		'image' => Image::class,
-		'groups' => GroupList::class,
 		'grouprelations' => PersonGroupRelationList::class
 	];
 
-	const PSEUDOLISTS = [
+	const RELATIONLIST_EXTRACTS = [ // TODO
 		'groups' => [GroupList::class, 'grouprelations']
 	];
 
 
-	public function load(array $data, bool $norecursion = false) : void {
-		$this->require_empty();
-
-		if(is_array($data[0])){
-			$row = $data[0];
-		} else {
-			$row = $data;
-		}
-
-		$this->id = $row['person_id'];
-		$this->longid = $row['person_longid'];
-		$this->name = $row['person_name'];
-
-		$this->profile = empty($row['person_profile'])
-			? null : new MarkdownContent($row['person_profile']);
-
-		$this->image = empty($row['medium_id']) ? null : new Image();
-		$this->image?->load($row);
-
-		$this->grouprelations = ($norecursion || empty($row['persongrouprelation_id'])) ? null : new PersonGroupRelationList();
-		$this->grouprelations?->load($data, $this);
-
-		$this->set_not_new();
-		$this->set_not_empty();
-	}
-
-
-	protected function db_export() : array {
-		$values = [
-			'id' => $this->id,
-			'name' => $this->name,
-			'image_id' => $this->image?->id
-		];
-
-		if($this->is_new()){
-			$values['longid'] = $this->longid;
-		}
-
-		return $values;
-	}
+	const DB_PREFIX = 'person';
 
 
 	const PULL_QUERY = <<<SQL
@@ -85,12 +42,10 @@ LEFT JOIN groups ON group_id = persongrouprelation_group_id
 WHERE person_id = :id OR person_longid = :id
 SQL; #---|
 
-
 	const INSERT_QUERY = <<<SQL
 INSERT INTO persons (person_id, person_longid, person_name, person_image_id)
 VALUES (:id, :longid, :name, :image_id)
 SQL; #---|
-
 
 	const UPDATE_QUERY = <<<SQL
 UPDATE persons SET
@@ -99,11 +54,7 @@ UPDATE persons SET
 WHERE person_id = :id
 SQL; #---|
 
-
-	const DELETE_QUERY = <<<SQL
-DELETE FROM persons
-WHERE person_id = :id
-SQL; #---|
+	const DELETE_QUERY = 'DELETE FROM persons WHERE person_id = :id';
 
 }
 ?>

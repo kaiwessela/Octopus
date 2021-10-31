@@ -1,5 +1,5 @@
-<?php
-namespace Blog\Model\Exceptions;
+<?php // CODE ??, COMMENTS --, IMPORTS ok
+namespace Blog\Core\Model\Database\Exceptions;
 use Exception;
 
 class EmptyResultException extends Exception {

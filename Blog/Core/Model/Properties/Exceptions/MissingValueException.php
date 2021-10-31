@@ -1,7 +1,7 @@
-<?php
-namespace Blog\Model\Properties\Exceptions;
-use \Blog\Model\Properties\Exceptions\PropertyValueException;
-use \Blog\Model\Abstracts\Traits\PropertyDefinition;
+<?php # MissingValueException.php 2021-10-04 beta
+namespace Blog\Core\Model\Properties\Exceptions;
+use \Blog\Core\Model\Properties\PropertyDefinition;
+use \Blog\Core\Model\Properties\Exceptions\PropertyValueException;
 
 class MissingValueException extends PropertyValueException {
 	# inherited from PropertyValueException:

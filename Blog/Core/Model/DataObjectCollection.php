@@ -1,12 +1,5 @@
-<?php
-namespace Blog\Model\Abstracts;
-use \Blog\Config\ControllerConfig;
-use \Blog\Model\Abstracts\DataObjectList;
-use \Blog\Model\DataObjects\Media\Image;
-use \Blog\Model\DataObjects\Event;
-use \Blog\Model\DataObjects\Motion;
-use \Blog\Model\DataObjects\Person;
-use Exception;
+<?php // CODE --, COMMENTS --, IMPORTS --
+namespace Blog\Core\Model;
 
 class DataObjectCollection {
 	public ?array $objectlists;

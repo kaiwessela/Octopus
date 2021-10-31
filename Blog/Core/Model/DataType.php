@@ -1,5 +1,5 @@
-<?php
-namespace Blog\Model\Abstracts;
+<?php // CODE --, COMMENTS --, IMPORTS --
+namespace Blog\Core\Model;
 
 interface DataType {
 

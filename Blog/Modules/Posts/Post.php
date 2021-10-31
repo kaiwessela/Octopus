@@ -1,45 +1,42 @@
-<?php
-namespace Blog\Model\DataObjects;
-use \Blog\Model\Abstracts\DataObject;
-use \Blog\Model\DataObjects\Media\Image;
-use \Blog\Model\DataObjects\Lists\ColumnList;
-use \Blog\Model\DataObjects\Relations\Lists\PostColumnRelationList;
-use \Blog\Model\DataTypes\Timestamp;
-use \Blog\Model\DataTypes\MarkdownContent;
-use \Blog\Model\Abstracts\DataObjectCollection;
+<?php # Post.php 2021-10-04 beta
+namespace Blog\Modules\Posts;
+use \Blog\Core\Model\DataObject;
+use \Blog\Core\Model\DataObjectCollection;
+use \Blog\Modules\DataTypes\MarkdownContent;
+use \Blog\Modules\DataTypes\Timestamp;
+use \Blog\Modules\Media\Image;
+use \Blog\Modules\Posts\PostColumnRelationList;
+use \Blog\Modules\Posts\Columns\ColumnList;
 
 class Post extends DataObject {
-	public ?string 					$overline;
-	public string 					$headline;
-	public ?string 					$subline;
-	public ?string 					$teaser;
-	public string 					$author;
-	public Timestamp 				$timestamp;
-	public ?Image 					$image;
-	public ?MarkdownContent 		$content;
-	public ?PostColumnRelationList 	$columnrelations;
-	public ?DataObjectCollection	$collection;
+	# inherited from DataObject:
+	# protected string $id;
+	# protected string $longid;
 
-#	@inherited
-#	public string $id;
-#	public string $longid;
-#
-#	private array $cycle
-#
-#	const PAGINATABLE = false;
+	protected ?string 					$overline;
+	protected string 					$headline;
+	protected ?string 					$subline;
+	protected ?string 					$teaser;
+	protected string 					$author;
+	protected Timestamp 				$timestamp;
+	protected ?Image 					$image;
+	protected ?MarkdownContent 			$content;
+	protected ?PostColumnRelationList 	$columnrelations;
+	protected ?DataObjectCollection		$collection;
 
-	const DB_PREFIX = 'post';
 
 	const PROPERTIES = [
+		'id' => 'id',
+		'longid' => 'longid',
 		'overline' => '.{0,50}',
 		'headline' => '.{1,100}',
 		'subline' => '.{0,100}',
-		'teaser' => null,
+		'teaser' => 'string',
 		'author' => '.{1,100}',
 		'timestamp' => Timestamp::class,
 		'image' => Image::class,
 		'content' => [
-			'type' => MarkdownContent::class,
+			'class' => MarkdownContent::class,
 			'allow_html' => true,
 			'collection' => 'collection'
 		],
@@ -47,67 +44,23 @@ class Post extends DataObject {
 		'collection' => DataObjectCollection::class
 	];
 
-	const RELATIONLIST_EXTRACTS = [
+	const RELATIONLIST_EXTRACTS = [ // TODO
 		'columns' => [ColumnList::class, 'columnrelations']
 	];
 
 
-	public function load(array $data, bool $norecursion = false) : void {
-		$this->require_empty();
-
-		if(is_array($data[0])){
-			$row = $data[0];
-		} else {
-			$row = $data;
-		}
-
-		$this->id = $row['post_id'];
-		$this->longid = $row['post_longid'];
-		$this->overline = $row['post_overline'];
-		$this->headline = $row['post_headline'];
-		$this->subline = $row['post_subline'];
-		$this->teaser = $row['post_teaser'];
-		$this->author = $row['post_author'];
-
-		$this->timestamp = new Timestamp($row['post_timestamp']);
-
-		$this->image = empty($row['medium_id']) ? null : new Image();
-		$this->image?->load($data);
-
-		$this->content = empty($row['post_content'])
-		? null : new MarkdownContent($row['post_content']);
-
-		$this->columnrelations = ($norecursion || empty($row['postcolumnrelation_id'])) ? null : new PostColumnRelationList();
-		$this->columnrelations?->load($data, $this);
-
-		$this->collection = (empty($row['post_collection'])) ? null : new DataObjectCollection(json_decode($row['post_collection'], true));
-		$this->collection?->pull(); // TODO prevent pulling on multi
-
-		$this->set_not_new();
-		$this->set_not_empty();
-	}
+	const DB_PREFIX = 'post';
 
 
-	protected function db_export() : array {
-		$values = [
-			'id' => $this->id,
-			'overline' => $this->overline,
-			'headline' => $this->headline,
-			'subline' => $this->subline,
-			'teaser' => $this->teaser,
-			'author' => $this->author,
-			'timestamp' => (string) $this->timestamp,
-			'image_id' => $this->image?->id,
-			'content' => (string) $this->content,
-			// 'collection' => $this->colletion->db_export()
-		];
+	const QUERY_PULL_COLUMNS = 'posts.*';
 
-		if($this->is_new()){
-			$values['longid'] = $this->longid;
-		}
+	const QUERY_PULL = 'SELECT '.self::QUERY_PULL_COLUMNS.', '.Medium::QUERY_PULL_COLUMNS.<<<SQL
+	FROM posts
+LEFT JOIN media ON
 
-		return $values;
-	}
+SELECT  FROM posts
+LEFT JOIN
+SQL;
 
 
 	const PULL_QUERY = <<<SQL
@@ -157,10 +110,7 @@ UPDATE posts SET
 WHERE post_id = :id
 SQL; #---|
 
-	const DELETE_QUERY = <<<SQL
-DELETE FROM posts
-WHERE post_id = :id
-SQL; #---|
+	const DELETE_QUERY = 'DELETE FROM posts WHERE post_id = :id';
 
 }
 ?>

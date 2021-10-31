@@ -1,5 +1,6 @@
-<?php
-namespace Blog\Model\Abstracts\Traits;
+<?php // CODE ok, COMMENTS --, IMPORTS --
+namespace Blog\Core\Model\Database;
+// TODO imports
 
 
 # DatabaseAccess – A PDO wrapper for DataObjects

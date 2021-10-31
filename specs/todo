@@ -30,6 +30,11 @@ PLANNED CHANGES:
 - update Post content lengths
 
 
+----
+- the DataObject Array update: allow special PropertyDefinitions for arrays with a fixed structure so that they dont
+	have to be validated manually (kind of nested property definitions)
+
+
 
 
 ----------------

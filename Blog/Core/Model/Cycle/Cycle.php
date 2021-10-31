@@ -1,5 +1,7 @@
-<?php
-namespace Blog\Model\Abstracts\Traits;
+<?php // CODE ok, COMMENTS --, IMPORTS ok
+namespace Blog\Core\Model\Cycle;
+use \Blog\Core\Model\Cycle\OutOfCycleException;
+use Exception;
 
 class Cycle {
 	private array $cycle;

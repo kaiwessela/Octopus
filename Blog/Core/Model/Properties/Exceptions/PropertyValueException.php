@@ -20,7 +20,7 @@ class PropertyValueException extends Exception {
 		if($this->definition->type_is_custom()){
 			$this->message = "An error occured trying to edit the custom property «{$this->name}»: $message";
 		} else {
-			$this->message = "An unknown error occured trying to edit the property «{$this->name}»: $message";
+			$this->message = "An error occured trying to edit the property «{$this->name}»: $message";
 		}
 	}
 }

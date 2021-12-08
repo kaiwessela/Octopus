@@ -21,10 +21,9 @@ abstract class DataObjectList {
 		$this->db = new DatabaseAccess(); # prepare a connection to the database
 
 		$this->cycle = new Cycle([
-			['root', 'construct'],
-			['construct', 'init/load'],
-			['init/load', 'output'],
-			['output', 'output']
+			['root', 'constructed'],
+			['constructed', 'loaded'],
+			['loaded', 'frozen']
 		]);
 
 		$this->cycle->start();
@@ -40,8 +39,13 @@ abstract class DataObjectList {
 	# @param $offset: the number of objects that are skipped (sql OFFSET)
 	# @param $options: TODO
 	final public function pull(?int $limit = null, ?int $offset = null, ?array $options = null) : void {
-		$this->cycle->check_step('init/load');
-		$this->db->enable(); # connect to the database
+		$this->cycle->check_step('loaded');
+
+		$request = new SelectRequest($this::class);
+		$request->set_condition($this->get_pull_condition($options));
+		$request->set_limit($limit);
+		$request->set_offset($offset);
+
 
 		$query = $this->build_pull_query($limit, $offset, $options);
 		$s = $this->db->prepare($query);
@@ -63,12 +67,15 @@ abstract class DataObjectList {
 	# in contrast to pull(), there is no exception if an id is not found.
 	# @param $idlist: a list of ids of all objects that should be pulled
 	final public function pull_by_ids(array $idlist) : void {
-		$this->cycle->check_step('init/load');
+		$this->cycle->check_step('loaded');
 		$this->db->enable();
 
 		if(empty($idlist)){
 			return;
 		}
+
+		$request = new SelectRequest($this::class);
+		$request->set_condition(new InCondition($this->properties['id'], $idlist));
 
 		$query = $this::SELECT_IDS_QUERY . ' (' . implode(', ', array_fill(0, count($idlist), '?')) . ')';
 		$s = $this->db->prepare($query);
@@ -81,30 +88,31 @@ abstract class DataObjectList {
 	}
 
 
-	protected function build_pull_query(?int $limit = null, ?int $offset = null, ?array $options = null) : string {
-		$query = $this::SELECT_QUERY;
-		$query .= ($limit) ? (($offset) ? " LIMIT $offset, $limit" : " LIMIT $limit") : null;
-		return $query;
+	protected function get_pull_condition(?array $options) : ?Condition {
+
+	}
+
+	protected function get_pull_order(?array $options) : ?array {
+
 	}
 
 
 	# this function loads rows of object data from the database into objects and puts these objects into this list
 	# @param $data: rows of dataobjects from a database request's response
 	final public function load(array $data) : void {
-		$this->cycle->check_step('init/load');
-
-		$class = $this::OBJECT_CLASS;
+		$this->cycle->check_step('loaded');
 
 		foreach($data as $row){
-			$object = new $class(); # initialize a new object of $this::OBJECT_CLASS
-			$object->load($row, norelations:true, nocollections:true); # load the object, omit relations and collections
+			$object = new {$this::OBJECT_CLASS}(); # initialize a new DataObject of this single-object class
+			$object->load($row, relations:false); # load the object, do not load relations
 			$this->objects[$object->id] = $object;
 		}
 
-		$this->cycle->step('init/load');
+		$this->cycle->step('loaded');
 	}
 
 
+	// XXX DEPRECATED
 	# this function compiles a list of dataobjects that are extracted from a relationlist TODO
 	final public function extract_from_relationlist(DataObjectRelationList $relationlist) : void {
 		$this->cycle->check_step('init/load');
@@ -115,6 +123,7 @@ abstract class DataObjectList {
 
 		$this->cycle->step('init/load');
 	}
+	// xxx end
 
 
 	# ==== STADIUM 3 METHODS (output) ==== #
@@ -122,7 +131,7 @@ abstract class DataObjectList {
 	# this function disables the database access for this object and all of the dataobjects it contanins.
 	# see DataObject.php freeze function for more
 	final public function freeze() : void {
-		$this->cycle->step('output');
+		$this->cycle->step('frozen');
 		$this->db->disable();
 
 		foreach($this->objects as &$object){
@@ -133,8 +142,8 @@ abstract class DataObjectList {
 
 	# this function creates an array of the arrayified dataobjects it contains.
 	# see DataObject.php arrayify function for more
-	public function arrayify() : ?array {
-		$this->cycle->step('output');
+	public function arrayify() : array {
+		$this->cycle->step('frozen');
 		$this->db->disable();
 
 		$result = [];
@@ -149,7 +158,7 @@ abstract class DataObjectList {
 
 	# ==== STATIC METHODS ==== #
 
-	public static function count() : int {
+	public static function count() : int { // TODO
 		$db = new DatabaseAccess();
 		$db->enable();
 

@@ -2,24 +2,19 @@
 namespace Blog\Core\Model;
 
 abstract class DataObjectRelationList {
-	protected DataObject $base_object;
+	protected ?DataObject $pivot;
 	protected array $relations;
 
-	protected array $deletions; // DEPRECATED
-	protected array $updates; // DEPRECATED
+	protected array $deletions;
 
 	const RELATION_CLASS; # the fully qualified name of the concrete DORelation class whose instances this list contains
 
-	# this class does not use the local/altered/synced states of DatabaseAccess!
-	protected DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
 	protected Cycle $cycle; # this class uses the Cycle class to control the order of its actions. see there for more.
 
 
 	# ==== CONSTRUCTION METHODS ==== #
 
-	function __construct(DataObject &$base_object) { // TODO
-		$this->db = new DatabaseAccess(); # prepare a connection to the database
-
+	function __construct() { // TODO
 		$this->cycle = new Cycle([
 			['root', 'construct'],
 			// TODO
@@ -28,6 +23,7 @@ abstract class DataObjectRelationList {
 		$this->cycle->start();
 
 		$this->relations = [];
+		$this->deletions = [];
 	}
 
 
@@ -44,14 +40,14 @@ abstract class DataObjectRelationList {
 	# the database request itself (the pull function) is always performed by the base object (using joins)
 	# @param $data: array of rows from the database request's response
 	# @param $object: the base object of the relations
-	final public function load(array $data, DataObject &$object) : void {
+	final public function load(array $data, ?DataObject $pivot = null) : void {
 		$this->cycle->check_step('init/load');
 
-		$class = $this::RELATION_CLASS;
+		$this->pivot = $pivot; // NOTE: there is no validation for this value
 
 		foreach($data as $row){
-			$relation = new $class(); # initialize a new relation
-			$relation->load($row, $object); # load the relation with the row data
+			$relation = new {$this::RELATION_CLASS}(); # initialize a new relation
+			$relation->load($row, $pivot); # load the relation with the row data
 			$this->relations[$relation->id] = $relation; # write the relation into this list
 		}
 
@@ -65,51 +61,58 @@ abstract class DataObjectRelationList {
 	# relation in this list to be altered, a string value 'action' has to be included in the input, which can have the
 	# following contents: ignore (not altering anything) | new (adding new relation) | edit | delete
 	# @param $input: [['action' => action string, 'input' => relation input data array], ...]
-	final public function receive_input(array $input, DataObject &$object) : void {
+	final public function receive_input(array $input) : void {
 		$this->cycle->check_step('edit');
 
 		# create a new container exception that buffers and stores all PropertyValueExceptions
 		# that occur during the editing of the properties (i.e. invalid or missing inputs)
 		$errors = new InputFailedException();
 
+		# loop through the input array
 		foreach($input as $index => $field){
 			$action = $field['action'];
 			$data = $field['input'];
-			$class = $this::RELATION_CLASS;
 
-			if($action == 'new'){
-				$relation = new $class();
+			if($action === 'new'){ # a new relation should be created and added
+				$relation = new {$this::RELATION_CLASS}();
+
+				$relation->create();
+
+				if(!is_null($this->pivot)){
+					$relation->set_object($this->pivot);
+				}
 
 				try {
-					$relation->create($object);
 					$relation->receive_input($data);
 				} catch(InputFailedException $e){
-					$errors->merge($e, 'relation_'.$index);
+					$errors->merge($e, "relation{$index}");
 				}
 
 				try {
 					$this->add($relation);
 				} catch(RelationCollisionException $e){
-					$errors->push($e, 'relation_'.$index);
+					$errors->push($e, "relation{$index}");
 				}
 
-			} else if($action == 'edit' || $action == 'delete'){
+			} else if($action === 'edit' || $action === 'delete'){
 				$relation = $this->get($data['id']); # returns reference
 
-				if(is_null($relation)){
+				if(is_null($relation)){ // FIXME
 					$errors->push(new RelationObjectNotFoundException(new PropertyDefinition('(unnamed)', $class), $data['id']), 'relation_'.$index);
 				}
 
-				if($action == 'edit'){
+				if($action === 'edit'){
 					try {
 						$relation->receive_input($data);
 					} catch(InputFailedException $e){
 						$errors->merge($e, 'relation_'.$index);
 					}
 
-				} else { # action=delete
+				} else { # action===delete
 					$this->remove($relation);
 				}
+			} else if($action !== 'ignore'){
+				// TODO maybe throw an exception
 			}
 		}
 
@@ -125,105 +128,48 @@ abstract class DataObjectRelationList {
 		$this->cycle->check_step('edit');
 
 		if($relation::class !== $this::RELATION_CLASS){
-			// exception wrong class (maybe TypeError)
+			throw new Exception(); // TODO exception wrong class (maybe TypeError)
 		}
 
-		if($relation->get_object($this->base_object::class)?->id !== $this->base_object->id){
-			// exception different base object
+		if(!is_null($this->pivot) && $relation->get_object($this->pivot::class)?->id !== $this->pivot->id){
+			throw new Exception(); // exception different base object
 		}
 
 		// TODO check unique (general, also for DataObjectRelation.php)
 
-		$this->relations[$relation->id] = $relation; // TODO reference?
+		$this->relations[$relation->id] = $relation;
 	}
 
 
-	final public function remove(DataObjectRelation|string $relation, bool $error = false) : null|void {
-		/*
-		$this->deletions[] = $relation->id;
-		unset($this->relations[$relation->id]);
-		*/
-	}
+	final public function remove(DataObjectRelation|string $relation, bool $quiet = true) : void {
+		if(is_string($relation)){
+			$id = $relation;
+		} else {
+			$id = $relation?->id;
+		}
 
-
-	public function import(array $data, DataObject $object) : void { // DEPRECATED
-		$errors = new InputFailedException();
-
-		foreach($data as $index => $relationdata){
-			$action = $relationdata['action'];
-			$class = $this::RELATION_CLASS;
-
-			if($action == 'new'){
-				$relation = new $class();
-
-				try {
-					$relation->generate($object);
-					$relation->import($relationdata);
-				} catch(InputFailedException $e){
-					$errors->merge($e, $index);
-					continue;
-				}
-
-				if($class::UNIQUE){
-					$propname;
-					foreach($class::OBJECTS as $nm => $cls){
-						if($cls != $object::class){
-							$propname = $nm;
-						}
-					}
-
-					foreach($this->relations as $existing){
-						if($existing->$propname->id == $relation->$propname->id){
-							throw new RelationCollisionException($propname, '', $existing->id);
-						}
-					}
-				}
-
-				$this->relations[$relation->id] = $relation;
-				$this->updates[] = $relation->id;
-
-			} else if($action == 'edit') || $action == 'delete'){
-				$relation = $this->relations[$relationdata['id']];
-
-				if(!$relation instanceof DataObjectRelation){
-					// TODO maybe exception
-					continue;
-				}
-
-				if($action == 'edit'){
-					try {
-						$relation->import($relationdata);
-					} catch(InputFailedException $e){
-						$errors->merge($e, $index);
-					}
-
-					$this->updates[] = $relation->id;
-					$this->relations[$relation->id] = $relation;
-
-				} else if($action == 'delete'){
-					$this->deletions[] = $relation->id;
-					unset($this->relations[$relation->id]);
-				}
-
+		if(!isset($this->relations[$id])){
+			if($error_on_null){
+				throw new Exception();
+			} else {
+				return;
 			}
 		}
 
-		if(!$errors->is_empty()){
-			throw $errors;
-		}
+		$this->deletions[$id] = $this->relations[$id];
+		unset($this->relations[$id]);
 	}
+
 
 	# ==== STORING AND DELETING METHODS ==== #
 
-	final public function push() : null|void {
+	final public function push() : bool {
 		$this->cycle->check_step('store/delete');
 
 		$request_performed = false;
 
 		foreach($this->relations as $id => $_){
-			if($this->relations[$id]->push() !== null){
-				$request_performed = true;
-			}
+			$request_performed |= $this->relations[$id]->push();
 		}
 
 		foreach($this->deletions as $id => $_){
@@ -232,55 +178,7 @@ abstract class DataObjectRelationList {
 			$request_performed = true;
 		}
 
-		if(!$request_performed){
-			return null;
-		}
-	}
-
-	public function push() : void { // DEPRECATED
-		$pdo = $this->open_pdo();
-
-		if(!empty($this->updates)){
-			if(count($this->updates) == 1){
-				$this->relations[$this->updates[0]]->push();
-			} else {
-				$valuestrings = [];
-				$values = [];
-				foreach($this->updates as $i => $id){
-					$valuestrings[] = $this->db_valuestring($i);
-					$values = array_merge($values, $this->db_values($i, $id));
-				}
-
-				$valuestring = implode(', ', $valuestrings);
-				$query = str_replace('%VALUESTRING%', $valuestring, $this::PUSH_QUERY);
-
-				$s = $pdo->prepare($query);
-				if(!$s->execute($values)){
-					throw new DatabaseException($s);
-				} else {
-					$this->updates = [];
-				}
-			}
-		}
-
-		if(!empty($this->deletions)){
-			$idstrings = [];
-			$values = [];
-			foreach($this->deletions as $i => $id){
-				$idstrings[] = $this->db_idstring($i);
-				$values["id_$i"] = $id;
-			}
-
-			$idstring = implode(' OR ', $idstrings);
-			$query = str_replace('%IDSTRING%', $idstring, $this::DELETE_QUERY);
-
-			$s = $pdo->prepare($query);
-			if(!$s->execute($values)){
-				throw new DatabaseException($s);
-			} else {
-				$this->deletions = [];
-			}
-		}
+		return $request_performed;
 	}
 
 

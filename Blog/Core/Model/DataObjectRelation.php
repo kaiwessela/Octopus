@@ -29,18 +29,23 @@ namespace Blog\Core\Model;
 
 abstract class DataObjectRelation {
 	public string $id;
-	# public ?[child of DataObject] $[name of 1st object];
-	# public ?[child of DataObject] $[name of 2nd object];
+	# public [child of DataObject] $[name of 1st object];
+	# public [child of DataObject] $[name of 2nd object];
 	# ...other properties
 
+	// TODO check this
 	# this constant defines whether multiple relations of the same pair of DataObjects should be allowed to exist
 	const UNIQUE; # true = forbidden; false = allowed
 
+	// XXX DEPRECATED
 	# this defines which two DataObject classes the relation consists of
 	const OBJECTS = [
 		# '[name of 1st object]' => [child of DataObject]::class,
 		# '[name of 2nd object]' => [child of DataObject]::class
 	];
+	// xxx end
+
+	protected static array $objects;
 
 	# this class uses the Properties trait which contains standard methods that handle the properties of this class
 	# for documentation on the following constants, check the Properties trait source file
@@ -50,8 +55,6 @@ abstract class DataObjectRelation {
 		# 'id' => 'id',
 		# ...property definitions for all other properties (except the two DataObjects)
 	];
-
-	final const ALLOWED_PROPERTY_TYPES = ['special', 'primitive'];
 
 	protected DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
 	protected Cycle $cycle; # this class uses the Cycle class to control the order of its actions. see there for more.
@@ -72,36 +75,40 @@ abstract class DataObjectRelation {
 		]);
 
 		$this->cycle->start();
+
+		$this->load_property_definitions();
+
+		// NOTE: the possibility that someone defines a relation with both objects being of the same class is not
+		// prevented here. however, there is no use case for that constellation, and at the latest on a pull(), a
+		// DatabaseException will be thrown due to column names not being distinct. just hope nobody is that stupid.
+
+		foreach($this->properties as $name => &$definition){
+			if($definition->type_is('object')){
+				if($definition->supclass_is(DataObject::class)){
+					$definition->set_alterable(false);
+					$this->objects[$name] = $definition;
+				} else {
+					throw new Exception();
+				}
+			} else if($definition->type_is('custom')){
+				throw new Exception();
+			}
+		}
+
+		if($object_count !== 2){
+			throw new Exception();
+		}
 	}
 
 
 	# ==== INITIALIZATION AND LOADING METHODS ==== #
-	# a relation is always loaded or created based on an existing object which is forwarded as the $object argument.
-	# the second object is then either initialized and loaded by this relation's load function based on database
-	# rows or it must be installed via edit_property() for freshly created relations.
 
 	# this function is used to initialize a new relation that is not yet stored in the database (newly created)
-	# @param $object: the base object of this relation (see comments above), one of the two specified in $this::OBJECTS
-	final public function create(DataObject &$object) : void { // BUG this might cause problems, maybe comment out DataObject
+	final public function create() : void {
 		$this->cycle->step('init/load');
 		$this->db->set_local();
 
 		$this->id = self::generate_id(); # generate and set a random, unique id for the object. see Properties trait
-
-		# check whether the base object is of the correct class
-		if(!in_array($object::class, $this::OBJECTS)){
-			throw new TypeError('Invalid Type of $object: '.$object::class);
-		}
-
-		# set the base object as one of the two object properties.
-		# the other object property (that is not yet set and known) is set to null
-		foreach($this::OBJECTS as $property => $class){
-			if($object::class === $class){
-				$this->edit_property($property, $object);
-			} else {
-				$this->$property = null;
-			}
-		}
 	}
 
 
@@ -110,26 +117,10 @@ abstract class DataObjectRelation {
  	# so in order for this to work, the second object's data must be selected using a join.
 	# @param $data: single fetched row or multiple rows from the database request's response
 	# @param $object: the base object of this relation, one of the two specified in $this::OBJECTS
-	final public function load(array $data, DataObject &$object) : void {
+	final public function load(array $data, ?DataObject $base_object = null) : void {
 		$this->cycle->check_step('init/load');
 
-		# check whether the base object is of the correct class
-		if(!in_array($object::class, $this::OBJECTS)){
-			throw new TypeError('Invalid Type of $object: '.$object::class);
-		}
-
-		# set the base object as one of the two object properties.
-		# initialize and load the other object using the db request's response data
-		foreach($this::OBJECTS as $property => $class){
-			if($object::class === $class){
-				$this->$property = $object;
-			} else {
-				$this->$property = new $class();
-				$this->$property->load($data, norelations:true, nocollections:true);
-			}
-		}
-
-		$this->load_properties($data, norelations:true, nocollections:true);
+		$this->load_properties($data, relation_base_object:$base_object);
 
 		$this->cycle->step('init/load');
 		$this->db->set_synced();
@@ -150,79 +141,8 @@ abstract class DataObjectRelation {
 		# that occur during the editing of the properties (i.e. invalid or missing inputs)
 		$errors = new InputFailedException();
 
-		# loop through the defined object definitions and check and edit the objects
-		foreach($this::OBJECTS as $name => $class){
-			if(!is_subclass_of($class, DataObject::class)){
-				throw new Exception("DataObjectRelation » Invalid Object Definition: $class is not a DataObject.");
-			}
-
-			# if the property is already set with an object, continue
-			# that also prevents from changing an object to another, so effectively an object can only be set once
-			if(!empty($this->$name)){
-				continue;
-			}
-
-			# from here, this processes a request to set an object for the first time
-			$value = $input[$name];
-
-			# the object can be received in various ways: as a loaded DataObject, as an id, as object data etc.
-			if(empty($value)){
-				# no object, object data or id given
-				# MissingValueException requires a PropertyDefinition for the first argument, but the object definition
-				# of a relation does not use PropertyDefinitions regularly, so one needs to be created for the exception
-				$errors->push(new MissingValueException(new PropertyDefinition($name, $class)));
-
-			} else if($value instanceof DataObject){
-				# the input object is already an initialized DataObject
-				try {
-					$value->push(); # try to push the object to ensure it is stored on the database
-				} catch(PropertyValueException $e){ # NOTE: OutOfCycleException can occur but is not caught by this
-					# the object might be empty or incomplete, so it cannot be set
-					$errors->push($e, $name);
-					continue;
-				}
-
-				$this->$name = $value;
-
-			} else if(is_string($value) || (is_array($value) && !empty($value['id']))){
-				# the input is assumed to be the id of an existing object
-				# the input can either be an id string or an array containing a value 'id' that is an id string
-
-				$id = $value['id'] ?? $value;
-				$object = new $class(); # initialize a new instance of the object's class
-
-				try {
-					$object->pull($id); # try to pull the object with the given id
-					$this->$name = $object;
-				} catch(EmptyResultException $e){
-					# there was no object found with this id
-					# see try/catch above on why a PropertyDefinition is created here
-					$errors->push(new RelationObjectNotFoundException(new PropertyDefinition($name, $class), $id));
-				}
-
-			} else if(is_array($value)){
-				# the input is assumed to be an array with data to create a new DataObject from
-
-				$object = new $class(); # initialize a new instance of the object's class
-
-				try {
-					# try to create a new DataObject and fill it with the input
-					$object->create();
-					$object->receive_input($value);
-					$object->push();
-					$this->$name = $object;
-				} catch(InputFailedException $e){
-					$errors->merge($e, $name);
-				}
-
-			} else {
-				# the input data received for the object are invalid
-				$errors->push(new IllegalValueException(new PropertyDefinition($name, $class), $value));
-			}
-		}
-
 		# loop through all property definitions and edit the respective properties
-		foreach($this::PROPERTIES as $name => $_){
+		foreach($this->properties as $name => $_){
 			try {
 				$this->edit_property($name, $input[$name] ?? null);
 			} catch(PropertyValueException $e){
@@ -231,6 +151,8 @@ abstract class DataObjectRelation {
 				$errors->merge($e, $name);
 			}
 		}
+
+		// TODO check if both objects have been set
 
 		# if errors occured, throw the buffer exception containing them all
 		if(!$errors->is_empty()){
@@ -241,39 +163,59 @@ abstract class DataObjectRelation {
 	}
 
 
+	final public function set_object(DataObject $object) : void {
+		foreach($this->objects as $name => $definition){
+			if($definition->class_is($object::class)){
+				$this->edit_property($name, $object);
+				return;
+			}
+		}
+
+		throw new InvalidModelCallException(); // TODO
+	}
+
+
 	# ==== STORING AND DELETING METHODS ==== #
 
 	# this function is used to upload this relation's data into the database.
 	# if this relation is not newly created and has not been altered, no database request is executed
 	# and this function simply returns null.
 	final public function push() : null|void {
-		$this->cycle->check_step('store/delete');
-
-		if($this->db->is_synced()){
-			# this object is not newly created and has not been altered, so just return null
-			$this->cycle->step('store/delete');
+		if($this->cycle->is_at('storing')){ // prevents loops
 			return null;
 		}
 
-		$this->db->enable();
+		$this->cycle->step('storing');
+
+		if($this->db->is_synced()){
+			# this object is not newly created and has not been altered, so just return null
+			$this->cycle->step('stored');
+			return null;
+		}
 
 		if($this->db->is_local()){
 			# this object is not yet or not anymore stored in the database, so perform an insert query
-			$s = $this->db->prepare($this::INSERT_QUERY);
+			$request = new InsertRequest($this::class);
 		} else { # $this->db->is_altered()
 			# this object is already stored in the database, but has been altered.
 			# perform an update query to update its database representation
 
-			# if UPDATE_QUERY is null, thus the relation is not updatable because it has no properties to be updated,
-			# this function automatically returns null because it then also cannot be altered and always remains synced
-			$s = $this->db->prepare($this::UPDATE_QUERY);
+			# if the relation is not updatable because it has no properties to be updated, this function automatically
+			# returns null because it then also cannot be altered and always remains synced
+			$request = new UpdateRequest($this::class);
+			$request->set_condition(new IdentifierCondition($this->properties['id'], $this->id));
 		}
 
-		if(!$s->execute($this->get_push_values())){
+		foreach($this->objects as $property => $_){
+			$this->$property->push();
+		}
+
+		$s = $this->db->prepare($request->get_query());
+		if(!$s->execute($this->get_push_values())){ // TODO
 			# the PDOStatement::execute has returned false, so an error occured performing the database request
 			throw new DatabaseException($s);
 		} else {
-			$this->cycle->step('store/delete');
+			$this->cycle->step('stored');
 			$this->db->set_synced();
 		}
 	}
@@ -306,7 +248,7 @@ abstract class DataObjectRelation {
 
 
 	# ==== OUTPUT METHODS ==== #
-
+	// XXX DEPRECATED
 	# this function disables the database access for this object and both of its object properties.
 	# it should be called by all controllers handing over this object to templates etc. in order to output it.
 	# this is a safety feature that prevents templates from altering or deleting object data
@@ -344,6 +286,7 @@ abstract class DataObjectRelation {
 			$result[$property] = $this->$property;
 		}
 	}
+	// xxx end
 
 
 	# ==== GENERAL METHODS ==== #
@@ -357,11 +300,5 @@ abstract class DataObjectRelation {
 
 		return null;
 	}
-
-
-	# ==== DATABASE QUERIES ==== #
-	const INSERT_QUERY; # 'INSERT INTO [table_name] ([...column_names]) VALUES ([...placeholders])'
-	const UPDATE_QUERY; # null | 'UPDATE [table_name] SET [column_name] = [placeholder][, ...] WHERE [id_column] = :id'
-	const DELETE_QUERY; # 'DELETE FROM [table_name] WHERE [id_column] = :id'
 }
 ?>

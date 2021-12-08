@@ -9,8 +9,8 @@ use Exception;
 
 # The following property classes and corresponding types exist:
 #	CLASS										TYPE
-#	id											special
-#	longid										special
+#	id											identifier [former special]
+#	longid										identifier
 #	string										primitive
 #	int											primitive
 #	float										primitive
@@ -47,14 +47,26 @@ use Exception;
 
 
 class PropertyDefinition {
-	public string $name; # the name of the property
-	public string $type;
-	public string $class;
-	public array $constraints;
-	public ?array $options;
+	private string $name; # the name of the property
+	private string $type;
+	private string $class;
+	private bool $alterable;
+	private array $constraints;
+	private ?array $options;
 
 	# this pattern defines a valid longid
 	const LONGID_PATTERN = '/^[a-z0-9-]{9,128}$/';
+
+
+	public static function load(array $raw_definitions) : array {
+		$result = [];
+
+		foreach($raw_definitions as $name => $options){
+			$result[$name] = new PropertyDefinition($name, $options);
+		}
+
+		return $result;
+	}
 
 
 	function __construct(string $name, mixed $definition) {
@@ -82,14 +94,21 @@ class PropertyDefinition {
 
 		# complement the type and check if the class is valid
 		if($definition['class'] == 'id' || $definition['class'] == 'longid'){
-			$this->type = 'special';
+			$this->type = 'identifier';
 			$this->class = $definition['class'];
+
+			if($this->class === 'id'){
+				$this->alterable = false;
+			} else {
+				$this->alterable = $definition['alterable'] ?? true;
+			}
 		} else if($definition['class'] == 'custom'){
 			$this->type = 'custom';
 			$this->class = 'custom';
 		} else if(in_array($definition['class'], ['string', 'int', 'float', 'bool'])){
 			$this->type = 'primitive';
 			$this->class = $definition['class'];
+			$this->alterable = $definition['alterable'] ?? true;
 		} else if(class_exists($definition['class'])){
 			# check if the object class is allowed for a property
 			# it must be a child (=subclass) of DataType, DataObject, D.O.RelationList or D.O.Collection
@@ -99,6 +118,12 @@ class PropertyDefinition {
 			 || is_subclass_of($definition['class'], DataObjectCollection::class)){
 				$this->type = 'object';
 				$this->class = $definition['class'];
+
+				if(is_subclass_of($definition['class'], DataObject::class)){
+					$this->alterable = $definition['alterable'] ?? true;
+				} else {
+					$this->alterable = true;
+				}
 			} else {
 				throw new Exception('Invalid class in PropertyDefinition: ' . $definition['class']);
 			}
@@ -109,6 +134,7 @@ class PropertyDefinition {
 		# unset the already processed values, so that in the end, only the options remain in $definition
 		unset($definition['type']);
 		unset($definition['class']);
+		unset($definition['alterable']);
 
 		# handle constraints
 		$this->constraints = [];
@@ -129,6 +155,20 @@ class PropertyDefinition {
 	}
 
 
+	public function type_is(string $type) : bool {
+		return $this->type === $type;
+	}
+
+
+	public function class_is(string $class) : bool {
+		return $this->class === $class;
+	}
+
+	public function get_class() : string {
+		return $this->class;
+	}
+
+
 	# This function checks whether a given class name refers to a superclass (=parent class) of $this->class
 	# using this, it is easy to check whether the defined property is a child of DataType, DataObject and so on
 	public function supclass_is(string $class) : bool {
@@ -136,10 +176,15 @@ class PropertyDefinition {
 	}
 
 
+	public function is_alterable() : bool {
+		return $this->alterable;
+	}
+
+
 	# This function checks whether an input fulfills all defined constraints
 	# if not, it throws an InputException
 	public function validate_input(mixed $input) : void {
-		if($this->type_is_special() && $this->class === 'longid'){
+		if($this->type_is_identifier() && $this->class === 'longid'){
 			# validate a longid
 			if(!preg_match(self::LONGID_PATTERN, $input)){
 				throw new IllegalValueException($this, $input);

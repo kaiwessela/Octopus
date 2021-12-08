@@ -26,6 +26,18 @@ trait Paginatable {
 		}
 	}
 
+	/*
+
+	const PULL_OBJECTS_QUERY = <<<SQL
+SELECT * FROM postcolumnrelations
+LEFT JOIN posts ON post_id = postcolumnrelation_post_id
+LEFT JOIN media ON medium_id = post_image_id
+WHERE postcolumnrelation_column_id = :id
+ORDER BY post_timestamp DESC
+SQL; #---|
+
+*/
+
 
 	abstract public function load_relations(array $data) : void;
 

@@ -5,7 +5,7 @@ use \Octopus\Core\Model\DataObjectRelation;
 use \Octopus\Core\Model\Properties\PropertyDefinition;
 use \Octopus\Core\Model\Properties\Exceptions\PropertyValueException;
 
-class IdentifierCollisionException extends PropertyValueException {
+class PropertyNotAlterableException extends PropertyValueException {
 	# inherited from PropertyValueException:
 	# public PropertyDefinition $definition;
 	# public string $name;
@@ -14,18 +14,21 @@ class IdentifierCollisionException extends PropertyValueException {
 	# inherited from Exception:
 	# protected string $message;
 
-	public DataObject|DataObjectRelation $existing;
+	public DataObject|DataObjectRelation $object;
 
 
-	function __construct(PropertyDefinition $definition, DataObject|DataObjectRelation $existing) {
+	function __construct(PropertyDefinition $definition, DataObject|DataObjectRelation $object, mixed $value) {
 		$this->definition = $definition;
 		$this->name = $this->definition->name;
+		$this->value = $value;
 
-		$this->existing = $existing;
-		$this->value = $this->existing->{$this->definition->name};
+		$this->object = $object;
 
-		$this->message = "An attempt to set the identifier «{$this->name}» to the value «{$this->value}» "
-			. 'failed because that value is already used as another object’s identifier.';
+		$this->message = "The property «{$this->name}» cannot be set to the value «"
+			. var_dump($this->value)
+			. "» because the property is not alterable. Current value: «"
+			. var_dump($this->object->{$this->definition->name})
+			. "».";
 	}
 }
 ?>

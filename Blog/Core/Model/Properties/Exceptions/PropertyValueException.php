@@ -1,6 +1,6 @@
-<?php # PropertyValueException.php 2021-10-04 beta
-namespace Blog\Core\Model\Properties\Exceptions;
-use \Blog\Core\Model\Properties\PropertyDefinition;
+<?php
+namespace Octopus\Core\Model\Properties\Exceptions;
+use \Octopus\Core\Model\Properties\PropertyDefinition;
 use Exception;
 
 class PropertyValueException extends Exception {
@@ -17,7 +17,7 @@ class PropertyValueException extends Exception {
 		$this->name = $this->definition->name;
 		$this->value = $value;
 
-		if($this->definition->type_is_custom()){
+		if($this->definition->type_is('custom')){
 			$this->message = "An error occured trying to edit the custom property «{$this->name}»: $message";
 		} else {
 			$this->message = "An error occured trying to edit the property «{$this->name}»: $message";

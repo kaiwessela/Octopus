@@ -1,7 +1,7 @@
-<?php # IllegalValueException.php 2021-10-04 beta
-namespace Blog\Core\Model\Properties\Exceptions;
-use \Blog\Core\Model\Properties\PropertyDefinition;
-use \Blog\Core\Model\Properties\Exceptions\PropertyValueException;
+<?php
+namespace Octopus\Core\Model\Properties\Exceptions;
+use \Octopus\Core\Model\Properties\PropertyDefinition;
+use \Octopus\Core\Model\Properties\Exceptions\PropertyValueException;
 
 class IllegalValueException extends PropertyValueException {
 	# inherited from PropertyValueException:
@@ -20,7 +20,7 @@ class IllegalValueException extends PropertyValueException {
 
 		$this->message = "An attempt to set the property «{$this->name}» to the value «"
 			. var_export($this->value, true)
-			. '» failed because that value does not fit the property definition requirements'
+			. '» failed because that value does not fit the defined requirements for the property'
 			. ($message === '') ? '.' : ": {$message}.";
 	}
 }

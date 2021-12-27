@@ -1,9 +1,9 @@
-<?php # RelationObjectNotFoundException.php 2021-10-04 beta
-namespace Blog\Core\Model\Properties\Exceptions;
-use \Blog\Core\Model\Properties\PropertyDefinition;
-use \Blog\Core\Model\Properties\Exceptions\PropertyValueException;
+<?php
+namespace Octopus\Core\Model\Properties\Exceptions;
+use \Octopus\Core\Model\Properties\PropertyDefinition;
+use \Octopus\Core\Model\Properties\Exceptions\PropertyValueException;
 
-class RelationObjectNotFoundException extends PropertyValueException { // TODO maybe rename to ObjectNotFoundException
+class RelationObjectNotFoundException extends PropertyValueException { // IDEA maybe rename to ObjectNotFoundException
 	# inherited from PropertyValueException:
 	# public PropertyDefinition $definition;
 	# public string $name;

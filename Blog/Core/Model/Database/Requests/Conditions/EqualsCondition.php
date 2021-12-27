@@ -10,7 +10,7 @@ class EqualsCondition {
 	}
 
 
-	public function resolve(int $index) : array {
+	public function resolve(int $index = 0) : array {
 		return [
 			'query' => $this->column->parent::DB_TABLE.'.'.$this->column->name.' = :cond_'.$number,
 			'values' => ['cond_'.$number => $this->value]

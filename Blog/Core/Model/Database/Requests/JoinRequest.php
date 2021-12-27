@@ -1,12 +1,19 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
+use \Octopus\Core\Model\Database\Requests\Request;
+use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
+use \Octopus\Core\Model\DataObject;
+use \Octopus\Core\Model\DataObjectRelationList;
+use \Octopus\Core\Model\DataType;
+use Exception;
 
-class JoinRequest extends DatabaseRequest {
-	# inherited from DatabaseRequest
+class JoinRequest extends Request {
+	# inherited from Request
 	# private string $object_class;
 	# private string $table;
 	# private string $column_prefix;
 	# private array $columns;
+	# private ?array $values;
 	private string $base_table;
 	private array $joins;
 
@@ -14,23 +21,24 @@ class JoinRequest extends DatabaseRequest {
 	function __construct(string $class, string $origin_class) {
 		parent::__construct($class);
 
-		foreach($class::PROPERTIES as $property => $definition){
-			$def = new PropertyDefinition($property, $definition);
+		$this->base_table = $origin_class::DB_PREFIX; // TEMP;
+
+		foreach($this->object_class::get_property_definitions() as $property => $definition){
 			$column = "{$this->table}.{$column} AS {$this->column_prefix}_{$column}";
 
-			if($def->type_is('primitive') || $def->type_is('identifier')){
+			if($definition->type_is('primitive') || $definition->type_is('identifier')){
 				$this->columns[] = $column;
 			} else if($def->type_is('object')){
-				if($def->class_is($origin_class){ // TODO check this
+				if($definition->class_is($origin_class){ // TODO check this
 					continue;
 				}
 
-				if($def->supclass_is(DataType::class)){
+				if($definition->supclass_is(DataType::class)){
 					$this->columns[] = $column;
-				} else if($def->supclass_is(DataObject::class)){
-					$this->joins[] = new JoinRequest($def->get_class(), $origin_class);
-				} else if($def->supclass_is(DataObjectRelationList::class)){
-					$this->joins[] = new JoinRequest($def->get_class(), $origin_class);
+				} else if($definition->supclass_is(DataObject::class)){
+					$this->joins[] = new JoinRequest($definition->get_class(), $origin_class);
+				} else if($definition->supclass_is(DataObjectRelationList::class)){
+					$this->joins[] = new JoinRequest($definition->get_class(), $origin_class);
 				}
 			}
 		}
@@ -38,23 +46,17 @@ class JoinRequest extends DatabaseRequest {
 
 
 	public function get_query() : string {
-		$query = [];
 
-		$query[] = 'LEFT JOIN';
-		$query[] = $this->table;
-		$query[] = 'ON';
-		$query[] = "{$this->table}.id";
-		$query[] = '=';
-		// TODO
-
-		foreach($joins as $join){
-			$query[] = $join->get_query();
+		$other_joins = '';
+		foreach($this->joins as $join){
+			$other_joins .= $join->get_query() . ' ';
 		}
 
-		return implode($query, ' ');
+		return "LEFT JOIN {$this->table} ON {$this->table}.id = {$this->base_table}.id {$other_joins}";
 	}
 
-	protected function check_condition(?RequestCondition $condition) : void {
+
+	protected function validate_condition(?Condition $condition) : void {
 		if(!is_null($condition)){
 			throw new Exception('condition must be null for this type of request.');
 		}

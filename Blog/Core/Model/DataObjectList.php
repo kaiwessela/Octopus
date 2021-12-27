@@ -1,4 +1,4 @@
-<?php // CODE ??, COMMENTS --, IMPORTS --
+<?php
 namespace Blog\Core\Model;
 
 # What is a DataObjectList?
@@ -8,6 +8,7 @@ namespace Blog\Core\Model;
 
 abstract class DataObjectList {
 	protected array $objects; # an array of the dataobjects this list contains [object_id => object, ...]
+	protected int $total_count;
 
 	const OBJECT_CLASS; # the fully qualified name of the concrete DataObject class whose instances this list contains
 
@@ -15,12 +16,22 @@ abstract class DataObjectList {
 	protected Cycle $cycle; # this class uses the Cycle class to control the order of its actions. see there for more.
 
 
-	# ==== CONSTRUCTION METHODS ==== #
+	### CONSTRUCTION METHODS
 
 	final function __construct() {
 		$this->db = new DatabaseAccess(); # prepare a connection to the database
 
 		$this->cycle = new Cycle([
+			['root', 'constructed'],
+			['constructed', 'loaded']
+
+
+
+
+
+
+
+
 			['root', 'constructed'],
 			['constructed', 'loaded'],
 			['loaded', 'frozen']
@@ -41,19 +52,19 @@ abstract class DataObjectList {
 	final public function pull(?int $limit = null, ?int $offset = null, ?array $options = null) : void {
 		$this->cycle->check_step('loaded');
 
-		$request = new SelectRequest($this::class);
+		$request = new SelectRequest($this::class, true); // TEMP (2nd arg)
 		$request->set_condition($this->get_pull_condition($options));
 		$request->set_limit($limit);
 		$request->set_offset($offset);
 
+		$order = $this->get_pull_order($options);
+		$request->set_order($order['by'] ?? null, $order['desc'] ?? false);
 
-		$query = $this->build_pull_query($limit, $offset, $options);
-		$s = $this->db->prepare($query);
-
-		if(!$s->execute([])){
+		$s = $this->db->prepare($request->get_query());
+		if(!$s->execute($request->get_values())){
 			# the database request has failed
 			throw new DatabaseException($s);
-		} else if($s->rowCount() == 0){
+		} else if($s->rowCount() === 0){
 			# the response is empty, meaning that no objects were found
 			throw new EmptyResultException($query);
 		} else {
@@ -75,12 +86,10 @@ abstract class DataObjectList {
 		}
 
 		$request = new SelectRequest($this::class);
-		$request->set_condition(new InCondition($this->properties['id'], $idlist));
+		$request->set_condition(new InCondition(self::$properties['id'], $idlist));
 
-		$query = $this::SELECT_IDS_QUERY . ' (' . implode(', ', array_fill(0, count($idlist), '?')) . ')';
-		$s = $this->db->prepare($query);
-
-		if(!$s->execute(array_values($idlist))){
+		$s = $this->db->prepare($request->get_query());
+		if(!$s->execute($request->get_values())){
 			throw new DatabaseException($s);
 		} else if($s->rowCount() !== 0){
 			$this->load($s->fetchAll());
@@ -89,11 +98,11 @@ abstract class DataObjectList {
 
 
 	protected function get_pull_condition(?array $options) : ?Condition {
-
+		return null;
 	}
 
 	protected function get_pull_order(?array $options) : ?array {
-
+		return null;
 	}
 
 
@@ -103,27 +112,13 @@ abstract class DataObjectList {
 		$this->cycle->check_step('loaded');
 
 		foreach($data as $row){
-			$object = new {$this::OBJECT_CLASS}(); # initialize a new DataObject of this single-object class
-			$object->load($row, relations:false); # load the object, do not load relations
+			$object = new {$this::OBJECT_CLASS}(&$this); # initialize a new DataObject of this single-object class
+			$object->load($row); # load the object, do not load relations
 			$this->objects[$object->id] = $object;
 		}
 
 		$this->cycle->step('loaded');
 	}
-
-
-	// XXX DEPRECATED
-	# this function compiles a list of dataobjects that are extracted from a relationlist TODO
-	final public function extract_from_relationlist(DataObjectRelationList $relationlist) : void {
-		$this->cycle->check_step('init/load');
-
-		foreach($relationlist->relations as $relation){
-			$this->objects[] = $relation->get_object($this::OBJECT_CLASS);
-		}
-
-		$this->cycle->step('init/load');
-	}
-	// xxx end
 
 
 	# ==== STADIUM 3 METHODS (output) ==== #

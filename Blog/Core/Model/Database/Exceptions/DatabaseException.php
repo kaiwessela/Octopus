@@ -1,5 +1,5 @@
 <?php // CODE --, COMMENTS --, IMPORTS ok
-namespace Blog\Core\Model\Database\Exceptions;
+namespace Blog\Core\Model\Database\Exceptions; // IDEA maybe rename to ... RequestFailedException?
 use Exception;
 use PDOStatement;
 use PDOException;

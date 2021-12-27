@@ -29,23 +29,13 @@ namespace Blog\Core\Model;
 
 abstract class DataObjectRelation {
 	public string $id;
-	# public [child of DataObject] $[name of 1st object];
-	# public [child of DataObject] $[name of 2nd object];
+	# public ?[child of DataObject] $[name of 1st object];
+	# public ?[child of DataObject] $[name of 2nd object];
 	# ...other properties
 
 	// TODO check this
 	# this constant defines whether multiple relations of the same pair of DataObjects should be allowed to exist
 	const UNIQUE; # true = forbidden; false = allowed
-
-	// XXX DEPRECATED
-	# this defines which two DataObject classes the relation consists of
-	const OBJECTS = [
-		# '[name of 1st object]' => [child of DataObject]::class,
-		# '[name of 2nd object]' => [child of DataObject]::class
-	];
-	// xxx end
-
-	protected static array $objects;
 
 	# this class uses the Properties trait which contains standard methods that handle the properties of this class
 	# for documentation on the following constants, check the Properties trait source file
@@ -53,8 +43,15 @@ abstract class DataObjectRelation {
 
 	const PROPERTIES = [
 		# 'id' => 'id',
-		# ...property definitions for all other properties (except the two DataObjects)
+		# '[name of 1st object]' => [child of DataObject]::class,
+		# '[name of 2nd object]' => [child of DataObject]::class,
+		# ...property definitions for all other properties
 	];
+
+	protected static array $properties;
+
+	protected readonly DataObject $context;
+	protected readonly string $join_object_property; // TEMP, find a better name
 
 	protected DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
 	protected Cycle $cycle; # this class uses the Cycle class to control the order of its actions. see there for more.
@@ -62,7 +59,9 @@ abstract class DataObjectRelation {
 
 	# ==== CONSTRUCTION METHODS ==== #
 
-	final function __construct() {
+	final function __construct(DataObject &$context) {
+		$this->context = $context;
+
 		$this->db = new DatabaseAccess();
 
 		$this->cycle = new Cycle([
@@ -84,20 +83,23 @@ abstract class DataObjectRelation {
 
 		foreach($this->properties as $name => &$definition){
 			if($definition->type_is('object')){
-				if($definition->supclass_is(DataObject::class)){
-					$definition->set_alterable(false);
-					$this->objects[$name] = $definition;
-				} else {
+				if(!$definition->supclass_is(DataObject::class)){
 					throw new Exception();
 				}
-			} else if($definition->type_is('custom')){
+
+				if($definition->class_is($this->context::class)){
+					$this->$name = &$this->context;
+				} else {
+					$this->join_object_property = $name;
+				}
+
+				$definition->set_alterable(false);
+			} else if(!$definition->type_is('identifier') && !$definition->type_is('primitive')){
 				throw new Exception();
 			}
 		}
 
-		if($object_count !== 2){
-			throw new Exception();
-		}
+		// TODO maybe check number of objects
 	}
 
 
@@ -109,7 +111,13 @@ abstract class DataObjectRelation {
 		$this->db->set_local();
 
 		$this->id = self::generate_id(); # generate and set a random, unique id for the object. see Properties trait
+		$this->initialize_properties();
 	}
+
+
+	# ---> see trait Properties
+	# final protected static function generate_id() : string;
+	# final protected function initialize_properties() : void;
 
 
 	# this function loads rows of relation and object data from the database into this relation
@@ -117,10 +125,26 @@ abstract class DataObjectRelation {
  	# so in order for this to work, the second object's data must be selected using a join.
 	# @param $data: single fetched row or multiple rows from the database request's response
 	# @param $object: the base object of this relation, one of the two specified in $this::OBJECTS
-	final public function load(array $data, ?DataObject $base_object = null) : void {
+	final public function load(array $data) : void {
 		$this->cycle->check_step('init/load');
 
-		$this->load_properties($data, relation_base_object:$base_object);
+		# basically the same procedure as in DataObject->load(), but shorter
+		foreach($this->properties as $name => $definition){
+			$column_name = "{$this::DB_PREFIX}_{$property}"; # on select requests, column names are prefixed
+
+			if($definition->type_is('primitive') || $definition->type_is('identifier')){
+				$this->$name = $data[$column_name]; # for primitive or identifier types, just copy the value
+
+			} else if($definition->type_is('object') && $definition->supclass_is(DataObject::class)){
+				if(isset($this->$name)){ # if the object is alredy set, it is the context object, so skip loading it
+					continue;
+				}
+
+				# DataObject properties in relations cannot be null/unset, so simply create the object and load it
+				$this->$name = new {$definition->get_class()}($this); # the argument means context:$this
+				$this->$name->load($data);
+			}
+		}
 
 		$this->cycle->step('init/load');
 		$this->db->set_synced();
@@ -143,6 +167,13 @@ abstract class DataObjectRelation {
 
 		# loop through all property definitions and edit the respective properties
 		foreach($this->properties as $name => $_){
+			// FIXME this can cause errors. we do not want to require the context object to be set
+			// begin possible fix:
+			if(isset($this->$name) && $this->$name instanceof DataObject){
+				continue;
+			}
+			// end fix
+
 			try {
 				$this->edit_property($name, $input[$name] ?? null);
 			} catch(PropertyValueException $e){
@@ -151,8 +182,6 @@ abstract class DataObjectRelation {
 				$errors->merge($e, $name);
 			}
 		}
-
-		// TODO check if both objects have been set
 
 		# if errors occured, throw the buffer exception containing them all
 		if(!$errors->is_empty()){
@@ -174,15 +203,19 @@ abstract class DataObjectRelation {
 		throw new InvalidModelCallException(); // TODO
 	}
 
+	final public function &get_joined_object() : DataObject {
+
+	}
+
 
 	# ==== STORING AND DELETING METHODS ==== #
 
 	# this function is used to upload this relation's data into the database.
 	# if this relation is not newly created and has not been altered, no database request is executed
 	# and this function simply returns null.
-	final public function push() : null|void {
+	final public function push() : bool {
 		if($this->cycle->is_at('storing')){ // prevents loops
-			return null;
+			return false;
 		}
 
 		$this->cycle->step('storing');
@@ -190,7 +223,7 @@ abstract class DataObjectRelation {
 		if($this->db->is_synced()){
 			# this object is not newly created and has not been altered, so just return null
 			$this->cycle->step('stored');
-			return null;
+			return false;
 		}
 
 		if($this->db->is_local()){
@@ -217,6 +250,7 @@ abstract class DataObjectRelation {
 		} else {
 			$this->cycle->step('stored');
 			$this->db->set_synced();
+			return true;
 		}
 	}
 
@@ -225,13 +259,13 @@ abstract class DataObjectRelation {
 	# it does not erase children, but relations might be removed due to the mysql ON DELETE CASCADE constraint.
 	# if this object is not yet or anymore stored in the database, this function simply returns null without
 	# performing a database request
-	final public function delete() : null|void {
+	final public function delete() : bool {
 		$this->cycle->check_step('store/delete');
 
 		if($this->db->is_local()){
 			# this object is not yet or not anymore stored in the database, so just return null
 			$this->cycle->step('store/delete');
-			return null;
+			return false;
 		}
 
 		$this->db->enable();
@@ -243,62 +277,22 @@ abstract class DataObjectRelation {
 		} else {
 			$this->cycle->step('store/delete');
 			$this->db->set_local();
+			return true;
 		}
 	}
 
 
 	# ==== OUTPUT METHODS ==== #
-	// XXX DEPRECATED
-	# this function disables the database access for this object and both of its object properties.
-	# it should be called by all controllers handing over this object to templates etc. in order to output it.
-	# this is a safety feature that prevents templates from altering or deleting object data
-	final public function freeze() : void {
-		$this->cycle->step('output');
+
+	# ---> see trait Properties
+	# final public function freeze() : void;
+
+	# same usage as DataObject->arrayify(), but directly returns the arrayified joined object
+	final public function arrayify() : array|null {
+		$this->cycle->step('frozen');
 		$this->db->disable();
 
-		# freeze objects
-		foreach($this::OBJECTS as $property => $_){
-			$this->$property->freeze();
-		}
-	}
-
-
-	# this function transforms this object into an array containing all of its properties.
-	# properties that are objects themselves get also transformed into arrays using theír own arrayify functions.
-	# If this function is called recursively from a DataObject that itself is included in this relation, $perspective
-	# should be filled with that object's class name in order to prevent an unnecessary duplicate output of the object.
-	# @param $perspective: the fully qualified class name of the object that should not be included in the array
-	final public function arrayify(?string $perspective = null) : ?array {
-		$this->cycle->step('output');
-		$this->db->disable();
-
-		$result = [];
-
-		foreach($this::OBJECTS as $property => $class){
-			if($perspective !== $class){
-				# if $perspective equals the class name, simply do not include the object in the array
-				# there is no problem with an endless loop because load(norelations:true) already prevents that
-				$result[$property] = $this->$property->arrayify();
-			}
-		}
-
-		foreach($this::PROPERTIES as $property => $_){
-			$result[$property] = $this->$property;
-		}
-	}
-	// xxx end
-
-
-	# ==== GENERAL METHODS ==== #
-
-	final public function get_object(string $class) : ?DataObject { // TODO unfinished, comments
-		foreach($this::OBJECTS as $property => $cls){
-			if($cls === $class){
-				return $this->$property;
-			}
-		}
-
-		return null;
+		return $this->get_joined_object()->arrayify();
 	}
 }
 ?>

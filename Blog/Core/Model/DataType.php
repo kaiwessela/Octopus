@@ -1,19 +1,13 @@
 <?php // CODE --, COMMENTS --, IMPORTS --
-namespace Blog\Core\Model; // TODO rename to: StaticObject (for example)
+namespace Blog\Core\Model; // IDEA rename to: StaticObject (for example)
 
-interface DataType {
-
-	function __construct(string $value);
-	function __toString();
-	public static function import(string $value) : DataType;
-	public function staticize();
+abstract class DataType {
 
 
+	abstract public function import(mixed $value) : void;
+	abstract public function edit(mixed $value) : void;
+	abstract public function export() : mixed;
 
-	// NEW NEW new
-
-	public function load(mixed $value) : void {
-
-	}
+	// arrayify, toString, ...
 }
 ?>

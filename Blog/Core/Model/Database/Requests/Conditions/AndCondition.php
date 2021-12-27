@@ -9,7 +9,7 @@ class AndCondition {
 	}
 
 
-	public function resolve(int $index) : array {
+	public function resolve(int $index = 0) : array {
 		$queries = [];
 		$values = [];
 

@@ -1,14 +1,31 @@
-<?php // CODE ??, COMMENTS --, IMPORTS --
-namespace Blog\Core\Model\Properties;
+<?php
+namespace Octopus\Core\Model\Properties;
+use \Octopus\Core\Model\DataObject;
+use \Octopus\Core\Model\DataObjectRelation;
+use \Octopus\Core\Model\DataObjectRelationList;
+use \Octopus\Core\Model\DataObjectCollection;
+use \Octopus\Core\Model\DataType;
+use \Octopus\Core\Model\Properties\PropertyDefinition;
+use \Octopus\Core\Model\Properties\Exceptions\PropertyValueException;
+use \Octopus\Core\Model\Properties\Exceptions\PropertyValueExceptionList;
+use \Octopus\Core\Model\Properties\Exceptions\IdentifierCollisionException;
+use \Octopus\Core\Model\Properties\Exceptions\IllegalValueException;
+use \Octopus\Core\Model\Properties\Exceptions\MissingValueException;
+use \Octopus\Core\Model\Properties\Exceptions\PropertyNotAlterableException;
+use \Octopus\Core\Model\Properties\Exceptions\RelationObjectNotFoundException;
+use \Octopus\Core\Model\Database\Exceptions\EmptyResultException;
+use \Octopus\Core\Model\Exceptions\InvalidModelCallException;
 
-# This trait takes care about all standard operations for properties of DataObjects and friends,
-# which means: Definition, Validation, Transformation
+# This trait takes care of all standard operations for objects that are stored in the database and have properties
+# themselves, which currently are DataObjects and DataObjectRelations.
 # It heavily uses the PropertyDefinition class, so it may be wise to take a look on that too.
 
 trait Properties {
-	# This trait requires the following constants in every class using it:
-	# const DB_PREFIX;
-	# const PROPERTIES;
+	# This trait requires the following to be defined in every class using it:
+	# const DB_PREFIX; – the prefix that is added to the object's columns on database requests (without underscore [_])
+	# const PROPERTIES; – an array of raw definitions of the properties' objects
+	# protected static array $properties; – the raw definitions are turned into PropertyDefinitions and stored here
+	# protected readonly […, depending] $context; – a reference to the context object/list/relation/…
 
 
 	# Generate and return a random value that is set as the object's id upon creation
@@ -18,199 +35,110 @@ trait Properties {
 	}
 
 
-	# This function loads property values received from a database request into this object.
-	# @param $data: The fetched response from a successfully executed PDOStatement, containing the object data.
-	# @param $relation_base_object: // TODO documentation
-	# @param $relations: Whether RelationLists should be loaded (true) or not (false).
-	final protected function load_properties(array $data, ?DataObject $relation_base_object = null, bool $relations = true) : void {
-		# $data can have two formats, depending on whether relations were pulled or not:
-		# Without Relations: (simple key-value array)
-		# 	[
-		#		'id' => 'abcdef01',
-		#		'longid' => 'example-object',
-		#		…
-		# 	]
-		# With Relations: (nested array)
-		# 	[
-		#		[
-		#			'id' => 'abcdef01',
-		#			'longid' => 'example-object',
-		#			'relationobject_id' => '12345678',
-		#			'relationclass_longid' => 'related-object-1',
-		#			…
-		#		],
-		#		[
-		#			'id' => 'abcdef01',
-		#			'longid' => 'example-object',
-		#			'relationobject_id' => 'abababab',
-		#			'relationclass_longid' => 'related-object-2',
-		#			…
-		#		],
-		#		…
-		# 	]
-
-		# The first example, a response without relations, has only one row (because only one object was pulled).
-		# If relations are pulled using a JOIN statement, the columns of the related object are simply appended to the
-		# row containing the base object's columns. If multiple related objects are pulled, for every row, the base
-		# object's columns just get repeated (they are basically "filled up" with the same values).
-		# To get the columns containing our object data, we must do a distinction:
-		if(is_array($data[0])){ # check whether the data array is nested
-			$row = $data[0]; # with relations
-		} else {
-			$row = $data; # without relations
+	# Turn the raw property definitions into PropertyDefinitions and store them in self::$properties
+	final protected static function load_property_definitions() : void {
+		foreach(self::PROPERTIES as $name => $raw_definition){
+			self::$properties[$name] = new PropertyDefinition($name, $raw_definition);
 		}
-
-		# loop through all property definitions and try to load the properties
-		foreach($this->properties as $name => $definition){
-			$column_name = "{$this::DB_PREFIX}_{$property}"; # on select requests, column names are prefixed
-
-			if($definition->type_is('primitive') || $definition->type_is('identifier')){
-				$this->$name = $row[$column_name]; # for primitive or identifier types, just copy the value
-
-			} else if($definition->type_is('object')){
-				if($definition->supclass_is(DataType::class)){
-					// TODO
-
-
-				} else if($definition->supclass_is(DataObject::class)){
-					# check whether an object was referenced by checking the column referring to the object
-					# that column should contain an id or null, which is from now on stored as $id
-					if(empty($id = $row["{$column_name}_id"])){
-						# no object was referenced, set the property to null
-						$this->$name = null;
-						continue;
-					}
-
-					# only if this is a Relation: if the relation was joined to a base/pivot object, use it for this
-					# property if it is the correct class and id // TODO improve this explaination
-					if($relation_base_object?->id === $id){
-						$this->$name = $relation_base_object;
-						continue;
-					}
-
-					# create a new object of the defined class and load it
-					$this->$name = new {$definition->get_class()}();
-					$this->$name->load($row, relations:false);
-
-				} else if($definition->supclass_is(DataObjectRelationList::class)){
-					if(!$relations){ # relations are disabled by the argument
-						$this->$name = null;
-						continue;
-					}
-
-					# create and set the relationlist and let it load the relations
-					$this->$name = new {$definition->get_class()}();
-					$this->$name->load($data, &$this);
-
-				} else if($definition->supclass_is(DataObjectCollection::class)){
-					// TODO
-
-
-				}
-			}
-		}
-
-		$this->load_custom_properties($row); # call the custom loading function to load custom properties
 	}
 
 
-	protected function load_custom_properties(array $row) : void {}
+	# Set all properties to null, except the id
+	final protected function initialize_properties() : void {
+		foreach($this->properties as $name => $definition){
+			if($definition->class_is('id')){
+				continue;
+			}
+
+			$this->$name = null;
+		}
+	}
 
 
-	// @throws: PropertyValueException, InputFailedException;
+	# Change a property's value (and check before whether that change is allowed)
+	# @param $name: the name of the property
+	# @param $input: the proposed new value
+	# @throws: PropertyValueException[List] if changing the property to the proposed value is not allowed
 	final public function edit_property(string $name, mixed $input) : void {
 		$this->cycle->check_step('edited');
 
-		$definition = $this->properties[$name] ?? null;
-
-		if(empty($definition)){
-			throw new Exception("No PropertyDefinition found for property »{$name}«.");
+		if(empty($definition = self::$properties[$name])){
+			throw new InvalidModelCallException("No PropertyDefinition found for property »{$name}«.");
 		}
 
 		# set a variable for the current value to check (later) whether the value actually has changed
-		if($this->db->is_local()){
-			# if the object is not yet in the database, it might have uninitialized properties. therefore just set
-			# the variable to null, as it actually does not matter whether local objects have been altered or not
-			$old_value = null;
-		} else {
-			# for objects that are not local, meaning they are already stored in the database and fully initialized
-			$old_value = $this->$name;
-		}
+		$former_value = $this->$name;
 
-
-		if($definition->type_is('custom')){
-			if($this->edit_custom_property($name, $input) === true){
-				$this->db->set_altered();
+		if($definition->type_is('contextual')){ # handle contextual properties
+			if(!$this->context instanceof DataObjectRelation){ # if the context is not a relation, do nothing
+				return; // IDEA maybe throw an Exception
 			}
+
+			$this->context->edit_property($name, $input); # let the context relation handle the property
+
+		} else if($definition->type_is('custom')){ # handle custom properties
+			$this->edit_custom_property($name, $input);
 
 		} else if($definition->type_is('identifier')){ # handle properties of type identifier
-			# check whether the current property is an id
-			if($definition->class_is('id')){
-				# check whether the id is tried to be altered. this is not allowed, as ids are generated upon creation
-				# of the object. throw an Exception if that is the case. else just return as nothing else should happen.
-				if($input !== $old_value){
-					throw new IdentifierMismatchException($definition, $this, $input);
-				} else {
-					return;
+			if($input === $former_value){ # if the value did not change, do nothing
+				return;
+			}
+
+			if(empty($input)){ # if the input is empty but the property is required to be set, throw an error
+				if($definition->is_required()){
+					throw new MissingValueException($definition);
+				} else { # otherwise just set it to null
+					$this->$name = null;
 				}
 			}
+
+			# the following steps are only relevant for non-id identifiers, as ids never pass beyond this point
 
 			# check whether the property is tried to be altered despite not being alterable and not being local
 			# (check is_local also because on local objects, even not-alterable properties must be settable)
-			# if so, e.g. the property is tried to be altered illegaly, throw an Exception
-			if(!$this->db->is_local() && $input !== $old_value && !$definition->is_alterable()){
+			if(!$definition->is_alterable() && !$this->db->is_local()){
 				throw new PropertyNotAlterableException($definition, $this, $input);
 			}
 
-			if($input !== $old_value){
-				# check whether the input is empty. identifiers must never be empty.
-				if(empty($input)){
-					throw new MissingValueException($definition);
-				}
+			# check whether the input matches the defined constraints given
+			$definition->validate_input($input); # throws an IllegalValueException if failing
 
-				# check whether the input matches the defined constraints given
-				$definition->validate_input($input);
-
-				# check whether the input is already set as an identifier on another object
-				try {
-					# to do that, try to pull an object of the same class using the input as identifier
-					$double = new $this;
-					$double->pull($input, identify_by:$name);
-					throw new IdentifierCollisionException($definition, $double); # worked -> identifier is already used
-				} catch(EmptyResultException $e){
-					# it didn't work -> identifier is not used on another object
-					$this->$name = $input; # set the new property value
-				}
-
-				$this->db->set_altered();
+			# check whether the input is already set as an identifier on another object
+			# this does not invoke on Relations because they can only have an id and no additional identifiers
+			try {
+				# to do that, try to pull an object of the same class using the input as identifier
+				$double = new $this;
+				$double->pull($input, identify_by:$name);
+				throw new IdentifierCollisionException($definition, $double); # worked -> identifier is already used
+			} catch(EmptyResultException $e){
+				# it didn't work -> identifier is not used on another object
+				$this->$name = $input; # set the new property value
 			}
+
+			$this->db->set_altered();
 
 		} else if($definition->type_is('primitive')){ # handle properties of type primitive
-			# alterability check, same as for identifier properties
-			if(!$this->db->is_local() && $input !== $old_value && !$definition->is_alterable()){
-				throw new PropertyNotAlterableException($definition, $this, $input);
-			}
-
-			# if input is empty, try setting it to null
-			if(empty($input)){
-				try {
+			if(empty($input)){ # if the input is empty but the property is required to be set, throw an error
+				if($definition->is_required()){
+					throw new MissingValueException($definition);
+				} else { # otherwise just set it to null
 					$this->$name = null;
-					return;
-				} catch(TypeError $e){
-					# setting the property value to null failed -> property is not allowed to be empty
-					throw new MissingValueException($def);
 				}
 			}
-
-			# check whether the input matches the defined constraints
-			$definition->validate_input($input);
 
 			# if input is a string, escape html characters first
 			$escaped_input = is_string($input) ? htmlspecialchars($input) : $input;
 
 			# check whether the property value has been altered
 			# set the property value to the input
-			if($escaped_input !== $old_value){
+			if($escaped_input !== $former_value){
+				if(!$definition->is_alterable() && !$this->db->is_local()){
+					throw new PropertyNotAlterableException($definition, $this, $escaped_input);
+				}
+
+				# check whether the input matches the defined constraints
+				$definition->validate_input($input); # throws an IllegalValueException if failing
+
 				$this->$name = $escaped_input;
 				$this->db->set_altered();
 			}
@@ -233,7 +161,7 @@ trait Properties {
 
 			} else if($definition->supclass_is(DataObject::class)){
 				# a DataObject can be received in various ways: as an already loaded DataObject object,
-				# as an id of a DataObject in the database or as an array of data to create a new DataObject from.
+				# as an id of a DataObject in the database or as an array with data to create a new DataObject from.
 
 				if($input instanceof DataObject){ # input is an already loaded DataObject object
 					# check whether the input object is of the correct class
@@ -241,20 +169,11 @@ trait Properties {
 						throw new IllegalValueException($definition, $input, 'wrong class');
 					}
 
-					# check whether the property value changed by comparing the current and the new objects' ids
-					# if there is no difference, don't change the property at all
-					if($input->id !== $old_value?->id){
-						if(!$this->db->is_local() && !$definition->is_alterable()){
-							throw new PropertyNotAlterableException($definition, $this, $input);
-						}
-
-						$this->$name = $input;
-						$this->db->set_altered();
-					}
+					$object = $input;
 
 				} else if(is_string($input) || (is_array($input) && !empty($input['id']))){ # input is an id
-					# the input of an id can have two different forms: firstly, it can simply be a string with the id,
-					# or secondly, it can be an array containing a key 'id' with the value being a string with the id.
+					# the input of an id can have two different forms: first, it can simply be a string with the id,
+					# or second, it can be an array containing a key 'id' with the value being a string with the id.
 
 					$id = $input['id'] ?? $input; # unify both input forms into a single variable
 					$object = new {$definition->get_class()}();
@@ -267,66 +186,48 @@ trait Properties {
 						throw new RelationObjectNotFoundException($definition, $id);
 					}
 
-					# check whether the property value actually changed; only if so, edit the property
-					if($object->id !== $old_value?->id){
-						if(!$this->db->is_local() && !$definition->is_alterable()){
-							throw new PropertyNotAlterableException($definition, $this, $input);
-						}
-
-						$this->$name = $object;
-						$this->db->set_altered();
-					}
-
-				} else if(is_array($input)){ # input is an array that should contain data to create a new DataObject
+				} else if(is_array($input)){ # input is an array that contains data to create a new DataObject from
 					if(!$this->db->is_local() && !$definition->is_alterable()){
 						throw new PropertyNotAlterableException($definition, $this, $input);
 					}
 
-					$object = new {$definition->get_class()}(); # construct a new object of the prescribed class
-					$object->create(); # try to initialize (create) the object
+					# construct a new object of the prescribed class
+					$object = new {$definition->get_class()}(&$this); # set $this as the context object
+					$object->create(); # initialize (create) the object
 
 					# try to fill the new object with the received data
-					# MAY THROW an InputFailedException that will need to be handled by the function calling this here
+					# MAY THROW a PropertyValueExceptionList
 					$object->receive_input($input);
 
-					# everything went fine, edit the property
-					$this->$name = $object;
-					$this->db->set_altered();
-
 				} else if(empty($input)){ # input is empty or null
-					# try to set the property value to null
-					try {
-						$this->$name = null;
-					} catch(TypeError $e){
-						# the property cannot be null, throw an exception
+					if($definition->is_required()){ # if the property is required to be set, throw an error
 						throw new MissingValueException($definition);
-					}
-
-					if($old_value !== null){
-						if(!$definition->is_alterable()){
-							throw new PropertyNotAlterableException($definition, $this, $input);
-						}
-
-						$this->db->set_altered();
+					} else { # otherwise just set it to null
+						$this->$name = null;
 					}
 
 				} else { # unsupported format, throw an exception
 					throw new PropertyValueException($definition, 'Unsupported input format.', $input);
 				}
 
-			} else if($definition->supclass_is(DataObjectRelationList::class)){
-				# relationlists cannot be edited if no relations were pulled, for example because the object was
-				# joined instead of being pulled independently. then the relationlist property is set to null
-				if(!$this->db->is_local() && is_null($this->$name)){
+				# check whether the property value changed by comparing the current and the new objects' ids
+				# if there is no difference, don't change the property at all
+				if($object?->id !== $former_value?->id){
+					if(!$definition->is_alterable() && !$this->db->is_local()){
+						throw new PropertyNotAlterableException($definition, $this, $object);
+					}
+
+					$this->$name = $object;
+					$this->db->set_altered();
+				}
+
+			} else if($definition->supclass_is(DataObjectRelationList::class)){ // IDEA maybe remove this and move it into the DataObject::receive_input() function as it only makes sense there
+				# relationlists cannot be edited if this object is not independent
+				if(isset($this->context)){
 					return;
 				}
 
-				if(!isset($this->$name)){ # if the relationlist does not yet exist, create it and load it empty
-					$this->$name = new {$definition->get_class()}();
-					$this->$name->load([], &$this);
-				}
-
-				$this->$name->receive_input($input);
+				$this->$name->receive_input($input); # let the relationlist handle the input
 
 			} else if($definition->supclass_is(DataObjectCollection::class)){
 				throw new Exception('Collections are not yet supported.'); // TEMP
@@ -336,13 +237,23 @@ trait Properties {
 		$this->cycle->step('edited');
 	}
 
-	protected function edit_custom_property(PropertyDefinition $definition, mixed $input) : bool {} // (return value is whether the property was altered)
+
+	protected function edit_custom_property(PropertyDefinition $definition, mixed $input) : void {}
 
 
-	protected function get_push_values() : array {
+	# Return an array of all property values to send them to the database. also check for missing values
+	final protected function get_push_values() : array {
 		$result = [];
 
-		foreach($this->properties as $name => $definition){
+		# create an exception list to buffer all occuring MissingValueExceptions
+		$errors = new PropertyValueExceptionList();
+
+		foreach(self::$properties as $name => $definition){
+			# check whether the property is empty but required
+			if(is_null($this->$name) && $definition->is_required()){
+				$errors->push(new MissingValueException($definition));
+			}
+
 			if($definition->type_is('primitive') || $definition->type_is('identifier')){
 				if($definition->is_alterable() || $this->db->is_local()){
 					$result[$name] = $this->$name;
@@ -362,88 +273,72 @@ trait Properties {
 	}
 
 
-	protected function get_custom_push_values() : array {}
+	# return format: [column name => value, …]
+	protected function get_custom_push_values() : array {
+		return [];
+	}
 
 
-	# this function disables the database access for this object and all other objects it contains.
-	# it should be called by all controllers handing over this object to templates etc. in order to output it.
+	# Disable the database access for this object and all other objects it contains.
+	# this function should be called by all controllers handing over this object to templates etc. in order to output it
 	# this is a safety feature that prevents templates from altering or deleting object data
 	final public function freeze() : void {
+		# if this object is currently in the freezing process, do nothing. this prevents endless loops.
 		if($this->cycle->is_at('freezing')){
 			return;
 		}
 
-		$this->cycle->step('freezing');
+		$this->cycle->step('freezing'); # start the freezing process
 		$this->db->disable();
 
-		foreach($this->properties as $name => $definition){
-			if(!isset($this->name)){
-				// TODO this is a problem! uninitialized property!
-			}
-
+		foreach(self::$properties as $name => $definition){
+			# freeze all properties that are objects, except DataTypes
 			if($definition->type_is('object') && !$definition->supclass_is(DataType::class)){
 				$this->$name?->freeze();
 			}
 		}
 
-		$this->cycle->step('frozen');
+		$this->cycle->step('frozen'); # finish the freezing process
 	}
 
 
-	# this function transforms this object into an array containing all of its properties.
-	# properties that are objects themselves get also transformed into arrays using theír own arrayify functions.
-	final public function arrayify() : array|null {
-		if($this->cycle->is_at('freezing')){
-			return null;
+	# Return the PropertyDefinitions for this class (self::$properties). If they are not loaded yet, load them
+	final public static function get_property_definitions() : array {
+		if(!isset(self::$properties)){
+			self::load_property_definitions();
 		}
 
-		$this->cycle->step('freezing');
-		$this->db->disable();
+		return self::$properties;
+	}
 
-		$result = [];
 
-		foreach($this->properties as $name => $definition){
-			if(!isset($this->$name)){
-				$result[$name] = null;
-			} else if($definition->type_is('object') && !$definition->supclass_is(DataType::class)){
-				$result[$name] = $this->$name?->arrayify();
+	function __get($name) : mixed {
+		# if $this->$name is a defined property, return its value
+		if(isset($definition = self::$properties[$name])){
+			# if the property is contextual, let the context relation return its value (if there is one)
+			if($definition->type_is('contextual')){
+				if($this->context instanceof DataObjectRelation){
+					return $this->context->$name;
+				} else {
+					return null;
+				}
 			} else {
-				$result[$name] = $this->$name;
+				return $this->$name; // IDEA maybe reference for objects
 			}
 		}
-
-		$this->cycle->step('frozen');
-
-		return $result;
 	}
 
-
-	function __get(string $name) : mixed {
-		if(in_array($name, $this::PROPERTIES)){
-			return $this->$name;
-		}
-	}
-
-	function __set(string $name, mixed $value) : void {
-		if(in_array($name, $this::PROPERTIES)){
-			$this->edit_property($name, $value);
-		} else {
-			// TODO throw Exception
-			throw new Exception();
-		}
-	}
 
 	function __isset(string $name) : bool {
-		if(in_array($name, $this::PROPERTIES)){
-			return isset($this->$name);
+		# if $this->$name is a defined property, return whether it is set
+		if(isset(self::$properties[$name])){
+			# if the property is contextual, let the context relation return its value (if there is one)
+			if($definition->type_is('contextual') && $this->context instanceof DataObjectRelation){
+				return isset($this->context->$name);
+			} else {
+				return isset($this->$name);
+			}
 		}
 	}
-
-	function __unset(string $name) : void {
-		if(in_array($name, $this::PROPERTIES)){
-			$this->edit_property($name, null);
-		}
-	}
-
 }
 ?>

@@ -2,19 +2,29 @@
 namespace Blog\Core\Model;
 
 abstract class DataObjectRelationList {
-	protected ?DataObject $pivot;
+	protected DataObject $context;
+
 	protected array $relations;
 
 	protected array $deletions;
 
 	const RELATION_CLASS; # the fully qualified name of the concrete DORelation class whose instances this list contains
 
+
 	protected Cycle $cycle; # this class uses the Cycle class to control the order of its actions. see there for more.
 
 
 	# ==== CONSTRUCTION METHODS ==== #
 
-	function __construct() { // TODO
+	function __construct(DataObject &$context) {
+		$this->context = &$context;
+
+		/* CYCLE:
+		root
+		constructed
+		created | loaded
+		*/
+
 		$this->cycle = new Cycle([
 			['root', 'construct'],
 			// TODO
@@ -40,14 +50,12 @@ abstract class DataObjectRelationList {
 	# the database request itself (the pull function) is always performed by the base object (using joins)
 	# @param $data: array of rows from the database request's response
 	# @param $object: the base object of the relations
-	final public function load(array $data, ?DataObject $pivot = null) : void {
+	final public function load(array $data) : void {
 		$this->cycle->check_step('init/load');
 
-		$this->pivot = $pivot; // NOTE: there is no validation for this value
-
 		foreach($data as $row){
-			$relation = new {$this::RELATION_CLASS}(); # initialize a new relation
-			$relation->load($row, $pivot); # load the relation with the row data
+			$relation = new {$this::RELATION_CLASS}(&$this->context); # initialize a new relation
+			$relation->load($row); # load the relation with the row data
 			$this->relations[$relation->id] = $relation; # write the relation into this list
 		}
 
@@ -60,7 +68,7 @@ abstract class DataObjectRelationList {
 	# the receive_input function of a RelationList works quite differently than that of a DataObject. in order for a
 	# relation in this list to be altered, a string value 'action' has to be included in the input, which can have the
 	# following contents: ignore (not altering anything) | new (adding new relation) | edit | delete
-	# @param $input: [['action' => action string, 'input' => relation input data array], ...]
+	# @param $input: [['action' => action string, 'data' => relation input data array], ...]
 	final public function receive_input(array $input) : void {
 		$this->cycle->check_step('edit');
 
@@ -71,16 +79,12 @@ abstract class DataObjectRelationList {
 		# loop through the input array
 		foreach($input as $index => $field){
 			$action = $field['action'];
-			$data = $field['input'];
+			$data = $field['data'];
 
 			if($action === 'new'){ # a new relation should be created and added
-				$relation = new {$this::RELATION_CLASS}();
+				$relation = new {$this::RELATION_CLASS}(&$this->context);
 
 				$relation->create();
-
-				if(!is_null($this->pivot)){
-					$relation->set_object($this->pivot);
-				}
 
 				try {
 					$relation->receive_input($data);
@@ -88,17 +92,21 @@ abstract class DataObjectRelationList {
 					$errors->merge($e, "relation{$index}");
 				}
 
+				$this->relations[$relation->id] = $relation;
+
+				// TODO check unique
+
+				// XXX DEPRECATED ---------------------------
 				try {
 					$this->add($relation);
 				} catch(RelationCollisionException $e){
-					$errors->push($e, "relation{$index}");
+					$errors->push($e, "relation{$index}"); // prefix for push() deprecated
 				}
+				// xxx end ----------------------------------
 
 			} else if($action === 'edit' || $action === 'delete'){
-				$relation = $this->get($data['id']); # returns reference
-
-				if(is_null($relation)){ // FIXME
-					$errors->push(new RelationObjectNotFoundException(new PropertyDefinition('(unnamed)', $class), $data['id']), 'relation_'.$index);
+				if(empty($relation = &$this->relations[$data['id']])){
+					$errors->push(new RelationObjectNotFoundException()); // TODO
 				}
 
 				if($action === 'edit'){
@@ -108,7 +116,7 @@ abstract class DataObjectRelationList {
 						$errors->merge($e, 'relation_'.$index);
 					}
 
-				} else { # action===delete
+				} else if($action === 'delete'){
 					$this->remove($relation);
 				}
 			} else if($action !== 'ignore'){
@@ -124,40 +132,38 @@ abstract class DataObjectRelationList {
 	}
 
 
-	final public function add(DataObjectRelation $relation) : void {
+	final public function add(DataObject &$object) : void {
 		$this->cycle->check_step('edit');
 
-		if($relation::class !== $this::RELATION_CLASS){
-			throw new Exception(); // TODO exception wrong class (maybe TypeError)
-		}
+		$relation = new {$this::RELATION_CLASS}(&$this->context);
+		$relation->create();
 
-		if(!is_null($this->pivot) && $relation->get_object($this->pivot::class)?->id !== $this->pivot->id){
-			throw new Exception(); // exception different base object
-		}
+		try {
+			$relation->set_joined_object(&$object);
+		} catch(){}
 
-		// TODO check unique (general, also for DataObjectRelation.php)
+		// TODO check unique
 
 		$this->relations[$relation->id] = $relation;
+		$this->cycle->step('edit');
 	}
 
 
-	final public function remove(DataObjectRelation|string $relation, bool $quiet = true) : void {
-		if(is_string($relation)){
-			$id = $relation;
-		} else {
-			$id = $relation?->id;
-		}
+	final public function remove(int|string $index_or_id, bool $quiet = true) : void {
+		$this->cycle->check_step('edit');
 
-		if(!isset($this->relations[$id])){
-			if($error_on_null){
-				throw new Exception();
-			} else {
+		if(!isset($this->relations[$index_or_id])){
+			if($quiet){
 				return;
 			}
+
+			throw new Exception('not found'); // TODO
 		}
 
+		$id = $this->relations[$index_or_id]->id;
 		$this->deletions[$id] = $this->relations[$id];
 		unset($this->relations[$id]);
+		$this->cycle->step('edit');
 	}
 
 
@@ -188,20 +194,20 @@ abstract class DataObjectRelationList {
 		$this->cycle->step('output');
 		$this->db->disable();
 
-		foreach($this->relations as &$relation){
-			$relation->freeze();
+		foreach($this->relations as $index => $_){
+			$this->relations[$index]->freeze();
 		}
 	}
 
 
-	final public function arrayify() : ?array {
+	final public function arrayify() : array {
 		$this->cycle->step('output');
 		$this->db->disable();
 
 		$result = [];
 
 		foreach($this->relations as $relation){
-			$result[] = $relation->arrayify();
+			$result[$relation->id] = $relation->arrayify();
 		}
 
 		return $result;
@@ -211,8 +217,8 @@ abstract class DataObjectRelationList {
 	# ==== GENERAL METHODS ==== #
 
 
-	final public function get(string $id) : ?DataObjectRelation {
-		return &$this->relations[$id] ?? null;
+	final public function &get(int|string $index_or_id) : ?DataObject { // id means the relation id, not the object id
+		return &$this->relations[$index_or_id]?->get_joined_object();
 	}
 
 
@@ -221,8 +227,8 @@ abstract class DataObjectRelationList {
 			return;
 		}
 
-		foreach($this->relations as &$relation){
-			$callback($relation);
+		foreach($this->relations as $index => $_){
+			$callback(&$this->relations[$index]->get_joined_object());
 		}
 	}
 
@@ -232,8 +238,8 @@ abstract class DataObjectRelationList {
 			return;
 		}
 
-		for($i = 0; $i < count($this->relations); $i++){
-			$callback($i, &$this->relations[$i])
+		foreach($this->relations as $index => $_){
+			$callback($index, &$this->relations[$index]->get_joined_object());
 		}
 	}
 
@@ -244,7 +250,7 @@ abstract class DataObjectRelationList {
 
 
 	public function is_empty() : bool {
-		return ($this->length() == 0);
+		return ($this->length() === 0);
 	}
 
 }

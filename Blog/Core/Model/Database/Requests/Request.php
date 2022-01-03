@@ -1,37 +1,81 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Exceptions\InvalidModelCallException;
 use \Octopus\Core\Model\DataObject;
 use \Octopus\Core\Model\DataObjectList;
+use \Octopus\Core\Model\Properties\PropertyDefinition;
+use \Octopus\Core\Model\Cycle\Cycle;
+use Exception;
 
 abstract class Request {
-	private string $object_class; # the class name of the DataObject(Relation); lists are replaced by their corresponding single object
-	private string $table; # the name of the database table that contains the object data
-	private string $column_prefix;
-	private array $columns;
-	private ?array $values;
-	private ?Condition $condition;
+	protected string $table; # the name of the database table that contains the object data
+	protected array $properties;
+	protected ?Condition $condition;
+
+	protected string $query;
+	protected ?array $values;
+
+	protected Cycle $cycle;
 
 
-	function __construct(string $class) {
-		if(is_subclass_of($class, DataObject::class)){
-			$this->object_class = $class;
-		} else if(is_subclass_of($class, DataObjectList::class)){
-			$this->object_class = $class::OBJECT_CLASS;
-		} else {
-			throw new InvalidModelCallException("Argument class: the specified class «{$class}» is not supported.");
+	function __construct(string $table) {
+		if(!preg_match('/^[a-z_]+$/', $table)){
+			throw new Exception("Invalid table name: «{$table}».");
 		}
 
-		$this->table = $this->object_class::DB_TABLE;
-		$this->column_prefix = $this->object_class::DB_PREFIX;
+		$this->cycle = new Cycle([
+			['root', 'build'],
+			['build', 'build'],
+			['build', 'resolve']
+		]);
+
+		$this->cycle->start();
+
+		$this->table = $table;
+		$this->properties = [];
+		$this->values = [];
+		$this->condition = null;
 	}
 
 
-	abstract public function get_query() : string;
-	abstract public function get_values() : array;
-	abstract protected function validate_condition(?Condition $condition) : void;
+	final public function add_property(PropertyDefinition $definition) : void {
+		if($this->table !== $definition->get_db_table()){
+			throw new Exception("Property and Request db tables do not match.");
+		}
 
+		$this->properties["{$definition->get_db_table()}.{$definition->get_db_column()}"] = $definition;
+	}
+
+
+	final public function remove_property(PropertyDefinition $definition) : void {
+		unset($this->properties["{$definition->get_db_table()}.{$definition->get_db_column()}"]);
+	}
+
+
+	abstract protected function resolve() : void;
+
+
+	final public function get_query() : string {
+		if(!$this->cycle->is_at('resolve')){
+			$this->resolve();
+		}
+
+		return $this->query;
+	}
+
+	final public function get_values() : array {
+		if(!$this->cycle->is_at('resolve')){
+			$this->resolve();
+		}
+
+		return $this->values;
+	}
+
+
+
+
+
+	abstract protected function validate_condition(?Condition $condition) : void;
 
 	public function set_condition(?Condition $condition) : void {
 		$this->validate_condition($condition);

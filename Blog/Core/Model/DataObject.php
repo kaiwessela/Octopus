@@ -1,6 +1,7 @@
 <?php
 namespace Octopus\Core\Model;
 use \Octopus\Core\Model\Properties\Properties;
+use \Octopus\Core\Model\Properties\PropertyDefinition;
 use \Octopus\Core\Model\Properties\Exceptions\PropertyValueException;
 use \Octopus\Core\Model\Properties\Exceptions\PropertyValueExceptionList;
 use \Octopus\Core\Model\Cycle\Cycle;
@@ -11,6 +12,7 @@ use \Octopus\Core\Model\Database\Requests\SelectRequest;
 use \Octopus\Core\Model\Database\Requests\InsertRequest;
 use \Octopus\Core\Model\Database\Requests\UpdateRequest;
 use \Octopus\Core\Model\Database\Requests\DeleteRequest;
+use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierCondition;
 use \Octopus\Core\Model\DataObjectList;
 use \Octopus\Core\Model\DataObjectRelation;
@@ -45,7 +47,7 @@ abstract class DataObject {
 	# for documentation on the following definitions, check the Properties trait source file
 	use Properties;
 
-	const DB_PREFIX; # prefix of this object's row names in the database (i.e. [prefix]_id, [prefix]_longid)
+	const DB_PREFIX = ''; # prefix of this object's row names in the database (i.e. [prefix]_id, [prefix]_longid)
 
 	const PROPERTIES = [
 		# 'id' => 'id',
@@ -53,9 +55,10 @@ abstract class DataObject {
 		# ...property definitions for all other properties
 	];
 
-	protected static array $properties;
+	//(abstract) protected static array $properties;
 
-	protected readonly null|DataObject|DataObjectList|DataObjectRelation $context;
+	protected /*readonly*/ null|DataObject|DataObjectList|DataObjectRelation $context;
+	protected /*public readonly*/ ?SelectRequest $pull_request;
 
 	protected DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
 	protected Cycle $cycle; # this class uses the Cycle class to control the order of its actions. see there for more.
@@ -67,9 +70,16 @@ abstract class DataObject {
 	final function __construct(null|DataObject|DataObjectList|DataObjectRelation &$context = null) {
 		$this->context = &$context;
 
-		if(!isset(self::$properties)){ # load all property definitions
-			$this::load_property_definitions();
-			// TODO check that the id property is defined
+		if(!is_null($context)){
+			$this->pull_request = null;
+		}
+
+		if(!isset(static::$properties)){ # load all property definitions
+			static::load_property_definitions();
+
+			if(!static::$properties['id']?->class_is('id')){
+				throw new Exception('Invalid propery definitions: valid id definition missing.');
+			}
 		}
 
 		$this->db = new DatabaseAccess(); # prepare a connection to the database
@@ -131,16 +141,29 @@ abstract class DataObject {
 	# Download object data from the database and use load() to load it into this object
 	# @param $identifier: the identifier string that specifies which object to download.
 	# @param $identify_by: the name of the property $identifier should match to.
-	final public function pull(string $identifier, string $identify_by = 'id') : void {
+	final public function pull(string $identifier, string $identify_by = 'id', array $options = []) : void {
 		$this->cycle->check_step('loaded');
 
 		# verify the identify_by value
-		$identifying_property = self::$properties[$identify_by] ?? null;
+		$identifying_property = static::$properties[$identify_by] ?? null;
 		if(!$identifying_property?->type_is('identifier')){
 			throw new Exception("Argument identify_by: property «{$identify_by}» does not exist or is not an identifier.");
 		}
 
-		$request = new SelectRequest($this::class);
+		$request = new SelectRequest(static::DB_TABLE);
+
+		foreach(static::$properties as $name => $definition){
+			if($definition->supclass_is(DataObject::class)){
+				$request->add_join($definition->get_class()::join(on:$definition));
+			} else if($definition->supclass_is(DataObjectRelationList::class)){
+				$request->add_join($definition->get_class()::join(on:static::$properties['id']));
+			} else {
+				$request->add_property($definition);
+			}
+		}
+
+		static::shape_select_request($request, $options);
+
 		$request->set_condition(new IdentifierCondition($identifying_property, $identifier));
 
 		$s = $this->db->prepare($request->get_query());
@@ -153,8 +176,29 @@ abstract class DataObject {
 		} else {
 			# the database request was successful, use load() to load the data into this object
 			$this->load($s->fetchAll());
+			$this->pull_request = $request;
 		}
 	}
+
+
+	final public static function join(PropertyDefinition $on) : JoinRequest {
+		$request = new JoinRequest(static::DB_TABLE, static::get_property_definitions()['id'], $on);
+
+		foreach(static::get_property_definitions() as $name => $definition){
+			if($definition->supclass_is(DataObject::class)){
+				$request->add_join($definition->get_class()::join(on:$definition));
+			} else if(!$definition->supclass_is(DataObjectRelationList::class)){
+				$request->add_property($definition);
+			}
+		}
+
+		static::shape_join_request($request);
+
+		return $request;
+	}
+
+	protected static function shape_select_request(SelectRequest &$request, array $options) : void {}
+	protected static function shape_join_request(JoinRequest &$request) : void {}
 
 
 	# the load function loads rows of object data from the database into this object
@@ -199,11 +243,9 @@ abstract class DataObject {
 		}
 
 		# loop through all property definitions and load the properties
-		foreach(self::$properties as $name => $definition){
-			$column_name = "{$this::DB_PREFIX}_{$name}"; # on select requests, column names are prefixed
-
+		foreach(static::$properties as $name => $definition){
 			if($definition->type_is('primitive') || $definition->type_is('identifier')){
-				$this->$name = $row[$column_name]; # for primitive or identifier types, just copy the value
+				$this->$name = $row[$definition->get_db_column()]; # for primitive or identifier types, just copy the value
 
 			} else if($definition->type_is('object')){
 				if($definition->supclass_is(DataType::class)){
@@ -213,14 +255,15 @@ abstract class DataObject {
 				} else if($definition->supclass_is(DataObject::class)){
 					# check whether an object was referenced by checking the column referring to the object
 					# that column should contain an id or null, which is from now on stored as $id
-					if(empty($row["{$column_name}_id"])){
+					if(empty($row[$definition->get_db_column()])){
 						# no object was referenced, set the property to null
 						$this->$name = null;
 						continue;
 					}
 
 					# create a new object of the defined class and load it
-					$this->$name = new {$definition->get_class()}(&$this); # the argument means context:&$this
+					$cls = $definition->get_class();
+					$this->$name = new $cls($this); # the argument means context:$this
 					$this->$name->load($row);
 
 				} else if($definition->supclass_is(DataObjectRelationList::class)){
@@ -230,7 +273,8 @@ abstract class DataObject {
 					}
 
 					# create and set the relationlist and let it load the relations
-					$this->$name = new {$definition->get_class()}(&$this); # $this is referenced as context
+					$cls = $definition->get_class();
+					$this->$name = new $cls($this); # $this is referenced as context
 					$this->$name->load($data);
 
 				} else if($definition->supclass_is(DataObjectCollection::class)){
@@ -266,7 +310,7 @@ abstract class DataObject {
 		$errors = new PropertyValueExceptionList();
 
 		foreach($data as $name => $input){ # loop through all inputs
-			if(!isset(self::$properties[$name])){ # check if the property is defined
+			if(!isset(static::$properties[$name])){ # check if the property is defined
 				continue;
 			}
 
@@ -289,7 +333,7 @@ abstract class DataObject {
 
 	# ---> see trait Properties
 	# final public function edit_property(string $name, mixed $input) : void;
-	# protected function edit_custom_property(PropertyDefinition $definition, mixed $input) : bool;
+	# protected function edit_custom_property(PropertyDefinition $definition, mixed $input) : void;
 
 
 	### STORING AND DELETING METHODS
@@ -312,24 +356,30 @@ abstract class DataObject {
 			$request = false;
 		} else if($this->db->is_local()){
 			# this object is not yet or not anymore stored in the database, so perform an insert query
-			$request = new InsertRequest($this::class);
+			$request = new InsertRequest(static::DB_TABLE);
 		} else {
 			# this object is already stored in the database, but has been altered.
 			# perform an update query to update its database values
-			$request = new UpdateRequest($this::class);
-			$request->set_condition(new IdentifierCondition(self::$properties['id'], $this->id));
+			$request = new UpdateRequest(static::DB_TABLE);
+			$request->set_condition(new IdentifierCondition(static::$properties['id'], $this->id));
 		}
 
+		# add the properties to the request and push the dependencies.
 		# the object properties this object contains can be pushed before or after this object, depending on whether
 		# this object references them (then before) or they reference this object (then after)
 		# naturally, a database record can only be referenced if it already exists
 		$push_later = [];
-		foreach(self::$properties as $property => $definition){
+		foreach(static::$properties as $name => $definition){
+			# if the object is local, all properties are included, otherwise only the alterable ones
+			if($request !== false && ($definition->is_alterable() || $this->db->is_local())){
+				$request->add_property($definition);
+			}
+
 			if($definition->supclass_is(DataObject::class)){
 				# single DataObjects are pushed before, so this object can then reference them in the db
-				$this->$property?->push();
+				$this->$name?->push();
 			} else if($definition->supclass_is(DataObjectRelationList::class)){
-				$push_later[] = $property; # RelationLists are pushed after, as they reference this object
+				$push_later[] = $name; # RelationLists are pushed after, as they reference this object
 			}
 		}
 
@@ -337,14 +387,14 @@ abstract class DataObject {
 			$request->set_values($this->get_push_values());
 
 			$s = $this->db->prepare($request->get_query());
-			if(!$s->execute($request->get_values()){
+			if(!$s->execute($request->get_values())){
 				# the PDOStatement::execute has returned false, so an error occured performing the database request
 				throw new DatabaseException($s);
 			}
 		}
 
-		foreach($push_later as $property){ # push the properties that should be pushed later
-			$this->$property?->push();
+		foreach($push_later as $name){ # push the properties that should be pushed later
+			$this->$name?->push();
 		}
 
 		$this->cycle->step('stored'); # finish the storing process
@@ -374,8 +424,8 @@ abstract class DataObject {
 			return false;
 		}
 
-		$request = new DeleteRequest($this::class);
-		$request->set_condition(new IdentifierCondition(self::$properties['id'], $this->id));
+		$request = new DeleteRequest(static::DB_TABLE);
+		$request->set_condition(new IdentifierCondition(static::$properties['id'], $this->id));
 
 		$s = $this->db->prepare($request->get_query());
 		if(!$s->execute($request->get_values())){
@@ -410,7 +460,7 @@ abstract class DataObject {
 		$result = [];
 
 		# loop through all properties and copy them to $result. for objects, copy their arrayified version
-		foreach(self::$properties as $name => $definition){
+		foreach(static::$properties as $name => $definition){
 			if(!isset($this->$name)){
 				$result[$name] = null;
 			} else if($definition->type_is('object')){

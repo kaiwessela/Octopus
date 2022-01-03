@@ -1,17 +1,31 @@
 <?php
+namespace Octopus\Core\Model\Database\Requests\Conditions;
+use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
+use \Octopus\Core\Model\Properties\PropertyDefinition;
+use Exception;
+
+class IdentifierCondition extends Condition {
+	protected PropertyDefinition $property;
+	protected string $value;
 
 
-class IdentifierCondition {
+	function __construct(PropertyDefinition $property, string $value) {
+		parent::__construct();
 
-
-	function __construct(PropertyDefinition $property, string|int|float $value) {
 		if(!$property->type_is('identifier')){
-			// Exception
+			throw new Exception("Property must be of type identifier. «{$property->get_type()}» given.");
 		}
 
-		// WHERE {$property->parent(?)::DB_TABLE}.{$property->name} = :{$property->parent::DB_PREFIX}_{$property->name}
-		// values += ['{$property->parent::DB_PREFIX}_{$property->name}' => $value]
+		$this->property = $property;
+		$this->value = $value;
+	}
 
+
+	public function resolve(int $index = 0) : int {
+		$this->query = "{$this->property->get_db_table()}.{$this->property->get_db_column()} = :cond_{$index}";
+		$this->values = ["cond_{$index}" => $this->value];
+
+		return $index + 1;
 	}
 }
 ?>

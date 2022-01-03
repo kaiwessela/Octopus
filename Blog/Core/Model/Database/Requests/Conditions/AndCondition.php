@@ -1,37 +1,35 @@
 <?php
+namespace Octopus\Core\Model\Database\Requests\Conditions;
+use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 
-
-class AndCondition {
+class AndCondition extends Condition {
 	protected array $conditions;
 
 	function __construct(Condition ...$conditions) {
+		parent::__construct();
+
 		$this->conditions = $conditions;
 	}
 
 
-	public function resolve(int $index = 0) : array {
+	protected function resolve(int $index = 0) : int {
 		$queries = [];
-		$values = [];
-
-		$index++;
 
 		foreach($this->conditions as $condition){
-			$result = $condition->resolve($index);
-			$queries[] = $result['query'];
-			$values = array_merge($values, $result['values']);
+			$new_index = $condition->resolve($index);
+			$queries[] = $condition->get_query();
+			$values = $condition->get_values();
 
-			if($condition instanceof AndCondition || $condition instanceof OrCondition){
-				$index = $result['index']+1;
-			} else {
-				$index++;
+			if(($new_index - $index) !== count($values)){
+				throw new Exception('Corrupt Indices: index difference is not equal to number of values.');
 			}
+
+			$this->values = array_merge($this->values, $values);
+			$index = $new_index;
 		}
 
+		$this->query = '('.implode(') AND (', $queries).')';
 
-		return [
-			'query' => '('.implode($queries, ') AND (').')',
-			'values' => $values,
-			'index' => $index
-		];
+		return $index;
 	}
 }

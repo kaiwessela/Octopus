@@ -2,6 +2,7 @@
 namespace Octopus\Core\Model\Database\Requests;
 use \Octopus\Core\Model\Database\Requests\Request;
 use \Octopus\Core\Model\Database\Requests\JoinRequest;
+use \Octopus\Core\Model\Database\Requests\SelectAndJoin;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierCondition;
 use \Octopus\Core\Model\Properties\PropertyDefinition;
@@ -11,113 +12,34 @@ use \Octopus\Core\Model\DataType;
 use Exception;
 
 class SelectRequest extends Request {
-	# inherited from Request
-	# private string $object_class;
-	# private string $table;
-	# private string $column_prefix;
-	# private array $columns;
-	# private ?array $values;
-	# private ?Condition $condition;
-	private array $joins;
+	protected ?int $limit;
+	protected ?int $offset;
+	protected ?PropertyDefinition $order_by;
+	protected bool $order_desc;
 
-	private ?int $limit;
-	private ?int $offset;
-	private ?PropertyDefinition $order_by;
-	private bool $order_desc;
+	use SelectAndJoin;
+
+	# for SelectAndJoin
+	protected array $columns;
+	protected array $joins;
 
 
-	function __construct(string $class, bool $disable_multiline_joins = false) {
-		parent::__construct($class);
+	function __construct(string $table) {
+		parent::__construct($table);
+
+		$this->joins = [];
+		$this->columns = [];
 
 		$this->limit = null;
 		$this->offset = null;
 		$this->order_by = null;
 		$this->order_desc = false;
-
-		foreach($this->object_class::get_property_definitions() as $property => $definition){
-			$column = "{$this->table}.{$column} AS {$this->column_prefix}_{$column}";
-
-			if($definition->type_is('primitive') || $definition->type_is('identifier')){
-				$this->columns[] = $column;
-			} else if($definition->supclass_is(DataType::class)){
-				$this->columns[] = $column;
-			} else if($definition->supclass_is(DataObject::class)){
-				$this->joins[] = new JoinRequest($definition->get_class(), $this->object_class);
-			} else if($definition->supclass_is(DataObjectRelationList::class) && $disable_multiline_joins === false){
-				$this->joins[] = new JoinRequest($definition->get_class(), $this->object_class);
-			}
-		}
-	}
-
-
-	public function get_query() : string {
-		$columns = implode($this->columns, ', ');
-		$table = $this->table;
-		$joins = '';
-
-		foreach($this->joins as $join){
-			$columns .= ', ' . implode($join->columns, ', ');
-			$joins .= $join->get_query();
-		}
-
-		$this->condition?->resolve();
-		$this->set_values($this->condition?->get_values() ?? []);
-		$where = $this->condition?->get_query() ?? '';
-
-		$limit = '';
-		$offset = '';
-
-		if(!is_null($this->limit)){
-			$limit = "LIMIT {$this->limit}";
-
-			if(!is_null($this->offset)){
-				$limit = " OFFSET {$this->offset}";
-			}
-		}
-
-		$order = '';
-
-		if(!is_null($this->order_by)){
-			$order = "ORDER BY {$this->table}.{$this->order_by->get_name()}";
-
-			if($this->order_desc === true){
-				$order .= ' DESC';
-			}
-		}
-
-		return "SELECT {$columns} FROM {$table} {$joins} {$where} {$limit} {$order}";
-	}
-
-
-	public function get_total_count_query() : string { // TEMP/TEST
-		$table = $this->table;
-		$joins = '';
-
-		foreach($this->joins as $join){
-			$joins .= $join->get_query();
-		}
-
-		$this->condition?->resolve();
-		$this->set_values($this->condition?->get_values() ?? []);
-		$where = $this->condition?->get_query() ?? '';
-
-		return "SELECT COUNT(*) AS 'total' FROM {$table} {$joins} {$where}";
-	}
-
-
-	protected function validate_condition(?Condition $condition) : void {
-		if(is_subclass_of($this->object_class, DataObject::class)){
-			if(!$condition instanceof IdentifierCondition){
-				// Error condition type not allowed
-				// TODO improve condition type checking
-				// maybe move to check right before get_query() and also check for illegally empty condition
-				throw new Exception('illegal condition.');
-			}
-		}
 	}
 
 
 	public function set_limit(?int $limit) : void {
+		$this->cycle->step('build');
+
 		if(is_int($limit) && $limit <= 0){
 			throw new Exception('limit cannot be negative or zero.');
 		}
@@ -127,7 +49,9 @@ class SelectRequest extends Request {
 
 
 	public function set_offset(?int $offset) : void {
-		if($offset < 0){
+		$this->cycle->step('build');
+
+		if(is_int($offset) && $offset < 0){
 			throw new Exception('offset cannot be negative.');
 		}
 
@@ -135,9 +59,71 @@ class SelectRequest extends Request {
 	}
 
 
-	public function set_order(?PropertyDefinition $by, bool $desc = false) : void { // NOTE right now, the property must be from the base object, not joined
+	public function set_order(?PropertyDefinition $by, bool $desc = false) : void {
+		$this->cycle->step('build');
+
 		$this->order_by = $by;
 		$this->order_desc = $desc;
+	}
+
+
+	protected function resolve() : void {
+		$this->cycle->step('resolve');
+
+		$this->query = 'SELECT'.PHP_EOL;
+
+		$join_str = '';
+
+		foreach($this->properties as $property){
+			$this->columns[] = static::create_column_string($property);
+		}
+
+		foreach($this->joins as $join){
+			$this->columns = array_merge($this->columns, $join->get_columns());
+			$join_str .= $join->get_query();
+		}
+
+		$this->query .= implode(','.PHP_EOL, $this->columns).PHP_EOL;
+
+		$this->query .= "FROM {$this->table}".PHP_EOL;
+		$this->query .= $join_str;
+
+		if(!is_null($this->condition)){
+			$this->query .= "WHERE {$this->condition->get_query()}".PHP_EOL;
+			$this->set_values($this->condition->get_values());
+		}
+
+		if(!is_null($this->limit)){
+			$this->query .= "LIMIT {$this->limit}";
+
+			if(!is_null($this->offset)){
+				$this->query .= " OFFSET {$this->offset}";
+			}
+
+			$this->query .= PHP_EOL;
+		}
+
+		if(!is_null($this->order_by)){
+			$this->query .= "ORDER BY {$this->order_by->get_db_table()}.{$this->order_by->get_db_column()}";
+
+			if($this->order_desc === true){
+				$this->query .= ' DESC';
+			}
+		}
+	}
+
+
+	protected function validate_condition(?Condition $condition) : void {
+		/*
+		if(is_subclass_of($this->object_class, DataObject::class)){
+			if(!$condition instanceof IdentifierCondition){
+				// Error condition type not allowed
+				// TODO improve condition type checking
+				// maybe move to check right before get_query() and also check for illegally empty condition
+				throw new Exception('illegal condition.');
+			}
+		}
+		*/
 	}
 }
 ?>

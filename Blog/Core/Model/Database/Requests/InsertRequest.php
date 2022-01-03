@@ -1,48 +1,29 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
+use \Octopus\Core\Model\Database\Requests\Request;
+use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
+use Exception;
 
-class InsertRequest extends DatabaseRequest {
-	# inherited from DatabaseRequest
-	# private string $object_class;
-	# private string $table;
-	# private string $column_prefix;
-	# private array $columns;
+class InsertRequest extends Request {
 
 
-	function __construct(string $class) {
-		parent::__construct($class);
+	# function __construct() is handled by the parent
 
-		foreach($class::PROPERTIES as $property => $definition){
-			$def = new PropertyDefinition($property, $definition);
 
-			if($def->type_is('primitive') || $def->type_is('identifier')){
-				$this->columns[] = $property;
-			} else if($def->type_is('object')){
-				if($def->supclass_is(DataType::class)){
-					$this->columns[] = $property;
-				} else if($def->supclass_is(DataObject::class)){
-					$this->columns[] = $property.'_id';
-				}
-			}
+	protected function resolve() : void {
+		$this->cycle->step('resolve');
+
+		$columns = [];
+		foreach($this->properties as $property){
+			$columns[] = "	{$property->get_db_column()} => :{$property->get_name()}";
 		}
+
+		$this->query = "INSERT INTO {$this->table} SET".PHP_EOL;
+		$this->query .= implode(','.PHP_EOL, $columns);
 	}
 
 
-	public function get_query() : string {
-		$query = [];
-
-		$query[] = 'INSERT INTO';
-		$query[] = $this->table;
-		$query[] = '(';
-		$query[] = implode($this->columns, ', ');
-		$query[] = ') VALUES (:';
-		$query[] = implode($this->columns, ', :');
-		$query[] = ')';
-
-		return implode($query, ' ');
-	}
-
-	protected function check_condition(?RequestCondition $condition) : void {
+	protected function check_condition(?Condition $condition) : void {
 		if(!is_null($condition)){
 			throw new Exception('condition must be null for this type of request.');
 		}

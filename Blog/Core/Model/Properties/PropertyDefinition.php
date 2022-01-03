@@ -58,14 +58,19 @@ class PropertyDefinition {
 	private bool $alterable;
 	private array $constraints;
 	private ?array $options;
+	private string $db_table;
+	private string $db_prefix;
+	private ?string $db_column;
 
 	# this pattern defines a valid longid
 	const LONGID_PATTERN = '/^[a-z0-9-]{9,128}$/';
 
 
 	# @param $definition: string or array containing a raw property definition
-	function __construct(string $name, mixed $definition) {
+	function __construct(string $name, mixed $definition, string $db_table, string $db_prefix) {
 		$this->name = $name;
+		$this->db_table = $db_table;
+		$this->db_prefix = $db_prefix;
 
 		# check if the raw definition's type is valid
 		if(!is_string($definition) && !is_array($definition)){
@@ -88,24 +93,27 @@ class PropertyDefinition {
 		}
 
 		# complement the type and check if the class is valid
-		if($definition['class'] == 'id' || $definition['class'] == 'longid'){
+		if($definition['class'] === 'id' || $definition['class'] === 'longid'){
 			$this->type = 'identifier';
 			$this->class = $definition['class'];
 			$this->required = true;
+			$this->db_column = $this->name;
 
 			if($this->class === 'id'){
 				$this->alterable = false; # ids are never alterable
 			} else {
 				$this->alterable = $definition['alterable'] ?? true; # other identifiers are alterable by default
 			}
-		} else if($definition['class'] == 'custom'){
+		} else if($definition['class'] === 'custom'){
 			$this->type = 'custom';
 			$this->class = 'custom';
+			$this->db_column = $this->name;
 		} else if(in_array($definition['class'], ['string', 'int', 'float', 'bool'])){
 			$this->type = 'primitive';
 			$this->class = $definition['class'];
 			$this->required = $definition['required'] ?? false; # primitive properties are not required by default
 			$this->alterable = $definition['alterable'] ?? true; # primitive properties are alterable by default
+			$this->db_column = $this->name;
 		} else if(class_exists($definition['class'])){
 			# check if the object class is allowed for a property
 			# it must be a child (=subclass) of DataType, DataObject, D.O.RelationList or D.O.Collection
@@ -119,13 +127,20 @@ class PropertyDefinition {
 				if(is_subclass_of($definition['class'], DataType::class)){
 					$this->required = $definition['required'] ?? false; # DataTypes are not required by default
 					$this->alterable = true; # DataTypes are always alterable
+					$this->db_column = $this->name;
 				} else if(is_subclass_of($definition['class'], DataObject::class)){
 					$this->required = $definition['required'] ?? false; # DataObjects are not required by default
 					$this->alterable = $definition['alterable'] ?? true; # DataObjects are alterable by default
 					# NOTE: this does not affect the alterability of the object's properties
-				} else {
+					$this->db_column = "{$this->name}_id";
+				} else if(is_subclass_of($definition['class'], DataObjectRelationList::class)){
 					$this->required = false; # RelationLists and Collections are never required
 					$this->alterable = true; # RelationLists and Collections are always alterable
+					$this->db_column = null;
+				} else if(is_subclass_of($definition['class'], DataObjectColection::class)){
+					$this->required = false; # RelationLists and Collections are never required
+					$this->alterable = true; # RelationLists and Collections are always alterable
+					$this->db_column = $this->name;
 				}
 			} else {
 				throw new Exception('Invalid class in PropertyDefinition: ' . $definition['class']);
@@ -143,7 +158,7 @@ class PropertyDefinition {
 		# handle constraints
 		$this->constraints = [];
 
-		if($this->class == 'string' && !empty($definition['pattern']){ # the pattern constraint for strings
+		if($this->class == 'string' && !empty($definition['pattern'])){ # the pattern constraint for strings
 			# check if the pattern is a valid RegEx
 			if(preg_match('/^'.$definition['pattern'].'$/', null) !== false){ // TODO remove ^ and $
 				$this->constraints['pattern'] = $definition['pattern'];
@@ -161,6 +176,21 @@ class PropertyDefinition {
 
 	public function get_name() : string {
 		return $this->name;
+	}
+
+
+	public function get_db_table() : string {
+		return $this->db_table;
+	}
+
+
+	public function get_db_prefix() : string {
+		return $this->db_prefix;
+	}
+
+
+	public function get_db_column() : string {
+		return $this->db_column;
 	}
 
 

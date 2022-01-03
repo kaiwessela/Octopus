@@ -1,5 +1,11 @@
 <?php // CODE ??, COMMENTS --, IMPORTS --
-namespace Blog\Core\Model;
+namespace Octopus\Core\Model;
+use \Octopus\Core\Model\Properties\Properties;
+use \Octopus\Core\Model\Database\DatabaseAccess;
+use \Octopus\Core\Model\Cycle\Cycle;
+use \Octopus\Core\Model\DataObject;
+use Exception;
+
 
 # What is a DataObjectRelation?
 # A DataObjectRelation is a construct used to create and store many-to-many relations between two classes of DataObjects.
@@ -35,7 +41,7 @@ abstract class DataObjectRelation {
 
 	// TODO check this
 	# this constant defines whether multiple relations of the same pair of DataObjects should be allowed to exist
-	const UNIQUE; # true = forbidden; false = allowed
+	const UNIQUE = false; # true = forbidden; false = allowed
 
 	# this class uses the Properties trait which contains standard methods that handle the properties of this class
 	# for documentation on the following constants, check the Properties trait source file
@@ -48,10 +54,10 @@ abstract class DataObjectRelation {
 		# ...property definitions for all other properties
 	];
 
-	protected static array $properties;
+	// (abstract)protected static array $properties;
 
-	protected readonly DataObject $context;
-	protected readonly string $join_object_property; // TEMP, find a better name
+	protected /*readonly*/ DataObject $context;
+	protected /*readonly*/ string $join_object_property; // TEMP, find a better name
 
 	protected DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
 	protected Cycle $cycle; # this class uses the Cycle class to control the order of its actions. see there for more.
@@ -130,7 +136,7 @@ abstract class DataObjectRelation {
 
 		# basically the same procedure as in DataObject->load(), but shorter
 		foreach($this->properties as $name => $definition){
-			$column_name = "{$this::DB_PREFIX}_{$property}"; # on select requests, column names are prefixed
+			$column_name = $this::DB_PREFIX.'_'.$property; # on select requests, column names are prefixed
 
 			if($definition->type_is('primitive') || $definition->type_is('identifier')){
 				$this->$name = $data[$column_name]; # for primitive or identifier types, just copy the value
@@ -141,7 +147,8 @@ abstract class DataObjectRelation {
 				}
 
 				# DataObject properties in relations cannot be null/unset, so simply create the object and load it
-				$this->$name = new {$definition->get_class()}($this); # the argument means context:$this
+				$cls = $definition->get_class();
+				$this->$name = new $cls($this); # the argument means context:$this
 				$this->$name->load($data);
 			}
 		}
@@ -163,7 +170,7 @@ abstract class DataObjectRelation {
 
 		# create a new container exception that buffers and stores all PropertyValueExceptions
 		# that occur during the editing of the properties (i.e. invalid or missing inputs)
-		$errors = new InputFailedException();
+		$errors = new InputFailedException(); // TODO update
 
 		# loop through all property definitions and edit the respective properties
 		foreach($this->properties as $name => $_){
@@ -200,7 +207,7 @@ abstract class DataObjectRelation {
 			}
 		}
 
-		throw new InvalidModelCallException(); // TODO
+		throw new Exception(); // TODO
 	}
 
 	final public function &get_joined_object() : DataObject {

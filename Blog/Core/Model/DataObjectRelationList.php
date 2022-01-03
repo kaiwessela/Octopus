@@ -1,16 +1,25 @@
 <?php // CODE ??, COMMENTS --, IMPORTS --
-namespace Blog\Core\Model;
+namespace Octopus\Core\Model;
+use \Octopus\Core\Model\DataObject;
+use \Octopus\Core\Model\Database\Requests\SelectRequest;
+use \Octopus\Core\Model\Database\DatabaseAccess;
+use \Octopus\Core\Model\Cycle\Cycle;
+use \Octopus\Core\Model\Database\Exceptions\DatabaseException;
+use \Octopus\Core\Model\Properties\PropertyDefinition;
+use \Octopus\Core\Model\Database\Requests\JoinRequest;
+use Exception;
 
 abstract class DataObjectRelationList {
 	protected DataObject $context;
+	protected int $total_count;
 
 	protected array $relations;
 
 	protected array $deletions;
 
-	const RELATION_CLASS; # the fully qualified name of the concrete DORelation class whose instances this list contains
+	const RELATION_CLASS = null; # the fully qualified name of the concrete DORelation class whose instances this list contains
 
-
+	protected DatabaseAccess $db; // TEMP
 	protected Cycle $cycle; # this class uses the Cycle class to control the order of its actions. see there for more.
 
 
@@ -18,6 +27,8 @@ abstract class DataObjectRelationList {
 
 	function __construct(DataObject &$context) {
 		$this->context = &$context;
+
+		$this->db = new DatabaseAccess();
 
 		/* CYCLE:
 		root
@@ -50,16 +61,80 @@ abstract class DataObjectRelationList {
 	# the database request itself (the pull function) is always performed by the base object (using joins)
 	# @param $data: array of rows from the database request's response
 	# @param $object: the base object of the relations
-	final public function load(array $data) : void {
+	final public function load(array $data, ?SelectRequest $pull_request) : void {
 		$this->cycle->check_step('init/load');
 
+		$this->pull_request = $pull_request;
+
 		foreach($data as $row){
-			$relation = new {$this::RELATION_CLASS}(&$this->context); # initialize a new relation
+			$cls = static::RELATION_CLASS;
+			$relation = new $cls($this->context); # initialize a new relation
 			$relation->load($row); # load the relation with the row data
 			$this->relations[$relation->id] = $relation; # write the relation into this list
 		}
 
 		$this->cycle->step('init/load');
+	}
+
+
+	final public function count_total(bool $force_request = false) : int { // TEMP/TEST
+		if(!isset($this->total_count) || $force_request){
+			$this->cycle->check_step('counted');
+
+			$request = new CountRequest($this->context->pull_request);
+
+			$s = $this->db->prepare($request->get_query());
+			if(!$s->execute($request->get_values())){
+				throw new DatabaseException($s);
+			} else {
+				$this->total_count = $s->fetch()['total'];
+				$this->cycle->step('counted');
+			}
+		}
+
+		return $this->total_count;
+	}
+
+
+	final public function count_total() : int { // TEMP
+		$this->cycle->check_step('counted');
+
+		$s = $this->db->prepare($this->pull_request->get_total_count_query());
+		if(!$s->execute($request->get_values())){
+			throw new DatabaseException($s);
+		} else {
+			$r = $s->fetch();
+			$this->cycle->step('counted');
+			return $r['total'];
+		}
+	}
+
+
+	public static function join(PropertyDefinition $on) : JoinRequest {
+		$identifier;
+		$join;
+		$columns = [];
+		foreach(static::RELATION_CLASS::get_property_definitions() as $name => $definition){
+			if($definition->supclass_is(DataObject::class)){
+				if($definition->get_class()::DB_TABLE === $on->get_db_table()){
+					$identifier = $definition;
+				} else {
+					$join = $definition;
+				}
+			} else {
+				$columns[] = $definition;
+			}
+		}
+
+		$request = new JoinRequest(static::RELATION_CLASS::DB_TABLE, $identifier, $on);
+
+		foreach($columns as $column){
+			$request->add_property($column);
+		}
+
+		$request->add_join($join->get_class()::join(on:$join));
+
+		return $request;
 	}
 
 
@@ -74,7 +149,7 @@ abstract class DataObjectRelationList {
 
 		# create a new container exception that buffers and stores all PropertyValueExceptions
 		# that occur during the editing of the properties (i.e. invalid or missing inputs)
-		$errors = new InputFailedException();
+		$errors = new InputFailedException(); // TODO update
 
 		# loop through the input array
 		foreach($input as $index => $field){
@@ -82,7 +157,8 @@ abstract class DataObjectRelationList {
 			$data = $field['data'];
 
 			if($action === 'new'){ # a new relation should be created and added
-				$relation = new {$this::RELATION_CLASS}(&$this->context);
+				$cls = static::RELATION_CLASS;
+				$relation = new $cls($this->context);
 
 				$relation->create();
 
@@ -135,12 +211,15 @@ abstract class DataObjectRelationList {
 	final public function add(DataObject &$object) : void {
 		$this->cycle->check_step('edit');
 
-		$relation = new {$this::RELATION_CLASS}(&$this->context);
+		$cls = static::RELATION_CLASS;
+		$relation = new $cls($this->context);
 		$relation->create();
 
 		try {
-			$relation->set_joined_object(&$object);
-		} catch(){}
+			$relation->set_joined_object($object);
+		} catch(Exception $e){
+			throw $e; // TODO
+		}
 
 		// TODO check unique
 
@@ -218,7 +297,7 @@ abstract class DataObjectRelationList {
 
 
 	final public function &get(int|string $index_or_id) : ?DataObject { // id means the relation id, not the object id
-		return &$this->relations[$index_or_id]?->get_joined_object();
+		return $this->relations[$index_or_id]?->get_joined_object();
 	}
 
 
@@ -228,7 +307,7 @@ abstract class DataObjectRelationList {
 		}
 
 		foreach($this->relations as $index => $_){
-			$callback(&$this->relations[$index]->get_joined_object());
+			$callback($this->relations[$index]->get_joined_object());
 		}
 	}
 
@@ -239,7 +318,7 @@ abstract class DataObjectRelationList {
 		}
 
 		foreach($this->relations as $index => $_){
-			$callback($index, &$this->relations[$index]->get_joined_object());
+			$callback($index, $this->relations[$index]->get_joined_object());
 		}
 	}
 

@@ -8,6 +8,8 @@ namespace Blog\Core\Model;
 
 abstract class DataObjectList {
 	protected array $objects; # an array of the dataobjects this list contains [object_id => object, ...]
+
+	protected ?SelectRequest $pull_request;
 	protected int $total_count;
 
 	const OBJECT_CLASS; # the fully qualified name of the concrete DataObject class whose instances this list contains
@@ -19,21 +21,15 @@ abstract class DataObjectList {
 	### CONSTRUCTION METHODS
 
 	final function __construct() {
+		// TODO check OBJECT_CLASS
+
 		$this->db = new DatabaseAccess(); # prepare a connection to the database
 
 		$this->cycle = new Cycle([
 			['root', 'constructed'],
-			['constructed', 'loaded']
-
-
-
-
-
-
-
-
-			['root', 'constructed'],
 			['constructed', 'loaded'],
+			['loaded', 'counted'], // TEMP
+			['counted', 'frozen'], // TEMP
 			['loaded', 'frozen']
 		]);
 
@@ -52,13 +48,20 @@ abstract class DataObjectList {
 	final public function pull(?int $limit = null, ?int $offset = null, ?array $options = null) : void {
 		$this->cycle->check_step('loaded');
 
-		$request = new SelectRequest($this::class, true); // TEMP (2nd arg)
-		$request->set_condition($this->get_pull_condition($options));
+		$request = new SelectRequest();
+
+		foreach(static::OBJECT_CLASS::get_property_definitions() as $name => $definition){
+			if($definition->supclass_is(DataObject::class)){
+				$request->add_join({$definition->get_class()}::join());
+			} else if(!$definition->supclass_is(DataObjectRelationList::class)){
+				$request->add_property($definition);
+			}
+		}
+
+		static::shape_select_request(&$request, $options);
+
 		$request->set_limit($limit);
 		$request->set_offset($offset);
-
-		$order = $this->get_pull_order($options);
-		$request->set_order($order['by'] ?? null, $order['desc'] ?? false);
 
 		$s = $this->db->prepare($request->get_query());
 		if(!$s->execute($request->get_values())){
@@ -70,8 +73,12 @@ abstract class DataObjectList {
 		} else {
 			# create objects using the load function
 			$this->load($s->fetchAll());
+			$this->pull_request = $request;
 		}
 	}
+
+
+	protected static function shape_select_request(SelectRequest &$request, ?array $options) : void {}
 
 
 	# this function downloads object data by a list of object ids (similar to the pull function).
@@ -79,30 +86,24 @@ abstract class DataObjectList {
 	# @param $idlist: a list of ids of all objects that should be pulled
 	final public function pull_by_ids(array $idlist) : void {
 		$this->cycle->check_step('loaded');
-		$this->db->enable();
 
 		if(empty($idlist)){
 			return;
 		}
 
 		$request = new SelectRequest($this::class);
-		$request->set_condition(new InCondition(self::$properties['id'], $idlist));
+
+		self::shape_select_request(&$request, []);
+
+		$request->set_condition(new InCondition(static::OBJECT_CLASS::get_property_definitions()['id'], $idlist));
 
 		$s = $this->db->prepare($request->get_query());
 		if(!$s->execute($request->get_values())){
 			throw new DatabaseException($s);
 		} else if($s->rowCount() !== 0){
 			$this->load($s->fetchAll());
+			$this->pull_request = $request;
 		}
-	}
-
-
-	protected function get_pull_condition(?array $options) : ?Condition {
-		return null;
-	}
-
-	protected function get_pull_order(?array $options) : ?array {
-		return null;
 	}
 
 
@@ -118,6 +119,25 @@ abstract class DataObjectList {
 		}
 
 		$this->cycle->step('loaded');
+	}
+
+
+	final public function count_total(bool $force_request = false) : int { // TEMP/TEST
+		if(!isset($this->total_count) || $force_request){
+			$this->cycle->check_step('counted');
+
+			$request = new CountRequest($this->pull_request);
+
+			$s = $this->db->prepare($request->get_query());
+			if(!$s->execute($request->get_values())){
+				throw new DatabaseException($s);
+			} else {
+				$this->total_count = $s->fetch()['total'];
+				$this->cycle->step('counted');
+			}
+		}
+
+		return $this->total_count;
 	}
 
 

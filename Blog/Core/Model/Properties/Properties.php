@@ -14,7 +14,7 @@ use \Octopus\Core\Model\Properties\Exceptions\MissingValueException;
 use \Octopus\Core\Model\Properties\Exceptions\PropertyNotAlterableException;
 use \Octopus\Core\Model\Properties\Exceptions\RelationObjectNotFoundException;
 use \Octopus\Core\Model\Database\Exceptions\EmptyResultException;
-use \Octopus\Core\Model\Exceptions\InvalidModelCallException;
+use Exception;
 
 # This trait takes care of all standard operations for objects that are stored in the database and have properties
 # themselves, which currently are DataObjects and DataObjectRelations.
@@ -37,15 +37,17 @@ trait Properties {
 
 	# Turn the raw property definitions into PropertyDefinitions and store them in self::$properties
 	final protected static function load_property_definitions() : void {
-		foreach(self::PROPERTIES as $name => $raw_definition){
-			self::$properties[$name] = new PropertyDefinition($name, $raw_definition);
+		static::$properties = [];
+
+		foreach(static::PROPERTIES as $name => $raw_definition){
+			static::$properties[$name] = new PropertyDefinition($name, $raw_definition, static::DB_TABLE, static::DB_PREFIX);
 		}
 	}
 
 
 	# Set all properties to null, except the id
 	final protected function initialize_properties() : void {
-		foreach($this->properties as $name => $definition){
+		foreach(static::$properties as $name => $definition){
 			if($definition->class_is('id')){
 				continue;
 			}
@@ -63,7 +65,7 @@ trait Properties {
 		$this->cycle->check_step('edited');
 
 		if(empty($definition = self::$properties[$name])){
-			throw new InvalidModelCallException("No PropertyDefinition found for property »{$name}«.");
+			throw new Exception("No PropertyDefinition found for property »{$name}«.");
 		}
 
 		# set a variable for the current value to check (later) whether the value actually has changed
@@ -176,7 +178,8 @@ trait Properties {
 					# or second, it can be an array containing a key 'id' with the value being a string with the id.
 
 					$id = $input['id'] ?? $input; # unify both input forms into a single variable
-					$object = new {$definition->get_class()}();
+					$cls = $definition->get_class();
+					$object = new $cls();
 
 					# check whether an object of the prescribed class with this id exists
 					try {
@@ -192,7 +195,9 @@ trait Properties {
 					}
 
 					# construct a new object of the prescribed class
-					$object = new {$definition->get_class()}(&$this); # set $this as the context object
+					$cls = $definition->get_class();
+					$object = new $cls($this);
+					//$object = new {$definition->get_class()}(&$this); # set $this as the context object
 					$object->create(); # initialize (create) the object
 
 					# try to fill the new object with the received data
@@ -291,7 +296,7 @@ trait Properties {
 		$this->cycle->step('freezing'); # start the freezing process
 		$this->db->disable();
 
-		foreach(self::$properties as $name => $definition){
+		foreach(static::$properties as $name => $definition){
 			# freeze all properties that are objects, except DataTypes
 			if($definition->type_is('object') && !$definition->supclass_is(DataType::class)){
 				$this->$name?->freeze();
@@ -304,17 +309,19 @@ trait Properties {
 
 	# Return the PropertyDefinitions for this class (self::$properties). If they are not loaded yet, load them
 	final public static function get_property_definitions() : array {
-		if(!isset(self::$properties)){
-			self::load_property_definitions();
+		if(!isset(static::$properties)){
+			static::load_property_definitions();
 		}
 
-		return self::$properties;
+		return static::$properties;
 	}
 
 
 	function __get($name) : mixed {
 		# if $this->$name is a defined property, return its value
-		if(isset($definition = self::$properties[$name])){
+		if(isset(static::$properties[$name])){
+			$definition = static::$properties[$name];
+
 			# if the property is contextual, let the context relation return its value (if there is one)
 			if($definition->type_is('contextual')){
 				if($this->context instanceof DataObjectRelation){
@@ -331,7 +338,7 @@ trait Properties {
 
 	function __isset(string $name) : bool {
 		# if $this->$name is a defined property, return whether it is set
-		if(isset(self::$properties[$name])){
+		if(isset(static::$properties[$name])){
 			# if the property is contextual, let the context relation return its value (if there is one)
 			if($definition->type_is('contextual') && $this->context instanceof DataObjectRelation){
 				return isset($this->context->$name);

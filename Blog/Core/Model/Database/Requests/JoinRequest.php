@@ -1,59 +1,78 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
 use \Octopus\Core\Model\Database\Requests\Request;
+use \Octopus\Core\Model\Database\Requests\JoinRequest;
+use \Octopus\Core\Model\Database\Requests\SelectAndJoin;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\DataObject;
 use \Octopus\Core\Model\DataObjectRelationList;
 use \Octopus\Core\Model\DataType;
+use \Octopus\Core\Model\Properties\PropertyDefinition;
 use Exception;
 
 class JoinRequest extends Request {
-	# inherited from Request
-	# private string $object_class;
-	# private string $table;
-	# private string $column_prefix;
-	# private array $columns;
-	# private ?array $values;
-	private string $base_table;
-	private array $joins;
+	protected PropertyDefinition $native_property;
+	protected PropertyDefinition $foreign_property;
+
+	use SelectAndJoin;
+
+	# for SelectAndJoin
+	protected array $columns;
+	protected array $joins;
 
 
-	function __construct(string $class, string $origin_class) {
-		parent::__construct($class);
+	function __construct(string $table, PropertyDefinition $native_property, PropertyDefinition $foreign_property) {
+		parent::__construct($table);
 
-		$this->base_table = $origin_class::DB_PREFIX; // TEMP;
+		$this->joins = [];
+		$this->columns = [];
 
-		foreach($this->object_class::get_property_definitions() as $property => $definition){
-			$column = "{$this->table}.{$column} AS {$this->column_prefix}_{$column}";
-
-			if($definition->type_is('primitive') || $definition->type_is('identifier')){
-				$this->columns[] = $column;
-			} else if($def->type_is('object')){
-				if($definition->class_is($origin_class){ // TODO check this
-					continue;
-				}
-
-				if($definition->supclass_is(DataType::class)){
-					$this->columns[] = $column;
-				} else if($definition->supclass_is(DataObject::class)){
-					$this->joins[] = new JoinRequest($definition->get_class(), $origin_class);
-				} else if($definition->supclass_is(DataObjectRelationList::class)){
-					$this->joins[] = new JoinRequest($definition->get_class(), $origin_class);
-				}
-			}
+		if($native_property->get_db_table() !== $this->table){
+			throw new Exception('Native Property must be part of the joined table.');
 		}
+
+		if(!$native_property->type_is('identifier') && !$native_property->supclass_is(DataObject::class)){
+			throw new Exception('Native Property must be an identifier or an id of a foreign object.');
+		}
+
+		if($foreign_property->get_db_table() === $this->table){
+			throw new Exception('Foreign Property must not be part of the joined table.');
+		}
+
+		if(!$foreign_property->type_is('identifier') && !$foreign_property->supclass_is(DataObject::class)){
+			throw new Exception('Foreign Property must be an identifier or an id of a foreign object.');
+		}
+
+		$this->native_property = $native_property;
+		$this->foreign_property = $foreign_property;
 	}
 
 
-	public function get_query() : string {
+	protected function resolve() : void {
+		$this->cycle->step('resolve');
+		
+		foreach($this->properties as $property){
+			$this->columns[] = static::create_column_string($property);
+		}
 
-		$other_joins = '';
+		$native_col = "{$this->native_property->get_db_table()}.{$this->native_property->get_db_column()}";
+		$foreign_col = "{$this->foreign_property->get_db_table()}.{$this->foreign_property->get_db_column()}";
+
+		$this->query = "LEFT JOIN {$this->table} ON {$native_col} = {$foreign_col}".PHP_EOL;
+
 		foreach($this->joins as $join){
-			$other_joins .= $join->get_query() . ' ';
+			$this->query .= $join->get_query();
+			$this->columns = array_merge($this->columns, $join->get_columns());
 		}
-
-		return "LEFT JOIN {$this->table} ON {$this->table}.id = {$this->base_table}.id {$other_joins}";
 	}
+
+
+	public function get_foreign_property() : PropertyDefinition {
+		return $this->foreign_property;
+	}
+
+
+
 
 
 	protected function validate_condition(?Condition $condition) : void {

@@ -1,6 +1,6 @@
 <?php
 namespace Octopus\Core\Model\Cycle;
-use \Octopus\Core\Model\Cycle\OutOfCycleException;
+use \Octopus\Core\Model\Cycle\Exceptions\OutOfCycleException;
 use Exception;
 
 class Cycle {
@@ -58,7 +58,7 @@ class Cycle {
 	# $stadium can define which one to take ($stadium then must equal the ending node of that edge). On null, the
 	# first root edge will be chosen.
 	public function start(?string $stadium = null) : void {
-		if($this->stadium !== null){ # if the cycle has already been started, throw an error
+		if($this->stadium !== 'root'){ # if the cycle has already been started, throw an error
 			throw new OutOfCycleException($this->stadium, 'root/0');
 		}
 
@@ -86,7 +86,7 @@ class Cycle {
 		$valid = false;
 
 		# check whether the proposed step is defined in $this->cycle
-		if(isset($this->cycle[$this->stadium][$stadium])){
+		if(in_array($stadium, $this->cycle[$this->stadium])){
 			return true;
 		} else if($exception){ # the step is not allowed. if an exception is expected, throw it, otherwise return false
 			throw new OutOfCycleException($this->stadium, $stadium);

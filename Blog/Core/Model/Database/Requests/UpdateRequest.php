@@ -1,57 +1,39 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
+use \Octopus\Core\Model\Database\Requests\Request;
+use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
+use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierCondition;
+use Exception;
 
-class UpdateRequest extends DatabaseRequest {
-	# inherited from DatabaseRequest
-	# private string $object_class;
-	# private string $table;
-	# private string $column_prefix;
-	# private array $columns;
+class UpdateRequest extends Request {
 
 
-	function __construct(string $class) {
-		parent::__construct($class);
+	# function __construct() is handled by the parent
 
-		foreach($class::PROPERTIES as $property => $definition){
-			$def = new PropertyDefinition($property, $definition);
 
-			if(($def->type_is('primitive') || $def->type_is('identifier')) && $def->is_updatable()){
-				$this->columns[] = $property;
-			} else if($def->type_is('object')){
-				if($def->supclass_is(DataType::class)){
-					$this->columns[] = $property;
-				} else if($def->supclass_is(DataObject::class)){
-					$this->columns[] = $property.'_id';
-				}
-			}
+	protected function resolve() : void {
+		$this->cycle->step('resolve');
+
+		if(is_null($this->condition)){
+			throw new Exception('An IdentifierCondition must be set for this request.');
 		}
+
+		$columns = [];
+		foreach($this->properties as $property){
+			$columns[] = "	{$property->get_db_column()} => :{$property->get_name()}";
+		}
+
+		$this->query = "UPDATE {$this->table} SET".PHP_EOL;
+		$this->query .= implode(','.PHP_EOL, $columns).PHP_EOL;
+		$this->query .= "WHERE {$this->condition->get_query()}".PHP_EOL;
+
+		$this->set_values($this->condition->get_values());
 	}
+	
 
-
-	public function get_query() : string {
-		$this->check_condition($this->condition);
-
-		$query = [];
-
-		$query[] = 'UPDATE';
-		$query[] = $this->table;
-		$query[] = 'SET';
-
-		// TODO
-
-		$query[] = 'WHERE';
-
-		$condition = $this->condition->resolve(0);
-		$this->values = $condition['values'];
-
-		$query[] = $condition['query'];
-
-		return $query;
-	}
-
-	protected function check_condition(?RequestCondition $condition) : void {
+	protected function check_condition(?Condition $condition) : void {
 		if(!$condition instanceof IdentifierCondition){
-			throw new Exception('condition must be of type IdentifierCondition and cannot be null.');
+			throw new Exception('This request’s condition must be an IdentifierCondition.');
 		}
 	}
 }

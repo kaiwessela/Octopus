@@ -45,7 +45,7 @@ abstract class DataObjectList {
 	# @param $limit: how many objects to pull (sql LIMIT)
 	# @param $offset: the number of objects that are skipped (sql OFFSET)
 	# @param $options: TODO
-	final public function pull(?int $limit = null, ?int $offset = null, ?array $options = null) : void {
+	final public function pull(?int $limit = null, ?int $offset = null, array $options = []) : void {
 		$this->cycle->check_step('loaded');
 
 		$request = new SelectRequest();
@@ -78,7 +78,7 @@ abstract class DataObjectList {
 	}
 
 
-	protected static function shape_select_request(SelectRequest &$request, ?array $options) : void {}
+	protected static function shape_select_request(SelectRequest &$request, array $options) : void {}
 
 
 	# this function downloads object data by a list of object ids (similar to the pull function).

@@ -3,7 +3,7 @@ namespace Octopus\Core\Model\Database\Requests\Conditions;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Properties\PropertyDefinition;
 
-class EqualsCondition extends Condition {
+class Equals extends Condition {
 	protected PropertyDefinition $property;
 	protected string|int|float|null $value;
 

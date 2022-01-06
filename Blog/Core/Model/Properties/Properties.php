@@ -243,6 +243,7 @@ trait Properties {
 	}
 
 
+	# checks for the alterable and required options and setting db->altered must be done by this function too
 	protected function edit_custom_property(PropertyDefinition $definition, mixed $input) : void {}
 
 
@@ -279,6 +280,7 @@ trait Properties {
 
 
 	# return format: [column name => value, …]
+	# remember is_alterable and is_required
 	protected function get_custom_push_values() : array {
 		return [];
 	}

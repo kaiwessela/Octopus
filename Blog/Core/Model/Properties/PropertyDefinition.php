@@ -107,6 +107,8 @@ class PropertyDefinition {
 		} else if($definition['class'] === 'custom'){
 			$this->type = 'custom';
 			$this->class = 'custom';
+			$this->required = $definition['required'] ?? false;
+			$this->alterable = $definition['alterable'] ?? true;
 			$this->db_column = $this->name;
 		} else if(in_array($definition['class'], ['string', 'int', 'float', 'bool'])){
 			$this->type = 'primitive';

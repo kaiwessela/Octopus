@@ -2,7 +2,7 @@
 namespace Octopus\Core\Model\Database\Requests\Conditions;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 
-class AndCondition extends Condition {
+class And extends Condition {
 	protected array $conditions;
 
 	function __construct(Condition ...$conditions) {

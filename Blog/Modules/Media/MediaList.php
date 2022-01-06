@@ -4,13 +4,7 @@ use \Blog\Model\Abstracts\DataObjectList;
 use \Blog\Model\DataObjects\Medium;
 
 class MediaList extends DataObjectList {
-
-#	@inherited
-#	public $objects;
-#	public $count;
-#
-#	private $new;
-#	private $empty;
+	
 
 	const OBJECT_CLASS = Medium::class;
 	const OBJECTS_ALIAS = 'media';

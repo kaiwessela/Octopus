@@ -4,16 +4,38 @@ use \Blog\Model\Abstracts\DataObjectList;
 use \Blog\Model\DataObjects\Event;
 
 class EventList extends DataObjectList {
-
-#	@inherited
-#	public $objects;
-#	public $count;
-#
-#	private $new;
-#	private $empty;
-
 	const OBJECT_CLASS = Event::class;
-	const OBJECTS_ALIAS = 'events';
+
+
+	protected static function shape_select_request(SelectRequest &$request, array $options) : void {
+		if(isset($options['future'])){
+			// TODO condition
+
+			$request->set_order(static::$properties['timestamp'], desc:false);
+		} else {
+			$request->set_order(static::$properties['timestamp'], desc:true);
+		}
+	}
+
+
+	protected function get_pull_condition(?array $options) : ?Condition {
+		if(isset($options['future'])){
+			return new TimeCondition($this->properties['timestamp'], '>=', 'now', 'date');
+		}
+	}
+
+	protected function get_pull_order(?array $options) : ?array {
+		if(isset($options['future'])){
+			return [
+				'by' => $this->properties['timestamp']
+			];
+		} else {
+			return [
+				'by' => $this->properties['timestamp'],
+				'desc' => true
+			];
+		}
+	}
 
 
 	protected function pull_query(?int $limit = null, ?int $offset = null, ?array $options = null) : string {
@@ -38,7 +60,7 @@ SQL; #---|
 
 	const SELECT_IDS_QUERY = <<<SQL
 SELECT * FROM events
-WHERE event_id IN 
+WHERE event_id IN
 SQL; #---|
 
 

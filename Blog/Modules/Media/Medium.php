@@ -20,24 +20,30 @@ abstract class Medium extends DataObject {
 	protected ?string 	$description;
 	protected ?string 	$alternative;
 	protected ?string 	$copyright;
-	protected string 	$mime_type;
-	protected string 	$extension;
-	protected ?array 	$variants; // TODO check structure and ?
+	protected ?string 	$mime_type;
+	protected ?string 	$extension;
+	protected ?array 	$variants;
 
 	protected ?File $file;
 	protected ?array $variant_files;
 
 
-	const PROPERTIES = [ // DEPRECATED
+	const PROPERTIES = [
 		'id' => 'id',
 		'longid' => 'longid',
 		'name' => '.{0,140}',
 		'description' => '.{0,250}',
 		'alternative' => '.{0,250}',
 		'copyright' => '.{0,250}',
+		'mime_type' => [
+			'class' => 'string',
+			'alterable' => false,
+		],
+		'extension' => [
+			'class' => 'string',
+			'alterable' => false,
+		],
 		'file' => 'custom',
-		'type' => 'custom',
-		'extension' => 'custom',
 		'variants' => 'custom'
 	];
 
@@ -48,35 +54,37 @@ abstract class Medium extends DataObject {
 	abstract protected function autoversion() : void;
 
 
-	public function pull_file() : void {
-		// TODO cycle check
-
-		if($this->db->is_local()){
-			throw new Exception(); // TODO -- no file to pull
-		}
-
-
-	}
-
-
-	protected function load_custom_property(string $name, mixed $value, ?PropertyDefinition $def = null) : void {
-		if($name === 'variants'){
-			json_decode($value, true, default, \JSON_THROW_ON_ERROR);
+	protected static function shape_select_request(SelectRequest &$request, $options) : void {
+		if(($options['include_file'] ?? false) != true){
+			$request->remove_property(static::$properties['file']);
 		}
 	}
 
+	protected static function shape_join_request(JoinRequest &$request) : void {
+		$request->remove_property(static::$properties['file']);
+	}
 
-	protected function edit_custom_property(string $name, mixed $input, ?PropertyDefinition $def = null) : void {
-		if($name !== 'file' || !$this->db->is_local()){
+
+	protected function load_custom_properties(array $row) : void {
+		if(isset($row['image_file'])){
+			// TODO $this->file =
+		} else {
+			$this->file = null;
+		}
+
+		$this->variants = json_decode($row['image_variants'], true, default, \JSON_THROW_ON_ERROR);
+	}
+
+
+	protected function edit_custom_property(PropertyDefinition $definition, mixed $input) : void {
+		if($definition->get_name() !== 'file' || !$this->db->is_local()){
 			return;
 		}
-
-		# $name === 'file' && $this->db->is_local()
 
 		$file = File::receive('file', $input);
 		$file->variant = 'original';
 
-		if($file::class !== $this::FILE_CLASS){
+		if($file::class !== static::FILE_CLASS){
 			throw new Exception();
 		}
 
@@ -88,25 +96,30 @@ abstract class Medium extends DataObject {
 		$this->file = $file;
 		$this->mime_type = $file->mime_type;
 		$this->extension = $file->extension;
-		$this->files['original'] = $file;
 		$this->variants = [];
 
 		$this->autoversion();
 	}
 
 
-	protected function get_custom_push_values(string $property) : array {
-		if($property === 'file'){
-			return $this->files['original']->data; // TODO fix this for null etc.
+	protected function get_custom_push_values() : array {
+		$result = [
+			'variants' => json_encode($this->variants, \JSON_THROW_ON_ERROR);
+		];
+
+		if($this->is_local()){
+			$result['file'] = ''; // TODO
 		}
+
+		return $result;
 	}
 
 
-	protected function push_custom_after() : void {
+	protected function push_custom_after() : void { // TODO
 		$this->write();
 	}
 
-	protected function delete_custom() : void {
+	protected function delete_custom() : void { // TODO
 		$this->erase();
 	}
 
@@ -167,42 +180,5 @@ abstract class Medium extends DataObject {
 
 		return /* TODO CURRENT_BASE_URL */ . DIRECTORY_SEPARATOR . $this->compute_path($variant);
 	}
-
-
-
-	const QUERY_PULL_LEAD = <<<SQL
-SELECT (medium_id, medium_longid, medium_class, medium_mime_type, medium_extension, medium_title, medium_description,
-medium_alternative, medium_copyright, medium_variants) FROM media
-SQL;
-
-	const QUERY_JOIN = <<<SQL
-LEFT JOIN media ()
-SQL;
-
-
-
-
-	const INSERT_QUERY = <<<SQL
-INSERT INTO media
-(medium_id, medium_longid, medium_class, medium_type, medium_extension, medium_title, medium_description, medium_copyright,
-medium_alternative, medium_variants)
-VALUES (:id, :longid, :class, :type, :extension, :title, :description, :copyright, :alternative, :variants)
-SQL; #---|
-
-	const UPDATE_QUERY = <<<SQL
-UPDATE media SET
-	medium_title = :title,
-	medium_description = :description,
-	medium_copyright = :copyright,
-	medium_alternative = :alternative,
-	medium_variants = :variants
-WHERE medium_id = :id
-SQL; #---|
-
-	const DELETE_QUERY = <<<SQL
-DELETE FROM media
-WHERE medium_id = :id
-SQL; #---|
-
 }
 ?>

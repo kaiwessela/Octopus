@@ -24,7 +24,11 @@ class PostColumnRelation extends DataObjectRelation {
 		'column' => Column::class
 	];
 
-	const PROPERTIES = [];
+	const PROPERTIES = [
+		'id' => 'id',
+		'post' => Post::class,
+		'column' => Column::class,
+	];
 
 
 	public function generate(/*Post|Column*/ $object) : void {

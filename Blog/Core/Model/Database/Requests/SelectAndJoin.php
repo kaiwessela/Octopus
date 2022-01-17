@@ -4,6 +4,8 @@ use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Properties\PropertyDefinition;
 use Exception;
 
+// TODO explainations
+
 trait SelectAndJoin {
 
 

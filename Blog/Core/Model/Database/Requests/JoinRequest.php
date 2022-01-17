@@ -10,6 +10,8 @@ use \Octopus\Core\Model\DataType;
 use \Octopus\Core\Model\Properties\PropertyDefinition;
 use Exception;
 
+// TODO explainations
+
 class JoinRequest extends Request {
 	protected PropertyDefinition $native_property;
 	protected PropertyDefinition $foreign_property;
@@ -50,7 +52,7 @@ class JoinRequest extends Request {
 
 	protected function resolve() : void {
 		$this->cycle->step('resolve');
-		
+
 		foreach($this->properties as $property){
 			$this->columns[] = static::create_column_string($property);
 		}

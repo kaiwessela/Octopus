@@ -4,6 +4,8 @@ use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Properties\PropertyDefinition;
 use Exception;
 
+// TODO explainations
+
 class IdentifierEquals extends Condition {
 	protected PropertyDefinition $property;
 	protected string $value;

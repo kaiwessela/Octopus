@@ -3,7 +3,7 @@ namespace Octopus\Core\Model\Attributes\Exceptions;
 use \Octopus\Core\Model\Attributes\AttributeDefinition;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 
-class MissingValueException extends AttributeValueException {
+class EntityNotFoundException extends AttributeValueException {
 	# inherited from AttributeValueException
 	# public AttributeDefinition $definition;
 	# public string $name;
@@ -13,13 +13,14 @@ class MissingValueException extends AttributeValueException {
 	# protected string $message;
 
 
-	function __construct(AttributeDefinition $definition) {
+	function __construct(AttributeDefinition $definition, string $identifier) {
 		$this->definition = $definition;
 		$this->name = $this->definition->name;
-		$this->value = null;
+		$this->value = $identifier;
 
-		$this->message = "An attempt to set the attribute «{$this->name}» to an empty value failed "
-			. 'because this attribute is not allowed to be empty';
+		$this->message = "An attempt to set the attribute «{$this->name}» to an object of the class "
+			. "«{$this->definition->class}» failed because no object of this class with the identifier "
+			. "«{$this->value}» could be found.";
 	}
 }
 ?>

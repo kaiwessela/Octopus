@@ -1,5 +1,9 @@
-<?php // prototype
-namespace Blog\Core\Model\File;
+<?php
+namespace Octopus\Core\Model\FileHandling;
+use \Octopus\Core\Model\FileHandling\File;
+use Exception;
+
+// TODO explainations
 
 class ImageFile extends File {
 	# inherited from File
@@ -10,8 +14,8 @@ class ImageFile extends File {
 	# public string $data;
 
 
-	public function is_resizable() : bool {
-
+	public function is_resizable() : bool { // TODO check this
+		return in_array($this->mime_type, static::RESIZABLE_MIME_TYPES);
 	}
 
 

@@ -1,23 +1,23 @@
 <?php
-namespace Octopus\Core\Model\Properties\Exceptions;
-use \Octopus\Core\Model\DataObject;
-use \Octopus\Core\Model\DataObjectRelation;
-use \Octopus\Core\Model\Properties\PropertyDefinition;
-use \Octopus\Core\Model\Properties\Exceptions\PropertyValueException;
+namespace Octopus\Core\Model\Attributes\Exceptions;
+use \Octopus\Core\Model\Entity;
+use \Octopus\Core\Model\Relationship;
+use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 
-class IdentifierCollisionException extends PropertyValueException {
-	# inherited from PropertyValueException:
-	# public PropertyDefinition $definition;
+class IdentifierCollisionException extends AttributeValueException {
+	# inherited from AttributeValueException
+	# public AttributeDefinition $definition;
 	# public string $name;
 	# public mixed $value;
 
 	# inherited from Exception:
 	# protected string $message;
 
-	public DataObject|DataObjectRelation $existing;
+	public Entity|Relationship $existing;
 
 
-	function __construct(PropertyDefinition $definition, DataObject|DataObjectRelation $existing) {
+	function __construct(AttributeDefinition $definition, Entity|Relationship $existing) {
 		$this->definition = $definition;
 		$this->name = $this->definition->name;
 
@@ -25,7 +25,7 @@ class IdentifierCollisionException extends PropertyValueException {
 		$this->value = $this->existing->{$this->definition->name};
 
 		$this->message = "An attempt to set the identifier «{$this->name}» to the value «{$this->value}» "
-			. 'failed because that value is already used as another object’s identifier.';
+			. 'failed because that value is already used as identifier on another entity.';
 	}
 }
 ?>

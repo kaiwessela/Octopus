@@ -1,227 +1,260 @@
 <?php
-namespace Blog\Core\Model;
+namespace Octopus\Core\Model;
+use \Octopus\Core\Model\Entity;
+use \Octopus\Core\Model\RelationshipList;
+use \Octopus\Core\Model\Database\DatabaseAccess;
+use \Octopus\Core\Model\Database\Exceptions\DatabaseException;
+use \Octopus\Core\Model\Database\Exceptions\EmptyResultException;
+use \Octopus\Core\Model\Database\Requests\SelectRequest;
+use \Octopus\Core\Model\Database\Requests\CountRequest;
+use \Octopus\Core\Model\Database\Requests\Conditions\InList;
+use \Octopus\Core\Model\FlowControl\Flow;
+use PDOException;
+use Exception;
 
-# What is a DataObjectList?
+# What is a DataObjectList? // TODO
 # A DataObjectList is pretty much what the name suggests: A list of DataObjects of the same class.
-#
 
+abstract class EntityList {
+	protected array $entities; # an array of the Entities this list contains [entity_id => entity, ...]
 
-abstract class DataObjectList {
-	protected array $objects; # an array of the dataobjects this list contains [object_id => object, ...]
-
-	protected ?SelectRequest $pull_request;
+	protected readonly ?SelectRequest $pull_request;
 	protected int $total_count;
 
-	const OBJECT_CLASS; # the fully qualified name of the concrete DataObject class whose instances this list contains
+	const ENTITY_CLASS = ''; # the fully qualified name of the concrete Entity class whose instances this list contains
 
 	protected DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
-	protected Cycle $cycle; # this class uses the Cycle class to control the order of its actions. see there for more.
+	protected Flow $flow; # this class uses the Flow class to control the order of its method calls. see there for more.
 
 
 	### CONSTRUCTION METHODS
 
 	final function __construct() {
-		// TODO check OBJECT_CLASS
+		if(!is_subclass_of(static::ENTITY_CLASS, Entity::class)){
+			throw new Exception('Invalid EntityList class: constant ENTITY_CLASS must describe a subclass of Entity.');
+		}
+
+		$this->entities = [];
 
 		$this->db = new DatabaseAccess(); # prepare a connection to the database
 
-		$this->cycle = new Cycle([
+		$this->flow = new Flow([
 			['root', 'constructed'],
 			['constructed', 'loaded'],
-			['loaded', 'counted'], // TEMP
-			['counted', 'frozen'], // TEMP
-			['loaded', 'frozen']
+			['loaded', 'counted'],
+			['loaded', 'freezing'],
+			['counted', 'freezing'],
+			['freezing', 'frozen']
 		]);
 
-		$this->cycle->start();
-
-		$this->objects = [];
+		$this->flow->start();
 	}
 
 
-	# ==== INITIALIZATION AND LOADING METHODS ==== #
+	### INITIALIZATION AND LOADING METHODS
 
-	# this function downloads object data from the database and fills this list with these dataobjects
-	# @param $limit: how many objects to pull (sql LIMIT)
-	# @param $offset: the number of objects that are skipped (sql OFFSET)
-	# @param $options: TODO
+	# Download data of multiple entities from the database and load these entities into this list.
+	# @param $limit: how many entities to pull (SQL LIMIT)
+	# @param $offset: the number of entities to be skipped (SQL OFFSET)
+	# @param $options: additional, custom pull options
 	final public function pull(?int $limit = null, ?int $offset = null, array $options = []) : void {
-		$this->cycle->check_step('loaded');
+		$this->flow->check_step('loaded');
 
-		$request = new SelectRequest();
+		$request = new SelectRequest(static::ENTITY_CLASS::DB_TABLE);
 
-		foreach(static::OBJECT_CLASS::get_property_definitions() as $name => $definition){
-			if($definition->supclass_is(DataObject::class)){
-				$request->add_join({$definition->get_class()}::join());
-			} else if(!$definition->supclass_is(DataObjectRelationList::class)){
-				$request->add_property($definition);
+		foreach(static::ENTITY_CLASS::get_attribute_definitions() as $name => $definition){
+			if($definition->supclass_is(Entity::class)){
+				$cls = $definition->get_class()
+				$request->add_join($cls::join(on:$definition)); # join entity attributes
+			} else if(!$definition->supclass_is(RelationshipList::class)){ # relationship lists are not joined
+				$request->add_property($definition); # add all other attributes as columns
 			}
 		}
 
-		static::shape_select_request(&$request, $options);
+		static::shape_select_request($request, $options);
 
 		$request->set_limit($limit);
 		$request->set_offset($offset);
 
-		$s = $this->db->prepare($request->get_query());
-		if(!$s->execute($request->get_values())){
-			# the database request has failed
-			throw new DatabaseException($s);
-		} else if($s->rowCount() === 0){
-			# the response is empty, meaning that no objects were found
-			throw new EmptyResultException($query);
-		} else {
-			# create objects using the load function
-			$this->load($s->fetchAll());
-			$this->pull_request = $request;
+		try {
+			$s = $this->db->prepare($request->get_query());
+			$s->execute($request->get_values());
+		} catch(PDOException $e){
+			throw new DatabaseException($e, $s);
 		}
+
+		if($s->rowCount() === 0){
+			throw new EmptyResultException($s);
+		}
+
+		$this->pull_request = $request; # the pull request might be needed later for count requests
+		$this->load($s->fetchAll());
 	}
 
 
 	protected static function shape_select_request(SelectRequest &$request, array $options) : void {}
 
 
-	# this function downloads object data by a list of object ids (similar to the pull function).
+	# Download data of multiple entities from the database, based on a list of ids, and load them into this list.
 	# in contrast to pull(), there is no exception if an id is not found.
-	# @param $idlist: a list of ids of all objects that should be pulled
+	# @param $idlist: a list of ids of all entities that should be pulled
 	final public function pull_by_ids(array $idlist) : void {
-		$this->cycle->check_step('loaded');
+		$this->flow->check_step('loaded');
 
 		if(empty($idlist)){
 			return;
 		}
 
-		$request = new SelectRequest($this::class);
+		$request = new SelectRequest(static::ENTITY_CLASS::DB_TABLE);
 
-		self::shape_select_request(&$request, []);
-
-		$request->set_condition(new InCondition(static::OBJECT_CLASS::get_property_definitions()['id'], $idlist));
-
-		$s = $this->db->prepare($request->get_query());
-		if(!$s->execute($request->get_values())){
-			throw new DatabaseException($s);
-		} else if($s->rowCount() !== 0){
-			$this->load($s->fetchAll());
-			$this->pull_request = $request;
+		foreach(static::ENTITY_CLASS::get_attribute_definitions() as $name => $definition){
+			if($definition->supclass_is(Entity::class)){
+				$cls = $definition->get_class()
+				$request->add_join($cls::join(on:$definition)); # join entity attributes
+			} else if(!$definition->supclass_is(RelationshipList::class)){ # relationship lists are not joined
+				$request->add_property($definition); # add all other attributes as columns
+			}
 		}
+
+		static::shape_select_request($request, []);
+
+		$request->set_condition(new InList(static::ENTITY_CLASS::get_property_definitions()['id'], $idlist));
+
+		try {
+			$s = $this->db->prepare($request->get_query());
+			$s->execute($request->get_values());
+		} catch(PDOException $e){
+			throw new DatabaseException($e, $s);
+		}
+
+		if($s->rowCount() === 0){
+			return;
+		}
+
+		$this->pull_request = $request; # the pull request might be needed later for count requests
+		$this->load($s->fetchAll());
 	}
 
 
-	# this function loads rows of object data from the database into objects and puts these objects into this list
-	# @param $data: rows of dataobjects from a database request's response
+	# Load data of multiple entities from the database into Entity objects and load them into this list.
+	# @param $data: rows of entity data from a database request's response
 	final public function load(array $data) : void {
-		$this->cycle->check_step('loaded');
+		$this->flow->check_step('loaded');
 
 		foreach($data as $row){
-			$object = new {$this::OBJECT_CLASS}(&$this); # initialize a new DataObject of this single-object class
-			$object->load($row); # load the object, do not load relations
-			$this->objects[$object->id] = $object;
+			$cls = $this::ENTITY_CLASS;
+			$entity = new $cls($this); # initialize a new instance of this entity class
+			$entity->load($row); # load the entity
+			$this->entities[$entity->id] = $entity;
 		}
 
-		$this->cycle->step('loaded');
+		$this->flow->step('loaded');
 	}
 
 
-	final public function count_total(bool $force_request = false) : int { // TEMP/TEST
+	# Return the total amount of entities that are listed in the database and match the constraints given on pull().
+	# @param $force_request: whether reloading the count from the database is enforced. normally, a database request is
+	# only performed on the first call. after that, a cached value is returned. this param overrides this
+	final public function count_total(bool $force_request = false) : int {
 		if(!isset($this->total_count) || $force_request){
-			$this->cycle->check_step('counted');
+			$this->flow->check_step('counted');
 
-			$request = new CountRequest($this->pull_request);
+			$request = new CountRequest($this->pull_request); # create a CountRequest from the former PullRequest
 
-			$s = $this->db->prepare($request->get_query());
-			if(!$s->execute($request->get_values())){
-				throw new DatabaseException($s);
-			} else {
-				$this->total_count = $s->fetch()['total'];
-				$this->cycle->step('counted');
+			try {
+				$s = $this->db->prepare($request->get_query());
+				$s->execute($request->get_values());
+			} catch(PDOException $e){
+				throw new DatabaseException($e, $s);
 			}
+
+			$this->total_count = $s->fetch()['total'];
+			$this->flow->step('counted');
 		}
 
 		return $this->total_count;
 	}
 
 
-	# ==== STADIUM 3 METHODS (output) ==== #
+	### OUTPUT METHODS
 
-	# this function disables the database access for this object and all of the dataobjects it contanins.
-	# see DataObject.php freeze function for more
+	# Disable the database access for this list and all entities it contanins. (compare --> Entity, Attributes)
 	final public function freeze() : void {
-		$this->cycle->step('frozen');
+		# if this entity list is currently in the freezing process, do nothing. this prevents endless loops.
+		if($this->flow->is_at('freezing')){
+			return;
+		}
+
+		$this->flow->step('freezing');
+
 		$this->db->disable();
 
-		foreach($this->objects as &$object){
-			$object->freeze();
+		foreach($this->entities as $index => $_){
+			$this->entities[$index]->freeze();
 		}
+
+		$this->flow->step('frozen');
 	}
 
 
-	# this function creates an array of the arrayified dataobjects it contains.
-	# see DataObject.php arrayify function for more
-	public function arrayify() : array {
-		$this->cycle->step('frozen');
+	# Transform this list into an array, containing its arrayified (transformed) entities. (compare --> Entity)
+	public function arrayify() : array|null {
+		# if this entity list is already in the freezing process, return null. prevents endless loops
+		# this also makes sure that this entity only occurs once in the final array, preventing redundancies
+		if($this->flow->is_at('freezing')){
+			return null;
+		}
+
+		$this->flow->step('freezing');
+
 		$this->db->disable();
 
 		$result = [];
-
-		foreach($this->objects as $object){
-			$result[] = $object->arrayify();
+		foreach($this->entities as $entity){
+			$result[] = $entity->arrayify();
 		}
+
+		$this->flow->step('frozen');
 
 		return $result;
 	}
 
 
-	# ==== STATIC METHODS ==== #
-
-	public static function count() : int { // TODO
-		$db = new DatabaseAccess();
-		$db->enable();
-
-		$s = $db->prepare($this::COUNT_QUERY);
-		if(!$s->execute()){
-			throw new DatabaseException($s);
-		}
-
-		$db->disable();
-		unset($db);
-		return (int) $s->fetch()[0];
+	# Return an entity in this list
+	# @param $index_or_id: list index or id of the entity
+	final public function &get(string $id) : ?Entity {
+		return $this->entities[$id] ?? null;
 	}
 
 
-	# ==== GENERAL METHODS ==== #
-
-	public function get(string $id) : ?DataObject {
-		return &$this->objects[$id] ?? null;
-	}
-
-
-	public function each(callable $callback) { # function($value){}
-		if(empty($this->objects)){
+	final public function each(callable $callback) { # function($value){}
+		if(empty($this->entities)){
 			return;
 		}
 
-		foreach($this->objects as $object){
-			$callback($object);
+		foreach($this->entities as $entity){
+			$callback($entity);
 		}
 	}
 
 
-	// FIXME this returns an int if callback is an each-type callback
-	public function foreach(callable $callback) { # function($key, $value){}
-		if(empty($this->objects)){
+	final public function foreach(callable $callback) { # function($key, $value){}
+		if(empty($this->entities)){
 			return;
 		}
 
-		foreach($this->objects as $i => $object){
-			$callback($i, $object);
+		foreach($this->entities as $i => $entity){
+			$callback($i, $entity);
 		}
 	}
 
-	public function length() : int {
-		return count($this->objects);
+
+	final public function length() : int {
+		return count($this->entities);
 	}
 
-	public function is_empty() : bool {
+
+	final public function is_empty() : bool {
 		return ($this->length() == 0);
 	}
 }

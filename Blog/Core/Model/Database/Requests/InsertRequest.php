@@ -4,6 +4,8 @@ use \Octopus\Core\Model\Database\Requests\Request;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use Exception;
 
+// TODO explainations
+
 class InsertRequest extends Request {
 
 

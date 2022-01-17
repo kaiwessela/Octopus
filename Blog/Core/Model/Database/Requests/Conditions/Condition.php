@@ -1,6 +1,8 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests\Conditions;
 
+// TODO explainations
+
 abstract class Condition {
 	protected string $query;
 	protected array $values;

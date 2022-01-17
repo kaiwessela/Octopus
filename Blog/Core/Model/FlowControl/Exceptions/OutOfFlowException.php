@@ -1,11 +1,11 @@
 <?php
-namespace Octopus\Core\Model\Cycle\Exceptions;
+namespace Octopus\Core\Model\FlowControl\Exceptions;
 use Exception;
 
-# This exception is thrown by the (-->) Cycle when an illegal step is attempted. A step is illegal if it
-# has not been defined as a valid cycle step when creating the cycle.
+# This exception is thrown by the (-->) Flow when an illegal step is attempted. A step is illegal if it
+# has not been defined as a valid flow step when creating the flow.
 
-class OutOfCycleException extends Exception {
+class OutOfFlowException extends Exception {
 	public int|string $current_stadium;
 	public int|string $invalid_step;
 
@@ -13,7 +13,7 @@ class OutOfCycleException extends Exception {
 		$this->current_stadium = $current_stadium;
 		$this->invalid_step = $invalid_step;
 
-		parent::__construct("Cycle: Illegal Step from Stadium «{$current_stadium}» to Stadium «{$invalid_step}».");
+		parent::__construct("Flow: Illegal Step from Stadium «{$current_stadium}» to Stadium «{$invalid_step}».");
 	}
 }
 ?>

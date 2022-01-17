@@ -5,6 +5,8 @@ use \Octopus\Core\Model\Properties\PropertyDefinition;
 use DateTime;
 use Exception;
 
+// TODO explainations
+
 class DateTimeComparison extends Condition {
 	protected PropertyDefinition $property;
 	protected string $operator;

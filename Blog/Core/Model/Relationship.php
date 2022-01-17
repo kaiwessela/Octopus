@@ -1,13 +1,20 @@
-<?php // CODE ??, COMMENTS --, IMPORTS --
+<?php
 namespace Octopus\Core\Model;
-use \Octopus\Core\Model\Properties\Properties;
+use \Octopus\Core\Model\Attributes\Attributes;
+use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
+use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
 use \Octopus\Core\Model\Database\DatabaseAccess;
-use \Octopus\Core\Model\Cycle\Cycle;
-use \Octopus\Core\Model\DataObject;
+use \Octopus\Core\Model\Database\Requests\InsertRequest;
+use \Octopus\Core\Model\Database\Requests\UpdateRequest;
+use \Octopus\Core\Model\Database\Requests\DeleteRequest;
+use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEquals;
+use \Octopus\Core\Model\Database\Exceptions\DatabaseException;
+use \Octopus\Core\Model\FlowControl\Flow;
+use \Octopus\Core\Model\Entity;
+use PDOException;
 use Exception;
 
-
-# What is a DataObjectRelation?
+# What is a DataObjectRelation? // TODO
 # A DataObjectRelation is a construct used to create and store many-to-many relations between two classes of DataObjects.
 # To illustrate: Imagine you have a blog with some articles about various topics. What you might want to do is to
 # categorize them by their topic, so that your readers can search by category and find your articles more easily.
@@ -34,43 +41,44 @@ use Exception;
 
 
 abstract class DataObjectRelation {
-	public string $id;
-	# public ?[child of DataObject] $[name of 1st object];
-	# public ?[child of DataObject] $[name of 2nd object];
-	# ...other properties
+	protected readonly string $id;
+	# protected ?[child of Entity] $[name of 1st entity];
+	# protected ?[child of Entity] $[name of 2nd entity];
+	# ...other attributes
 
-	// TODO check this
-	# this constant defines whether multiple relations of the same pair of DataObjects should be allowed to exist
+	// TODO collision check
+	# this constant defines whether multiple relationships of the same pair of entities should be allowed to exist
 	const UNIQUE = false; # true = forbidden; false = allowed
 
-	# this class uses the Properties trait which contains standard methods that handle the properties of this class
-	# for documentation on the following constants, check the Properties trait source file
-	use Properties;
+	# this class uses the Attributes trait which contains standard methods that handle the attributes of this class
+	# for documentation on the following constants, check the Attributes trait source file
+	use Attributes;
 
-	const PROPERTIES = [
+	const ATTRIBUTES = [
 		# 'id' => 'id',
-		# '[name of 1st object]' => [child of DataObject]::class,
-		# '[name of 2nd object]' => [child of DataObject]::class,
-		# ...property definitions for all other properties
+		# '[name of 1st entity]' => [child of Entity]::class,
+		# '[name of 2nd entity]' => [child of Entity]::class,
+		# ...attribute definitions for all other attributes
 	];
 
-	// (abstract)protected static array $properties;
+	# all child classes must set the following property:
+	# protected static array $attributes;
 
-	protected /*readonly*/ DataObject $context;
-	protected /*readonly*/ string $join_object_property; // TEMP, find a better name
+	public readonly Entity $context;
+	protected readonly string $joined_entity_attribute;
 
 	protected DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
-	protected Cycle $cycle; # this class uses the Cycle class to control the order of its actions. see there for more.
+	protected Flow $flow; # this class uses the Flow class to control the order of its method calls. see there for more.
 
 
-	# ==== CONSTRUCTION METHODS ==== #
+	### CONSTRUCTION METHODS
 
-	final function __construct(DataObject &$context) {
+	final function __construct(Entity &$context) {
 		$this->context = $context;
 
 		$this->db = new DatabaseAccess();
 
-		$this->cycle = new Cycle([
+		$this->flow = new Flow([ // TODO
 			['root', 'construct'],
 			['construct', 'init/load'],
 			['init/load', 'edit'], ['init/load', 'store/delete'], ['init/load', 'output'],
@@ -79,113 +87,109 @@ abstract class DataObjectRelation {
 			['output', 'output']
 		]);
 
-		$this->cycle->start();
+		$this->flow->start();
 
-		$this->load_property_definitions();
+		if(!isset(static::$attributes)){ # load all attribute definitions
+			static::load_attribute_definitions();
+		}
 
-		// NOTE: the possibility that someone defines a relation with both objects being of the same class is not
-		// prevented here. however, there is no use case for that constellation, and at the latest on a pull(), a
-		// DatabaseException will be thrown due to column names not being distinct. just hope nobody is that stupid.
+		# note: the possibility that someone defines a relation with both entities being of the same class is not
+		# prevented here. however, there is no use case for that constellation, and at the latest on a pull(), a
+		# DatabaseException will be thrown due to column names not being distinct. just hope nobody is that stupid.
 
-		foreach($this->properties as $name => &$definition){
-			if($definition->type_is('object')){
-				if(!$definition->supclass_is(DataObject::class)){
-					throw new Exception();
-				}
-
+		$id_found = false;
+		foreach(static::$attributes as $name => &$definition){ # validate the attribute definitions
+			if($definition->class_is('id'){
+				$id_found = true;
+			} else if($definition->supclass_is(Entity::class)){
 				if($definition->class_is($this->context::class)){
 					$this->$name = &$this->context;
 				} else {
-					$this->join_object_property = $name;
+					$this->joined_entity_attribute = $name;
 				}
 
 				$definition->set_alterable(false);
-			} else if(!$definition->type_is('identifier') && !$definition->type_is('primitive')){
-				throw new Exception();
+				$definition->set_required(true);
+			} else if(!$definition->type_is('primitive')){
+				throw new Exception('Invalid attribute definition: only entities, primitives and id are allowed.');
 			}
 		}
 
-		// TODO maybe check number of objects
+		if(!$id_found){
+			throw new Exception('Invalid attribute definitions: valid id definition missing.');
+		}
 	}
 
 
-	# ==== INITIALIZATION AND LOADING METHODS ==== #
+	### INITIALIZATION AND LOADING METHODS
 
-	# this function is used to initialize a new relation that is not yet stored in the database (newly created)
+	# Initialize a new relationship that is not yet stored in the database
+	# Generate a random id for the new relationship and set all attributes to null
 	final public function create() : void {
-		$this->cycle->step('init/load');
+		$this->flow->step('init/load');
 		$this->db->set_local();
 
-		$this->id = self::generate_id(); # generate and set a random, unique id for the object. see Properties trait
-		$this->initialize_properties();
+		$this->id = self::generate_id(); # generate and set a random, unique id for the relationship. (--> Properties)
+		$this->initialize_attributes();
 	}
 
 
-	# ---> see trait Properties
+	# ---> see trait Attributes
 	# final protected static function generate_id() : string;
-	# final protected function initialize_properties() : void;
+	# final protected function initialize_attributes() : void;
 
 
-	# this function loads rows of relation and object data from the database into this relation
-	# it receives the base object and initializes and loads the second object based on the database data,
- 	# so in order for this to work, the second object's data must be selected using a join.
+	# Load rows of relationship and entity data from the database into this Relationship object
 	# @param $data: single fetched row or multiple rows from the database request's response
-	# @param $object: the base object of this relation, one of the two specified in $this::OBJECTS
 	final public function load(array $data) : void {
-		$this->cycle->check_step('init/load');
+		$this->flow->check_step('init/load');
 
-		# basically the same procedure as in DataObject->load(), but shorter
-		foreach($this->properties as $name => $definition){
-			$column_name = $this::DB_PREFIX.'_'.$property; # on select requests, column names are prefixed
-
+		# basically the same procedure as in Entity::load(), but shorter
+		foreach(static::$attributes as $name => $definition){
 			if($definition->type_is('primitive') || $definition->type_is('identifier')){
-				$this->$name = $data[$column_name]; # for primitive or identifier types, just copy the value
+				$this->$name = $data[$definition->get_db_column()]; # for primitives and identifiers just copy the value
 
-			} else if($definition->type_is('object') && $definition->supclass_is(DataObject::class)){
-				if(isset($this->$name)){ # if the object is alredy set, it is the context object, so skip loading it
+			} else if($definition->supclass_is(Entity::class)){
+				if(isset($this->$name)){ # if the entity is alredy set, it is the context entity, so skip loading it
 					continue;
 				}
 
-				# DataObject properties in relations cannot be null/unset, so simply create the object and load it
+				# entity attributes in relations cannot be null/unset, so simply create the entity and load it
 				$cls = $definition->get_class();
-				$this->$name = new $cls($this); # the argument means context:$this
+				$this->$name = new $cls($this); # reference this relationship as context
 				$this->$name->load($data);
 			}
 		}
 
-		$this->cycle->step('init/load');
+		$this->flow->step('init/load');
 		$this->db->set_synced();
 	}
 
 
-	# ==== EDITING METHODS ==== #
+	### EDITING METHODS
 
-	# this function is used to edit multiple properties at once, for example to process POST data from an html
-	# form that contains data for multiple properties.
-	# Important: this function edits the entire object, not only properties that are contained in $data.
-	# properties that don't have a value in $data are set to null, throwing an error if that is not possible.
-	# @param $input: [property_name => new_property_value, ...]
+	# Edit multiple attributes at once, for example to process POST data from an html form
+	# @param $data: an array of all new values, with the attribute name being the key:
+	# 	[attribute_name => new_attribute_value, ...]
+	#	attributes that are not contained are ignored
+	# @throws: AttributeValueExceptionList
 	final public function receive_input(array $input) : void {
-		$this->cycle->check_step('edit');
+		$this->flow->check_step('edit');
 
-		# create a new container exception that buffers and stores all PropertyValueExceptions
-		# that occur during the editing of the properties (i.e. invalid or missing inputs)
-		$errors = new InputFailedException(); // TODO update
+		# create a new container exception that buffers and stores all AttributeValueExceptions
+		# that occur during the editing of the attribute (i.e. invalid or missing inputs)
+		$errors = new AttributeValueExceptionList();
 
-		# loop through all property definitions and edit the respective properties
-		foreach($this->properties as $name => $_){
-			// FIXME this can cause errors. we do not want to require the context object to be set
-			// begin possible fix:
-			if(isset($this->$name) && $this->$name instanceof DataObject){
+		foreach($data as $name => $input){ # loop through all input fields
+			if(!isset(static::$attributes[$name])){
 				continue;
 			}
-			// end fix
 
 			try {
-				$this->edit_property($name, $input[$name] ?? null);
-			} catch(PropertyValueException $e){
+				$this->edit_attribute($name, $input);
+			} catch(AttributeValueException $e){
 				$errors->push($e);
-			} catch(InputFailedException $e){
+			} catch(AttributeValueExceptionList $e){
 				$errors->merge($e, $name);
 			}
 		}
@@ -195,111 +199,139 @@ abstract class DataObjectRelation {
 			throw $errors;
 		}
 
-		$this->cycle->step('edit');
+		$this->flow->step('edit');
 	}
 
 
-	final public function set_object(DataObject $object) : void {
-		foreach($this->objects as $name => $definition){
-			if($definition->class_is($object::class)){
-				$this->edit_property($name, $object);
-				return;
+	# ---> see trait Attributes
+	# final public function edit_attribute(string $name, mixed $input) : void;
+	# protected function edit_custom_attribute(AttributeDefinition $definition, mixed $input) : void;
+
+
+	# Set the joined entity; shortcut for edit_attribute([joined entity name], [value])
+	final public function set_joined_entity(Entity &$entity) : void {
+		$this->edit_attribute(static::$attributes[$this->joined_entity_attribute], $entity);
+	}
+
+
+	### STORING AND DELETING METHODS
+
+	# Upload this relationship's data into the database.
+	# if this relationship is not newly created and has not been altered, no database request is executed
+	# and this function returns false. otherwise, if a database request was executed successfully, it returns true.
+	# all attributes this relationship contains that are Entities themselves are pushed too (recursively).
+	# @return: true if a database request was performed for this entity, false if not.
+	final public function push() : bool {
+		# if $this is already at storing right now, do nothing. this prevents endless loops
+		if($this->flow->is_at('storing')){
+			return false;
+		}
+
+		$this->flow->step('storing'); # start the storing process
+
+		if($this->db->is_synced()){
+			# this relationship is not newly created and has not been altered, so do not perform a request
+			$request = false;
+		} else if($this->db->is_local()){
+			# this relationship is not yet or not anymore stored in the database, so perform an insert query
+			$request = new InsertRequest(static::DB_TABLE);
+		} else {
+			# this relationship is already stored in the database, but has been altered.
+			# perform an update query to update its database values
+
+			# if the relationship is not updatable because it has no attributes to be updated, this method
+			# automatically returns false because it then also cannot be altered and always remains synced
+			$request = new UpdateRequest(static::DB_TABLE);
+			$request->set_condition(new IdentifierEquals($this->properties['id'], $this->id));
+		}
+
+		# add the attributes to the request and push the entities this relationship contains
+		foreach(static::$attributes as $name => $definition){
+			# if this is local, all attributes are included, otherwise only the alterable ones
+			if($request !== false && ($definition->is_alterable() || $this->db->is_local())){
+				$request->add_attribute($definition);
+			}
+
+			if($definition->supclass_is(Entity::class)){
+				$this->$name?->push();
 			}
 		}
 
-		throw new Exception(); // TODO
-	}
+		if($request !== false){ # if the request was set to false because this is synced, no db request is performed
+			$request->set_values($this->get_push_values());
 
-	final public function &get_joined_object() : DataObject {
-
-	}
-
-
-	# ==== STORING AND DELETING METHODS ==== #
-
-	# this function is used to upload this relation's data into the database.
-	# if this relation is not newly created and has not been altered, no database request is executed
-	# and this function simply returns null.
-	final public function push() : bool {
-		if($this->cycle->is_at('storing')){ // prevents loops
-			return false;
+			try {
+				$s = $this->db->prepare($request->get_query());
+				$s->execute($request->get_values());
+			} catch(PDOException $e){
+				throw new DatabaseException($e, $s);
+			}
 		}
 
-		$this->cycle->step('storing');
+		$this->flow->step('stored'); # finish the storing process
+		$this->db->set_synced();
 
-		if($this->db->is_synced()){
-			# this object is not newly created and has not been altered, so just return null
-			$this->cycle->step('stored');
-			return false;
-		}
-
-		if($this->db->is_local()){
-			# this object is not yet or not anymore stored in the database, so perform an insert query
-			$request = new InsertRequest($this::class);
-		} else { # $this->db->is_altered()
-			# this object is already stored in the database, but has been altered.
-			# perform an update query to update its database representation
-
-			# if the relation is not updatable because it has no properties to be updated, this function automatically
-			# returns null because it then also cannot be altered and always remains synced
-			$request = new UpdateRequest($this::class);
-			$request->set_condition(new IdentifierCondition($this->properties['id'], $this->id));
-		}
-
-		foreach($this->objects as $property => $_){
-			$this->$property->push();
-		}
-
-		$s = $this->db->prepare($request->get_query());
-		if(!$s->execute($this->get_push_values())){ // TODO
-			# the PDOStatement::execute has returned false, so an error occured performing the database request
-			throw new DatabaseException($s);
-		} else {
-			$this->cycle->step('stored');
-			$this->db->set_synced();
-			return true;
-		}
+		return $request !== false; # return whether a request was performed (for this relationship only)
 	}
 
 
-	# this function erases this object out of the database.
-	# it does not erase children, but relations might be removed due to the mysql ON DELETE CASCADE constraint.
-	# if this object is not yet or anymore stored in the database, this function simply returns null without
-	# performing a database request
+	# ---> see trait Attributes
+	# final protected function get_push_values() : array;
+
+
+	# Erase this relationship out of the database.
+	# this does not delete entities it contains as attributes.
+	# @return: true if a database request was performed, false if not (i.e. because $this is still/already local)
 	final public function delete() : bool {
-		$this->cycle->check_step('store/delete');
+		$this->flow->check_step('store/delete');
 
 		if($this->db->is_local()){
-			# this object is not yet or not anymore stored in the database, so just return null
-			$this->cycle->step('store/delete');
+			# this relationship is not yet or not anymore stored in the database, so just return false
+			$this->flow->step('store/delete');
 			return false;
 		}
 
-		$this->db->enable();
+		# create a DeleteRequest and set the WHERE condition to id = $this->id
+		$request = new DeleteRequest(static::DB_TABLE);
+		$request->set_condition(new IdentifierEquals(static::$attributes['id'], $this->id));
 
-		$s = $this->db->prepare($this::DELETE_QUERY);
-		if(!$s->execute(['id' => $this->id])){
-			# the PDOStatement::execute has returned false, so an error occured performing the database request
-			throw new DatabaseException($s);
-		} else {
-			$this->cycle->step('store/delete');
-			$this->db->set_local();
-			return true;
+		try {
+			$s = $this->db->prepare($request->get_query());
+			$s->execute($request->get_values());
+		} catch(PDOException $e){
+			throw new DatabaseException($e, $s);
 		}
+
+		$this->flow->step('store/delete');
+		$this->db->set_local();
+
+		return true;
 	}
 
 
-	# ==== OUTPUT METHODS ==== #
+	### OUTPUT METHODS
 
-	# ---> see trait Properties
+	# ---> see trait Attributes
 	# final public function freeze() : void;
 
-	# same usage as DataObject->arrayify(), but directly returns the arrayified joined object
-	final public function arrayify() : array|null {
-		$this->cycle->step('frozen');
-		$this->db->disable();
 
-		return $this->get_joined_object()->arrayify();
+	# Return the arrayified joined entity
+	final public function arrayify() : array {
+		$this->flow->step('freezing');
+		$this->db->disable(); # disable the database access
+		$this->flow->step('frozen');
+
+		return $this->get_joined_entity()->arrayify();
+	}
+
+
+	# Return the joined entity; if it is not set yet, return null
+	final public function &get_joined_entity() : ?Entity {
+		if(!isset($this->joined_entity_attribute)){
+			return null;
+		}
+
+		return &$this->{$this->joined_entity_attribute};
 	}
 }
 ?>

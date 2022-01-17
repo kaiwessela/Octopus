@@ -5,6 +5,8 @@ use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierCondition;
 use Exception;
 
+// TODO explainations
+
 class UpdateRequest extends Request {
 
 
@@ -29,7 +31,7 @@ class UpdateRequest extends Request {
 
 		$this->set_values($this->condition->get_values());
 	}
-	
+
 
 	protected function check_condition(?Condition $condition) : void {
 		if(!$condition instanceof IdentifierCondition){

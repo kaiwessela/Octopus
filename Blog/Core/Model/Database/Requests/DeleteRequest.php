@@ -5,6 +5,8 @@ use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierCondition;
 use Exception;
 
+// TODO explainations
+
 class DeleteRequest extends Request {
 
 

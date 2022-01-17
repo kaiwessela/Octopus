@@ -11,6 +11,8 @@ use \Octopus\Core\Model\DataObjectRelationList;
 use \Octopus\Core\Model\DataType;
 use Exception;
 
+// TODO explainations
+
 class SelectRequest extends Request {
 	protected ?int $limit;
 	protected ?int $offset;

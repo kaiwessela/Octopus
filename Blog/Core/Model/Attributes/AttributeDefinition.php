@@ -1,57 +1,83 @@
 <?php
-namespace Octopus\Core\Model\Properties;
-use \Octopus\Core\Model\DataObject;
-use \Octopus\Core\Model\DataObjectCollection;
-use \Octopus\Core\Model\DataObjectRelationList;
-use \Octopus\Core\Model\DataType;
-use \Octopus\Core\Model\Properties\Exceptions\IllegalValueException;
+namespace Octopus\Core\Model\Attributes;
+use \Octopus\Core\Model\Entity;
+use \Octopus\Core\Model\RelationshipList;
+use \Octopus\Core\Model\Attributes\Collection;
+use \Octopus\Core\Model\Attributes\StaticObject;
+use \Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
 use Exception;
 
-# The following property classes and corresponding types exist (currently):
-#	CLASS										TYPE
-#	id											identifier
-#	longid										identifier
-#	string										primitive
-#	int											primitive
-#	float										primitive
-#	bool										primitive
-#	[any child of DataType]						object
-#	[any child of DataObject]					object
-#	[any child of DataObjectRelationList]		object
-#	DataObjectCollection						object
-#	custom										custom
-#	contextual									contextual
-
-# contextual means that the property is not stored in the object itself, but in a relation the object is part of, so
-# its value depends on the context object
-
-# The following constraints exist:
-# CLASS==string
-#	- pattern: a RegEx the property value must match to
+# An AttributeDefinition specifies which form an attribute of an entity has, concretely:
+#	- what variable type it has,
+#	- whether it is required to be set (= not null),
+#	- whether it is possible to alter it after creating the entity,
+#	- which additional constraints its value has to match in order to be valid,
+#	- additional options for custom attributes.
+# AttributeDefinitions are used to:
+#	- automatically create database requests,
+#	- automatically load database values into the entity,
+#	- validate the attribute value (especially on user inputs),
+#	- export the attribute to upload it to the database,
+#	- automatically freeze and arrayify the entity and recursively all entities it contains (as attributes).
 #
-# objects and custom types define and check their constraints themselves.
-# they are passed on to them with the options array.
-
-# A 'raw' property definition has the following form:
+# AttributeDefinitions also provide additional informations about the attribute, i.e. its database table, prefix and
+# column name and the property name the attribute has in its entity.
+#
+# Attributes are static for each entity class and are automatically generated the first time an entity class is used
+# (--> see Attributes trait). The developer of a child class of Entity or Relationship must include a constant named
+# ATTRIBUTES inside the class, in which for every attribute, a simplified (so-called raw) definition is provided.
+# From these raw definitions, an instance of AttributeDefinition will be generated then.
+#
+# A raw attribute definition has the following form:
 #	property_name => [
-#		'class' => class_name,
+#		'class' => class,
 #		...options and constraints
 #	];
 #
-# The short form for properties without options or constraints is:
-#	property_name => class_name;
+# The short form for attributes without options or constraints is:
+#	property_name => class;
 #
 # A special short form for strings with a pattern constraint is:
 #	property_name => pattern;
-# which means the same as:
+# which is equal to:
 #	property_name => [
 #		'class' => 'string',
 #		'pattern' => pattern
 #	];
+#
+# TYPES AND CLASSES
+# The terms class and type should not be mistaken with their meaning in the php documentation. Here, a type is somewhat
+# like a category of a class, as described below.
+# The following attribute classes and corresponding types exist (currently):
+#	CLASS								TYPE
+#	id									identifier
+#	longid								identifier
+#	string								primitive
+#	int									primitive
+#	float								primitive
+#	bool								primitive
+#	[any child of StaticObject]			object
+#	Collection							object
+#	[any child of Entity]				entity
+#	[any child of RelationshipList]		entity
+#	custom								custom
+#	contextual							contextual
+# contextual means that the property is not stored in the object itself, but in a relation the object is part of, so
+# its value depends on the context object.
+# custom types define and check their constraints themselves.
+# they are passed on to them with the options array.
+#
+# CONSTRAINTS AND OPTIONS
+# For some attribute classes, it is possible to define addidional constraints an attribute value has to match in order
+# to be valid. These constraints are checked when editing the attribute. This check is initiated by the Attributes trait
+# and executed by a seperate function of this class (-> validate_input())
+#
+# The following constraints exist:
+# for strings:
+#	- pattern: a RegEx the attribute value must match to
 
-
-class PropertyDefinition {
-	private string $name; # the name of the property
+class AttributeDefinition {
+	private string $name; # the name the property has in the Entity
 	private string $type;
 	private string $class;
 	private bool $required;
@@ -74,7 +100,7 @@ class PropertyDefinition {
 
 		# check if the raw definition's type is valid
 		if(!is_string($definition) && !is_array($definition)){
-			throw new Exception('raw property definition must be a string or an array.');
+			throw new Exception('Raw property definition must be a string or an array.');
 		}
 
 		# rewrite short form raw definitions into the long form
@@ -93,7 +119,7 @@ class PropertyDefinition {
 		}
 
 		# complement the type and check if the class is valid
-		if($definition['class'] === 'id' || $definition['class'] === 'longid'){
+		if($definition['class'] === 'id' || $definition['class'] === 'longid' || $definition['type'] === 'identifier'){
 			$this->type = 'identifier';
 			$this->class = $definition['class'];
 			$this->required = true;
@@ -117,38 +143,34 @@ class PropertyDefinition {
 			$this->alterable = $definition['alterable'] ?? true; # primitive properties are alterable by default
 			$this->db_column = $this->name;
 		} else if(class_exists($definition['class'])){
-			# check if the object class is allowed for a property
-			# it must be a child (=subclass) of DataType, DataObject, D.O.RelationList or D.O.Collection
-			if(	is_subclass_of($definition['class'], DataType::class)
-			 || is_subclass_of($definition['class'], DataObject::class)
-			 || is_subclass_of($definition['class'], DataObjectRelationList::class)
-			 || is_subclass_of($definition['class'], DataObjectCollection::class)){
+			if(is_subclass_of($definition['class'], StaticObject::class)){
 				$this->type = 'object';
-				$this->class = $definition['class'];
-
-				if(is_subclass_of($definition['class'], DataType::class)){
-					$this->required = $definition['required'] ?? false; # DataTypes are not required by default
-					$this->alterable = true; # DataTypes are always alterable
-					$this->db_column = $this->name;
-				} else if(is_subclass_of($definition['class'], DataObject::class)){
-					$this->required = $definition['required'] ?? false; # DataObjects are not required by default
-					$this->alterable = $definition['alterable'] ?? true; # DataObjects are alterable by default
-					# NOTE: this does not affect the alterability of the object's properties
-					$this->db_column = "{$this->name}_id";
-				} else if(is_subclass_of($definition['class'], DataObjectRelationList::class)){
-					$this->required = false; # RelationLists and Collections are never required
-					$this->alterable = true; # RelationLists and Collections are always alterable
-					$this->db_column = null;
-				} else if(is_subclass_of($definition['class'], DataObjectColection::class)){
-					$this->required = false; # RelationLists and Collections are never required
-					$this->alterable = true; # RelationLists and Collections are always alterable
-					$this->db_column = $this->name;
-				}
+				$this->required = $definition['required'] ?? false; # static objects are not required by default
+				$this->alterable = $definition['alterable'] ?? true; # static objects are alterable by default
+				$this->db_column = $this->name;
+			} else if($definition['class'] === Collection::class){
+				$this->type = 'object';
+				$this->required = false; # collections are never required
+				$this->alterable = true; # collections are always alterable
+				$this->db_column = $this->name;
+			} else if(is_subclass_of($definition['class'], Entity::class)){
+				$this->type = 'entity';
+				$this->required = $definition['required'] ?? false; # entities are not required by default
+				$this->alterable = $definition['alterable'] ?? true; # entities are alterable by default
+				# remember: this does not affect the alterability of the entity's inner properties
+				$this->db_column = "{$this->name}_id";
+			} else if(is_subclass_of($definition['class'], RelationshipList::class)){
+				$this->type = 'entity';
+				$this->required = false; # relationship lists are never required
+				$this->alterable = true; # relationship lists are always alterable
+				$this->db_column = null;
 			} else {
-				throw new Exception('Invalid class in PropertyDefinition: ' . $definition['class']);
+				throw new Exception("Invalid class in raw property definition: «{$definition['class']}».");
 			}
+
+			$this->class = $definition['class'];
 		} else {
-			throw new Exception('Invalid class in PropertyDefinition: ' . $definition['class']);
+			throw new Exception("Invalid class in raw property definition: «{$definition['class']}».");
 		}
 
 		# unset the already processed values, so that in the end, only the options remain in $definition
@@ -162,10 +184,10 @@ class PropertyDefinition {
 
 		if($this->class == 'string' && !empty($definition['pattern'])){ # the pattern constraint for strings
 			# check if the pattern is a valid RegEx
-			if(preg_match('/^'.$definition['pattern'].'$/', null) !== false){ // TODO remove ^ and $
+			if(preg_match("/{$definition['pattern']}/", null) !== false){
 				$this->constraints['pattern'] = $definition['pattern'];
 			} else {
-				throw new Exception('Invalid pattern constraint RegEx in raw definition: ' . $definition['pattern']);
+				throw new Exception('Invalid pattern constraint regex in raw definition: ' . $definition['pattern']);
 			}
 
 			unset($definition['pattern']);
@@ -219,7 +241,17 @@ class PropertyDefinition {
 	# This function checks whether a given class name refers to a superclass (=parent class) of $this->class
 	# using this, it is easy to check whether the defined property is a child of DataType, DataObject and so on
 	public function supclass_is(string $class) : bool {
-		return $this->type === 'object' && is_subclass_of($this->class, $class);
+		return ($this->type === 'object' || $this->type === 'entity') && is_subclass_of($this->class, $class);
+	}
+
+
+	public function set_required(bool $value = true) : void {
+		$this->required = $value;
+	}
+
+
+	public function set_alterable(bool $value = true) : void {
+		$this->alterable = $value;
 	}
 
 
@@ -245,7 +277,7 @@ class PropertyDefinition {
 		} else if($this->type_is('primitive') && $this->class_is('string')){
 			if(!empty($constraints['pattern'])){ # pattern constraint
 				# match the input with the constraint pattern
-				if(!preg_match('/^'.$constraints['pattern'].'$/', $input)){
+				if(!preg_match("/{$constraints['pattern']}/", $input)){
 					throw new IllegalValueException($this, $input);
 				}
 			}

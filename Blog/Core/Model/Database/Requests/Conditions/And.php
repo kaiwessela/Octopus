@@ -2,6 +2,8 @@
 namespace Octopus\Core\Model\Database\Requests\Conditions;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 
+// TODO explainations
+
 class And extends Condition {
 	protected array $conditions;
 

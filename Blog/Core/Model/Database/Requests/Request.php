@@ -7,6 +7,8 @@ use \Octopus\Core\Model\Properties\PropertyDefinition;
 use \Octopus\Core\Model\Cycle\Cycle;
 use Exception;
 
+// TODO explainations
+
 abstract class Request {
 	protected string $table; # the name of the database table that contains the object data
 	protected array $properties;

@@ -1,121 +1,122 @@
-<?php // CODE ??, COMMENTS --, IMPORTS --
+<?php
 namespace Octopus\Core\Model;
-use \Octopus\Core\Model\DataObject;
-use \Octopus\Core\Model\Database\Requests\SelectRequest;
+use \Octopus\Core\Model\Entity;
+use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
 use \Octopus\Core\Model\Database\DatabaseAccess;
-use \Octopus\Core\Model\Cycle\Cycle;
 use \Octopus\Core\Model\Database\Exceptions\DatabaseException;
-use \Octopus\Core\Model\Properties\PropertyDefinition;
+use \Octopus\Core\Model\Database\Requests\SelectRequest;
+use \Octopus\Core\Model\Database\Requests\CountRequest;
 use \Octopus\Core\Model\Database\Requests\JoinRequest;
+use \Octopus\Core\Model\FlowControl\Flow;
+use PDOException;
 use Exception;
 
-abstract class DataObjectRelationList {
-	protected DataObject $context;
-	protected int $total_count;
+// TODO explaination
 
-	protected array $relations;
+abstract class RelationshipList {
+	protected array $relationships;
 
 	protected array $deletions;
 
-	const RELATION_CLASS = null; # the fully qualified name of the concrete DORelation class whose instances this list contains
+	protected Entity $context;
+	protected int $total_count;
 
-	protected DatabaseAccess $db; // TEMP
-	protected Cycle $cycle; # this class uses the Cycle class to control the order of its actions. see there for more.
+	const RELATION_CLASS = ''; # the fully qualified name of the Relationship class whose instances this list contains
+
+	protected Flow $flow; # this class uses the Flow class to control the order of its method calls. see there for more.
 
 
-	# ==== CONSTRUCTION METHODS ==== #
+	### CONSTRUCTION METHODS
 
-	function __construct(DataObject &$context) {
+	function __construct(Entity &$context) {
 		$this->context = &$context;
 
-		$this->db = new DatabaseAccess();
+		$this->relationships = [];
+		$this->deletions = [];
 
-		/* CYCLE:
-		root
-		constructed
-		created | loaded
-		*/
-
-		$this->cycle = new Cycle([
-			['root', 'construct'],
-			// TODO
+		$this->flow = new Flow([
+			['root', 'constructed'],
+			['constructed', 'loaded'],
+			['loaded', 'counted'],
+			['loaded', 'edited'],
+			['loaded', 'storing'],
+			['loaded', 'freezing'],
+			['counted', 'edited'],
+			['counted', 'storing'],
+			['counted', 'freezing'],
+			['edited', 'edited'],
+			['edited', 'storing'],
+			['edited', 'freezing'],
+			['storing', 'stored'],
+			['storing', 'freezing'],
+			['stored', 'storing'],
+			['stored', 'freezing'],
+			['freezing', 'frozen']
 		]);
 
-		$this->cycle->start();
-
-		$this->relations = [];
-		$this->deletions = [];
+		$this->flow->start();
 	}
 
 
-	# ==== INITIALIZATION AND LOADING METHODS ==== #
-	# similar to a relation, a relationlist is always loaded using a base DataObject which is forwarded to each relation
-	# to be set as the first object. the second object is then loaded using the relation's own load functions, usually
-	# using database rows.
-	# that means that a relationlist always has a 'perspective'. the first object of the relations it contains is always
-	# the same one, and to this object, the relationlist provides a list of objects linked to it.
+	### INITIALIZATION AND LOADING METHODS
 
-	# this function receives rows of multiple relation and object data from the database, initializes and loads
-	# individual relations with it and appends them to this list. the base object $object is simply passed on to
-	# the individual relation's load() function. see there for further documentation
-	# the database request itself (the pull function) is always performed by the base object (using joins)
-	# @param $data: array of rows from the database request's response
-	# @param $object: the base object of the relations
-	final public function load(array $data, ?SelectRequest $pull_request) : void {
-		$this->cycle->check_step('init/load');
-
-		$this->pull_request = $pull_request;
+	# Load data of multiple relationships from the database into Relationship objects and load them into this list.
+	# @param $data: rows of relationship data from the database request's response
+	final public function load(array $data) : void {
+		$this->flow->check_step('loaded');
 
 		foreach($data as $row){
 			$cls = static::RELATION_CLASS;
-			$relation = new $cls($this->context); # initialize a new relation
-			$relation->load($row); # load the relation with the row data
-			$this->relations[$relation->id] = $relation; # write the relation into this list
+			$relationship = new $cls($this->context); # initialize a new instance of this relationship class
+			$relationship->load($row); # load the relationship
+			$this->relationships[$relationship->id] = $relationship;
 		}
 
-		$this->cycle->step('init/load');
+		$this->flow->step('loaded');
 	}
 
 
-	final public function count_total(bool $force_request = false) : int { // TEMP/TEST
+	# Return the total amount of entities that are listed in the database and match the constraints given on pull().
+	# @param $force_request: whether reloading the count from the database is enforced. normally, a database request is
+	# only performed on the first call. after that, a cached value is returned. this param overrides this
+	final public function count_total(bool $force_request = false) : int {
 		if(!isset($this->total_count) || $force_request){
-			$this->cycle->check_step('counted');
+			$this->flow->check_step('counted');
 
+			$db = new DatabaseAccess();
+
+			# use the context’s pull request to create a new CountRequest from
 			$request = new CountRequest($this->context->pull_request);
 
-			$s = $this->db->prepare($request->get_query());
-			if(!$s->execute($request->get_values())){
-				throw new DatabaseException($s);
-			} else {
-				$this->total_count = $s->fetch()['total'];
-				$this->cycle->step('counted');
+			try {
+				$s = $db->prepare($request->get_query());
+				$s->execute($request->get_values());
+			} catch(PDOException $e){
+				throw new DatabaseException($e, $s);
 			}
+
+			$db->disable();
+
+			$this->total_count = (int) $s->fetch()['total'];
+			$this->flow->step('counted');
 		}
 
 		return $this->total_count;
 	}
 
 
-	final public function count_total() : int { // TEMP
-		$this->cycle->check_step('counted');
-
-		$s = $this->db->prepare($this->pull_request->get_total_count_query());
-		if(!$s->execute($request->get_values())){
-			throw new DatabaseException($s);
-		} else {
-			$r = $s->fetch();
-			$this->cycle->step('counted');
-			return $r['total'];
-		}
-	}
-
-
-	public static function join(PropertyDefinition $on) : JoinRequest {
+	# Return a JoinRequest for this relationship class that can be used by an entity's pull() method to include these
+	# relationships in the entity
+	# @param $on: The attribute on the calling relationship that identifies these relationships
+	# paraphrased: LEFT JOIN [these relationships’ table] ON [these reelationships’ prefix].id = [on]
+	public static function join(AttributeDefinition $on) : JoinRequest {
+		// TODO explaination
 		$identifier;
 		$join;
 		$columns = [];
-		foreach(static::RELATION_CLASS::get_property_definitions() as $name => $definition){
-			if($definition->supclass_is(DataObject::class)){
+		foreach(static::RELATION_CLASS::get_attribute_definitions() as $name => $definition){
+			if($definition->supclass_is(Entity::class)){
 				if($definition->get_class()::DB_TABLE === $on->get_db_table()){
 					$identifier = $definition;
 				} else {
@@ -138,65 +139,59 @@ abstract class DataObjectRelationList {
 	}
 
 
-	# ==== EDITING METHODS ==== #
+	### EDITING METHODS
 
-	# the receive_input function of a RelationList works quite differently than that of a DataObject. in order for a
-	# relation in this list to be altered, a string value 'action' has to be included in the input, which can have the
-	# following contents: ignore (not altering anything) | new (adding new relation) | edit | delete
-	# @param $input: [['action' => action string, 'data' => relation input data array], ...]
-	final public function receive_input(array $input) : void {
-		$this->cycle->check_step('edit');
+	# Edit multiple relationships of this list at once, for example to process POST data from an html form
+	# works quite differently than that in Entity. in order for a relationship in this list to be altered, a string
+	# value 'action' has to be included in the input, which can have the following contents:
+	# ignore (not altering anything) | new (adding new relationship) | edit | delete
+	# @param $data: an array of all relationships that should be altered:
+	#	[
+	# 		[attribute_name => new_attribute_value, ...]
+	#	], …
+	# @throws: AttributeValueExceptionList
+	final public function receive_input(array $data) : void {
+		$this->flow->check_step('edited');
 
-		# create a new container exception that buffers and stores all PropertyValueExceptions
-		# that occur during the editing of the properties (i.e. invalid or missing inputs)
-		$errors = new InputFailedException(); // TODO update
+		# create a new container exception that buffers and stores all AttributeValueExceptions
+		# that occur during the editing of the relationships (i.e. invalid or missing inputs)
+		$errors = new AttributeValueExceptionList();
 
-		# loop through the input array
-		foreach($input as $index => $field){
+		foreach($data as $index => $field){
 			$action = $field['action'];
-			$data = $field['data'];
+			$input = $field['data'];
 
-			if($action === 'new'){ # a new relation should be created and added
+			if($action === 'new'){ # create and add a new relationship
 				$cls = static::RELATION_CLASS;
 				$relation = new $cls($this->context);
 
-				$relation->create();
+				$relation->create(); # create a new relationship and let it handle the input
 
 				try {
-					$relation->receive_input($data);
-				} catch(InputFailedException $e){
-					$errors->merge($e, "relation{$index}");
+					$relation->receive_input($input);
+				} catch(AttributeValueExceptionList $e){
+					$errors->merge($e, "relationships.{$index}"); // TODO
 				}
 
-				$this->relations[$relation->id] = $relation;
+				$this->relationships[$relation->id] = $relation;
 
-				// TODO check unique
+			} else if($action === 'edit' || $action === 'delete'){ # edit or delete an existing relationship
+				$relation = &$this->relationships[$input['id']];
 
-				// XXX DEPRECATED ---------------------------
-				try {
-					$this->add($relation);
-				} catch(RelationCollisionException $e){
-					$errors->push($e, "relation{$index}"); // prefix for push() deprecated
-				}
-				// xxx end ----------------------------------
-
-			} else if($action === 'edit' || $action === 'delete'){
-				if(empty($relation = &$this->relations[$data['id']])){
-					$errors->push(new RelationObjectNotFoundException()); // TODO
+				if(empty($relation)){
+					continue;
 				}
 
 				if($action === 'edit'){
 					try {
-						$relation->receive_input($data);
-					} catch(InputFailedException $e){
-						$errors->merge($e, 'relation_'.$index);
+						$relation->receive_input($input); # let the relationship handle the input data
+					} catch(AttributeValueExceptionList $e){
+						$errors->merge($e, "relationships.{$index}"); // TODO
 					}
 
 				} else if($action === 'delete'){
-					$this->remove($relation);
+					$this->remove($relation->id); # remove the relationship
 				}
-			} else if($action !== 'ignore'){
-				// TODO maybe throw an exception
 			}
 		}
 
@@ -204,133 +199,155 @@ abstract class DataObjectRelationList {
 			throw $errors;
 		}
 
-		$this->cycle->step('edit');
+		$this->flow->step('edited');
 	}
 
 
-	final public function add(DataObject &$object) : void {
-		$this->cycle->check_step('edit');
+	# Add a new relationship by providing the joined entity.
+	final public function add(Entity &$entity) : void {
+		$this->flow->check_step('edited');
 
 		$cls = static::RELATION_CLASS;
 		$relation = new $cls($this->context);
 		$relation->create();
 
-		try {
-			$relation->set_joined_object($object);
-		} catch(Exception $e){
-			throw $e; // TODO
-		}
+		$relation->set_joined_entity($entity);
 
-		// TODO check unique
+		$this->relationships[$relation->id] = $relation;
 
-		$this->relations[$relation->id] = $relation;
-		$this->cycle->step('edit');
+		$this->flow->step('edited');
 	}
 
 
-	final public function remove(int|string $index_or_id, bool $quiet = true) : void {
-		$this->cycle->check_step('edit');
+	# Remove a relationship from this list
+	final public function remove(int|string $index_or_id) : bool {
+		$this->flow->check_step('edited');
 
-		if(!isset($this->relations[$index_or_id])){
-			if($quiet){
-				return;
-			}
-
-			throw new Exception('not found'); // TODO
+		if(!isset($this->relationships[$index_or_id])){
+			return false; # if the relationship is not found, return false
 		}
 
-		$id = $this->relations[$index_or_id]->id;
-		$this->deletions[$id] = $this->relations[$id];
-		unset($this->relations[$id]);
-		$this->cycle->step('edit');
+		$id = $this->relationships[$index_or_id]->id;
+		$this->deletions[$id] = $this->relationships[$id];
+		unset($this->relationships[$id]);
+
+		$this->flow->step('edited');
+
+		return true;
 	}
 
 
-	# ==== STORING AND DELETING METHODS ==== #
+	### STORING AND DELETING METHODS
 
+	# Push (Insert/Update) the edited relationships, Delete the relationships that have been removed from the database
+	# this method simply calls the Relationship::push() method on every relationship in this list
+	# @return: whether a database request was performed (= whether the list or a relationship of it changed)
 	final public function push() : bool {
-		$this->cycle->check_step('store/delete');
+		# if this relationship is currently in the storing process, do nothing. this prevents endless loops
+		if($this->flow->is_at('storing')){
+			return false;
+		}
+
+		$this->flow->step('storing');
 
 		$request_performed = false;
 
-		foreach($this->relations as $id => $_){
-			$request_performed |= $this->relations[$id]->push();
+		foreach($this->relationships as $id => $_){ # push all relationships in this list
+			$request_performed |= $this->relationships[$id]->push();
 		}
 
-		foreach($this->deletions as $id => $_){
+		foreach($this->deletions as $id => $_){ # delete the relationships that have been removed
 			$this->deletions[$id]->delete();
 			unset($this->deletions[$id]);
 			$request_performed = true;
 		}
 
+		$this->flow->step('stored');
+
 		return $request_performed;
 	}
 
 
-	# ==== OUTPUT METHODS ==== #
+	### OUTPUT METHODS
 
+	# Disable the database access for this list and all relationships it contanins.
 	final public function freeze() : void {
-		$this->cycle->step('output');
+		# if this relationship list is currently in the freezing process, do nothing. this prevents endless loops.
+		if($this->flow->is_at('freezing')){
+			return;
+		}
+
+		$this->flow->step('freezing');
+
 		$this->db->disable();
 
-		foreach($this->relations as $index => $_){
-			$this->relations[$index]->freeze();
+		foreach($this->relationships as $index => $_){
+			$this->relationships[$index]->freeze();
 		}
+
+		$this->flow->step('frozen');
 	}
 
 
-	final public function arrayify() : array {
-		$this->cycle->step('output');
+	# Transform this list into an array, containing its arrayified (transformed) relationships. (see --> Relationship)
+	final public function arrayify() : array|null {
+		# if this relationship list is already in the freezing process, return null. prevents endless loops
+		# this also makes sure that this list only occurs once in the final array, preventing redundancies
+		if($this->flow->is_at('freezing')){
+			return null;
+		}
+
+		$this->flow->step('freezing');
+
 		$this->db->disable();
 
 		$result = [];
-
-		foreach($this->relations as $relation){
+		foreach($this->relationships as $relation){
 			$result[$relation->id] = $relation->arrayify();
 		}
+
+		$this->flow->step('frozen');
 
 		return $result;
 	}
 
 
-	# ==== GENERAL METHODS ==== #
-
-
-	final public function &get(int|string $index_or_id) : ?DataObject { // id means the relation id, not the object id
-		return $this->relations[$index_or_id]?->get_joined_object();
+	# Return the joined entity of a relationship in this list
+	# @param $index_or_id: list index or id of the relationship (not of the entity!)
+	final public function &get(int|string $index_or_id) : ?Entity {
+		return $this->relationships[$index_or_id]?->get_joined_entity();
 	}
 
 
-	public function each(callable $callback) { # function($value){}
-		if(empty($this->relations)){
+	final public function each(callable $callback) { # function($value){}
+		if(empty($this->relationships)){
 			return;
 		}
 
-		foreach($this->relations as $index => $_){
-			$callback($this->relations[$index]->get_joined_object());
+		foreach($this->relationships as $index => $_){
+			$callback($this->relationships[$index]->get_joined_entity());
 		}
 	}
 
 
-	public function foreach(callable $callback) { # function($key, $value){}
-		if(empty($this->relations)){
+	final public function foreach(callable $callback) { # function($key, $value){}
+		if(empty($this->relationships)){
 			return;
 		}
 
-		foreach($this->relations as $index => $_){
-			$callback($index, $this->relations[$index]->get_joined_object());
+		foreach($this->relationships as $index => $_){
+			$callback($index, $this->relationships[$index]->get_joined_object());
 		}
 	}
 
 
-	public function length() : int {
-		return count($this->relations);
+	final public function length() : int {
+		return count($this->relationships);
 	}
 
 
-	public function is_empty() : bool {
+	final public function is_empty() : bool {
 		return ($this->length() === 0);
 	}
-
 }
 ?>

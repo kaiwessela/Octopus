@@ -1,24 +1,29 @@
-<?php // CODE ??, COMMENTS --, IMPORTS ok
+<?php
 namespace Blog\Core\Model\Database\Exceptions;
 use Exception;
 
+# An EmptyResultException is thrown if a database request was executed without errors but returned no data, usually
+# because no object was found that matched the given parameters (e.g. an entity was requested with an id that does not
+# exist).
+
 class EmptyResultException extends Exception {
-	public $query;	# original query
-	public $values;	# original values
+	protected PDOStatement $request;
 
-	function __construct($query, $values = []) {
-		parent::__construct('MySQL Query unexpectedly returned no results');
 
-		$this->query = $query;
-		$this->values = $values;
+	function __construct(PDOStatement $request) {
+		parent::__construct('Database request executed successfully but no matching rows were found.');
+
+		$this->request = $request;
 	}
 
-	public function get_query() {
-		return $this->query;
+
+	public function get_request() : PDOStatement {
+		return $this->request;
 	}
 
-	public function get_values() {
-		return $this->values;
+
+	public function get_query() : string {
+		return $this->request->queryString;
 	}
 }
 ?>

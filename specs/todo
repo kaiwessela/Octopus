@@ -1,3 +1,13 @@
+TODO:
+Model:
+- Kommentare und Erklärungen für alle Requests und Conditions
+- Collections
+- Erklärungen und evtl. Absicherungen für StaticObject
+- Kollisionstests (Einzigartigkeit) für Relationships
+- Flow und Edit Control für StaticObjects
+
+
+
 BUGS:
 -
 
@@ -5,16 +15,11 @@ BUGS:
 PLANNED CHANGES:
 - new SiteConfig (or no SiteConfig at all)
 - remove subline from Post
-- add only-id and only-longid option for pull functions (identifier)
 
 - make endpoint (or Request, Response ...) accessible for templates
 
-- rewrite / reorganise count() functions in DataObjects/-Lists (and fix the bodgy paginatable pull solution)
-- rewrite / reorganise InputExceptions (especially improve the frontend messages)
-
 - include Endpoint.send() into Response.send()
 - Controller status (error) handling (fully / customizable)
-- Object alias tables
 
 - Endpoint template handling and checking
 
@@ -29,10 +34,10 @@ PLANNED CHANGES:
 
 - update Post content lengths
 
-
-----
 - the DataObject Array update: allow special PropertyDefinitions for arrays with a fixed structure so that they dont
 	have to be validated manually (kind of nested property definitions)
+
+- use transactions on Entity::push()
 
 
 

@@ -1,8 +1,8 @@
 <?php
 return [
 	'@include' => [
-		'Modules' => __DIR__ . '/ModuleConfig.php',
-		'Octopus' => __DIR__ . '/../Core/Version.php',
+		'Modules' => 'Modules.php',
+		'Octopus' => '../Core/Version.php',
 	],
 	'Server' => [
 		'lang' => 'de_DE',

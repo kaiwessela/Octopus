@@ -1,7 +1,7 @@
 #! /bin/bash
-if find ~/.http/blog/media -mindepth 1 | read; then
-	mkdir ~/.http/temp
-	cp -r ~/.http/blog/media/. ~/.http/temp
+if find /srv/http/octopus/media -mindepth 1 | read; then
+	mkdir /srv/http/temp
+	cp -r /srv/http/octopus/media/. /srv/http/temp
 	media_found="true"
 else
 	media_found="false"
@@ -22,11 +22,11 @@ cp -r .htaccess build
 cp -r index.php build
 cp -r routes.php build
 
-rm -rf ~/.http/blog
-mkdir ~/.http/blog
-cp -r build/. ~/.http/blog
+rm -rf /srv/http/octopus
+mkdir /srv/http/octopus
+cp -r build/. /srv/http/octopus
 
 if [ "$media_found" == "true" ]; then
-	cp -r ~/.http/temp/. ~/.http/blog/media
-	rm -rf ~/.http/temp
+	cp -r /srv/http/temp/. /srv/http/octopus/media
+	rm -rf /srv/http/temp
 fi

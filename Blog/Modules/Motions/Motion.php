@@ -1,27 +1,29 @@
 <?php
-namespace Blog\Modules\Motion;
+namespace Octopus\Modules\Motion;
 use \Blog\Core\Model\DataObject;
 use \Blog\Core\Model\Properties\Exceptions\PropertyValueException;
 use \Blog\Modules\DataTypes\MarkdownContent;
 use \Blog\Modules\DataTypes\Timestamp;
 use \Blog\Modules\Media\Application;
 
-class Motion extends DataObject {
-	# inherited from DataObject:
-	# protected string $id;
-	# protected string $longid;
+class Motion extends Entity {
+	# inherited from Entity:
+	# protected readonly string $id;
+	# protected ?string $longid;
 
-	protected string 			$title;
-	protected ?MarkdownContent 	$description;
-	protected ?Application		$document;
-	protected Timestamp			$timestamp;
-	protected string 			$status;
-	protected ?array 			$votes;
+	protected ?string 		$title;
+	protected ?MarkdownText $description;
+	protected ?Application	$document;
+	protected ?Timestamp	$timestamp;
+	protected ?string 		$status;
+	protected ?array 		$votes;
 
 
-	const PROPERTIES = [
+	const ATTRIBUTES = [
+		'id' => 'id',
+		'longid' => 'longid',
 		'title' => '.{0,140}',
-		'description' => MarkdownContent::class,
+		'description' => MarkdownText::class,
 		'document' => Application::class,
 		'timestamp' => Timestamp::class,
 		'status' => '.{0,20}',
@@ -29,10 +31,15 @@ class Motion extends DataObject {
 	];
 
 
+	const DB_TABLE = 'motions';
 	const DB_PREFIX = 'motion';
 
 
-	protected function load_custom_properties(array $row) : void {
+	protected function load_custom_attribute(AttributeDefinition $definition, array $row) : void {
+		if($definition->get_name() !== 'votes'){
+			return;
+		}
+
 		if(empty($row['motion_votes'])){
 			$this->votes = null;
 		} else {
@@ -41,10 +48,12 @@ class Motion extends DataObject {
 	}
 
 
-	protected function edit_custom_property(PropertyDefinition $definition, mixed $input) : void {
-		if(!$definition->name_is('votes')){
+	protected function edit_custom_attribute(AttributeDefinition $definition, mixed $input) : void {
+		if($definition->get_name() !== 'votes'){
 			return;
 		}
+
+		// HIER WEITER
 
 		if(!is_array($input)){
 			$this->$votes = null;

@@ -9,21 +9,26 @@ use \Blog\Model\Exceptions\IllegalValueException;
 use \Blog\Config\MediaConfig;
 
 class Image extends Medium {
-	# inherited from DataObject:
-	# protected string $id;
-	# protected string $longid;
+	# inherited from Entity:
+	# protected readonly string $id;
+	# protected ?string $longid;
 
 	# inherited from Medium:
 	# protected ?string $name;
 	# protected ?string $copyright;
-	# protected string 	$type;
-	# protected string 	$extension;
+	# protected ?string $type;
+	# protected ?string $extension;
 	# protected ?string $description;
 	# protected ?string $alternative;
 	# protected ?array 	$variants;
 
 	# protected ?File $file;
 	# protected ?array $variant_files;
+
+
+	const DB_TABLE = 'images'
+	const DB_PREFIX = 'image';
+	
 
 	const FILE_CLASS = ImageFile::class;
 	const DB_CLASS_STRING = 'image';
@@ -64,20 +69,5 @@ class Image extends Medium {
 
 		return implode(', ', $sources);
 	}
-
-
-
-	const QUERY_PULL_BY_ID = self::QUERY_PULL_START . <<<SQL
-WHERE medium_id = :id AND medium_class = 'image'
-SQL;
-
-	const QUERY_PULL_BY_LONGID = self::QUERY_PULL_START . <<<SQL
-WHERE medium_longid = :id AND medium_class = 'image'
-SQL;
-
-	const QUERY_PULL_BY_ID_OR_LONGID = self::QUERY_PULL_START . <<<SQL
-WHERE (medium_id = :id OR medium_longid = :id) AND medium_class = 'image'
-SQL;
-
 }
 ?>

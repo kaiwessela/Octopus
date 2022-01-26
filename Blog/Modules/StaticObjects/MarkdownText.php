@@ -1,4 +1,48 @@
 <?php
+namespace Octopus\Modules\StaticObjects;
+
+class MarkdownText extends StaticObject {
+	# protected Entity $context;
+	# protected AttributeDefinition $definition;
+	protected ?string $raw;
+	protected ?string $parsed;
+
+
+	protected function init(mixed $data) : void {
+		$this->raw = $data;
+	}
+
+
+	public function export() : mixed {
+		return $this->raw;
+	}
+
+
+	public function arrayify() : mixed {
+
+	}
+
+
+	function __toString() {
+
+	}
+
+
+	public function edit(mixed $value) : void {
+		$this->check_edit();
+
+
+	}
+
+
+	public function parse() : string {
+
+	}
+}
+?>
+
+
+<?php
 namespace Blog\Model\DataTypes;
 use \Blog\Model\Abstracts\DataType;
 use \Parsedown\Parsedown;

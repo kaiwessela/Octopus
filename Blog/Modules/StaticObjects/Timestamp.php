@@ -1,4 +1,121 @@
 <?php
+namespace Octopus\Modules\StaticObjects;
+use \Octopus\Core\Model\Attributes\StaticObject;
+use DateTime;
+
+class Timestamp extends StaticObject {
+	# protected Entity $context;
+	# protected AttributeDefinition $definition;
+	protected DateTime $datetime;
+
+
+	protected function init(mixed $data) : void {
+		$this->datetime = new DateTime($data);
+	}
+
+
+	public function export() : mixed {
+		return $this->datetime->format('Y-m-d H:i:s');
+	}
+
+
+	public function arrayify() : mixed {
+		return $this->datetime->format(DateTime::RFC2822);
+	}
+
+
+	function __toString() {
+		return $this->arrayify();
+	}
+
+
+	public function edit(mixed $value) : void {
+		$this->check_edit();
+
+		if(is_array($value)){
+			if(isset($value['date'])){
+				if(preg_match('/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/', $value['date'], $matches)){
+					$this->datetime->setDate($matches[1], $matches[2], $matches[3]);
+				} else {
+					throw new IllegalValueException($this->definition, $value, 'date invalid');
+				}
+			} else {
+				throw new IllegalValueException($this->definition, $value, 'date missing');
+			}
+
+			if(isset($value['time'])){
+				if(preg_match('/^([0-9]{2}):([0-9]{2})$/', $value['time'], $matches)){
+					$this->datetime->setTime($matches[1], $matches[2]);
+				} else {
+					throw new IllegalValueException($this->definition, $value, 'time invalid');
+				}
+			} else {
+				$this->datetime->setTime(0, 0);
+			}
+		} else if(is_numeric($value)){
+			$this->datetime->setTimestamp((int) $value);
+		} else if(is_string($value)){
+			if(!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}(:[0-9]{2})?$/', $value)){
+				throw new IllegalValueException($this->definition, $value, 'invalid datetime format');
+			}
+
+			$this->datetime = new DateTime($value);
+		} else {
+			throw new IllegalValueException($this->definition, $value, 'invalid format');
+		}
+	}
+
+
+	public function format(string $format) : string {
+		return $this->datetime->format($format);
+	}
+
+
+	public function to_unix() : int {
+		return $this->datetime->getTimestamp();
+	}
+
+
+	public function to_w3c() : string {
+		return $this->datetime->format(DateTime::W3C);
+	}
+
+
+	public function to_html_datetime() : string {
+		return $this->datetime->format('Y-m-d H:i');
+	}
+
+
+	public function to_html_date() : string {
+		return $this->datetime->format('Y-m-d');
+	}
+
+
+	public function to_html_time() : string {
+		return $this->datetime->format('H:i');
+	}
+
+
+	public function is_now(string $accuracy = 'minute') : bool {
+		$format = match($accuracy){};
+	}
+
+
+	public function is_future(string $accuracy = 'minute') : bool {
+
+	}
+
+
+	public function is_past(string $accuracy = 'minute') : bool {
+
+	}
+}
+?>
+
+
+
+
+<?php
 namespace Blog\Model\DataTypes;
 use \Blog\Model\Abstracts\DataType;
 use \Blog\Model\Exceptions\IllegalValueException;

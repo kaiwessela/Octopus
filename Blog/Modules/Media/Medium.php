@@ -28,7 +28,7 @@ abstract class Medium extends DataObject {
 	protected ?array $variant_files;
 
 
-	const PROPERTIES = [
+	const ATTRIBUTES = [
 		'id' => 'id',
 		'longid' => 'longid',
 		'name' => '.{0,140}',
@@ -36,19 +36,24 @@ abstract class Medium extends DataObject {
 		'alternative' => '.{0,250}',
 		'copyright' => '.{0,250}',
 		'mime_type' => [
-			'class' => 'string',
+			'type' => 'custom',
 			'alterable' => false,
+			'required' => true
 		],
 		'extension' => [
-			'class' => 'string',
+			'type' => 'custom',
 			'alterable' => false,
+			'required' => true
 		],
-		'file' => 'custom',
-		'variants' => 'custom'
+		'file' => [
+			'type' => 'custom',
+			'alterable' => false,
+			'required' => true
+		],
+		'variants' => [
+			'type' => 'custom'
+		]
 	];
-
-
-	const DB_PREFIX = 'medium';
 
 
 	abstract protected function autoversion() : void;
@@ -56,41 +61,47 @@ abstract class Medium extends DataObject {
 
 	protected static function shape_select_request(SelectRequest &$request, $options) : void {
 		if(($options['include_file'] ?? false) != true){
-			$request->remove_property(static::$properties['file']);
+			$request->remove_attribute(static::$attributes['file']);
 		}
 	}
 
 	protected static function shape_join_request(JoinRequest &$request) : void {
-		$request->remove_property(static::$properties['file']);
+		$request->remove_attribute(static::$attributes['file']);
 	}
 
 
-	protected function load_custom_properties(array $row) : void {
-		if(isset($row['image_file'])){
-			// TODO $this->file =
-		} else {
-			$this->file = null;
+	protected function load_custom_attribute(AttributeDefinition $definition, array $row) : void {
+		$column_name = "{$definition->get_db_prefix()}_{$definition->get_db_column()}";
+
+		if($definition->get_name() === 'file'){
+			if(isset($row[$column_name])){
+				$cls = static::FILE_CLASS;
+				$this->file = new $cls();
+				$this->file->create($row[$column_name], $this->mime_type, $this->extension);
+			}
+		} else if($definition->get_name() === 'mime_type' || $definition->get_name === 'extension'){
+			$this->{$definition->get_name()} = $row[$column_name];
+		} else if($definition->get_name() === 'variants'){
+			$this->variants = json_decode($row[$column_name], true, default, \JSON_THROW_ON_ERROR);
 		}
-
-		$this->variants = json_decode($row['image_variants'], true, default, \JSON_THROW_ON_ERROR);
 	}
 
 
-	protected function edit_custom_property(PropertyDefinition $definition, mixed $input) : void {
+	protected function edit_custom_attribute(AttributeDefinition $definition, mixed $input) : void {
 		if($definition->get_name() !== 'file' || !$this->db->is_local()){
-			return;
+			throw new AttributeNotAlterableException($definition, $this, $this->{$definition->get_name()});
 		}
 
 		$file = File::receive('file', $input);
 		$file->variant = 'original';
 
 		if($file::class !== static::FILE_CLASS){
-			throw new Exception();
+			throw new IllegalValueException($definition, $file, 'wrong file class');
 		}
 
 		$allowed_mime_types = Config::get('Modules.'.$this::class.'.allowed_mime_types', 'array');
 		if(!in_array($file->mime_type, $allowed_mime_types)){
-			throw new Exception();
+			throw new IllegalValueException($definition, $file, 'illegal mime type');
 		}
 
 		$this->file = $file;
@@ -98,32 +109,32 @@ abstract class Medium extends DataObject {
 		$this->extension = $file->extension;
 		$this->variants = [];
 
+		$this->db->set_altered();
+
 		$this->autoversion();
 	}
 
 
-	protected function get_custom_push_values() : array {
-		$result = [
-			'variants' => json_encode($this->variants, \JSON_THROW_ON_ERROR);
-		];
-
-		if($this->is_local()){
-			$result['file'] = ''; // TODO
+	protected function get_custom_push_value(AttributeDefinition $definition) : array {
+		if($definition->get_name() === 'variants'){
+			return json_encode($this->variants, \JSON_THROW_ON_ERROR);
+		} else {
+			return $this->{$definition->get_name()};
 		}
-
-		return $result;
 	}
 
 
-	protected function push_custom_after() : void { // TODO
+	protected function push_custom() : void {
 		$this->write();
 	}
 
-	protected function delete_custom() : void { // TODO
+
+	protected function delete_custom() : void {
 		$this->erase();
 	}
 
 
+	// TODO from here
 	protected function write() : void {
 		$path = $this->compute_path();
 		$this->file->write($path, overwrite:true);
@@ -146,6 +157,7 @@ abstract class Medium extends DataObject {
 			File::erase($path, recursive:true);
 		}
 	}
+
 
 	protected function scan() : array {
 

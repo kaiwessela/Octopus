@@ -1,41 +1,9 @@
 <?php
-namespace Blog\Model\DataObjects\Lists;
-use \Blog\Model\Abstracts\DataObjectList;
-use \Blog\Model\DataObjects\Page;
+namespace Octopus\Modules\Pages;
+use \Octopus\Core\Model\EntityList;
+use \Octopus\Modules\Pages\Page;
 
-class PageList extends DataObjectList {
-
-#	@inherited
-#	public $objects;
-#	public $count;
-#
-#	private $new;
-#	private $empty;
-
-	const OBJECT_CLASS = Page::class;
-	const OBJECTS_ALIAS = 'pages';
-
-
-	protected static function load_each(array $data) : Page {
-		$obj = new Page();
-		$obj->load_single($data);
-		return $obj;
-	}
-
-
-	const SELECT_QUERY = <<<SQL
-SELECT * FROM pages
-ORDER BY page_title
-SQL; #---|
-
-	const SELECT_IDS_QUERY = <<<SQL
-SELECT * FROM pages
-WHERE page_id IN 
-SQL; #---|
-
-	const COUNT_QUERY = <<<SQL
-SELECT COUNT(*) FROM pages
-SQL; #---|
-
+class PageList extends EntityList {
+	const ENTITY_CLASS = Page::class;
 }
 ?>

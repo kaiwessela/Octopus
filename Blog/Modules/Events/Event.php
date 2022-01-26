@@ -1,32 +1,32 @@
 <?php
 namespace Octopus\Modules\Events;
-use \Octopus\Core\Model\DataObject;
-use \Octopus\Modules\DataTypes\MarkdownContent;
-use \Octopus\Modules\DataTypes\Timestamp;
+use \Octopus\Core\Model\Entity;
+use \Octopus\Modules\StaticObjects\MarkdownContent;
+use \Octopus\Modules\StaticObjects\Timestamp;
 
-class Event extends DataObject {
-	# inherited from DataObject:
-	# protected string $id;
-	# protected string $longid;
+class Event extends Entity {
+	# inherited from Entity:
+	# protected readonly string $id;
+	# protected ?string $longid;
 
-	protected ?string 			$title;
-	protected ?string 			$organisation;
-	protected ?Timestamp 		$timestamp;
-	protected ?string 			$location;
-	protected ?MarkdownContent 	$description;
-	protected ?bool 			$cancelled;
+	protected ?string 		$title;
+	protected ?string 		$organisation;
+	protected ?Timestamp 	$timestamp;
+	protected ?string 		$location;
+	protected ?MarkdownText $description;
+	protected ?bool 		$cancelled;
 
 	const DB_TABLE = 'events';
 	const DB_PREFIX = 'event';
 
-	const PROPERTIES = [
+	const ATTRIBUTES = [
 		'id' => 'id',
 		'longid' => 'longid',
 		'title' => '.{1,100}',
 		'organisation' => '.{1,60}',
-		'timestamp' => Timestamp::class,
+		'datetime' => Timestamp::class,
 		'location' => '.{0,100}',
-		'description' => MarkdownContent::class,
+		'description' => MarkdownText::class,
 		'cancelled' => 'bool'
 	];
 }

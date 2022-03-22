@@ -1,10 +1,12 @@
 <?php
-namespace Octopus\Modules\Motion;
-use \Blog\Core\Model\DataObject;
+namespace Octopus\Modules\Motions;
+use \Octopus\Core\Model\Entity;
+use \Octopus\Modules\Motions\MotionList;
+use \Octopus\Modules\Media\Application;
+use \Octopus\Modules\StaticObjects\MarkdownText;
+use \Octopus\Modules\StaticObjects\Timestamp;
+
 use \Blog\Core\Model\Properties\Exceptions\PropertyValueException;
-use \Blog\Modules\DataTypes\MarkdownContent;
-use \Blog\Modules\DataTypes\Timestamp;
-use \Blog\Modules\Media\Application;
 
 class Motion extends Entity {
 	# inherited from Entity:
@@ -18,6 +20,12 @@ class Motion extends Entity {
 	protected ?string 		$status;
 	protected ?array 		$votes;
 
+	protected static array $attributes;
+
+	const DB_TABLE = 'motions';
+	const DB_PREFIX = 'motion';
+
+	const LIST_CLASS = MotionList::class;
 
 	const ATTRIBUTES = [
 		'id' => 'id',
@@ -29,10 +37,6 @@ class Motion extends Entity {
 		'status' => '.{0,20}',
 		'votes' => 'custom'
 	];
-
-
-	const DB_TABLE = 'motions';
-	const DB_PREFIX = 'motion';
 
 
 	protected function load_custom_attribute(AttributeDefinition $definition, array $row) : void {

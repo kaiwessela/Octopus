@@ -1,5 +1,9 @@
 <?php
 namespace Octopus\Modules\StaticObjects;
+use \Octopus\Core\Model\Attributes\StaticObject;
+use \Parsedown\Parsedown;
+
+// TODO UNFINISHED AND UNCHECKED
 
 class MarkdownText extends StaticObject {
 	# protected Entity $context;
@@ -19,30 +23,37 @@ class MarkdownText extends StaticObject {
 
 
 	public function arrayify() : mixed {
-
+		return [
+			'raw' => $this->raw,
+			'parsed' => $this->parse()
+		];
 	}
 
 
 	function __toString() {
-
+		return $this->raw;
 	}
 
 
 	public function edit(mixed $value) : void {
 		$this->check_edit();
 
-
+		$this->raw = $value;
 	}
 
 
-	public function parse() : string {
+	public function parse() : ?string {
+		if(empty($this->parsed)){
+			$this->parsed = Parsedown::instance()->text($this->raw);
+		}
 
+		return $this->parsed;
 	}
 }
 ?>
 
 
-<?php
+<?php /*
 namespace Blog\Model\DataTypes;
 use \Blog\Model\Abstracts\DataType;
 use \Parsedown\Parsedown;
@@ -91,15 +102,16 @@ class MarkdownContent implements DataType {
 		}
 
 
-		/*
-		function resolver(DataObject $object, string $type){
 
-		}
-		*/
+		//function resolver(DataObject $object, string $type){
+
+		//}
+
 	}
 
 	public function staticize() {
 		return $this->parse();
 	}
 }
+*/
 ?>

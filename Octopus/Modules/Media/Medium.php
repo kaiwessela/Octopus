@@ -1,20 +1,23 @@
-<?php # Medium.php 2021-10-04 beta
-namespace Blog\Modules\Media;
-use \Blog\Core\Model\DataObject;
-use \Blog\Modules\Media\Application;
-use \Blog\Modules\Media\Audio;
-use \Blog\Modules\Media\Image;
-use \Blog\Modules\Media\Video;
+<?php
+namespace Octopus\Modules\Media;
+use \Octopus\Core\Model\Entity;
+use \Octopus\Core\Model\FileHandling\File;
+use \Octopus\Core\Model\Database\Requests\SelectRequest;
+use \Octopus\Core\Model\Database\Requests\JoinRequest;
+use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
+use \Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
+use \Octopus\Core\Controller\ConfigLoader;
+use \Octopus\Modules\Media\Application;
+use \Octopus\Modules\Media\Audio;
+use \Octopus\Modules\Media\Image;
+use \Octopus\Modules\Media\Video;
 
-// not ideal from here
-use \Blog\Config\Config;
-use \Blog\Config\MediaConfig;
-use Exception;
 
-abstract class Medium extends DataObject {
-	# inherited from DataObject:
-	# protected string $id;
-	# protected string $longid;
+abstract class Medium extends Entity {
+	# inherited from Entity:
+	# protected readonly string $id;
+	# protected ?string $longid;
 
 	protected ?string 	$name;
 	protected ?string 	$description;
@@ -23,12 +26,16 @@ abstract class Medium extends DataObject {
 	protected ?string 	$mime_type;
 	protected ?string 	$extension;
 	protected ?array 	$variants;
+	protected ?File 	$file;
 
-	protected ?File $file;
 	protected ?array $variant_files;
 
+	protected static array $attributes;
 
-	const ATTRIBUTES = [
+	const DB_TABLE = 'media';
+	const DB_PREFIX = 'medium';
+
+	final const ATTRIBUTES = [
 		'id' => 'id',
 		'longid' => 'longid',
 		'name' => '.{0,140}',
@@ -36,22 +43,22 @@ abstract class Medium extends DataObject {
 		'alternative' => '.{0,250}',
 		'copyright' => '.{0,250}',
 		'mime_type' => [
-			'type' => 'custom',
+			'class' => 'custom',
 			'alterable' => false,
 			'required' => true
 		],
 		'extension' => [
-			'type' => 'custom',
+			'class' => 'custom',
 			'alterable' => false,
 			'required' => true
 		],
 		'file' => [
-			'type' => 'custom',
+			'class' => 'custom',
 			'alterable' => false,
 			'required' => true
 		],
 		'variants' => [
-			'type' => 'custom'
+			'class' => 'custom'
 		]
 	];
 
@@ -82,7 +89,7 @@ abstract class Medium extends DataObject {
 		} else if($definition->get_name() === 'mime_type' || $definition->get_name === 'extension'){
 			$this->{$definition->get_name()} = $row[$column_name];
 		} else if($definition->get_name() === 'variants'){
-			$this->variants = json_decode($row[$column_name], true, default, \JSON_THROW_ON_ERROR);
+			$this->variants = json_decode($row[$column_name], true, 512, \JSON_THROW_ON_ERROR); // TODO
 		}
 	}
 
@@ -99,8 +106,7 @@ abstract class Medium extends DataObject {
 			throw new IllegalValueException($definition, $file, 'wrong file class');
 		}
 
-		$allowed_mime_types = Config::get('Modules.'.$this::class.'.allowed_mime_types', 'array');
-		if(!in_array($file->mime_type, $allowed_mime_types)){
+		if(!in_array($file->mime_type, $this::CONFIG::ALLOWED_MIME_TYPES)){
 			throw new IllegalValueException($definition, $file, 'illegal mime type');
 		}
 
@@ -134,37 +140,12 @@ abstract class Medium extends DataObject {
 	}
 
 
-	// TODO from here
-	protected function write() : void {
-		$path = $this->compute_path();
-		$this->file->write($path, overwrite:true);
-
-		foreach($variant_files as $file){
-			$path = $_SERVER['DOCUMENT_ROOT'] . DIRECTORY_SEPARATOR . $this->compute_path($file->variant);
-			$file->write($path, overwrite:true);
+	final protected function compute_path(string $variant) : string {
+		if(empty($this::CONFIG::DIRECTORY) || !is_string($this::CONFIG::DIRECTORY)){
+			throw new Exception('Module config: DIRECTORY is not set or not a string.');
 		}
-	}
 
-	protected function erase(?string $variant = null) : void {
-		if($variant === null){
-			$this->erase('original');
-
-			foreach($this->variants as $variant => $_){
-				$this->erase($variant);
-			}
-		} else {
-			$path = $_SERVER['DOCUMENT_ROOT'] . DIRECTORY_SEPARATOR . $this->compute_path($variant);
-			File::erase($path, recursive:true);
-		}
-	}
-
-
-	protected function scan() : array {
-
-	}
-
-	protected function compute_path(string $variant = 'original') : string {
-		$path = trim(Config::get('Modules.'.$this::class.'.directory', 'string'), DIRECTORY_SEPARATOR);
+		$path = ConfigLoader::resolve_path($this::CONFIG::DIRECTORY);
 
 		$path = str_replace('{id}', $this->id, $path);
 		$path = str_replace('{longid}', $this->longid, $path);
@@ -183,14 +164,44 @@ abstract class Medium extends DataObject {
 	}
 
 
-	public function src(string $variant = 'original') : ?string {
-		// TODO cycle check
+	final protected function write() : void {
+		$path = $this->compute_path('original');
+		$this->file->write($path, overwrite:true);
 
+		foreach($this->variant_files as $file){
+			$path = $this->compute_path($file->variant);
+			$file->write($path, overwrite:true);
+		}
+	}
+
+
+	protected function erase(?string $variant = null) : void {
+		if($variant === null){
+			$this->erase('original');
+
+			foreach($this->variants as $variant => $_){
+				$this->erase($variant);
+			}
+		} else {
+			$path = $this->compute_path($variant);
+			File::erase($path, recursive:true);
+		}
+	}
+
+
+	protected function scan() : array {
+		// TODO
+	}
+
+
+	public function src(string $variant = 'original', string $url_base = '') : ?string {
 		if($variant !== 'original' && !isset($this->variants[$variant])){
 			return null;
 		}
 
-		return /* TODO CURRENT_BASE_URL */ . DIRECTORY_SEPARATOR . $this->compute_path($variant);
+		$path = $this->compute_path($variant);
+
+		return $url_base . substr($path, strlen(ConfigLoader::get_document_root()));
 	}
 }
 ?>

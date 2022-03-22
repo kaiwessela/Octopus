@@ -1,37 +1,9 @@
 <?php
-namespace Blog\Model\DataObjects\Lists;
-use \Blog\Model\Abstracts\DataObjectList;
-use \Blog\Model\DataObjects\Person;
+namespace Octopus\Modules\Persons;
+use \Octopus\Core\Model\EntityList;
+use \Octopus\Modules\Persons\Person;
 
-class PersonList extends DataObjectList {
-
-#	@inherited
-#	public $objects;
-#	public $count;
-#
-#	private $new;
-#	private $empty;
-
-	const OBJECT_CLASS = Person::class;
-	const OBJECTS_ALIAS = 'persons';
-
-
-	const SELECT_QUERY = <<<SQL
-SELECT * FROM persons
-LEFT JOIN media ON medium_id = person_image_id
-ORDER BY person_name
-SQL; #---|
-
-
-	const SELECT_IDS_QUERY = <<<SQL
-SELECT * FROM persons
-WHERE person_id IN
-SQL; #---|
-
-
-	const COUNT_QUERY = <<<SQL
-SELECT COUNT(*) FROM persons
-SQL; #---|
-
+class PersonList extends EntityList {
+	const ENTITY_CLASS = Person::class;
 }
 ?>

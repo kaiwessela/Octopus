@@ -115,7 +115,7 @@ class Timestamp extends StaticObject {
 
 
 
-<?php
+<?php /*
 namespace Blog\Model\DataTypes;
 use \Blog\Model\Abstracts\DataType;
 use \Blog\Model\Exceptions\IllegalValueException;
@@ -231,4 +231,5 @@ class Timestamp implements DataType {
 		return $this->now('D');
 	}
 }
+*/
 ?>

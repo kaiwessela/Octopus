@@ -1,12 +1,10 @@
-<?php # Image.php 2021-10-04 beta
-namespace Blog\Modules\Media;
-use \Blog\Core\Model\DataObject;
-use \Blog\Modules\Media\Medium;
-
-// not ideal from here
-use \Blog\Model\FileManager;
-use \Blog\Model\Exceptions\IllegalValueException;
-use \Blog\Config\MediaConfig;
+<?php
+namespace Octopus\Modules\Media;
+use \Octopus\Core\Model\Entity;
+use \Octopus\Core\Model\FileHandling\ImageFile;
+use \Octopus\Modules\Media\ImageList;
+use \Octopus\Modules\Media\Medium;
+use \Octopus\Modules\Media\ImageConfig;
 
 class Image extends Medium {
 	# inherited from Entity:
@@ -21,21 +19,24 @@ class Image extends Medium {
 	# protected ?string $description;
 	# protected ?string $alternative;
 	# protected ?array 	$variants;
-
 	# protected ?File $file;
+	#
 	# protected ?array $variant_files;
+	#
+	# final const ATTRIBUTES;
 
+	// const DB_TABLE = 'images';
+	// const DB_PREFIX = 'image';
 
-	const DB_TABLE = 'images'
-	const DB_PREFIX = 'image';
-	
+	const LIST_CLASS = ImageList::class;
 
+	const CONFIG = ImageConfig::class;
 	const FILE_CLASS = ImageFile::class;
 	const DB_CLASS_STRING = 'image';
 
 
 	protected function autoversion() : void {
-		$rules = Config::get('Modules.'.$this::class.'.autoversion_rules.'.$this->mime_type) ?? null;
+		$rules = ImageConfig::AUTOVERSION_RULES[$this->mime_type];
 
 		if(!is_array($rules)){
 			return;
@@ -52,19 +53,10 @@ class Image extends Medium {
 	public function srcset() : string {
 		// TODO cycle check
 
-
-	}
-
-
-	public function srcset() : ?string {
 		$sources = [];
 
 		foreach($this->variants as $variant){
-			if(empty(MediaConfig::IMAGE_RESIZE_WIDTHS[$variant])){
-				continue;
-			}
-
-			$sources[] = $this->src($variant).' '.MediaConfig::IMAGE_RESIZE_WIDTHS[$variant][0].'w';
+			$sources[] = $this->src($variant).' '.ImageConfig::SIZES[$variant]['width'].'w';
 		}
 
 		return implode(', ', $sources);

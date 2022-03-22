@@ -4,7 +4,7 @@ use \Octopus\Core\Model\EntityList;
 use \Octopus\Core\Model\Database\Requests\SelectRequest;
 use \Octopus\Core\Model\Database\Requests\Conditions\DateTimeComparison;
 use \Octopus\Modules\Events\Event;
-use DateTime;
+use \DateTime;
 
 class EventList extends EntityList {
 	const ENTITY_CLASS = Event::class;
@@ -13,14 +13,14 @@ class EventList extends EntityList {
 	protected static function shape_select_request(SelectRequest &$request, array $options) : void {
 		if(isset($options['future'])){
 			$request->set_condition(new DateTimeComparison(
-				Event::get_attribute_definitions()['datetime'],
+				Event::get_attribute_definitions()['timestamp'],
 				'>=',
 				new DateTime('today')
 			));
 
-			$request->set_order(Event::get_attribute_definitions()['datetime'], desc:false);
+			$request->set_order(Event::get_attribute_definitions()['timestamp'], desc:false);
 		} else {
-			$request->set_order(Event::get_attribute_definitions()['datetime'], desc:true);
+			$request->set_order(Event::get_attribute_definitions()['timestamp'], desc:true);
 		}
 	}
 }

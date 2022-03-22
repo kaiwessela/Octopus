@@ -1,21 +1,18 @@
 <?php
 return [
-	'@include' => [
-		'Modules' => 'Modules.php',
-		'Octopus' => '../Core/Version.php',
-	],
 	'Server' => [
 		'lang' => 'de_DE',
-		'debug_mode' => false,
+		'debug_mode' => true,
 		'base_urls' => [
 			'blog.localhost',
 			'blog.local',
+			'octopus.localhost',
 			'localhost/octopus',
 		],
 	],
 	'Database' => [
 		'host' => 'localhost',
-		'name' => 'blog',
+		'name' => 'octopus',
 		'user' => 'user',
 		'pass' => 'password',
 	],

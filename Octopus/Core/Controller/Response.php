@@ -1,110 +1,133 @@
 <?php
-namespace Blog\Controller;
-use Exception;
+namespace Octopus\Core\Controller;
+use \Octopus\Core\Controller\ConfigLoader;
+use \Octopus\Core\Controller\Exceptions\ControllerException;
 
-class Response { 
-	public int $code;
-	public string $content_type;
-	public array $headers;
+class Response {
+	private ?string $template_dir;
+	private string $content_type;
+	private array $templates;
 
 
 	function __construct() {
-		$this->code = 200;
+		$this->template_dir = null;
 		$this->content_type = 'text/html';
-		$this->headers = [];
+		$this->templates = [];
 	}
 
 
-	public function set_code(int $code) : void {
-		if(isset($this::RESPONSE_CODES[$code])){
-			$this->code = $code;
-		} else {
-			throw new Exception('Response » invalid code.');
+	public function set_status_code(int $code) : void {
+		if(!in_array($code, self::RESPONSE_CODES)){
+			throw new ControllerException(500, "Status code invalid: «{$code}».");
 		}
+
+		$this->status_code = $code;
 	}
+
 
 	public function set_content_type(string $content_type) : void {
-		if(in_array($content_type, self::SUPPORTED_CONTENT_TYPES)){
-			$this->content_type = $content_type;
-		} else {
-			throw new Exception('Response » content type not supported.');
+		$this->content_type = $content_type;
+	}
+
+
+	public function set_template_dir(string $path) : void {
+		$dir = realpath(ConfigLoader::resolve_path($path));
+
+		if($dir === false){
+			throw new ControllerException(500, "Template directory not found: «{$path}».");
+		}
+
+		if(!is_dir($dir)){
+			throw new ControllerException(500, "Template directory is not a directory: «{$dir}».");
+		}
+
+		if(!str_starts_with($dir, ConfigLoader::get_document_root())){
+			throw new ControllerException(500, "Template directory is outside the document root: «{$dir}».");
+		}
+
+		if(!is_readable($dir)){
+			throw new ControllerException(500, "Template directory is not readable: «{$dir}».");
+		}
+
+		$this->template_dir = $dir;
+	}
+
+
+	public function set_template(int $code, ?string $template) : void {
+		if(is_null($this->template_dir)){
+			throw new ControllerException(500, "Template directory not set, but must be set before setting templates.");
+		} else if(is_null($template)){
+			unset($this->templates[$code]);
+			return;
+		} else if(!in_array($code, self::STATUS_CODES) && !in_array($code, [0, 2, 3, 4, 5])){
+			throw new ControllerException(500, "Template code invalid: «{$code}».");
+		}
+
+		$path = realpath($this->template_dir . DIRECTORY_SEPARATOR . trim($template, DIRECTORY_SEPARATOR) . '.php');
+
+		if($path === false){
+			throw new ControllerException(500, "Template not found: «{$path}».");
+		} else if(!is_file($path) || !is_readable($path)){
+			throw new ControllerException(500, "Template is not a file or not readable: «{$path}».");
+		}
+
+		$this->templates[$code] = $path;
+	}
+
+
+	public function set_templates(?array $templates = null) : void {
+		if(is_null($templates)){
+			$this->templates = [];
+			return;
+		}
+
+		foreach($templates as $code => $template){
+			$this->set_template($code, $template);
 		}
 	}
 
-	public function add_header(string $header) : void {
-		$this->headers[] = $header;
-	}
 
+	public function send(int $code = 200, array $environment = []) : void {
+		http_response_code($code);
+		header("Content-Type: {$this->content_type}");
 
-	public function send() {
-		http_response_code($this->code);
-		header('Content-Type: ' . $this->content_type);
+		$template = $this->templates[$code] ?? $this->templates[floor($code / 100)] ?? $this->templates[0] ?? null;
 
-		foreach($this->headers as $header){
-			header($header);
+		if(is_null($template)){
+			if($code === 500){
+				die('Error 500 – Internal Server Error: No Template specified.');
+			} else {
+				throw new ControllerException(500, 'No Template specified.');
+			}
 		}
+
+		$send = function($tmp, $env){
+			foreach($env as $var => &$value){
+				$$var = &$value;
+			}
+
+			unset($env);
+			unset($var);
+			unset($value);
+
+			require $tmp;
+		};
+
+		$send($template, $environment);
 	}
 
 
-	const SUPPORTED_CONTENT_TYPES = [
-		'text/html',
-		'application/json'
-	];
+	public function include_template(string $name) : void {
+		
+	}
 
-	const RESPONSE_CODES = [
-		200 => 'OK',
-		201 => 'Created',
-		202 => 'Accepted',
-		203 => 'Non-Authoritative Information',
-		204 => 'No Content',
-		205 => 'Reset Content',
-		206 => 'Partial Content',
-		300 => 'Multiple Choices',
-		301 => 'Moved Permanently',
-		302 => 'Found (Moved Temporarily)',
-		303 => 'See Other',
-		304 => 'Not Modified',
-		305 => 'Use Proxy',
-		307 => 'Temporary Redirect',
-		308 => 'Permanent Redirect',
-		400 => 'Bad Request',
-		401 => 'Unauthorized',
-		402 => 'Payment Required',
-		403 => 'Forbidden',
-		404 => 'Not Found',
-		405 => 'Method Not Allowed',
-		406 => 'Not Acceptable',
-		407 => 'Proxy Authentication Required',
-		408 => 'Request Timeout',
-		409 => 'Conflict',
-		410 => 'Gone',
-		411 => 'Length Required',
-		412 => 'Precondition Failed',
-		413 => 'Payload Too Large',
-		414 => 'URI Too Long',
-		415 => 'Unsupported Media Type',
-		416 => 'Range Not Satisfied',
-		417 => 'Expectation Failed',
-		421 => 'Misdirected Request',
-		422 => 'Unprocessable Entity',
-		423 => 'Locked',
-		424 => 'Failed Dependency',
-		425 => 'Too Early',
-		426 => 'Upgrade Required',
-		428 => 'Precondition Required',
-		429 => 'Too Many Requests',
-		431 => 'Request Header Fields Too Large',
-		500 => 'Internal Server Error',
-		501 => 'Not Implemented',
-		502 => 'Bad Gateway',
-		503 => 'Service Unavailable',
-		504 => 'Gateway Timeout',
-		505 => 'HTTP Version not supported',
-		506 => 'Variant Also Negotiates',
-		507 => 'Insufficient Storage',
-		508 => 'Loop Detected',
-		510 => 'Not Extended',
-		511 => 'Network Authentication Required'
+
+	const STATUS_CODES = [
+		200, 201, 202, 203, 204, 205, 206,
+		300, 301, 302, 303, 304, 305,      307, 308,
+		400, 401,      403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417,
+			 421, 422, 423, 424, 425, 426, 427, 428, 429,
+		500, 501, 502, 503, 504,      506, 507
 	];
 }
 ?>

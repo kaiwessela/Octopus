@@ -1,164 +1,121 @@
 <?php
-namespace Blog\Controller;
-use Exception;
+namespace Octopus\Core\Controller;
 
 class Request {
-						# https://example.org/test/index.php?query=true
-	public string $url;	# https://example.org/test/index.php
-	public string $host;	#     example.org
-	public ?string $path;	#                /test/index.php
-	public ?string $query;	#                                query=true
+	private bool $https;
+	private string $host;	# example.org
+	private string $port;	# 80
+	private ?string $path; # /test/index.php
+	private ?string $query; # query=true&test=1
 
-	public string $method;
-	public ?string $content_type;
+	private ?string $virtual_path;
 
-	public ?array $post;
-	public ?array $get;
-
-	private ?array $allowed_methods;
-	private ?array $allowed_content_types;
+	private string $method; # GET|POST|PUT|DELETE|…
+	private ?string $content_type;
 
 
 	function __construct() {
-		$this->url = $_SERVER['REQUEST_URI'];
-		$this->host = $_SERVER['HTTP_HOST'];
-		$this->path = explode('?', $_SERVER['REQUEST_URI'], 2)[0] ?? null;
-		$this->query = $_SERVER['QUERY_STRING'] ?? null;
-
-		$this->get = $_GET;
+		$this->host = $_SERVER['SERVER_NAME'];
+		$this->port = $_SERVER['SERVER_PORT'];
+		$this->path = rtrim(explode('?', $_SERVER['REQUEST_URI'], 2)[0], '/').'/';
+		$this->query = $_SERVER['QUERY_STRING'];
+		$this->https = !empty($_SERVER['HTTPS']);
 
 		$this->method = $_SERVER['REQUEST_METHOD'];
-		if($this->method != 'GET' && $this->method != 'POST'){
-			// 405 Method Not Allowed
+		$content_type = explode(';', $_SERVER['CONTENT_TYPE'] ?? '', 2)[0];
+		$this->content_type = ($content_type !== '') ? $content_type : null;
+
+		$this->virtual_path = ltrim(substr($this->path, strlen(dirname($_SERVER['SCRIPT_NAME']))), '/');
+
+		// var_dump($_SERVER);
+		//
+		// echo "Host: $this->host".PHP_EOL;
+		// echo "Port: $this->port".PHP_EOL;
+		// echo "Path: $this->path".PHP_EOL;
+		// echo "Query: $this->query".PHP_EOL;
+		// echo "Method: $this->method".PHP_EOL;
+		// echo "Content Type: $this->content_type".PHP_EOL;
+		// echo "Virtual Path: $this->virtual_path".PHP_EOL;
+	}
+
+
+	public function get_host() : string {
+		return $this->host;
+	}
+
+	public function get_port() : int {
+		return $this->port;
+	}
+
+	public function get_path() : ?string {
+		return $this->path;
+	}
+
+	public function get_path_segment(int $segment) : ?string {
+		if($segment < 1){
+			return null;
 		}
 
-		if($this->method == 'GET'){
-			$this->content_type = null;
-			$this->post = null;
-		} else if($_SERVER['CONTENT_TYPE'] == 'application/json'){
-			$this->content_type = 'application/json';
-			$this->post = json_decode(file_get_contents('php://input'), true); // TODO Exception on error
-		} else if($_SERVER['CONTENT_TYPE'] == 'application/x-www-form-urlencoded'){
-			$this->content_type = 'application/x-www-form-urlencoded';
-			$this->post = $_POST;
-		} else if(preg_match('/^multipart\/form-data.*/', $_SERVER['CONTENT_TYPE'])){
-			$this->content_type = 'multipart/form-data';
-			$this->post = $_POST;
-		} else {
-			// 415 Unsupported Media Type
+		$result = explode('/', $this->get_path(), $segment+2)[$segment];
+		return empty($result) ? null : $result;
+	}
+
+	public function get_path_from_segment(int $segment) : ?string {
+		if($segment < 1){
+			return null;
 		}
 
-		$this->allowed_methods = null;
-		$this->allowed_content_types = null;
+		$result = explode('/', $this->get_path(), $segment+2)[$segment+1];
+		return empty($result) ? null : '/'.$result;
 	}
 
-
-	public function is_get() : bool {
-		return $this->method == 'GET';
+	public function get_virtual_path() : ?string {
+		return $this->virtual_path;
 	}
 
-	public function is_post() : bool {
-		return $this->method == 'POST';
-	}
-
-	public function GET($key) {
-		return $this->get[$key] ?? null;
-	}
-
-	public function POST($key) {
-		return $this->post[$key] ?? null;
-	}
-
-
-	public function set_allowed_methods(?array $methods) : void {
-		if(is_null($methods)){
-			$this->allowed_methods = null;
-		} else {
-			$this->allowed_methods = [];
-			foreach($methods as $method){
-				$this->add_allowed_method($method);
-			}
-		}
-	}
-
-	public function add_allowed_method(string $method) : void {
-		if(is_null($this->allowed_methods)){
-			$this->allowed_methods = [];
+	public function get_virtual_path_segment(int $segment) : ?string {
+		if($segment < 1){
+			return null;
 		}
 
-		if(in_array($method, $this->allowed_methods)){
-			return;
-		} else if(in_array($method, self::SUPPORTED_METHODS)){
-			$this->allowed_methods[] = $method;
-		} else {
-			throw new Exception('Request » method not supported.');
-		}
+		$result = explode('/', $this->get_virtual_path(), $segment+2)[$segment]; // TODO check all these
+		return empty($result) ? null : $result;
 	}
 
-	public function merge_allowed_methods(array $methods) : void {
-		if(is_null($this->allowed_methods)){
-			$this->set_allowed_methods($methods);
-		} else {
-			$this->set_allowed_methods(array_intersect($this->allowed_methods, $methods));
-		}
-	}
-
-	public function check_method() : bool {
-		return is_null($this->allowed_methods) ?: in_array($this->method, $this->allowed_methods);
-	}
-
-
-	public function set_allowed_content_types(?array $content_types) : void {
-		if(is_null($content_types)){
-			$this->allowed_methods = null;
-		} else {
-			$this->allowed_content_types = [];
-			foreach($content_types as $content_type){
-				$this->add_allowed_content_type($content_type);
-			}
-		}
-	}
-
-	public function add_allowed_content_type(string $content_type) : void {
-		if(is_null($this->allowed_content_types)){
-			$this->allowed_content_types = [];
+	public function get_virtual_path_from_segment(int $segment) : ?string {
+		if($segment < 1){
+			return null;
 		}
 
-		if(in_array($content_type, $this->allowed_content_types)){
-			return;
-		} else if(in_array($content_type, self::SUPPORTED_CONTENT_TYPES)){
-			$this->allowed_content_types[] = $content_type;
-		} else {
-			throw new Exception('Request » content type not supported.');
-		}
+		$result = explode('/', $this->get_virtual_path(), $segment+2)[$segment-1];
+		return empty($result) ? null : $result;
 	}
 
-	public function merge_allowed_content_types(array $content_types) : void {
-		if(is_null($this->allowed_content_types)){
-			$this->set_allowed_content_types($content_types);
-		} else {
-			$this->set_allowed_content_types(array_intersect($this->allowed_content_types, $content_types));
-		}
+	public function get_query_string() : ?string {
+		return $this->query;
 	}
 
-	public function check_content_type() : bool {
-		if($this->method != 'POST' || is_null($this->allowed_content_types)){
-			return true;
-		} else {
-			return in_array($this->content_type, $this->allowed_content_types);
-		}
+	public function get_query_value(string $key) : ?string {
+		return $_GET[$key] ?? null;
 	}
 
+	public function is_https() : bool {
+		return $this->https;
+	}
 
+	public function get_method() : string {
+		return $this->method;
+	}
 
-	const SUPPORTED_METHODS = ['GET', 'POST'];
+	public function get_content_type() : ?string {
+		return $this->content_type;
+	}
 
-	const SUPPORTED_CONTENT_TYPES = [
-		'application/json',
-		'application/x-www-form-urlencoded',
-		'multipart/form-data'
-	];
+	public function get_base_url() : string {
+		$protocol = $this->is_https() ? 'https' : 'http';
+		$port = ($this->get_port() === 80 || $this->get_port() === 443) ? '' : ":{$this->get_port()}";
 
-
+		return "{$protocol}://{$this->get_host()}{$port}";
+	}
 }
 ?>

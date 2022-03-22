@@ -1,5 +1,7 @@
 <?php
-return [
-	'version' => 'v0.12.2-beta',
-];
+namespace Octopus\Core;
+
+enum Version {
+	case Current = 'v0.12.2-beta';
+}
 ?>

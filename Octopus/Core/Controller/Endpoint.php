@@ -1,266 +1,118 @@
 <?php
-namespace Blog\Controller;
-use \Astronauth\Main as Astronauth;
-use \Blog\Config\Config;
-use \Blog\Config\Site;
-use \Blog\Controller\Request;
-use \Blog\Controller\Response;
-use \Blog\Controller\PathNotation;
-use \Blog\Controller\Call;
-use Exception;
+namespace Octopus\Core\Controller;
+use \Octopus\Core\Controller\Request;
+use \Octopus\Core\Controller\Response;
+use \Octopus\Core\Controller\Controllers\Controller;
+use \Octopus\Core\Controller\Controllers\EntityController;
+use \Octopus\Core\Controller\Router\Router;
+use \Octopus\Core\Controller\Exceptions\ControllerException;
+use \Octopus\Core\Config;
+use \Exception;
 
 class Endpoint {
-	private bool $aborted;
+	private array $controllers;
 	public Request $request;
 	public Response $response;
-	public Astronauth $astronauth;
 	public ?Exception $exception;
-	public string $template_path;
-	public string $template;
-	public ?array $calls;
-	public ?array $controllers;
-	public bool $require_auth;
 
 
-	function __construct(string $template_path) {
-		setlocale(\LC_ALL, Config::SERVER_LANG . '.utf-8');
+	function __construct(array $options = []) {
+		$this->request = new Request();
+		$this->response = new Response();
+		$this->router = new Router($this);
 
-		if(Config::DEBUG_MODE){
+		if(isset($options['config'])){
+			Config::load($options['config']);
+		} else {
+			Config::load('{OCTOPUS_DIR}/Config/Config.php');
+		}
+
+		if(isset($options['routes'])){
+			$this->router->load_routes($options['routes']);
+		} else {
+			$this->router->load_routes('{ENDPOINT_DIR}/routes.php');
+		}
+
+		if(isset($options['template_dir'])){
+			$this->response->set_template_dir($options['template_dir']);
+		} else {
+			$this->response->set_template_dir('{ENDPOINT_DIR}/templates/');
+		}
+
+		setlocale(LC_ALL, Config::get('Server.lang').'.utf-8'); // TEMP
+
+		if(Config::get('Server.debug_mode')){
 			ini_set('display_errors', '1');
-			error_reporting(\E_ALL & ~\E_NOTICE);
+			error_reporting(E_ALL & ~E_NOTICE);
 		} else {
 			ini_set('display_errors', '0');
 			error_reporting(0);
-		}
-
-		if(is_dir($template_path)){
-			$this->template_path = rtrim($template_path, '/') . '/';
-		} else {
-			exit('invalid template path.');
-		}
-
-		$this->request = new Request();
-		$this->response = new Response();
-
-		$this->astronauth = new Astronauth();
-		$this->astronauth->authenticate();
-
-		$this->aborted = false;
-		$this->exception = null;
-
-		$this->require_auth = false;
-
-		$this->calls = [];
-		$this->controllers = [];
-	}
-
-
-	public function route(array $routes) {
-		if($this->aborted){
-			return;
-		}
-
-		try {
-
-			if(!is_array($routes) || empty($routes)){
-				throw new Exception('Router » routes is not an array or empty.');
-			}
-
-			foreach($routes as $pn => $rt){
-				$pathnotation = new PathNotation($pn);
-
-				if($pathnotation->match(trim($this->request->path, '/'))){
-					$route = $rt;
-					break;
-				}
-			}
-
-			if(!isset($route)){
-				// no route found - 404
-				$this->abort(404);
-				return;
-			}
-
-			$this->template = $route['template']; // TODO validity check and more and new everything
-			if(empty($this->template)){
-				throw new Exception("Router » invalid template: '$this->template'.");
-			}
-
-
-			if(isset($route['methods'])){
-				if(!is_array($route['methods'])){
-					throw new Exception('Router » invalid methods.');
-				}
-
-				$this->request->merge_allowed_methods($route['methods']);
-			}
-
-			if(isset($route['contentTypes'])){
-				if(!is_array($route['contentTypes'])){
-					throw new Exception('Router » invalid contentTypes.');
-				}
-
-				$this->request->merge_allowed_content_types($route['contentTypes']);
-			}
-
-			if(isset($route['require_auth']) && $route['require_auth'] == true){
-				$this->require_auth = true;
-			}
-
-
-			foreach($route['controllers'] ?? [] as $class => $settings){
-				$this->calls[] = new Call($class, $settings, 'controller', $this->request);
-			}
-
-			foreach($route['objects'] ?? [] as $class => $settings){
-				$this->calls[] = new Call($class, $settings, 'object', $this->request);
-			}
-
-		} catch(Exception $e){
-			$this->abort($e->getCode(), $e);
-			return;
-		}
-	}
-
-
-	public function prepare() : void {
-		if($this->aborted){
-			return;
-		}
-
-		try {
-
-			if($this->request->check_method() == false){
-				// 405 Method Not Allowed
-				$this->abort(405);
-				return;
-			}
-
-			if($this->request->check_content_type() == false){
-				// 415 Unsupported Media Type
-				$this->abort(415);
-				return;
-			}
-
-			if($this->require_auth && !$this->astronauth->is_authenticated()){
-				// TEMP
-				http_response_code(403);
-				header('Location: ' . Config::SERVER_URL . '/astronauth/signin');
-				exit;
-
-				// 403 Forbidden
-				//$this->response->set_code(403);
-				//return;
-			}
-
-			foreach($this->calls as $call){
-				$cls = $call->controller;
-				$this->controllers[$call->varname] = new $cls($this->request, $this->astronauth);
-				$this->controllers[$call->varname]->prepare($call);
-			}
-
-		} catch(Exception $e){
-			$this->abort($e->getCode(), $e);
-			return;
 		}
 	}
 
 
 	public function execute() {
-		if($this->aborted){
-			return;
-		}
+		$this->controllers = [];
 
-		try {
+		foreach($this->router->route($this->request, $this->response) as $call){
+			$controller = $call->create_controller();
 
-			foreach($this->controllers as &$controller){
-				$controller->execute();
-
-				// TEMP
-				$error_on_not_found = $controller->call->options['404-on-not-found'] ?? true;
-				if($controller->status(44) && $error_on_not_found){
-					$this->abort(404);
-				}
-
-				$error_on_empty = $controller->call->options['404-on-empty'] ?? false;
-				if($controller->status(24) && $error_on_empty){
-					$this->abort(404);
-				}
-
-				// TODO status code handling
+			if(isset($this->controllers[$call->get_name()])){
+				throw new ControllerException(500, "Controller name «{$call->get_name()}» already in use.");
 			}
 
-		} catch(Exception $e){
-			$this->abort($e->getCode(), $e);
-			return;
+			$controller->load($this->request, $call);
+
+			$this->controllers[$call->get_name()] = $controller;
 		}
-	}
 
+		foreach($this->controllers as &$controller){
+			$controller->execute();
+		}
 
-	public function send() {
-		$server = (object)[
-			'version' => Config::VERSION,
-			'url' => Config::SERVER_URL,
-			'lang' => Config::SERVER_LANG,
-			'path' => trim($this->request->path, '/') // DEPRECATED or change
+		$environment = [
+			'server' => (object)[
+				'url' => $this->request->get_base_url() // maybe TEMP
+			]
 		];
 
-		$site = (object)[ // DEPRECATED
-			'title' => Site::TITLE,
-			'twitter' => Site::TWITTER_SITE
-		];
+		foreach($this->controllers as $name => &$controller){
+			$controller->finish();
 
-		$astronauth = $this->astronauth;
-		$exception = (Config::DEBUG_MODE) ? $this->exception : null;
+			$environment["{$name}Controller"] = &$controller;
 
-		$controllers = &$this->controllers;
-		$response = &$this->response;
-
-		$template = $this->template_path . $this->template . '.php'; // TEMP
-
-		$send = static function() use ($server, $site, $astronauth, $exception, &$controllers, &$response, $template){
-			foreach($controllers as $varname => &$controller){
-				$conname = $varname . 'Controller';
-
-				if(isset($$conname) || isset($$varname)){
-					continue;
-					// TODO Exception
+			if($controller instanceof EntityController){
+				if(isset($controller->entity)){
+					$environment[$name] = &$controller->entity;
+				} else {
+					$environment[$name] = &$controller->entities;
 				}
-
-				$$conname = &$controller;
-				$controller->process();
-				$$varname = &$controller->object;
 			}
+		}
 
-			unset($conname);
-			unset($varname);
-			unset($controller);
-			unset($controllers);
-
-			$response->send();
-
-			require $template;
-		};
-
-		$send();
+		$this->response->send(200, $environment); // TODO send main controller's status code
 	}
 
 
-	private function abort(mixed $code, ?Exception $e = null) : void {
-		$this->aborted = true;
-
-		if(!is_int($code)){
-			$code = 500;
-		}
-
-		try {
-			$this->response->set_code($code);
-		} catch(Exception $f){
-			$this->response->set_code(500);
-		}
-
-		$this->exception = $e;
+	public function &get_response() : Response {
+		return $this->response;
 	}
+
+
+	public function &get_controller(string $name, bool $silent = false) : ?Controller {
+		if(isset($this->controllers[$name])){
+			return $this->controllers[$name];
+		} else if($silent){
+			return null;
+		} else {
+			throw new ControllerException(500, "Controller «{$name}» not found.");
+		}
+	}
+
+
+	// public function &get_authentication_controller() : ?AuthenticationController {
+	// 	return null;
+	// }
 
 
 

@@ -4,17 +4,17 @@ use \Octopus\Core\Model\Database\Requests\Request;
 use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\SelectAndJoin;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\DataObject;
-use \Octopus\Core\Model\DataObjectRelationList;
-use \Octopus\Core\Model\DataType;
-use \Octopus\Core\Model\Properties\PropertyDefinition;
+use \Octopus\Core\Model\Entity;
+use \Octopus\Core\Model\RelationshipList;
+use \Octopus\Core\Model\Attributes\StaticObject;
+use \Octopus\Core\Model\Attributes\AttributeDefinition;
 use Exception;
 
 // TODO explainations
 
 class JoinRequest extends Request {
-	protected PropertyDefinition $native_property;
-	protected PropertyDefinition $foreign_property;
+	protected AttributeDefinition $native_attribute;
+	protected AttributeDefinition $foreign_attribute;
 
 	use SelectAndJoin;
 
@@ -23,42 +23,42 @@ class JoinRequest extends Request {
 	protected array $joins;
 
 
-	function __construct(string $table, PropertyDefinition $native_property, PropertyDefinition $foreign_property) {
+	function __construct(string $table, AttributeDefinition $native_attribute, AttributeDefinition $foreign_attribute) {
 		parent::__construct($table);
 
 		$this->joins = [];
 		$this->columns = [];
 
-		if($native_property->get_db_table() !== $this->table){
-			throw new Exception('Native Property must be part of the joined table.');
+		if($native_attribute->get_db_table() !== $this->table){
+			throw new Exception('Native Attribute must be part of the joined table.');
 		}
 
-		if(!$native_property->type_is('identifier') && !$native_property->supclass_is(DataObject::class)){
-			throw new Exception('Native Property must be an identifier or an id of a foreign object.');
+		if(!$native_attribute->type_is('identifier') && !$native_attribute->supclass_is(Entity::class)){
+			throw new Exception('Native Attribute must be an identifier or an id of a foreign object.');
 		}
 
-		if($foreign_property->get_db_table() === $this->table){
-			throw new Exception('Foreign Property must not be part of the joined table.');
+		if($foreign_attribute->get_db_table() === $this->table){
+			throw new Exception('Foreign Attribute must not be part of the joined table.');
 		}
 
-		if(!$foreign_property->type_is('identifier') && !$foreign_property->supclass_is(DataObject::class)){
-			throw new Exception('Foreign Property must be an identifier or an id of a foreign object.');
+		if(!$foreign_attribute->type_is('identifier') && !$foreign_attribute->supclass_is(Entity::class)){
+			throw new Exception('Foreign Attribute must be an identifier or an id of a foreign object.');
 		}
 
-		$this->native_property = $native_property;
-		$this->foreign_property = $foreign_property;
+		$this->native_attribute = $native_attribute;
+		$this->foreign_attribute = $foreign_attribute;
 	}
 
 
 	protected function resolve() : void {
-		$this->cycle->step('resolve');
+		$this->flow->step('resolve');
 
-		foreach($this->properties as $property){
-			$this->columns[] = static::create_column_string($property);
+		foreach($this->attributes as $attribute){
+			$this->columns[] = static::create_column_string($attribute);
 		}
 
-		$native_col = "{$this->native_property->get_db_table()}.{$this->native_property->get_db_column()}";
-		$foreign_col = "{$this->foreign_property->get_db_table()}.{$this->foreign_property->get_db_column()}";
+		$native_col = "{$this->native_attribute->get_db_table()}.{$this->native_attribute->get_db_column()}"; // TODO use shortcut
+		$foreign_col = "{$this->foreign_attribute->get_db_table()}.{$this->foreign_attribute->get_db_column()}";
 
 		$this->query = "LEFT JOIN {$this->table} ON {$native_col} = {$foreign_col}".PHP_EOL;
 
@@ -69,8 +69,8 @@ class JoinRequest extends Request {
 	}
 
 
-	public function get_foreign_property() : PropertyDefinition {
-		return $this->foreign_property;
+	public function get_foreign_attribute() : AttributeDefinition {
+		return $this->foreign_attribute;
 	}
 
 

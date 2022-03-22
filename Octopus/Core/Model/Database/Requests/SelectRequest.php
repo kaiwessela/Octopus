@@ -5,9 +5,9 @@ use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\SelectAndJoin;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierCondition;
-use \Octopus\Core\Model\Properties\PropertyDefinition;
-use \Octopus\Core\Model\DataObject;
-use \Octopus\Core\Model\DataObjectRelationList;
+use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Entity;
+use \Octopus\Core\Model\RelationshipList;
 use \Octopus\Core\Model\DataType;
 use Exception;
 
@@ -16,7 +16,7 @@ use Exception;
 class SelectRequest extends Request {
 	protected ?int $limit;
 	protected ?int $offset;
-	protected ?PropertyDefinition $order_by;
+	protected ?AttributeDefinition $order_by;
 	protected bool $order_desc;
 
 	use SelectAndJoin;
@@ -40,7 +40,7 @@ class SelectRequest extends Request {
 
 
 	public function set_limit(?int $limit) : void {
-		$this->cycle->step('build');
+		$this->flow->step('build');
 
 		if(is_int($limit) && $limit <= 0){
 			throw new Exception('limit cannot be negative or zero.');
@@ -51,7 +51,7 @@ class SelectRequest extends Request {
 
 
 	public function set_offset(?int $offset) : void {
-		$this->cycle->step('build');
+		$this->flow->step('build');
 
 		if(is_int($offset) && $offset < 0){
 			throw new Exception('offset cannot be negative.');
@@ -61,8 +61,8 @@ class SelectRequest extends Request {
 	}
 
 
-	public function set_order(?PropertyDefinition $by, bool $desc = false) : void {
-		$this->cycle->step('build');
+	public function set_order(?AttributeDefinition $by, bool $desc = false) : void {
+		$this->flow->step('build');
 
 		$this->order_by = $by;
 		$this->order_desc = $desc;
@@ -70,14 +70,14 @@ class SelectRequest extends Request {
 
 
 	protected function resolve() : void {
-		$this->cycle->step('resolve');
+		$this->flow->step('resolve');
 
 		$this->query = 'SELECT'.PHP_EOL;
 
 		$join_str = '';
 
-		foreach($this->properties as $property){
-			$this->columns[] = static::create_column_string($property);
+		foreach($this->attributes as $attribute){
+			$this->columns[] = static::create_column_string($attribute);
 		}
 
 		foreach($this->joins as $join){
@@ -95,21 +95,21 @@ class SelectRequest extends Request {
 			$this->set_values($this->condition->get_values());
 		}
 
-		if(!is_null($this->limit)){
-			$this->query .= "LIMIT {$this->limit}";
-
-			if(!is_null($this->offset)){
-				$this->query .= " OFFSET {$this->offset}";
-			}
-
-			$this->query .= PHP_EOL;
-		}
-
 		if(!is_null($this->order_by)){
 			$this->query .= "ORDER BY {$this->order_by->get_db_table()}.{$this->order_by->get_db_column()}";
 
 			if($this->order_desc === true){
 				$this->query .= ' DESC';
+			}
+
+			$this->query .= PHP_EOL;
+		}
+
+		if(!is_null($this->limit)){
+			$this->query .= "LIMIT {$this->limit}";
+
+			if(!is_null($this->offset)){
+				$this->query .= " OFFSET {$this->offset}";
 			}
 		}
 	}

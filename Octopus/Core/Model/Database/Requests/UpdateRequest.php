@@ -14,15 +14,15 @@ class UpdateRequest extends Request {
 
 
 	protected function resolve() : void {
-		$this->cycle->step('resolve');
+		$this->flow->step('resolve');
 
 		if(is_null($this->condition)){
 			throw new Exception('An IdentifierCondition must be set for this request.');
 		}
 
 		$columns = [];
-		foreach($this->properties as $property){
-			$columns[] = "	{$property->get_db_column()} => :{$property->get_name()}";
+		foreach($this->attributes as $attribute){
+			$columns[] = "	{$attribute->get_db_column()} => :{$attribute->get_name()}";
 		}
 
 		$this->query = "UPDATE {$this->table} SET".PHP_EOL;

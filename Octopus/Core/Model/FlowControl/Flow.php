@@ -41,7 +41,7 @@ class Flow {
 			}
 
 			# check for the root node being the ending point of the edge - that is not allowed
-			if($to === 'root')){
+			if($to === 'root'){
 				throw new Exception("Invalid Flow: Illegal Step to «root» at: " . var_export($edge));
 			}
 

@@ -14,7 +14,7 @@ class DeleteRequest extends Request {
 
 
 	protected function resolve() : void {
-		$this->cycle->step('resolve');
+		$this->flow->step('resolve');
 
 		if(is_null($this->condition)){
 			throw new Exception('An IdentifierCondition must be set for this request.');

@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
 use \Octopus\Core\Model\Database\Requests\JoinRequest;
-use \Octopus\Core\Model\Properties\PropertyDefinition;
+use \Octopus\Core\Model\Attributes\AttributeDefinition;
 use Exception;
 
 // TODO explainations
@@ -10,10 +10,10 @@ trait SelectAndJoin {
 
 
 	public function add_join(JoinRequest $request) : void {
-		$this->cycle->check_step('build');
+		$this->flow->check_step('build');
 
-		if($request->get_foreign_property()->get_db_table() !== $this->table){
-			throw new Exception('Foreign Property db table must match this request’s table');
+		if($request->get_foreign_attribute()->get_db_table() !== $this->table){
+			throw new Exception('Foreign Attribute db table must match this request’s table');
 		}
 
 		$this->joins[] = $request;
@@ -21,7 +21,7 @@ trait SelectAndJoin {
 
 
 	public function get_columns() : array {
-		if(!$this->cycle->is_at('resolve')){
+		if(!$this->flow->is_at('resolve')){
 			$this->resolve();
 		}
 
@@ -29,9 +29,9 @@ trait SelectAndJoin {
 	}
 
 
-	protected static function create_column_string(PropertyDefinition $property) : string {
-		$column = "{$property->get_db_table()}.{$property->get_db_column()}";
-		$alias = "{$property->get_db_prefix()}_{$property->get_db_column()}";
+	protected static function create_column_string(AttributeDefinition $attribute) : string {
+		$column = "{$attribute->get_db_table()}.{$attribute->get_db_column()}";
+		$alias = "{$attribute->get_db_prefix()}_{$attribute->get_db_column()}"; // TODO use get_prefixed_db_column
 		return "	{$column} AS '{$alias}'";
 	}
 

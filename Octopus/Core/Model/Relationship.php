@@ -40,7 +40,7 @@ use Exception;
 # of the type 'primitive'.
 
 
-abstract class DataObjectRelation {
+abstract class Relationship {
 	protected readonly string $id;
 	# protected ?[child of Entity] $[name of 1st entity];
 	# protected ?[child of Entity] $[name of 2nd entity];
@@ -99,7 +99,7 @@ abstract class DataObjectRelation {
 
 		$id_found = false;
 		foreach(static::$attributes as $name => &$definition){ # validate the attribute definitions
-			if($definition->class_is('id'){
+			if($definition->class_is('id')){
 				$id_found = true;
 			} else if($definition->supclass_is(Entity::class)){
 				if($definition->class_is($this->context::class)){
@@ -331,7 +331,7 @@ abstract class DataObjectRelation {
 			return null;
 		}
 
-		return &$this->{$this->joined_entity_attribute};
+		return $this->{$this->joined_entity_attribute};
 	}
 }
 ?>

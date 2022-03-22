@@ -105,23 +105,26 @@ class AttributeDefinition {
 
 		# rewrite short form raw definitions into the long form
 		if(is_string($definition)){
-			$shortcut = $definition; # rename $definition to $shortcut
-			$definition = []; # create an empty array for the long-form definition
+			$type = 'primitive';
 
-			if(in_array($shortcut, ['custom', 'id', 'longid', 'string', 'int', 'float', 'bool']) || class_exists($shortcut)){
+			if(in_array($definition, ['custom', 'id', 'longid', 'string', 'int', 'float', 'bool']) || class_exists($definition)){
 				# handle normal short form definitions
-				$definition['class'] = $shortcut;
+				$class = $definition;
+				$pattern = null;
 			} else {
 				# handle the special string-with-pattern short form definition
-				$definition['class'] = 'string';
-				$definition['pattern'] = $shortcut;
+				$class = 'string';
+				$pattern = $definition;
 			}
+		} else {
+			$type = $definition['type'] ?? null;
+			$class = $definition['class'] ?? null;
 		}
 
 		# complement the type and check if the class is valid
-		if($definition['class'] === 'id' || $definition['class'] === 'longid' || $definition['type'] === 'identifier'){
+		if($class === 'id' || $class === 'longid' || $type === 'identifier'){
 			$this->type = 'identifier';
-			$this->class = $definition['class'];
+			$this->class = $class;
 			$this->required = true;
 			$this->db_column = $this->name;
 
@@ -130,47 +133,53 @@ class AttributeDefinition {
 			} else {
 				$this->alterable = $definition['alterable'] ?? true; # other identifiers are alterable by default
 			}
-		} else if($definition['class'] === 'custom'){
+		} else if($class === 'custom'){
 			$this->type = 'custom';
 			$this->class = 'custom';
 			$this->required = $definition['required'] ?? false;
 			$this->alterable = $definition['alterable'] ?? true;
 			$this->db_column = $this->name;
-		} else if(in_array($definition['class'], ['string', 'int', 'float', 'bool'])){
+		} else if(in_array($class, ['string', 'int', 'float', 'bool'])){
 			$this->type = 'primitive';
-			$this->class = $definition['class'];
+			$this->class = $class;
 			$this->required = $definition['required'] ?? false; # primitive properties are not required by default
 			$this->alterable = $definition['alterable'] ?? true; # primitive properties are alterable by default
 			$this->db_column = $this->name;
-		} else if(class_exists($definition['class'])){
-			if(is_subclass_of($definition['class'], StaticObject::class)){
+		} else if(class_exists($class)){
+			if(is_subclass_of($class, StaticObject::class)){
 				$this->type = 'object';
 				$this->required = $definition['required'] ?? false; # static objects are not required by default
 				$this->alterable = $definition['alterable'] ?? true; # static objects are alterable by default
 				$this->db_column = $this->name;
-			} else if($definition['class'] === Collection::class){
+			} else if($class === Collection::class){
 				$this->type = 'object';
 				$this->required = false; # collections are never required
 				$this->alterable = true; # collections are always alterable
 				$this->db_column = $this->name;
-			} else if(is_subclass_of($definition['class'], Entity::class)){
+			} else if(is_subclass_of($class, Entity::class)){
 				$this->type = 'entity';
 				$this->required = $definition['required'] ?? false; # entities are not required by default
 				$this->alterable = $definition['alterable'] ?? true; # entities are alterable by default
 				# remember: this does not affect the alterability of the entity's inner properties
 				$this->db_column = "{$this->name}_id";
-			} else if(is_subclass_of($definition['class'], RelationshipList::class)){
+			} else if(is_subclass_of($class, RelationshipList::class)){
 				$this->type = 'entity';
 				$this->required = false; # relationship lists are never required
 				$this->alterable = true; # relationship lists are always alterable
 				$this->db_column = null;
 			} else {
-				throw new Exception("Invalid class in raw property definition: «{$definition['class']}».");
+				throw new Exception("Invalid class «{$class}» in raw property definition «{$db_prefix}:{$name}».");
 			}
 
-			$this->class = $definition['class'];
+			$this->class = $class;
 		} else {
-			throw new Exception("Invalid class in raw property definition: «{$definition['class']}».");
+			throw new Exception("Invalid class «{$class}» in raw property definition «{$db_prefix}:{$name}».");
+		}
+
+		if(is_string($definition)){ // TEMP
+			$definition = [
+				'pattern' => $pattern
+			];
 		}
 
 		# unset the already processed values, so that in the end, only the options remain in $definition
@@ -184,10 +193,10 @@ class AttributeDefinition {
 
 		if($this->class == 'string' && !empty($definition['pattern'])){ # the pattern constraint for strings
 			# check if the pattern is a valid RegEx
-			if(preg_match("/{$definition['pattern']}/", null) !== false){
+			if(preg_match("/{$definition['pattern']}/", '') !== false){
 				$this->constraints['pattern'] = $definition['pattern'];
 			} else {
-				throw new Exception('Invalid pattern constraint regex in raw definition: ' . $definition['pattern']);
+				throw new Exception('Invalid pattern constraint regex in raw definition: ' . $definition['pattern'] . ' ' . $db_prefix.':'.$name); // TODO
 			}
 
 			unset($definition['pattern']);
@@ -215,6 +224,11 @@ class AttributeDefinition {
 
 	public function get_db_column() : string {
 		return $this->db_column;
+	}
+
+
+	public function get_prefixed_db_column() : string { // TODO unchecked
+		return "{$this->db_prefix}_{$this->db_column}";
 	}
 
 

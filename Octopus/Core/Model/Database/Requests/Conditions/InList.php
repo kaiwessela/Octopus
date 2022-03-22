@@ -1,19 +1,19 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests\Conditions;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Properties\PropertyDefinition;
+use \Octopus\Core\Model\Attributes\AttributeDefinition;
 
 // TODO explainations
 
 class InList extends Condition {
-	protected PropertyDefinition $property;
+	protected AttributeDefinition $attribute;
 	protected array $vals;
 
 
-	function __construct(PropertyDefinition $column, array $values) {
+	function __construct(AttributeDefinition $column, array $values) {
 		parent::__construct();
 
-		$this->property = $property;
+		$this->attribute = $column;
 		$this->vals = $values;
 	}
 
@@ -27,7 +27,7 @@ class InList extends Condition {
 		}
 
 		$placeholder_str = implode(', ', $placeholders);
-		$this->query = "{$this->property->get_db_table()}.{$this->property->get_db_column()} IN ({$placeholder_str})";
+		$this->query = "{$this->attribute->get_db_table()}.{$this->attribute->get_db_column()} IN ({$placeholder_str})";
 
 		return $index;
 	}

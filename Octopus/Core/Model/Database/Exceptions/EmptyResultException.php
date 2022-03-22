@@ -1,6 +1,7 @@
 <?php
-namespace Blog\Core\Model\Database\Exceptions;
-use Exception;
+namespace Octopus\Core\Model\Database\Exceptions;
+use \Exception;
+use \PDOStatement;
 
 # An EmptyResultException is thrown if a database request was executed without errors but returned no data, usually
 # because no object was found that matched the given parameters (e.g. an entity was requested with an id that does not

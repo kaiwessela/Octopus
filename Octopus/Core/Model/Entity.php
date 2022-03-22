@@ -38,7 +38,7 @@ use Exception;
 # database. This class provides all necessary methods to perform such operations. In this sense,
 # it serves as a database abstraction layer, similar to an object-relational mapper.
 
-abstract class DataObject {
+abstract class Entity {
 	protected readonly string $id;	# main unique identifier of the object; uneditable; randomly generated on create()
 	protected ?string $longid;		# another unique identifier; editable; set by the user
 
@@ -254,7 +254,7 @@ abstract class DataObject {
 			if($definition->type_is('contextual')){
 				continue;
 			} else if($definition->type_is('primitive') || $definition->type_is('identifier')){
-				$this->$name = $row[$definition->get_db_column()]; # for primitives and identifiers just copy the value
+				$this->$name = $row[$definition->get_prefixed_db_column()]; # for primitives and identifiers just copy the value
 
 			} else if($definition->type_is('custom')){
 				$this->load_custom_attribute($definition, $row);
@@ -264,17 +264,17 @@ abstract class DataObject {
 				throw new Exception('collections are not yet supported');
 
 			} else if($definition->supclass_is(StaticObject::class)){
-				if(empty($row[$definition->get_db_column()])){
+				if(empty($row[$definition->get_prefixed_db_column()])){
 					continue;
 				}
 
 				$cls = $definition->get_class();
-				$this->$name = new $cls($this, $definition, $row[$definition->get_db_column()]);
+				$this->$name = new $cls($this, $definition, $row[$definition->get_prefixed_db_column()]);
 
 			} else if($definition->supclass_is(Entity::class)){
 				# check whether an entity was referenced by checking the column referring to the entity
 				# that column should contain an id or null, which is from now on stored as $id
-				if(empty($row[$definition->get_db_column()])){
+				if(empty($row[$definition->get_prefixed_db_column()])){
 					# no entity was referenced, set the attribute to null
 					$this->$name = null;
 					continue;

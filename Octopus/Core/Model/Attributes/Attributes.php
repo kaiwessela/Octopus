@@ -265,7 +265,7 @@ trait Attributes {
 				}
 			} else if($definition->type_is('custom')){
 				if(!$definition->is_alterable() && !$this->db->is_local()){
-					return;
+					continue;
 				}
 
 				try {
@@ -278,7 +278,7 @@ trait Attributes {
 			} else if($definition->class_is(Collection::class)){
 				// TODO
 			} else if($definition->supclass_is(StaticObject::class)){
-				$result[$name} = $this->$name?->export();
+				$result[$name] = $this->$name?->export();
 			} else if($definition->supclass_is(Entity::class)){
 				if($definition->is_alterable()){
 					$result[$name] = $this->$name?->id;

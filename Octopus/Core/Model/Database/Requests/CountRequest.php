@@ -18,7 +18,7 @@ class CountRequest extends Request {
 
 
 	protected function resolve() : void {
-		$this->cycle->step('resolve');
+		$this->flow->step('resolve');
 
 		$this->query = "SELECT COUNT(*) AS 'total' FROM {$this->table}".PHP_EOL;
 

@@ -64,10 +64,10 @@ abstract class EntityList {
 
 		foreach(static::ENTITY_CLASS::get_attribute_definitions() as $name => $definition){
 			if($definition->supclass_is(Entity::class)){
-				$cls = $definition->get_class()
+				$cls = $definition->get_class();
 				$request->add_join($cls::join(on:$definition)); # join entity attributes
 			} else if(!$definition->supclass_is(RelationshipList::class)){ # relationship lists are not joined
-				$request->add_property($definition); # add all other attributes as columns
+				$request->add_attribute($definition); # add all other attributes as columns
 			}
 		}
 
@@ -109,10 +109,10 @@ abstract class EntityList {
 
 		foreach(static::ENTITY_CLASS::get_attribute_definitions() as $name => $definition){
 			if($definition->supclass_is(Entity::class)){
-				$cls = $definition->get_class()
+				$cls = $definition->get_class();
 				$request->add_join($cls::join(on:$definition)); # join entity attributes
 			} else if(!$definition->supclass_is(RelationshipList::class)){ # relationship lists are not joined
-				$request->add_property($definition); # add all other attributes as columns
+				$request->add_attribute($definition); # add all other attributes as columns
 			}
 		}
 

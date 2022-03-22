@@ -130,7 +130,7 @@ abstract class RelationshipList {
 		$request = new JoinRequest(static::RELATION_CLASS::DB_TABLE, $identifier, $on);
 
 		foreach($columns as $column){
-			$request->add_property($column);
+			$request->add_attribute($column);
 		}
 
 		$request->add_join($join->get_class()::join(on:$join));

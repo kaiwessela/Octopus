@@ -13,11 +13,11 @@ class InsertRequest extends Request {
 
 
 	protected function resolve() : void {
-		$this->cycle->step('resolve');
+		$this->flow->step('resolve');
 
 		$columns = [];
-		foreach($this->properties as $property){
-			$columns[] = "	{$property->get_db_column()} => :{$property->get_name()}";
+		foreach($this->attributes as $attribute){
+			$columns[] = "	{$attribute->get_db_column()} => :{$attribute->get_name()}";
 		}
 
 		$this->query = "INSERT INTO {$this->table} SET".PHP_EOL;

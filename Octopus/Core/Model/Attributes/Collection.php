@@ -1,4 +1,12 @@
-<?php // CODE --, COMMENTS --, IMPORTS --
+<?php
+namespace Octopus\Core\Model\Attributes;
+
+class Collection {
+	
+}
+?>
+
+<?php /* // CODE --, COMMENTS --, IMPORTS --
 namespace Blog\Core\Model;
 
 class DataObjectCollection {
@@ -20,7 +28,7 @@ $objectlists = [
 	*type => DataObjectList
 ]
 
-*/
+*//*
 
 
 	function __construct(?array $idlists) {
@@ -105,4 +113,5 @@ $objectlists = [
 
 
 }
+*/
 ?>

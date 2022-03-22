@@ -13,7 +13,7 @@ mkdir build
 cp -r admin/. build/admin
 cp -r api/. build/api
 cp -r astronauth/. build/astronauth
-cp -r Blog/. build/Blog
+cp -r Octopus/. build/Octopus
 cp -r media/. build/media
 cp -r resources/. build/resources
 cp -r templates/. build/templates
@@ -21,6 +21,9 @@ cp -r vendor/. build/vendor
 cp -r .htaccess build
 cp -r index.php build
 cp -r routes.php build
+
+# TEMP
+cp -r test/. build/test
 
 rm -rf /srv/http/octopus
 mkdir /srv/http/octopus

@@ -22,6 +22,6 @@
 		</div>
 	</div>
 	<div class="logo">
-		<?= $site->title ?>
+		Kai Florian Wessela
 	</div>
 </footer>

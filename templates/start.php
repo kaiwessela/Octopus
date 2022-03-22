@@ -12,7 +12,7 @@
 			</section>
 			<section>
 				<h2>Neueste Posts</h2>
-				<?php $Post->each(function($post) use ($server) { include 'components/preview-post.php'; }); ?>
+				<?php $Posts->each(function($post) use ($server) { include 'components/preview-post.php'; }); ?>
 			</section>
 		</main>
 		<?php include 'components/footer.php'; ?>

@@ -25,3 +25,42 @@ string | $PathPattern | $Wildcard | $RegEx => [
 		~
 	]
 ]
+
+
+
+NEW:
+
+	objects ?=> [
+		string (name) => [
+			class => string | $Substitution
+		]
+	]
+
+
+NEW (Octopus):
+
+METHOD = GET|POST|PUT|DELETE|*
+URL = string|PATHPATTERN|WILDCARD|REGEX
+
+'METHOD URL' => [
+	?template => string
+	?entities => [
+		string (name) => [
+			class => string|SUBSTITUTION
+
+			(for default EntityController)
+			action => list|show|edit|delete|new
+
+			(if action==show|edit|delete)
+			?identify_by => string
+			identifier => string|SUBSTITUTION
+
+			(if action==list OR action==show and the entity has relationships)
+			?amount => int|SUBSTITUTION
+			?page => int|SUBSTITUTION (ignored if amount is not set)
+		]
+	]
+	?controllers => [
+
+	]
+]

@@ -1,21 +1,16 @@
 <?php
-session_start();
-
 require_once __DIR__ . '/Octopus/autoloader.php';
 require_once __DIR__ . '/vendor/kaiwessela/astronauth/autoloader.php';
 require_once __DIR__ . '/vendor/kaiwessela/parsedownforblog/autoloader.php';
 
-$endpoint = new \Octopus\Controller\Endpoint(__DIR__.'/templates');
-$endpoint->route(require __DIR__.'/routes.php');
-$endpoint->prepare();
+$endpoint = new \Octopus\Core\Controller\Endpoint();
+
+$endpoint->get_response()->set_templates([
+	404 => '404',
+	4 => 'error',
+	5 => 'error'
+]);
+
 $endpoint->execute();
-
-if($endpoint->response->code == 404){
-	$endpoint->template = '404';
-} else if($endpoint->response->code >= 400){
-	$endpoint->template = 'error';
-}
-
-$endpoint->send();
 
 ?>

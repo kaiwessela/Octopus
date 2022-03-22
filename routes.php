@@ -1,80 +1,84 @@
 <?php
 return [
-	'/' => [
+	'GET /' => [
 		'template' => 'start',
-		'objects' => [
-			'Post' => [
+		'entities' => [
+			'Posts' => [
+				'class' => 'Post',
 				'action' => 'list',
 				'amount' => 5
 			],
-			'Event' => [
+			'Events' => [
+				'class' => 'Event',
 				'action' => 'list',
 				'amount' => 5
 			]
 		]
 	],
-	'posts/#?' => [
+	'GET /posts' => [
 		'template' => 'posts',
-		'objects' => [
-			'Post' => [
+		'entities' => [
+			'Posts' => [
+				'class' => 'Post',
 				'action' => 'list',
 				'amount' => 10,
-				'page' => '/2',
-				'options' => [
-					'pagination' => 'posts/{page}'
-				]
+				'page' => '?page|1'
 			]
 		]
 	],
-	'posts/*{9,}' => [
+	'GET /posts/*' => [
 		'template' => 'post',
-		'objects' => [
+		'entities' => [
 			'Post' => [
-				'action' => 'show',
-				'identifier' => '/2'
-			]
-		]
-	],
-	'columns/*{9,}/#?' => [
-		'template' => 'column',
-		'objects' => [
-			'Column' => [
+				'class' => 'Post',
 				'action' => 'show',
 				'identifier' => '/2',
-				'amount' => 10,
-				'page' => '/3',
-				'options' => [
-					'pagination' => 'columns/{/2}/{page}'
-				]
+				'identify_by' => 'longid'
 			]
 		]
 	],
-	'events/#?' => [
+	'GET /columns/*/#?' => [
+		'template' => 'column',
+		'entities' => [
+			'Column' => [
+				'class' => 'Column',
+				'action' => 'show',
+				'identifier' => '/2',
+				'identify_by' => 'longid',
+				'amount' => 10,
+				'page' => '/3'
+			]
+		]
+	],
+	'GET /events/#?' => [
 		'template' => 'events',
-		'objects' => [
-			'Event' => [
+		'entities' => [
+			'Events' => [
+				'class' => 'Event',
 				'action' => 'list',
 				'amount' => 10,
-				'page' => '/2',
-				'options' => ['future']
+				'page' => '/2'
 			]
 		]
 	],
-	'p/*{8}' => [
+	'GET /p/*' => [
 		'template' => 'post',
-		'objects' => [
+		'entities' => [
 			'Post' => [
+				'class' => 'Post',
 				'action' => 'show',
 				'identifier' => '/2'
 			]
 		]
 	],
-	'?' => [
+	'GET /**' => [
 		'template' => 'page',
-		'objects' => [
+		'entities' => [
 			'Page' => [
+				'class' => 'Page',
 				'action' => 'show',
-				'identifier' => '/1'
+				'identifier' => '/1+',
+				'identify_by' => 'longid'
 			]
 		]
 	]

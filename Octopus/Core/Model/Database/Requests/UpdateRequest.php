@@ -22,7 +22,7 @@ class UpdateRequest extends Request {
 
 		$columns = [];
 		foreach($this->attributes as $attribute){
-			$columns[] = "	{$attribute->get_db_column()} => :{$attribute->get_name()}";
+			$columns[] = "	{$attribute->get_db_column()} = :{$attribute->get_name()}";
 		}
 
 		$this->query = "UPDATE {$this->table} SET".PHP_EOL;

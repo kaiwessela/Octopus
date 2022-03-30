@@ -19,7 +19,7 @@ class AttributeNotAlterableException extends AttributeValueException {
 
 	function __construct(AttributeDefinition $definition, Entity|Relationship $object, mixed $value) {
 		$this->definition = $definition;
-		$this->name = $this->definition->name;
+		$this->name = $this->definition->get_name();
 		$this->value = $value;
 
 		$this->object = $object;
@@ -27,7 +27,7 @@ class AttributeNotAlterableException extends AttributeValueException {
 		$this->message = "The attribute «{$this->name}» cannot be set to the value «"
 			. var_dump($this->value)
 			. "» because the attribute is not alterable. Current value: «"
-			. var_dump($this->object->{$this->definition->name})
+			. var_dump($this->object->{$this->definition->get_name()})
 			. "».";
 	}
 }

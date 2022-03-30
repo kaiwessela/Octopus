@@ -15,11 +15,11 @@ class EntityNotFoundException extends AttributeValueException {
 
 	function __construct(AttributeDefinition $definition, string $identifier) {
 		$this->definition = $definition;
-		$this->name = $this->definition->name;
+		$this->name = $this->definition->get_name();
 		$this->value = $identifier;
 
 		$this->message = "An attempt to set the attribute «{$this->name}» to an object of the class "
-			. "«{$this->definition->class}» failed because no object of this class with the identifier "
+			. "«{$this->definition->get_class()}» failed because no object of this class with the identifier "
 			. "«{$this->value}» could be found.";
 	}
 }

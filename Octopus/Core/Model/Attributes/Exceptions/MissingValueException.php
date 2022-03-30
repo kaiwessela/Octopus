@@ -15,7 +15,7 @@ class MissingValueException extends AttributeValueException {
 
 	function __construct(AttributeDefinition $definition) {
 		$this->definition = $definition;
-		$this->name = $this->definition->name;
+		$this->name = $this->definition->get_name();
 		$this->value = null;
 
 		$this->message = "An attempt to set the attribute «{$this->name}» to an empty value failed "

@@ -12,8 +12,8 @@ class CountRequest extends Request {
 	function __construct(SelectRequest $request) {
 		parent::__construct($request->table);
 
-		$this->joins = $request->joins;
-		$this->condition = $request->condition;
+		$this->joins = $request->get_joins();
+		$this->condition = $request->get_condition();
 	}
 
 

@@ -67,6 +67,10 @@ abstract class RelationshipList {
 		$this->flow->check_step('loaded');
 
 		foreach($data as $row){
+			if(is_null($row[static::RELATION_CLASS::get_attribute_definitions()['id']->get_prefixed_db_column()])){
+				continue;
+			}
+
 			$cls = static::RELATION_CLASS;
 			$relationship = new $cls($this->context); # initialize a new instance of this relationship class
 			$relationship->load($row); # load the relationship
@@ -279,8 +283,6 @@ abstract class RelationshipList {
 
 		$this->flow->step('freezing');
 
-		$this->db->disable();
-
 		foreach($this->relationships as $index => $_){
 			$this->relationships[$index]->freeze();
 		}
@@ -298,8 +300,6 @@ abstract class RelationshipList {
 		}
 
 		$this->flow->step('freezing');
-
-		$this->db->disable();
 
 		$result = [];
 		foreach($this->relationships as $relation){

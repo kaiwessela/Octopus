@@ -147,7 +147,7 @@ abstract class Relationship {
 		# basically the same procedure as in Entity::load(), but shorter
 		foreach(static::$attributes as $name => $definition){
 			if($definition->type_is('primitive') || $definition->type_is('identifier')){
-				$this->$name = $data[$definition->get_db_column()]; # for primitives and identifiers just copy the value
+				$this->$name = $data[$definition->get_prefixed_db_column()]; # for primitives and identifiers just copy the value
 
 			} else if($definition->supclass_is(Entity::class)){
 				if(isset($this->$name)){ # if the entity is alredy set, it is the context entity, so skip loading it

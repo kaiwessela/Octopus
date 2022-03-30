@@ -9,7 +9,7 @@ use Exception;
 # the methods can be called.
 # A Flow consists of a set of points on which the instance can be situated. These points then are connected by steps
 # that are allowed ("From point A, it is allowed to step to point B or C").
-# That means, a Flow can be considered as a graph.
+# That means a Flow can be considered as a graph.
 # When a method is called, the first thing that should be checked is whether it is allowed right now to do that step
 # (using the Flow’s check_step() method). After the method was executed, the current point can be reset (using step()).
 # The first point must always be "root". All other points can be named freely (the name must be a string).
@@ -96,8 +96,13 @@ class Flow {
 	public function check_step(string $stadium, ?bool $exception = true) : bool {
 		$valid = false;
 
-		# check whether the proposed step is defined in $this->flow
-		if(in_array($stadium, $this->flow[$this->stadium])){
+		if(!isset($this->flow[$this->stadium])){ # this occurs when the flow reached a final stadium
+			$valid = false;
+		} else { # check whether the proposed step is defined in $this->flow
+			$valid = in_array($stadium, $this->flow[$this->stadium]);
+		}
+
+		if($valid){
 			return true;
 		} else if($exception){ # the step is not allowed. if an exception is expected, throw it, otherwise return false
 			throw new OutOfFlowException($this->stadium, $stadium);

@@ -222,7 +222,7 @@ class AttributeDefinition {
 	}
 
 
-	public function get_db_column() : string {
+	public function get_db_column() : ?string {
 		return $this->db_column;
 	}
 

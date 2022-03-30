@@ -65,7 +65,7 @@ trait Attributes {
 	final public function edit_attribute(string $name, mixed $input) : void {
 		$this->flow->check_step('edited');
 
-		if(empty($definition = self::$attributes[$name])){
+		if(empty($definition = static::$attributes[$name])){
 			throw new Exception("No AttributeDefinition found for attribute »{$name}«.");
 		}
 

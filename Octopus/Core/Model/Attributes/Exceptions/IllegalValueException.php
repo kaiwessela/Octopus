@@ -15,7 +15,7 @@ class IllegalValueException extends AttributeValueException {
 
 	function __construct(AttributeDefinition $definition, mixed $value, string $message = '') {
 		$this->definition = $definition;
-		$this->name = $this->definition->name;
+		$this->name = $this->definition->get_name();
 		$this->value = $value;
 
 		$this->message = "An attempt to set the attribute «{$this->name}» to the value «"

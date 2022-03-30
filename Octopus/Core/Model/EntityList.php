@@ -83,12 +83,14 @@ abstract class EntityList {
 			throw new DatabaseException($e, $s);
 		}
 
+		$this->pull_request = $request; # the pull request might be needed later for count requests
+		$this->load($s->fetchAll()); // see next FIXME: this used to be below the RowCount
+
 		if($s->rowCount() === 0){
+			// FIXME this is a hotfix. maybe not even throw an exception
 			throw new EmptyResultException($s);
 		}
 
-		$this->pull_request = $request; # the pull request might be needed later for count requests
-		$this->load($s->fetchAll());
 	}
 
 

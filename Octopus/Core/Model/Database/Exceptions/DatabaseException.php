@@ -18,10 +18,10 @@ class DatabaseException extends Exception {
 		$this->exception = $exception;
 		$this->request = $request;
 		$this->query = $request?->queryString;
-		$this->error_code = $request->errorCode();
-		$this->error_info = $request->errorInfo();
+		$this->error_code = $request?->errorCode() ?? '(unknown code)';
+		$this->error_info = $request?->errorInfo();
 
-		parent::__construct("Database Exception - [{$this->error_code}]: " . implode('; ', $this->error_info) . '.');
+		parent::__construct("Database Exception - [{$this->error_code}]: " . implode('; ', $this->error_info ?? []) . '.');
 	}
 
 

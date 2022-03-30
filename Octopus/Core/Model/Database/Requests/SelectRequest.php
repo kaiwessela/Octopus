@@ -115,6 +115,11 @@ class SelectRequest extends Request {
 	}
 
 
+	public function get_joins() : array { // FIXME this is a hotfix for CountRequest
+		return $this->joins;
+	}
+
+
 	protected function validate_condition(?Condition $condition) : void {
 		/*
 		if(is_subclass_of($this->object_class, DataObject::class)){

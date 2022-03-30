@@ -13,8 +13,8 @@ class AttributeValueException extends Exception {
 
 
 	function __construct(AttributeDefinition $definition, string $message, mixed $value = null) {
-		$this->definition = $definition
-		$this->name = $this->definition->name;
+		$this->definition = $definition;
+		$this->name = $this->definition->get_name();
 		$this->value = $value;
 
 		if($this->definition->type_is('custom')){

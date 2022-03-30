@@ -74,10 +74,15 @@ abstract class Request {
 	}
 
 
+	final public function get_condition() : ?Condition { // FIXME this is a hotfix for CountRequest
+		return $this->condition;
+	}
 
 
 
-	abstract protected function validate_condition(?Condition $condition) : void;
+
+
+	protected function validate_condition(?Condition $condition) : void {}
 
 	public function set_condition(?Condition $condition) : void {
 		$this->validate_condition($condition);

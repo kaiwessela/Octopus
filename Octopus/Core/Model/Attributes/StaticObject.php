@@ -6,24 +6,22 @@ abstract class StaticObject {
 	protected Entity $context;
 	protected AttributeDefinition $definition;
 
+	// TODO check
 
-	function __construct(Entity &$context, AttributeDefinition $definition, mixed $data) {
+
+	function __construct(Entity &$context, AttributeDefinition $definition) {
 		$this->context = $context;
 		$this->definition = $definition;
-
-		if(!is_null($data)){
-			$this->init($data);
-		}
 	}
 
 
 	final protected function check_edit() : void {
-		$this->context->edit_attribute($definition->get_name(), $definition); # pass definition to signal a dry run
+		$this->context->edit_attribute($this->definition->get_name(), $this->definition); # pass definition to signal a dry run
 	}
 
 
-	abstract protected function init(mixed $data) : void;
-	abstract public function edit(mixed $value) : void;
+	abstract public function load(mixed $data) : void;
+	abstract public function edit(mixed $data) : void;
 	abstract public function export() : mixed;
 	abstract public function arrayify() : mixed;
 }

@@ -269,7 +269,8 @@ abstract class Entity {
 				}
 
 				$cls = $definition->get_class();
-				$this->$name = new $cls($this, $definition, $row[$definition->get_prefixed_db_column()]);
+				$this->$name = new $cls($this, $definition);
+				$this->$name->load($row[$definition->get_prefixed_db_column()]);
 
 			} else if($definition->supclass_is(Entity::class)){
 				# check whether an entity was referenced by checking the column referring to the entity
@@ -380,17 +381,18 @@ abstract class Entity {
 		# this entity references them (then before) or they reference this entity (then after)
 		# naturally, a database record can only be referenced if it already exists
 		$push_later = [];
-		foreach(static::$attributes as $name => $definition){
-			# if this is local, all attributes are included, otherwise only the alterable ones
-			if($request !== false && ($definition->is_alterable() || $this->db->is_local())){
-				$request->add_attribute($definition);
-			}
-
+		foreach(static::$attributes as $name => $definition){ // FIXME no side-effects
 			if($definition->supclass_is(Entity::class)){
 				# single entities are pushed before, so this entity can then reference them in the db
 				$this->$name?->push();
 			} else if($definition->supclass_is(RelationshipList::class)){
 				$push_later[] = $name; # relationship lists are pushed after, as they reference this entity
+				continue;
+			}
+
+			# if this is local, all attributes are included, otherwise only the alterable ones
+			if($request !== false && ($definition->is_alterable() || $this->db->is_local())){
+				$request->add_attribute($definition);
 			}
 		}
 
@@ -495,6 +497,33 @@ abstract class Entity {
 		$this->flow->step('frozen'); # finish the freezing process
 
 		return $result;
+	}
+
+
+	### GENERAL METHODS
+
+	// TODO explaination
+	final public static function has_relationships() : bool {
+		foreach(static::get_attribute_definitions() as $definition){
+			if($definition->supclass_is(RelationshipList::class)){
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	final public function get_relationships() : ?RelationshipList {
+		// TODO check flow state
+
+		foreach(static::get_attribute_definitions() as $attribute => $definition){
+			if($definition->supclass_is(RelationshipList::class)){
+				return $this->$attribute;
+			}
+		}
+
+		return null;
 	}
 }
 ?>

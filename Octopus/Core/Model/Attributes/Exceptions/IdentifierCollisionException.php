@@ -19,10 +19,10 @@ class IdentifierCollisionException extends AttributeValueException {
 
 	function __construct(AttributeDefinition $definition, Entity|Relationship $existing) {
 		$this->definition = $definition;
-		$this->name = $this->definition->name;
+		$this->name = $this->definition->get_name();
 
 		$this->existing = $existing;
-		$this->value = $this->existing->{$this->definition->name};
+		$this->value = $this->existing->{$this->definition->get_name()};
 
 		$this->message = "An attempt to set the identifier «{$this->name}» to the value «{$this->value}» "
 			. 'failed because that value is already used as identifier on another entity.';

@@ -1,10 +1,10 @@
 <div class="pagination">
 	<?php
-	foreach($pagination->items as $page){
+	$pagination->pages(function($page){
 		if(!$page->is_first() && !$page->is_last()
 			&& ($page->distance_to_current() > 3 && $page->distance_to_current() != 10)){
 
-			continue;
+			return;
 		}
 
 		if($page->is_first()){
@@ -26,6 +26,6 @@
 			<?= $page->number ?>
 		</a>
 		<?php
-	}
+	});
 	?>
 </div>

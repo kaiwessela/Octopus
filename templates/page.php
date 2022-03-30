@@ -2,7 +2,7 @@
 <html lang="de">
 	<head>
 		<?php include 'components/head.php'; ?>
-		<title><?= $Page->title ?> – Kai Florian Wessela</title>
+		<title><?= $Page->title ?> – <?= $title ?></title>
 	</head>
 	<body>
 		<?php include 'components/header.php'; ?>

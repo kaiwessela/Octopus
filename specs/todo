@@ -6,6 +6,9 @@ Model:
 - Kollisionstests (Einzigartigkeit) für Relationships
 - Flow und Edit Control für StaticObjects
 
+- Neuorganisation von Relationship-Joins (alle/keine/limit usw.)
+- RelationshipList direkt pullen
+
 
 
 BUGS:
@@ -13,24 +16,11 @@ BUGS:
 
 
 PLANNED CHANGES:
-- new SiteConfig (or no SiteConfig at all)
 - remove subline from Post
-
-- make endpoint (or Request, Response ...) accessible for templates
-
-- include Endpoint.send() into Response.send()
-- Controller status (error) handling (fully / customizable)
-
-- Endpoint template handling and checking
 
 - new/better auth/permission system
 
-- get rid of MediaController
-- reorganize image resizing: allow custom options for the import/edit function
-
 - remove and reorganize Config::SERVER_URL
-
-- reorganize alias/as in routes
 
 - update Post content lengths
 

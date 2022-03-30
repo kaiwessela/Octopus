@@ -2,7 +2,7 @@
 <html lang="de">
 	<head>
 		<?php include 'components/head.php'; ?>
-		<title><?= $Post->headline ?> – <?= $site->title ?></title>
+		<title><?= $Post->headline ?> – <?= $title ?></title>
 		<link rel="canonical" href="<?= $server->url ?>/posts/<?= $Post->longid ?>">
 		<meta name="author" content="<?= $Post->author ?>">
 		<meta name="description" content="<?= $Post->teaser ?>">

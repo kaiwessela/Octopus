@@ -1,5 +1,5 @@
 <header class="open notransition">
-	<span class="logo" role="banner">Kai Florian Wessela</span>
+	<span class="logo" role="banner"><?= $title ?></span>
 	<nav>
 		<ul>
 			<a href="<?= $server->url ?>/"><li>Startseite</li></a>

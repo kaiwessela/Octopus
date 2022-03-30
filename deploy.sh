@@ -10,7 +10,8 @@ fi
 rm -rf build
 mkdir build
 
-cp -r admin/. build/admin
+cp -r admin/. build/admin-old
+cp -r admin-new/. build/admin
 cp -r api/. build/api
 cp -r astronauth/. build/astronauth
 cp -r Octopus/. build/Octopus

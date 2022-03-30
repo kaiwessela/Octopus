@@ -12,8 +12,8 @@
 		<h3><span><?= $post->headline ?></span></h3>
 		<p class="subline"><?= $post->subline ?></p>
 		<p class="teaser">
-			<time datetime="<?= $post->timestamp->iso() ?>">
-				<?= $post->timestamp->format('date') ?> –
+			<time datetime="<?= $post->timestamp->to_w3c() ?>">
+				<?= $post->timestamp->format('dd. MMMM yyyy') ?> –
 			</time>
 			<?= $post->teaser ?>
 		</p>

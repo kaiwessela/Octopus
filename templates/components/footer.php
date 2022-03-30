@@ -21,7 +21,5 @@
 			<p>Alle Inhalte unter Creative Commons, <br>sofern nicht anders angegeben</p>
 		</div>
 	</div>
-	<div class="logo">
-		Kai Florian Wessela
-	</div>
+	<div class="logo"><?= $title ?></div>
 </footer>

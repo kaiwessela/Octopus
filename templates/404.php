@@ -2,7 +2,7 @@
 <html lang="de">
 	<head>
 		<?php include 'components/head.php'; ?>
-		<title>Fehler 404 – <?= $site->title ?></title>
+		<title>Fehler 404 – <?= $title ?></title>
 	</head>
 	<body>
 		<?php include 'components/header.php'; ?>

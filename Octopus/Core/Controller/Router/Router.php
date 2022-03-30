@@ -10,6 +10,7 @@ use \Exception;
 
 class Router {
 	private array $routes;
+	private array $module_config;
 
 
 	public function load_routes(string|array $path_or_routes) : void {
@@ -17,6 +18,15 @@ class Router {
 			$this->routes = ConfigLoader::read($path_or_routes);
 		} else {
 			$this->routes = $path_or_routes;
+		}
+	}
+
+
+	public function load_module_config(string|array $path_or_modules) : void {
+		if(is_string($path_or_modules)){
+			$this->module_config = ConfigLoader::read($path_or_modules);
+		} else {
+			$this->module_config = $path_or_modules;
 		}
 	}
 
@@ -65,16 +75,47 @@ class Router {
 
 		$controller_calls = [];
 
+		$has_entity_controller = false;
+
 		foreach($route['controllers'] ?? [] as $name => $preferences){
-			$call = new ControllerCall($request);
+			$call = new ControllerCall($request, $this->module_config);
 			$call->load_controller($name, $preferences);
 			$controller_calls[] = $call;
 		}
 
 		foreach($route['entities'] ?? [] as $name => $preferences){
-			$call = new ControllerCall($request);
+			$has_entity_controller = true;
+			$call = new ControllerCall($request, $this->module_config);
 			$call->load_entity($name, $preferences);
 			$controller_calls[] = $call;
+		}
+
+		$primary_found = false;
+		$essential_found = false;
+		foreach($controller_calls as $call){
+			if($call->get_importance() === 'primary'){
+				if($primary_found === true){
+					throw new ControllerException(500, 'there can only be one primary controller');
+				}
+
+				$primary_found = true;
+			} else if($call->get_importance() === 'essential'){
+				$essential_found = true;
+			}
+		}
+
+		if($essential_found === true && $primary_found === false){
+			foreach($controller_calls as $call){
+				if($has_entity_controller === true){
+					if($call->is_entity_controller()){
+						$call->set_importance('primary');
+						break;
+					}
+				} else {
+					$call->set_importance('primary');
+					break;
+				}
+			}
 		}
 
 		return $controller_calls;

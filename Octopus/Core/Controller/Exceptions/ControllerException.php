@@ -10,5 +10,10 @@ class ControllerException extends Exception {
 
 		$this->status_code = $code;
 	}
+
+
+	public function get_status_code() : int {
+		return $this->status_code;
+	}
 }
 ?>

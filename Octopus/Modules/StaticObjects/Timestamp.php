@@ -1,7 +1,10 @@
 <?php
 namespace Octopus\Modules\StaticObjects;
 use \Octopus\Core\Model\Attributes\StaticObject;
-use DateTime;
+use \Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
+use \Octopus\Core\Config;
+use \DateTime;
+use \IntlDateFormatter;
 
 class Timestamp extends StaticObject {
 	# protected Entity $context;
@@ -9,7 +12,7 @@ class Timestamp extends StaticObject {
 	protected DateTime $datetime;
 
 
-	protected function init(mixed $data) : void {
+	public function load(mixed $data) : void {
 		$this->datetime = new DateTime($data);
 	}
 
@@ -29,45 +32,60 @@ class Timestamp extends StaticObject {
 	}
 
 
-	public function edit(mixed $value) : void {
+	public function edit(mixed $data) : void {
 		$this->check_edit();
 
-		if(is_array($value)){
-			if(isset($value['date'])){
-				if(preg_match('/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/', $value['date'], $matches)){
+		if(!isset($this->datetime)){
+			$this->datetime = new DateTime();
+		}
+
+		if(is_array($data)){
+			if(isset($data['date'])){
+				if(preg_match('/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/', $data['date'], $matches)){
 					$this->datetime->setDate($matches[1], $matches[2], $matches[3]);
 				} else {
-					throw new IllegalValueException($this->definition, $value, 'date invalid');
+					throw new IllegalValueException($this->definition, $data, 'date invalid');
 				}
 			} else {
-				throw new IllegalValueException($this->definition, $value, 'date missing');
+				throw new IllegalValueException($this->definition, $data, 'date missing');
 			}
 
-			if(isset($value['time'])){
-				if(preg_match('/^([0-9]{2}):([0-9]{2})$/', $value['time'], $matches)){
+			if(isset($data['time'])){
+				if(preg_match('/^([0-9]{2}):([0-9]{2})$/', $data['time'], $matches)){
 					$this->datetime->setTime($matches[1], $matches[2]);
 				} else {
-					throw new IllegalValueException($this->definition, $value, 'time invalid');
+					throw new IllegalValueException($this->definition, $data, 'time invalid');
 				}
 			} else {
 				$this->datetime->setTime(0, 0);
 			}
-		} else if(is_numeric($value)){
-			$this->datetime->setTimestamp((int) $value);
-		} else if(is_string($value)){
-			if(!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}(:[0-9]{2})?$/', $value)){
-				throw new IllegalValueException($this->definition, $value, 'invalid datetime format');
+		} else if(is_numeric($data)){
+			$this->datetime->setTimestamp((int) $data);
+		} else if(is_string($data)){
+			if(!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}(:[0-9]{2})?$/', $data)){
+				throw new IllegalValueException($this->definition, $data, 'invalid datetime format');
 			}
 
-			$this->datetime = new DateTime($value);
+			$this->datetime = new DateTime($data);
 		} else {
-			throw new IllegalValueException($this->definition, $value, 'invalid format');
+			throw new IllegalValueException($this->definition, $data, 'invalid format');
 		}
 	}
 
 
 	public function format(string $format) : string {
-		return $this->datetime->format($format);
+		$formatter = new IntlDateFormatter( // TEMP TESTING
+			'de', // Config::get('Server.lang'),
+			IntlDateFormatter::FULL,
+			IntlDateFormatter::FULL,
+			null,
+			null,
+			$format
+		);
+
+		return $formatter->format($this->datetime);
+
+		// return $this->datetime->format($format);
 	}
 
 

@@ -13,7 +13,7 @@ class ConfigLoader {
 		}
 
 		if(!is_file($real_path) || !is_readable($real_path)){
-			throw new controllerException(500, "File not readable or is not a file: «{$real_path}».");
+			throw new ControllerException(500, "File not readable or is not a file: «{$real_path}».");
 		}
 
 		if(!str_starts_with($real_path, static::get_document_root())){

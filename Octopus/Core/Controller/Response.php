@@ -66,7 +66,7 @@ class Response {
 		$path = realpath($this->template_dir . DIRECTORY_SEPARATOR . trim($template, DIRECTORY_SEPARATOR) . '.php');
 
 		if($path === false){
-			throw new ControllerException(500, "Template not found: «{$path}».");
+			throw new ControllerException(500, "Template not found: «{$template}».");
 		} else if(!is_file($path) || !is_readable($path)){
 			throw new ControllerException(500, "Template is not a file or not readable: «{$path}».");
 		}
@@ -117,8 +117,32 @@ class Response {
 	}
 
 
-	public function include_template(string $name) : void {
-		
+	public function include_template(string $template) : void { // IDEA
+		if(is_null($this->template_dir)){
+			throw new ControllerException(500, "Template directory not set, but must be set before including.");
+		}
+
+		$path = realpath($this->template_dir . DIRECTORY_SEPARATOR . trim($template, DIRECTORY_SEPARATOR) . '.php');
+
+		if($path === false){
+			throw new ControllerException(500, "Template not found: «{$path}».");
+		} else if(!is_file($path) || !is_readable($path)){
+			throw new ControllerException(500, "Template is not a file or not readable: «{$path}».");
+		}
+
+		$include = function($tmp, $env){
+			foreach($env as $var => &$value){
+				$$var = &$value;
+			}
+
+			unset($env);
+			unset($var);
+			unset($value);
+
+			require $tmp;
+		};
+
+		$include($template, $environment);
 	}
 
 

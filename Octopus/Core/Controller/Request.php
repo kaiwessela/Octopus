@@ -51,6 +51,11 @@ class Request {
 		return $this->path;
 	}
 
+
+	public function get_path_segments() : array {
+		return explode('/', $this->get_path() ?? '') ?? [];
+	}
+
 	public function get_path_segment(int $segment) : ?string {
 		if($segment < 1){
 			return null;
@@ -73,12 +78,16 @@ class Request {
 		return $this->virtual_path;
 	}
 
+	public function get_virtual_path_segments() : array {
+		return explode('/', $this->get_virtual_path() ?? '') ?? [];
+	}
+
 	public function get_virtual_path_segment(int $segment) : ?string {
 		if($segment < 1){
 			return null;
 		}
 
-		$result = explode('/', $this->get_virtual_path(), $segment+2)[$segment]; // TODO check all these
+		$result = explode('/', $this->get_virtual_path(), $segment+2)[$segment-1]; // TODO check all these
 		return empty($result) ? null : $result;
 	}
 
@@ -107,6 +116,10 @@ class Request {
 		return $this->method;
 	}
 
+	public function method_is(string $method) : bool {
+		return $this->method === $method;
+	}
+
 	public function get_content_type() : ?string {
 		return $this->content_type;
 	}
@@ -116,6 +129,12 @@ class Request {
 		$port = ($this->get_port() === 80 || $this->get_port() === 443) ? '' : ":{$this->get_port()}";
 
 		return "{$protocol}://{$this->get_host()}{$port}";
+	}
+
+
+	// TEMP
+	public function get_post_data() : array {
+		return $_POST;
 	}
 }
 ?>

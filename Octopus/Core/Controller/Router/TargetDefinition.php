@@ -4,32 +4,53 @@ use \Octopus\Core\Controller\Request;
 use \Octopus\Core\Controller\Exceptions\ControllerException;
 
 class TargetDefinition {
-	private string $method;
+	private ?array $methods;
 	private string $path;
 
 
 	function __construct(string $subject) {
-		list($method, $path) = explode(' ', $subject, 2);
-
-		if($method !== '*' && !in_array($method, self::HTTP_METHODS)){
-			throw new ControllerException(500, "Invalid method «{$method}» on route «{$subject}».");
-		}
+		list($methods, $path) = explode(' ', $subject, 2);
 
 		if(!is_string($path) || $path === ''){
 			throw new ControllerException(500, "Invalid path «{$path}» on route «{$subject}» (no string or empty).");
 		}
 
-		$this->method = $method;
 		$this->path = $path;
+
+		if($methods === '*'){
+			$this->methods = null;
+		} else {
+			$this->methods = [];
+		}
+
+		$method_list = explode('|', $methods);
+
+		if(empty($method_list)){
+			throw new ControllerException(500, "Methods invalid on route «{$subject}».");
+		}
+
+		foreach($method_list as $method){
+			if(in_array($method, self::HTTP_METHODS)){
+				$this->methods[] = $method;
+			} else {
+				throw new ControllerException(500, "Invalid method «{$method}» on route «{$subject}».");
+			}
+		}
 	}
 
 
 	public function match_method(Request $request) : bool {
-		if($this->method === '*'){
+		if($this->methods === null){
 			return true;
-		} else {
-			return $this->method === $request->get_method();
 		}
+
+		foreach($this->methods as $method){
+			if($method === $request->get_method()){
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 

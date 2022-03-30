@@ -12,7 +12,7 @@ class MarkdownText extends StaticObject {
 	protected ?string $parsed;
 
 
-	protected function init(mixed $data) : void {
+	public function load(mixed $data) : void {
 		$this->raw = $data;
 	}
 
@@ -35,10 +35,10 @@ class MarkdownText extends StaticObject {
 	}
 
 
-	public function edit(mixed $value) : void {
+	public function edit(mixed $data) : void {
 		$this->check_edit();
 
-		$this->raw = $value;
+		$this->raw = $data;
 	}
 
 

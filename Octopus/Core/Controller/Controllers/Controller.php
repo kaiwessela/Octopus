@@ -4,26 +4,32 @@ use \Octopus\Core\Controller\Request;
 use \Octopus\Core\Controller\Router\ControllerCall;
 
 abstract class Controller {
-	protected string $importance; # main | essential | auxiliary
-	protected int $status;
+	protected string $importance; # primary | essential | accessory
+	protected int $status_code;
 
 
-	function __construct() {
-		$this->status = 0;
+	function __construct(string $importance) {
+		$this->importance = $importance;
+		$this->status_code = 0;
 	}
 
 
 	abstract public function load(Request &$request, ControllerCall $call) : void;
 
 
-	abstract public function execute() : void;
+	abstract public function execute(Request &$request) : void;
 
 
 	abstract public function finish() : void;
 
 
-	final public function get_status() : int {
-		return $this->status;
+	final public function get_importance() : string {
+		return $this->importance;
+	}
+
+
+	final public function get_status_code() : int {
+		return $this->status_code;
 	}
 }
 ?>

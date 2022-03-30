@@ -1,10 +1,11 @@
 <?php
 namespace Octopus\Core\Controller\Router;
 use \Octopus\Core\Controller\Request;
+use \Octopus\Core\Controller\Exceptions\ControllerException;
 
 class URLSubstitution {
 
-	public static function replace(string|array $subject, Request $request) : mixed {
+	public static function replace(string|array $subject, Request $request, bool $force_string = false) : mixed {
 		if(is_array($subject)){
 			foreach($subject as $key => $value){
 				if(is_string($value) || is_array($value)){
@@ -28,7 +29,7 @@ class URLSubstitution {
 				if(!empty($matches[3])){
 					$replacement = $request->get_virtual_path_from_segment($matches[2]);
 				} else {
-					$replacement = $request->get_virtual_path_segment($matches[2] - 1); // TODO check this
+					$replacement = $request->get_virtual_path_segment($matches[2]); // TODO check this
 				}
 			} else if(!empty($matches[4])){
 				$replacement = $request->get_query_value($matches[4]);
@@ -36,6 +37,10 @@ class URLSubstitution {
 
 			if(empty($replacement)){
 				$replacement = empty($matches[6]) ? null : $matches[6];
+			}
+
+			if($force_string){
+				return $replacement;
 			}
 
 			if($replacement === 'true' || $replacement === 'false'){
@@ -53,6 +58,35 @@ class URLSubstitution {
 			return preg_replace_callback('/{(\/[0-9]+\+?|\?[A-Za-z0-9-_.]+)(\|[A-Za-z0-9-_.]+)?}/', function($matches){
 				return (string) static::replace($matches[1], $request);
 			}, $subject);
+		}
+	}
+
+
+	public static function backwards(array $placeholders, Request $request) : string { // TEMP TESTING
+		$segments = $request->get_path_segments();
+		$query = [];
+
+		$offset = count($segments) - count($request->get_virtual_path_segments());
+
+		foreach($placeholders as $placeholder => $substitution){
+			if(!preg_match('/^(\/([0-9]+)(\+)?|\?([A-Za-z0-9-_.]+))(\|([A-Za-z0-9-_.]+))?$/', $substitution ?? '', $matches)){
+				continue;
+			}
+
+			if(!empty($matches[2])){
+				$segments[((int) $matches[2]) + $offset] = "{{$placeholder}}";
+			} else if(!empty($matches[4])){
+				$query[] = "{$matches[4]}={{$placeholder}}";
+			}
+		}
+
+		$path = implode('/', $segments);
+		$query_string = implode('&', $query);
+
+		if($query_string === ''){
+			return $path;
+		} else {
+			return "{$path}?{$query_string}";
 		}
 	}
 }

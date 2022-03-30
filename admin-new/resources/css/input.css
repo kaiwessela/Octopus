@@ -1,0 +1,56 @@
+label .name,
+fieldset legend {
+	display: block;
+	font-weight: 500;
+}
+
+label .note {
+	font-size: 0.9rem;
+	color: #444444;
+}
+
+label .note.warning {
+	color: #cc8800;
+}
+
+label .note.error {
+	color: #cc0000;
+}
+
+fieldset {
+	padding: 0;
+	margin: 0;
+	border: none;
+}
+
+fieldset.row {
+	display: flex;
+	flex-direction: row;
+	gap: 0.5rem;
+}
+
+fieldset label .name {
+	font-weight: 400;
+	font-size: 0.9rem;
+}
+
+input,
+textarea {
+	display: block;
+	box-sizing: border-box;
+	max-width: 100%;
+	padding: 0.5rem;
+	margin-bottom: 1rem;
+	border: none;
+	font-family: 'Fira Sans';
+	font-size: 0.9rem;
+	background-color: #00000011;
+}
+
+input[type=date],
+input[type=time],
+input[type=number],
+input#id,
+input.monospace {
+	font-family: 'Fira Code';
+}

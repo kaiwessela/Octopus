@@ -1,0 +1,53 @@
+@import 'header.css';
+@import 'input.css';
+
+html {
+	font-family: 'Catamaran';
+}
+
+body {
+	display: grid;
+	grid-template-columns: [grid-] 1fr [nav-] 13rem [-nav main-] 35rem [center] 48rem [-main] 1fr [-grid];
+	grid-template-rows: [grid- header-] auto [-header main-] auto [-main footer-] auto [-footer];
+	margin: 0;
+	padding: 0;
+}
+
+header {
+	grid-column: grid- / -grid;
+	grid-row: header- / -header;
+	display: grid;
+	grid-template-columns: inherit;
+	background-color: #20202f;
+	color: #ffffff;
+}
+
+nav {
+	grid-column: nav- / -nav;
+	grid-row: main- / -main;
+	background-color: #20202f11;
+}
+
+main {
+	grid-column: main- / -side;
+	grid-row: main- / -main;
+	padding: 1rem;
+}
+
+main form {
+	display: grid;
+	grid-template-columns: [main-] 55rem [-main side-] 27rem [-side];
+	gap: 1rem;
+}
+
+main form .main {
+	grid-column: main- / -main;
+}
+
+main form .side {
+	grid-column: side- / -side;
+}
+
+footer {
+
+}

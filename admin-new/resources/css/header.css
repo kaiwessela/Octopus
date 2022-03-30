@@ -1,0 +1,15 @@
+header > .logo {
+	grid-column: nav- / -nav;
+}
+
+header > h1 {
+	grid-column: main- / center;
+}
+
+header > .editor-mode {
+	grid-column: center / -main;
+}
+
+header > .login {
+	display: none;
+}

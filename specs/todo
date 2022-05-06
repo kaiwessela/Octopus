@@ -9,6 +9,12 @@ Model:
 - Neuorganisation von Relationship-Joins (alle/keine/limit usw.)
 - RelationshipList direkt pullen
 
+- mehrere RelationshipLists für eine Entity
+
+- next und prev für Pagination
+
+- custom arrayify or add function calls to json api
+
 
 
 BUGS:

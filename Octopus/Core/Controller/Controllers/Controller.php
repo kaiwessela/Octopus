@@ -5,12 +5,12 @@ use \Octopus\Core\Controller\Router\ControllerCall;
 
 abstract class Controller {
 	protected string $importance; # primary | essential | accessory
-	protected int $status_code;
+	protected ?int $status_code;
 
 
 	function __construct(string $importance) {
 		$this->importance = $importance;
-		$this->status_code = 0;
+		$this->status_code = null;
 	}
 
 
@@ -28,7 +28,7 @@ abstract class Controller {
 	}
 
 
-	final public function get_status_code() : int {
+	final public function get_status_code() : ?int {
 		return $this->status_code;
 	}
 }

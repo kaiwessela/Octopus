@@ -57,8 +57,8 @@ class JoinRequest extends Request {
 			$this->columns[] = static::create_column_string($attribute);
 		}
 
-		$native_col = "{$this->native_attribute->get_db_table()}.{$this->native_attribute->get_db_column()}"; // TODO use shortcut
-		$foreign_col = "{$this->foreign_attribute->get_db_table()}.{$this->foreign_attribute->get_db_column()}";
+		$native_col = $this->native_attribute->get_full_db_column();
+		$foreign_col = $this->foreign_attribute->get_full_db_column();
 
 		$this->query = "LEFT JOIN {$this->table} ON {$native_col} = {$foreign_col}".PHP_EOL;
 

@@ -4,12 +4,14 @@ use \Octopus\Core\Controller\ConfigLoader;
 use \Octopus\Core\Controller\Exceptions\ControllerException;
 
 class Response {
+	private ?int $status_code;
 	private ?string $template_dir;
 	private string $content_type;
 	private array $templates;
 
 
 	function __construct() {
+		$this->status_code = null;
 		$this->template_dir = null;
 		$this->content_type = 'text/html';
 		$this->templates = [];
@@ -17,7 +19,7 @@ class Response {
 
 
 	public function set_status_code(int $code) : void {
-		if(!in_array($code, self::RESPONSE_CODES)){
+		if(!in_array($code, self::STATUS_CODES)){
 			throw new ControllerException(500, "Status code invalid: «{$code}».");
 		}
 
@@ -87,14 +89,18 @@ class Response {
 	}
 
 
-	public function send(int $code = 200, array $environment = []) : void {
-		http_response_code($code);
+	public function send(?int $code = 200, array $environment = []) : void {
+		$this->set_status_code($code ?? 200);
+
+		http_response_code($this->get_status_code());
 		header("Content-Type: {$this->content_type}");
 
-		$template = $this->templates[$code] ?? $this->templates[floor($code / 100)] ?? $this->templates[0] ?? null;
+		$template = $this->templates[$this->get_status_code()]
+			?? $this->templates[floor($this->get_status_code() / 100)]
+			?? $this->templates[0] ?? null;
 
 		if(is_null($template)){
-			if($code === 500){
+			if($this->get_status_code() === 500){
 				die('Error 500 – Internal Server Error: No Template specified.');
 			} else {
 				throw new ControllerException(500, 'No Template specified.');
@@ -143,6 +149,11 @@ class Response {
 		};
 
 		$include($template, $environment);
+	}
+
+
+	public function get_status_code() : ?int {
+		return $this->status_code;
 	}
 
 

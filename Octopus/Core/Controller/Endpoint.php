@@ -120,14 +120,17 @@ class Endpoint {
 				$status_code = $controller->get_status_code();
 			}
 
-			$environment["{$name}Controller"] = &$controller;
-
+			// TODO check this to prevent overwriting
 			if($controller instanceof EntityController){
+				$environment["{$name}Controller"] = &$controller;
+
 				if(isset($controller->entity)){ // TEMP
 					$environment[$name] = &$controller->entity;
 				} else {
 					$environment[$name] = &$controller->entities;
 				}
+			} else {
+				$environment[$name] = &$controller;
 			}
 		}
 
@@ -146,11 +149,13 @@ class Endpoint {
 	}
 
 
-	private function send(int $status_code, array $environment = []) : void {
+	private function send(?int $status_code, array $environment = []) : void {
 		$environment['server'] = (object)[
 			'url' => $this->request->get_base_url(), // maybe TEMP
 			'lang' => Config::get('Server.lang'),
-			'debug_mode' => Config::get('Server.debug_mode')
+			'debug_mode' => Config::get('Server.debug_mode'),
+			'request' => $this->request,
+			'response' => $this->response,
 		];
 
 		$this->response->send($status_code, $environment);

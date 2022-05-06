@@ -26,7 +26,40 @@ class ControllerCall {
 
 
 	public function load_controller(string $name, array $options) : void {
-		throw new Exception('Temporarily unimplemented.'); // TEMP
+		$this->name = $name;
+
+		if(isset($options['importance'])){
+			if(in_array($options['importance'], ['primary', 'essential', 'accessory'])){
+				$this->importance = $options['importance'];
+			} else {
+				throw new ControllerException(500, 'invalid importance');
+			}
+		} else {
+			$this->importance = 'essential';
+		}
+
+		if(empty($options['class'])){
+			throw new ControllerException(500, "Controller class missing in route «{$name}».");
+		} else if(!is_string($options['class'])){
+			throw new ControllerException(500, "Controller class invalid in route «{$name}».");
+		}
+
+		$controller_class_name = $options['class'];
+
+		if(!isset($this->module_config['controllers'][$controller_class_name])){
+			throw new ControllerException(500, "Controller class for «{$controller_class_name}» not found.");
+		}
+
+		$controller_class = $this->module_config['controllers'][$controller_class_name];
+
+		if(!is_subclass_of($controller_class, Controller::class)){
+			throw new ControllerException(500, "Controller «{$controller_class}» is not a Controller.");
+		}
+
+		$this->entity_class = null;
+		$this->controller_class = $controller_class;
+
+		$this->options = $options;
 	}
 
 

@@ -131,6 +131,12 @@ class Request {
 		return "{$protocol}://{$this->get_host()}{$port}";
 	}
 
+	public function check_content_type(array $allowed_content_types) : void {
+		if(!in_array($this->content_type, $allowed_content_types)){
+			throw new ControllerException(415, 'Unsupported Content Type.');
+		}
+	}
+
 
 	// TEMP
 	public function get_post_data() : array {

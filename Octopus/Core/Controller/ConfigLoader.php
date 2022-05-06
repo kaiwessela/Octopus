@@ -51,7 +51,7 @@ class ConfigLoader {
 
 
 	public static function get_document_root() : string {
-		return $_SERVER['DOCUMENT_ROOT'];
+		return $_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR;
 	}
 
 

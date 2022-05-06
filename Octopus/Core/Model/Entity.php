@@ -107,7 +107,8 @@ abstract class Entity {
 			['deleted', 'deleted'], 	# no impact, but allowed
 			['deleted', 'editing'], 	# deleted entities can be edited (and stored again after that)
 			['deleted', 'storing'], 	# deleted entities can be re-stored
-			['freezing', 'frozen'] 		# two-step freezing process; end
+			['freezing', 'frozen'], 	# two-step freezing process; end
+			['frozen', 'freezing']
 		]);
 
 		$this->flow->start();
@@ -153,13 +154,14 @@ abstract class Entity {
 
 		$request = new SelectRequest(static::DB_TABLE);
 
-		foreach(static::$attributes as $name => $definition){
-			if($definition->supclass_is(Entity::class)){
-				$request->add_join($definition->get_class()::join(on:$definition)); # join entity attributes recursively
-			} else if($definition->supclass_is(RelationshipList::class)){
-				$request->add_join($definition->get_class()::join(on:static::$attributes['id'])); # join relationships
-			} else {
-				$request->add_attribute($definition); # add all other attributes as columns
+		foreach(static::$attributes as $name => $attribute){ # $attribute is an AttributeDefinition
+			if($attribute->supclass_is(Entity::class)){
+				$request->add_join($attribute->get_class()::join(on:$attribute)); # join Entity attributes recursively
+				$request->add_attribute($attribute); // FIXME this is a hotfix. entities need not only be joined, but also pulled. i.e. the key post_image_id must be in the values, not only image_id. that is because load needs this value to check if it is set.
+			} else if($attribute->supclass_is(RelationshipList::class)){
+				$request->add_join($attribute->get_class()::join(on:static::$attributes['id'])); # join RelationshipList
+			} else if($attribute->is_pullable()){
+				$request->add_attribute($attribute);
 			}
 		}
 
@@ -191,11 +193,11 @@ abstract class Entity {
 	final public static function join(AttributeDefinition $on) : JoinRequest {
 		$request = new JoinRequest(static::DB_TABLE, static::get_attribute_definitions()['id'], $on);
 
-		foreach(static::get_attribute_definitions() as $name => $definition){
-			if($definition->supclass_is(Entity::class)){ # recursively join entities this entity contains
-				$request->add_join($definition->get_class()::join(on:$definition));
-			} else if(!$definition->supclass_is(RelationshipList::class)){ # include all other attributes as columns
-				$request->add_attribute($definition);
+		foreach(static::get_attribute_definitions() as $name => $attribute){ # $attribute is an AttributeDefinition
+			if($attribute->supclass_is(Entity::class)){
+				$request->add_join($attribute->get_class()::join(on:$attribute)); # recursively join entities this entity contains
+			} else if($attribute->is_pullable()){
+				$request->add_attribute($attribute);
 			}
 		}
 
@@ -322,6 +324,9 @@ abstract class Entity {
 		# that occur during the editing of the attributes (i.e. invalid or missing values)
 		$errors = new AttributeValueExceptionList();
 
+		// FIXME file inputs via $_FILES are not taken into account. the following is a hotfix.
+		$data = array_merge($data, array_flip(array_keys($_FILES)));
+
 		foreach($data as $name => $input){ # loop through all input fields
 			if(!isset(static::$attributes[$name])){ # check if the attribute exists
 				continue;
@@ -411,7 +416,9 @@ abstract class Entity {
 			$this->$name?->push();
 		}
 
-		$this->push_custom();
+		if($request !== false){ // FIXME this is a hotfix
+			$this->push_custom();
+		}
 
 		$this->flow->step('stored'); # finish the storing process
 		$this->db->set_synced();
@@ -494,9 +501,16 @@ abstract class Entity {
 			}
 		}
 
+		$result = array_merge($result, $this->arrayify_custom()); // TEMP
+
 		$this->flow->step('frozen'); # finish the freezing process
 
 		return $result;
+	}
+
+
+	protected function arrayify_custom() : array {
+		return [];
 	}
 
 

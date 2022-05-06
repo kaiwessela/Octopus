@@ -96,7 +96,7 @@ class SelectRequest extends Request {
 		}
 
 		if(!is_null($this->order_by)){
-			$this->query .= "ORDER BY {$this->order_by->get_db_table()}.{$this->order_by->get_db_column()}";
+			$this->query .= "ORDER BY {$this->order_by->get_full_db_column()}";
 
 			if($this->order_desc === true){
 				$this->query .= ' DESC';

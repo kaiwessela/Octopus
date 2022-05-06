@@ -45,12 +45,12 @@ abstract class Request {
 			throw new Exception("Property and Request db tables do not match.");
 		}
 
-		$this->attributes["{$definition->get_db_table()}.{$definition->get_db_column()}"] = $definition;
+		$this->attributes[$definition->get_full_db_column()] = $definition;
 	}
 
 
 	final public function remove_attribute(AttributeDefinition $definition) : void {
-		unset($this->attributes["{$definition->get_db_table()}.{$definition->get_db_column()}"]);
+		unset($this->attributes[$definition->get_full_db_column()]);
 	}
 
 

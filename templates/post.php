@@ -6,7 +6,7 @@
 		<link rel="canonical" href="<?= $server->url ?>/posts/<?= $Post->longid ?>">
 		<meta name="author" content="<?= $Post->author ?>">
 		<meta name="description" content="<?= $Post->teaser ?>">
-		<meta name="date" content="<?= $Post->timestamp->iso() ?>">
+		<meta name="date" content="<?= $Post->timestamp?->to_w3c() ?>">
 
 		<?php if($Post->image){ ?>
 			<meta name="twitter:card" content="summary_large_image">
@@ -16,7 +16,7 @@
 			<!-- TODO add og:image -->
 		<?php } ?>
 
-		<meta name="twitter:site" content="<?= $site->twitter ?>">
+		<meta name="twitter:site" content="<?= $site->twitter ?? '' ?>">
 
 		<meta property="og:type" content="article">
 		<meta property="og:url" content="<?= $server->url ?>/posts/<?= $Post->longid ?>">
@@ -34,8 +34,8 @@
 					<p class="author-and-date">
 						<!-- IDEA use address element? -->
 						Von <?= $Post->author ?>, <wbr>veröffentlicht am
-						<time datetime="<?= $Post->timestamp->iso() ?>">
-							<?= $Post->timestamp->format('date') ?>
+						<time datetime="<?= $Post->timestamp?->to_w3c() ?>">
+							<?= $Post->timestamp?->format('dd.MM.yyyy') ?>
 						</time>
 					</p>
 				</header>
@@ -51,12 +51,12 @@
 				<?php } ?>
 
 
-				<?php $Post->content?->echo(function($object, $type){
+				<?php /*$Post->content?->echo(function($object, $type){
 					?>
 					<img src="<?= $object->src() ?>">
 					<p><?= $type ?> | <?= $object->longid ?></p>
 					<?php
-				}, $Post->collection); ?>
+				}, $Post->collection);*/ ?>
 
 				<!-- $Post->content?->parse() -->
 			</article>

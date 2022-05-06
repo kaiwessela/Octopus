@@ -1,5 +1,6 @@
 #! /bin/bash
 if find /srv/http/octopus/media -mindepth 1 | read; then
+	rm -rf /srv/http/temp
 	mkdir /srv/http/temp
 	cp -r /srv/http/octopus/media/. /srv/http/temp
 	media_found="true"
@@ -23,9 +24,6 @@ cp -r .htaccess build
 cp -r index.php build
 cp -r routes.php build
 
-# TEMP
-cp -r test/. build/test
-
 rm -rf /srv/http/octopus
 mkdir /srv/http/octopus
 cp -r build/. /srv/http/octopus
@@ -34,3 +32,6 @@ if [ "$media_found" == "true" ]; then
 	cp -r /srv/http/temp/. /srv/http/octopus/media
 	rm -rf /srv/http/temp
 fi
+
+chgrp -R http /srv/http/octopus
+chmod -R 770 /srv/http/octopus

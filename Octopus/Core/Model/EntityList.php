@@ -44,7 +44,8 @@ abstract class EntityList {
 			['loaded', 'counted'],
 			['loaded', 'freezing'],
 			['counted', 'freezing'],
-			['freezing', 'frozen']
+			['freezing', 'frozen'],
+			['frozen', 'freezing']
 		]);
 
 		$this->flow->start();
@@ -62,12 +63,11 @@ abstract class EntityList {
 
 		$request = new SelectRequest(static::ENTITY_CLASS::DB_TABLE);
 
-		foreach(static::ENTITY_CLASS::get_attribute_definitions() as $name => $definition){
-			if($definition->supclass_is(Entity::class)){
-				$cls = $definition->get_class();
-				$request->add_join($cls::join(on:$definition)); # join entity attributes
-			} else if(!$definition->supclass_is(RelationshipList::class)){ # relationship lists are not joined
-				$request->add_attribute($definition); # add all other attributes as columns
+		foreach(static::ENTITY_CLASS::get_attribute_definitions() as $name => $attribute){
+			if($attribute->supclass_is(Entity::class)){
+				$request->add_join($attribute->get_class()::join(on:$attribute)); # recursively join Entity attribute
+			} else if($attribute->is_pullable()){
+				$request->add_attribute($attribute);
 			}
 		}
 
@@ -109,12 +109,11 @@ abstract class EntityList {
 
 		$request = new SelectRequest(static::ENTITY_CLASS::DB_TABLE);
 
-		foreach(static::ENTITY_CLASS::get_attribute_definitions() as $name => $definition){
-			if($definition->supclass_is(Entity::class)){
-				$cls = $definition->get_class();
-				$request->add_join($cls::join(on:$definition)); # join entity attributes
-			} else if(!$definition->supclass_is(RelationshipList::class)){ # relationship lists are not joined
-				$request->add_attribute($definition); # add all other attributes as columns
+		foreach(static::ENTITY_CLASS::get_attribute_definitions() as $name => $attribute){
+			if($attribute->supclass_is(Entity::class)){
+				$request->add_join($attribute->get_class()::join(on:$attribute)); # recursively join Entity attribute
+			} else if($attribute->is_pullable()){
+				$request->add_attribute($attribute);
 			}
 		}
 

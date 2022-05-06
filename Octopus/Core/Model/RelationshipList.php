@@ -52,7 +52,8 @@ abstract class RelationshipList {
 			['storing', 'freezing'],
 			['stored', 'storing'],
 			['stored', 'freezing'],
-			['freezing', 'frozen']
+			['freezing', 'frozen'],
+			['frozen', 'freezing']
 		]);
 
 		$this->flow->start();

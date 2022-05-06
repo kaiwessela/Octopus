@@ -36,7 +36,7 @@ class URLSubstitution {
 			}
 
 			if(empty($replacement)){
-				$replacement = empty($matches[6]) ? null : $matches[6];
+				$replacement = empty($matches[6]) ? '' : $matches[6];
 			}
 
 			if($force_string){

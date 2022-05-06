@@ -89,7 +89,7 @@ class AttributeDefinition {
 	private ?string $db_column;
 
 	# this pattern defines a valid longid
-	const LONGID_PATTERN = '/^[a-z0-9-]{9,128}$/';
+	const LONGID_PATTERN = '/^[a-z0-9-]{1,128}$/';
 
 
 	# @param $definition: string or array containing a raw property definition
@@ -107,7 +107,7 @@ class AttributeDefinition {
 		if(is_string($definition)){
 			$type = 'primitive';
 
-			if(in_array($definition, ['custom', 'id', 'longid', 'string', 'int', 'float', 'bool']) || class_exists($definition)){
+			if(in_array($definition, ['custom', 'contextual', 'id', 'longid', 'string', 'int', 'float', 'bool']) || class_exists($definition)){
 				# handle normal short form definitions
 				$class = $definition;
 				$pattern = null;
@@ -139,6 +139,12 @@ class AttributeDefinition {
 			$this->required = $definition['required'] ?? false;
 			$this->alterable = $definition['alterable'] ?? true;
 			$this->db_column = $this->name;
+		} else if($class === 'contextual'){
+			$this->type = 'contextual';
+			$this->class = 'contextual';
+			$this->required = false;
+			$this->alterable = false; // TODO check this
+			$this->db_column = null;
 		} else if(in_array($class, ['string', 'int', 'float', 'bool'])){
 			$this->type = 'primitive';
 			$this->class = $class;
@@ -227,7 +233,12 @@ class AttributeDefinition {
 	}
 
 
-	public function get_prefixed_db_column() : string { // TODO unchecked
+	public function get_full_db_column() : string {
+		return "{$this->db_table}.{$this->db_column}";
+	}
+
+
+	public function get_prefixed_db_column() : string {
 		return "{$this->db_prefix}_{$this->db_column}";
 	}
 
@@ -276,6 +287,11 @@ class AttributeDefinition {
 
 	public function is_alterable() : bool {
 		return $this->alterable;
+	}
+
+
+	public function is_pullable() : bool {
+		return !is_null($this->db_column); // TODO check this
 	}
 
 

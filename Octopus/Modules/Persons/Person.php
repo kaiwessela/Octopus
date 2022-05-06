@@ -2,7 +2,7 @@
 namespace Octopus\Modules\Persons;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Modules\Persons\PersonList;
-use \Octopus\Modules\StaticObjects\MarkdownContent;
+use \Octopus\Modules\StaticObjects\MarkdownText;
 use \Octopus\Modules\Media\Image;
 use \Octopus\Modules\Persons\PersonGroupRelationshipList;
 use \Octopus\Modules\Persons\Groups\GroupList;
@@ -13,7 +13,7 @@ class Person extends Entity {
 	# protected string $longid;
 
 	protected ?string 						$name;
-	protected ?MarkdownContent 				$profile;
+	protected ?MarkdownText 				$profile;
 	protected ?Image 						$image;
 	protected ?PersonGroupRelationshipList 	$groups;
 
@@ -28,7 +28,7 @@ class Person extends Entity {
 		'id' => 'id',
 		'longid' => 'longid',
 		'name' => '.{1,60}',
-		'profile' => MarkdownContent::class,
+		'profile' => MarkdownText::class,
 		'image' => Image::class,
 		'groups' => PersonGroupRelationshipList::class,
 		'number' => 'contextual',

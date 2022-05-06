@@ -38,7 +38,13 @@ class Router {
 
 		$found = false;
 		$route = null;
+		$general_route = null;
 		foreach($this->routes as $target => $options){
+			if($target === '@all'){
+				$general_route = $options;
+				continue;
+			}
+
 			$tardef = new TargetDefinition($target);
 
 			if($tardef->match_path($request)){
@@ -57,12 +63,28 @@ class Router {
 			throw new ControllerException(405, 'Route found but Method not allowed.');
 		}
 
+		if(isset($route['allowed_content_types'])){
+			if(!is_array($route['allowed_content_types'])){
+				throw new Exception('allowed_content_types is not an array.');
+			}
+
+			$request->check_content_type($route['allowed_content_types']);
+		}
+
 		if(isset($route['templates'])){
 			$response->set_templates($route['templates']);
 		}
 
 		if(isset($route['template'])){
 			$response->set_template(0, $route['template']);
+		}
+
+		if(isset($general_route['controllers']) && !is_array($general_route['controllers'])){
+			throw new Exception('@all:controllers is not an array.');
+		}
+
+		if(isset($general_route['entities']) && !is_array($general_route['entities'])){
+			throw new Exception('@all:entities is not an array.');
 		}
 
 		if(isset($route['controllers']) && !is_array($route['controllers'])){
@@ -73,17 +95,19 @@ class Router {
 			throw new Exception('entities is not an array.');
 		}
 
-		$controller_calls = [];
+		$controllers = array_merge($general_route['controllers'] ?? [], $route['controllers'] ?? []);
+		$entities = array_merge($general_route['entities'] ?? [], $route['entities'] ?? []);
 
+		$controller_calls = [];
 		$has_entity_controller = false;
 
-		foreach($route['controllers'] ?? [] as $name => $preferences){
+		foreach($controllers as $name => $preferences){
 			$call = new ControllerCall($request, $this->module_config);
 			$call->load_controller($name, $preferences);
 			$controller_calls[] = $call;
 		}
 
-		foreach($route['entities'] ?? [] as $name => $preferences){
+		foreach($entities as $name => $preferences){
 			$has_entity_controller = true;
 			$call = new ControllerCall($request, $this->module_config);
 			$call->load_entity($name, $preferences);

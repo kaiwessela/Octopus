@@ -122,6 +122,8 @@ class BasicEntityController extends EntityController {
 			} else {
 				throw new ControllerException(405, 'Method not allowed.');
 			}
+
+			$this->entity = new $entity_class();
 		} else {
 			throw new ControllerException(500, 'Route: Invalid option «action».');
 		}
@@ -132,7 +134,7 @@ class BasicEntityController extends EntityController {
 					throw new ControllerException(500, 'Route: Invalid option «identify_by».');
 				}
 
-				$this->identify_by = $call->get_option('identify_by');
+				$this->identify_by = URLSubstitution::replace($call->get_option('identify_by'), $request, force_string:true);
 			} else {
 				$this->identify_by = 'id';
 			}
@@ -226,6 +228,7 @@ class BasicEntityController extends EntityController {
 				$this->status_code = 201;
 			} catch(AttributeValueExceptionList $e){
 				$this->status_code = 422;
+				throw new ControllerException(422, '', $e);
 				return; // TODO invalid input
 			}
 
@@ -249,6 +252,7 @@ class BasicEntityController extends EntityController {
 					$this->status_code = 200;
 				} catch(AttributeValueExceptionList $e){
 					$this->status_code = 422;
+					throw new ControllerException(422, '', $e);
 					return; // TODO invalid input
 				}
 

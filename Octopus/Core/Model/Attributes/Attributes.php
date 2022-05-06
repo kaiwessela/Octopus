@@ -121,7 +121,7 @@ trait Attributes {
 			$this->db->set_altered();
 
 		} else if($definition->type_is('primitive')){ # handle attributes of type primitive
-			if(empty($input)){ # if the input is empty but the attribute is required to be set, throw an error
+			if(is_null($input) || $input === ''){ # if the input is empty but the attribute is required to be set, throw an error // TODO check this
 				if($definition->is_required()){
 					throw new MissingValueException($definition);
 				} else { # otherwise just set it to null
@@ -129,20 +129,31 @@ trait Attributes {
 				}
 			}
 
-			# if input is a string, escape html characters first
-			$escaped_input = is_string($input) ? htmlspecialchars($input) : $input;
+			if($definition->class_is('string')){
+				$new_value = htmlspecialchars($input); # escape html
+			} else if($definition->class_is('bool')){
+				if($input === 'false'){ # fix stupid php to-bool conversion
+					$new_value = false;
+				} else {
+					$new_value = (bool) $input;
+				}
+			} else if($definition->class_is('int')){
+				$new_value = (int) $input;
+			} else if($definition->class_is('float')){
+				$new_value = (float) $input;
+			}
 
 			# check whether the attribute value has been altered
 			# set the property value to the input
-			if($escaped_input !== $former_value){
+			if($new_value !== $former_value){
 				if(!$definition->is_alterable() && !$this->db->is_local()){
-					throw new AttributeNotAlterableException($definition, $this, $escaped_input);
+					throw new AttributeNotAlterableException($definition, $this, $new_value);
 				}
 
 				# check whether the input matches the defined constraints
 				$definition->validate_input($input); # throws an IllegalValueException if failing
 
-				$this->$name = $escaped_input;
+				$this->$name = $new_value;
 				$this->db->set_altered();
 			}
 
@@ -261,7 +272,11 @@ trait Attributes {
 
 			if($definition->type_is('primitive') || $definition->type_is('identifier')){
 				if($definition->is_alterable() || $this->db->is_local()){
-					$result[$name] = $this->$name;
+					if($definition->class_is('bool')){ # convert booleans to int
+						$result[$name] = (int) $this->$name;
+					} else {
+						$result[$name] = $this->$name;
+					}
 				}
 			} else if($definition->type_is('custom')){
 				if(!$definition->is_alterable() && !$this->db->is_local()){
@@ -334,9 +349,9 @@ trait Attributes {
 	}
 
 
-	function __get($name) : mixed {
+	function __get($name) {
 		# if $this->$name is a defined attribute, return its value
-		if(isset(static::$attributes[$name])){
+		if(isset(static::get_attribute_definitions()[$name])){
 			$definition = static::$attributes[$name];
 
 			# if the attribute is contextual, let the context relationship return its value (if there is one)
@@ -355,13 +370,16 @@ trait Attributes {
 
 	function __isset(string $name) : bool {
 		# if $this->$name is a defined attribute, return whether it is set
-		if(isset(static::$attributes[$name])){
+		if(isset(static::get_attribute_definitions()[$name])){
+			$definition = static::$attributes[$name];
 			# if the attribute is contextual, let the context relationship return its value (if there is one)
 			if($definition->type_is('contextual') && $this->context instanceof Relationship){
 				return isset($this->context->$name);
 			} else {
 				return isset($this->$name);
 			}
+		} else {
+			return false;
 		}
 	}
 }

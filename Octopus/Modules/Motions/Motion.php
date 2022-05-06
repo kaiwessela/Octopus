@@ -1,12 +1,13 @@
 <?php
 namespace Octopus\Modules\Motions;
 use \Octopus\Core\Model\Entity;
+use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 use \Octopus\Modules\Motions\MotionList;
 use \Octopus\Modules\Media\Application;
 use \Octopus\Modules\StaticObjects\MarkdownText;
 use \Octopus\Modules\StaticObjects\Timestamp;
 
-use \Blog\Core\Model\Properties\Exceptions\PropertyValueException;
 
 class Motion extends Entity {
 	# inherited from Entity:
@@ -47,7 +48,7 @@ class Motion extends Entity {
 		if(empty($row['motion_votes'])){
 			$this->votes = null;
 		} else {
-			$this->votes = json_decode($row['motion_votes'], true, default, \JSON_THROW_ON_ERROR);
+			$this->votes = json_decode($row['motion_votes'], true, 512, \JSON_THROW_ON_ERROR);
 		}
 	}
 
@@ -68,26 +69,26 @@ class Motion extends Entity {
 
 		foreach($input as $index => $vote){
 			if(empty($vote['party'])){
-				throw new PropertyValueException($definition, "Vote $index: party missing.");
+				throw new AttributeValueException($definition, "Vote $index: party missing.");
 			} else if(!is_string($vote['party']) || strlen($vote['party']) > 30){
-				throw new PropertyValueException($definition, "Vote $index: party invalid.");
+				throw new AttributeValueException($definition, "Vote $index: party invalid.");
 			}
 
 			if(empty($vote['amount'])){
-				throw new PropertyValueException($definition, "Vote $index: amount missing.");
+				throw new AttributeValueException($definition, "Vote $index: amount missing.");
 			} else if(!is_numeric($vote['amount'])){
-				throw new PropertyValueException($definition, "Vote $index: amount invalid.");
+				throw new AttributeValueException($definition, "Vote $index: amount invalid.");
 			}
 
 			if(!in_array($vote['vote'], ['yes', 'no', 'abstention'])){
-				throw new PropertyValueException($definition, "Vote $index: vote invalid or missing.");
+				throw new AttributeValueException($definition, "Vote $index: vote invalid or missing.");
 			}
 
 			$this->votes[] = [
 				'party' => $vote['party'],
 				'vote' => $vote['vote'],
 				'amount' => $vote['amount']
-			]
+			];
 		}
 	}
 

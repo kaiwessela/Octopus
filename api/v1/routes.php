@@ -1,91 +1,64 @@
 <?php
 return [
-	'api/v1' => [
-		'template' => '200',
-		'methods' => ['GET', 'POST']
+	'GET /' => [ # welcome
+		'template' => 'welcome'
 	],
-	'api/v1/*' => [
-		'template' => '200',
-		'methods' => ['GET'],
-		// TODO alias table
-		'objects' => [
-			'/3' => [
-				'as' => 'Object',
+	'GET /*' => [ # entity list
+		'template' => 'list',
+		'entities' => [
+			'Entities' => [
+				'class' => '/1',
 				'action' => 'list',
 				'amount' => '?amount|10',
 				'page' => '?page|1'
 			]
 		]
 	],
-	'api/v1/*/new' => [
-		'template' => '200',
-		'methods' => ['POST'],
-		'objects' => [
-			'/3' => [
-				'as' => 'Object',
+	'POST /*' => [ # new entity
+		'template' => 'single',
+		'allowed_content_types' => ['application/json'],
+		'entities' => [
+			'Entities' => [
+				'class' => '/1',
 				'action' => 'new'
-			]
-		],
-		'require_auth' => true
-	],
-	'api/v1/*/count' => [
-		'template' => '200',
-		'methods' => ['GET'],
-		'objects' => [
-			'/3' => [
-				'as' => 'Object',
-				'action' => 'count'
 			]
 		]
 	],
-	'api/v1/*/*{8,60}' => [
-		'template' => '200',
-		'methods' => ['GET'],
-		'objects' => [
-			'/3' => [
-				'as' => 'Object',
+	'GET /*/*' => [ # show entity
+		'template' => 'single',
+		'entities' => [
+			'Entity' => [
+				'class' => '/1',
 				'action' => 'show',
-				'identifier' => '/4',
-
-				'amount' => '?amount|10',
+				'identifier' => '/2',
+				'identify_by' => '?by|id',
+				'amount' => '?amount|10', // TODO allow amount=all
 				'page' => '?page|1'
 			]
 		]
 	],
-	'api/v1/*/*{8,60}/count' => [
-		'template' => '200',
-		'methods' => ['GET'],
-		'objects' => [
-			'/3' => [
-				'as' => 'Object',
-				'action' => 'count',
-				'identifier' => '/4'
+	'PUT /*/*' => [ # edit entity
+		'template' => 'single',
+		'allowed_content_types' => ['application/json'],
+		'entities' => [
+			'Entity' => [
+				'class' => '/1',
+				'action' => 'edit',
+				'identifier' => '/2',
+				'identify_by' => '?by|id'
 			]
 		]
 	],
-	'api/v1/*/*{8,60}/edit' => [
-		'template' => '200',
-		'methods' => ['POST'],
-		'objects' => [
-			'/3' => [
-				'as' => 'Object',
-				'action' => 'edit',
-				'identifier' => '/4'
-			]
-		],
-		'require_auth' => true
-	],
-	'api/v1/*/*{8,60}/delete' => [
-		'template' => '200',
-		'methods' => ['POST'], // TODO check if GET works too
-		'objects' => [
-			'/3' => [
-				'as' => 'Object',
+	'DELETE /*/*' => [ # delete entity
+		'template' => 'single',
+		'entities' => [
+			'Entity' => [
+				'class' => '/1',
 				'action' => 'delete',
-				'identifier' => '/4'
+				'identifier' => '/2',
+				'identify_by' => '?by|id'
 			]
-		],
-		'require_auth' => true
+		]
 	]
-];
+]
 ?>

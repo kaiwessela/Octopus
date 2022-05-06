@@ -1,7 +1,6 @@
 {
-	"motd": "<?= $site->title ?? 'Site' ?> Blog API v1 - failed.",
-	"code": <?= json_encode($response->code) // TODO ?>,
-
+	"status": "Octopus API v1 Error",
+	"code": <?= $server->response?->get_status_code() ?? 'unknown' ?>,
 	<?php if(isset($exception)){ ?>
 	"error": {
 		"class": <?= json_encode(get_class($exception)) ?>,

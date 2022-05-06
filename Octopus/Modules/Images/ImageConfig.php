@@ -1,5 +1,5 @@
 <?php
-namespace Octopus\Modules\Media;
+namespace Octopus\Modules\Images;
 
 class ImageConfig {
 
@@ -27,12 +27,12 @@ class ImageConfig {
 	];
 
 	const AUTOVERSION_RULES = [
-		'image/gif' 	=> [ 'resize' => 'all', 'convert' = 'none' ],
-		'image/jpeg' 	=> [ 'resize' => 'all', 'convert' = 'none' ],
-		'image/png' 	=> [ 'resize' => 'all', 'convert' = 'none' ],
-		'image/svg+xml' => [ 'resize' => 'all', 'convert' = 'none' ],
-		'image/tiff' 	=> [ 'resize' => 'all', 'convert' = 'none' ],
+		'image/gif' 	=> [ 'resize' => 'all', 'convert' => 'none' ],
+		'image/jpeg' 	=> [ 'resize' => 'all', 'convert' => 'none' ],
+		'image/png' 	=> [ 'resize' => 'all', 'convert' => 'none' ],
+		'image/svg+xml' => [ 'resize' => 'all', 'convert' => 'none' ],
+		'image/tiff' 	=> [ 'resize' => 'all', 'convert' => 'none' ],
 	];
-
+	
 }
 ?>

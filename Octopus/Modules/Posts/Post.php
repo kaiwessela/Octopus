@@ -3,7 +3,7 @@ namespace Octopus\Modules\Posts;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\Attributes\Collection;
 use \Octopus\Modules\Posts\PostList;
-use \Octopus\Modules\Media\Image;
+use \Octopus\Modules\Images\Image;
 use \Octopus\Modules\Posts\PostColumnRelationshipList;
 use \Octopus\Modules\StaticObjects\MarkdownText;
 use \Octopus\Modules\StaticObjects\Timestamp;

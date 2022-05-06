@@ -1,3 +1,4 @@
+<?php $entityname = $AC->get_entity_name(); ?>
 <!DOCTYPE html>
 <html lang="de">
 	<head>
@@ -8,10 +9,10 @@
 		<header>
 			<?php include 'components/logo.php'; ?>
 			<h1>Artikel-Editor</h1>
-			<div class="editor-mode" data-nojs="off">
+			<!--<div class="editor-mode" data-nojs="off">
 				Benutzerfreundlich
 				Schick
-			</div>
+			</div>-->
 			<?php include 'components/login.php'; ?>
 		</header>
 		<nav>
@@ -34,13 +35,17 @@
 				}
 				?>
 			</div>
-			<form action="#" method="post" class="editor">
-				<button type="submit">Speichern</button>
 
-				<?php include 'entities/posts/edit.php' ?>
+			<?php $interactive_forms = []; ?>
+
+			<form action="#" method="post" class="editor" enctype="multipart/form-data">
+				<?php include "entities/{$entityname}/edit.php" ?>
 
 				<button type="submit">Speichern</button>
 			</form>
+
+			<?php foreach($interactive_forms as $inf){ include "entities/{$inf}.php"; } ?>
 		</main>
+		<?php include 'components/scripts.php'; ?>
 	</body>
 </html>

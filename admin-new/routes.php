@@ -1,12 +1,14 @@
 <?php
 return [
-	/*'@general' => [
+	'@all' => [
 		'controllers' => [
-			'AdminConfig' => [
-				'class' => 'AdminConfigController'
+			'AC' => [
+				'class' => 'AdminController',
+				'config' => '{ENDPOINT_DIR}/config/config.php',
+				'entity_class' => '/1'
 			]
 		]
-	],*/
+	],
 	'GET /' => [
 		'template' => 'start'
 	],

@@ -35,22 +35,38 @@ fieldset label .name {
 }
 
 input,
-textarea {
+textarea,
+button,
+.entity-input {
 	display: block;
 	box-sizing: border-box;
 	max-width: 100%;
 	padding: 0.5rem;
 	margin-bottom: 1rem;
 	border: none;
-	font-family: 'Fira Sans';
-	font-size: 0.9rem;
-	background-color: #00000011;
+	font-family: var(--font-input);
+	font-size: 1rem;
+	border-radius: 0.2rem;
+	box-shadow: 0 0 10px #dddddd;
 }
 
-input[type=date],
-input[type=time],
+input,
+textarea,
+.entity-input {
+	background-color: #ffffff;
+}
+
 input[type=number],
 input#id,
 input.monospace {
-	font-family: 'Fira Code';
+	font-family: var(--font-mono);
+}
+
+button {
+	width: max-content;
+}
+
+button[type=submit] {
+	padding: 0.5rem 1rem;
+	background: linear-gradient(to right, #40baff, #2ed5e8)
 }

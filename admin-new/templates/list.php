@@ -1,13 +1,14 @@
+<?php $entityname = $AC->get_entity_name(); ?>
 <!DOCTYPE html>
 <html lang="de">
 	<head>
 		<?php include 'components/head.php'; ?>
-		<title>Alle Artikel – OctopusAdmin</title>
+		<title><?= $AC->lang('list.title') ?> – OctopusAdmin</title>
 	</head>
 	<body>
 		<header>
 			<?php include 'components/logo.php'; ?>
-			<h1>Alle Artikel</h1>
+			<h1><?= $AC->lang('list.title') ?></h1>
 			<?php include 'components/login.php'; ?>
 		</header>
 		<nav id="navigation">
@@ -17,23 +18,21 @@
 			<div id="messages">
 
 			</div>
-			<a href="/admin/posts/new" class="add-new">
-				Neuen Artikel schreiben
-			</a>
+			<a href="/admin/<?= $entityname ?>/new" class="add-new"><?= $AC->lang('list.add-new') ?></a>
 			<div class="pagination"><?php $pagination = $EntitiesController->pagination; ?>
 				<?php if($pagination->page_exists($pagination->current_page)){ ?>
 					<b>Seite <?= $pagination->current_page ?> von <?= $pagination->last_page() ?></b>
 					<?php if($Entities->is_empty()){ ?>
-						– Bislang sind keine Artikel vorhanden.
+						– Bislang sind keine Objekte vorhanden.
 					<?php } else { ?>
-						– Angezeigt werden Artikel <?= $pagination->current_item()?->first_object_number() ?> bis
+						– Angezeigt werden Objekte <?= $pagination->current_item()?->first_object_number() ?> bis
 						<?= $pagination->current_item()?->last_object_number() ?> von insgesamt
-						<?= $pagination->total_objects ?> Artikeln.
+						<?= $pagination->total_objects ?> Objekten.
 					<?php } ?>
 				<?php } else { ?>
 					<b>Diese Seite existiert nicht.</b>
-					Sie haben Seite <?= $pagination->current_page ?> der Artikelliste aufgerufen. Die vorhandenen
-					Artikel reichen jedoch nur bis zur Seite <?= $pagination->last_page() ?>. Über die folgende
+					Sie haben Seite <?= $pagination->current_page ?> der Objektliste aufgerufen. Die vorhandenen
+					Objekte reichen jedoch nur bis zur Seite <?= $pagination->last_page() ?>. Über die folgende
 					Navigation gelangen Sie zu den gültigen Seiten zurück.
 				<?php } ?>
 			</div>
@@ -42,12 +41,19 @@
 
 			<section class="list">
 				<?php if($Entities->is_empty()){ ?>
-				<p>Keine Artikel vorhanden.</p>
-				<?php } else {
-					$Entities->each(function($entity){
-						include 'entities/posts/list-preview.php';
-					});
-				} ?>
+					<p><?= $AC->lang('list.is-empty') ?></p>
+				<?php } else { $Entities->each(function ($entity) use ($entityname, $AC){ ?>
+					<article>
+						<?php include "entities/{$entityname}/list-preview.php"; ?>
+						<div>
+							<a href="/admin/<?= $entityname ?>/<?= $entity->id ?>/edit" class="edit">Bearbeiten</a>
+							<a href="/admin/<?= $entityname ?>/<?= $entity->id ?>/delete" class="delete">Löschen</a>
+							<?php if($AC->has_live_view()){ ?>
+								<a href="<?= $AC->live_view($entity) ?>" class="external">Auf der Website ansehen</a>
+							<?php } ?>
+						</div>
+					</article>
+				<?php });} ?>
 			</section>
 		</main>
 	</body>

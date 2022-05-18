@@ -9,22 +9,6 @@ use \Octopus\Modules\StaticObjects\MarkdownText;
 use \Octopus\Modules\StaticObjects\Timestamp;
 
 class Post extends Entity {
-	# inherited from Entity:
-	# protected readonly string $id;
-	# protected ?string $longid;
-
-	protected ?string 						$overline;
-	protected ?string 						$headline;
-	protected ?string 						$subline;
-	protected ?string 						$teaser;
-	protected ?string 						$author;
-	protected ?Timestamp 					$timestamp;
-	protected ?Image 						$image;
-	protected ?MarkdownText 				$content;
-	protected ?PostColumnRelationshipList 	$columns;
-	// protected ?Collection					$collection;
-
-	protected static array $attributes;
 
 	const DB_TABLE = 'posts';
 	const DB_PREFIX = 'post';
@@ -49,5 +33,30 @@ class Post extends Entity {
 		'columns' => PostColumnRelationshipList::class,
 		// 'collection' => Collection::class
 	];
+
+
+	public static function define_attributes() : array {
+		return [
+			'id' 		=> IDAttribute::define(),
+			'longid' 	=> IdentifierAttribute::define(required:true, editable:false),
+			'overline' 	=> StringAttribute::define(min:0, max:50),
+			'headline' 	=> StringAttribute::define(min:1, max:100),
+			'subline' 	=> StringAttribute::define(min:1, max:100),
+			'teaser' 	=> StringAttribute::define(),
+			'author' 	=> StringAttribute::define(min:1, max:100),
+			'timestamp' => Timestamp::define(),
+			'image' 	=> EntityAttribute::define(class:Image::class),
+			'content' 	=> MarkdownText::define(allow_html:true, collection:'collection'),
+			'columns' 	=> RelationshipAttribute::define(class:PostColumnRelationshipList::class),
+			// 'collection' => Collection::define()
+		];
+	}
+
+
+	public static function define_child_entities() : array {
+		return [
+			'image' => Image::define()
+		];
+	}
 }
 ?>

@@ -39,23 +39,11 @@ use Exception;
 # it serves as a database abstraction layer, similar to an object-relational mapper.
 
 abstract class Entity {
-	protected readonly string $id;	# main unique identifier of the object; uneditable; randomly generated on create()
-	protected ?string $longid;		# another unique identifier; editable; set by the user
+	protected array $attributes;
+	protected bool $is_new;
 
-	# this class uses the Attributes trait which contains standard methods that handle the attributes of this class
-	# for documentation on the following definitions, check the Attributes trait source file
-	use Attributes;
-
+	const DB_TABLE = '';
 	const DB_PREFIX = ''; # prefix of this object's row names in the database (i.e. [prefix]_id, [prefix]_longid)
-
-	const ATTRIBUTES = [
-		# 'id' => 'id',
-		# 'longid' => 'longid',
-		# ...raw attribute definitions for all other attributes
-	];
-
-	# all child classes must set the following property:
-	# protected static array $attributes;
 
 	public readonly null|Entity|EntityList|Relationship $context;
 	public readonly ?SelectRequest $pull_request;
@@ -67,6 +55,30 @@ abstract class Entity {
 
 	### CONSTRUCTION METHODS
 
+	final abstract public static function get_attribute_definitions() : array {
+		$attributes = static::define_attributes();
+
+		if(!isset($attributes['id'])){
+			throw new Exception('Invalid attribute definitions: id attribute missing.');
+		}
+
+		foreach($attributes as $name => $attribute){
+			if(!$attribute instanceof Attribute){ # check whether the defined attribute is actually an Attribute
+				throw new Exception("Invalid attribute definition: «{$name}».");
+			}
+
+			# the id attribute must both be an IDAttribute and be the only IDAttribute
+			if(($name === 'id') !== ($attribute instanceof IDAttribute)){
+				throw new Exception('Invalid attribute definition: id attribute invalid.');
+			}
+
+			$attributes[$name]->init($this::class, $name);
+		}
+
+		return $attributes;
+	}
+
+
 	final function __construct(null|Entity|EntityList|Relationship &$context = null) {
 		$this->context = &$context;
 
@@ -74,12 +86,10 @@ abstract class Entity {
 			$this->pull_request = null;
 		}
 
-		if(!isset(static::$attributes)){ # load all attribute definitions
-			static::load_attribute_definitions();
+		$this->attributes = static::get_attribute_definitions();
 
-			if(!static::$attributes['id']?->class_is('id')){
-				throw new Exception('Invalid attribute definitions: valid id definition missing.');
-			}
+		foreach($this->attributes as $name => $_){
+			$this->attributes[$name]->bind($this);
 		}
 
 		$this->db = new DatabaseAccess(); # prepare a connection to the database
@@ -121,22 +131,10 @@ abstract class Entity {
 	# Generate a random id for the new entity and set all attributes to null
 	final public function create() : void {
 		$this->flow->step('created');
-		$this->db->set_local();
+		$this->is_new = true;
 
-		$this->id = self::generate_id(); # generate and set a random, unique id for the entity. (--> trait Attributes)
-		$this->initialize_attributes();
-
-		$this->create_custom(); # call the custom initialization method
+		$this->attributes['id']->generate(); # generate and set a random, unique id for the entity.
 	}
-
-
-	# ---> see trait Attributes
-	# final protected static function generate_id() : string;
-	# final protected function initialize_attributes() : void;
-
-
-	# the custom initialization method can be used to add class-specific initialization procedures
-	protected function create_custom() : void {}
 
 
 	# Download entity data from the database and use load() to load it into this Entity object
@@ -147,27 +145,29 @@ abstract class Entity {
 		$this->flow->check_step('loaded');
 
 		# verify the identify_by value
-		$identifying_attribute = static::$attributes[$identify_by] ?? null;
-		if(!$identifying_attribute?->type_is('identifier')){
+		if(!isset($this->attributes[$identify_by]) || !$this->attributes[$identify_by] instanceof IdentifierAttribute){
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» not found or is not an identifier.");
 		}
 
 		$request = new SelectRequest(static::DB_TABLE);
 
-		foreach(static::$attributes as $name => $attribute){ # $attribute is an AttributeDefinition
-			if($attribute->supclass_is(Entity::class)){
-				$request->add_join($attribute->get_class()::join(on:$attribute)); # join Entity attributes recursively
-				$request->add_attribute($attribute); // FIXME this is a hotfix. entities need not only be joined, but also pulled. i.e. the key post_image_id must be in the values, not only image_id. that is because load needs this value to check if it is set.
-			} else if($attribute->supclass_is(RelationshipList::class)){
-				$request->add_join($attribute->get_class()::join(on:static::$attributes['id'])); # join RelationshipList
-			} else if($attribute->is_pullable()){
+		foreach($this->attributes as $attribute){
+			if($attribute instanceof EntityAttribute){
+				$request->join($attribute);
+			}
+
+			if($attribute->is_pullable()){
 				$request->add_attribute($attribute);
+			}
+
+			if($attribute->is_joinable()){
+				$request->add_join($attribute->join());
 			}
 		}
 
 		static::shape_select_request($request, $options);
 
-		$request->set_condition(new IdentifierEquals($identifying_attribute, $identifier));
+		$request->set_condition(new IdentifierEquals($this->attributes[$identify_by], $identifier));
 
 		try {
 			$s = $this->db->prepare($request->get_query());
@@ -190,14 +190,16 @@ abstract class Entity {
 	# single entities that this entity contains as attributes are joined too (recursively), but not relationships!
 	# @param $on: The attribute on the calling entity/relationship that identifies this entity
 	# paraphrased: LEFT JOIN [this entity’s table] ON [this entity’s prefix].id = [on]
-	final public static function join(AttributeDefinition $on) : JoinRequest {
+	final public static function join(Attribute $on) : JoinRequest {
 		$request = new JoinRequest(static::DB_TABLE, static::get_attribute_definitions()['id'], $on);
 
-		foreach(static::get_attribute_definitions() as $name => $attribute){ # $attribute is an AttributeDefinition
-			if($attribute->supclass_is(Entity::class)){
-				$request->add_join($attribute->get_class()::join(on:$attribute)); # recursively join entities this entity contains
-			} else if($attribute->is_pullable()){
+		foreach(static::get_attribute_definitions() as $name => $attribute){
+			if($attribute->is_pullable()){
 				$request->add_attribute($attribute);
+
+				if($attribute->is_joinable()){
+					$request->add_join(); // TODO
+				}
 			}
 		}
 
@@ -216,34 +218,6 @@ abstract class Entity {
 	final public function load(array $data) : void {
 		$this->flow->check_step('loaded');
 
-		# $data can have two formats, depending on whether relationships were pulled or not:
-		# Without Relationships: (simple key-value array)
-		# 	[
-		#		'id' => 'abcdef01',
-		#		'longid' => 'example-object',
-		#		…
-		# 	], …
-		# With Relationships: (nested array)
-		# 	[
-		#		[
-		#			'id' => 'abcdef01',
-		#			'relationship_id' => '12345678',
-		#			'relationship_entity_longid' => 'joined-object-1',
-		#			…
-		#		],
-		#		[
-		#			'id' => 'abcdef01',
-		#			'relationship_id' => 'abababab',
-		#			'relationship_entity_longid' => 'joined-object-2',
-		#			…
-		#		], …
-		# 	]
-
-		# The first example, a response without relationships, has only one row (because only one entity was pulled).
-		# If relationships are pulled using a JOIN statement, the columns of the joined entity are simply appended to
-		# the row containing the base entity’s columns. If multiple related entities are pulled, for every row, the base
-		# entity’s columns just get repeated (they are basically "filled up" with the same values).
-
 		# To parse the columns containing our entity data, we must do a distinction:
 		if(is_array($data[0])){ # check whether the data array is nested
 			$row = $data[0]; # with relationships
@@ -251,63 +225,14 @@ abstract class Entity {
 			$row = $data; # without relationships
 		}
 
-		# loop through all attribute definitions and load the attributes
-		foreach(static::$attributes as $name => $definition){
-			if($definition->type_is('contextual')){
-				continue;
-			} else if($definition->type_is('primitive') || $definition->type_is('identifier')){
-				$this->$name = $row[$definition->get_prefixed_db_column()]; # for primitives and identifiers just copy the value
-
-			} else if($definition->type_is('custom')){
-				$this->load_custom_attribute($definition, $row);
-
-			} else if($definition->class_is(Collection::class)){
-				// TODO
-				throw new Exception('collections are not yet supported');
-
-			} else if($definition->supclass_is(StaticObject::class)){
-				if(empty($row[$definition->get_prefixed_db_column()])){
-					continue;
-				}
-
-				$cls = $definition->get_class();
-				$this->$name = new $cls($this, $definition);
-				$this->$name->load($row[$definition->get_prefixed_db_column()]);
-
-			} else if($definition->supclass_is(Entity::class)){
-				# check whether an entity was referenced by checking the column referring to the entity
-				# that column should contain an id or null, which is from now on stored as $id
-				if(empty($row[$definition->get_prefixed_db_column()])){
-					# no entity was referenced, set the attribute to null
-					$this->$name = null;
-					continue;
-				}
-
-				# create a new Entity of the defined class and load it
-				$cls = $definition->get_class();
-				$this->$name = new $cls($this); # set $this as the context entity
-				$this->$name->load($row);
-
-			} else if($definition->supclass_is(RelationshipList::class)){
-				if(isset($this->context)){ # relationships are disabled (thus set null) on non-independent entities
-					$this->$name = null;
-					continue;
-				}
-
-				# create and set the relationship list and let it load the relationships
-				$cls = $definition->get_class();
-				$this->$name = new $cls($this); # $this is referenced as context entity
-				$this->$name->load($data);
-
-			}
+		# loop through all attributes and load the value
+		foreach($this->attributes as $name => $attribute){
+			$this->attributes[$name]->load($row[$attribute->get_prefixed_db_column()]);
 		}
 
 		$this->flow->step('loaded');
-		$this->db->set_synced();
+		$this->is_new = true;
 	}
-
-
-	protected function load_custom_attribute(AttributeDefinition $definition, array $row) : void {}
 
 
 	### EDITING METHODS
@@ -328,12 +253,14 @@ abstract class Entity {
 		$data = array_merge($data, array_flip(array_keys($_FILES)));
 
 		foreach($data as $name => $input){ # loop through all input fields
-			if(!isset(static::$attributes[$name])){ # check if the attribute exists
+			if(!isset($this->attributes[$name])){ # check if the attribute exists
 				continue;
 			}
 
 			try {
-				$this->edit_attribute($name, $input);
+				// TODO check editability
+
+				$this->attributes[$name]->edit($input);
 			} catch(AttributeValueException $e){
 				$errors->push($e);
 			} catch(AttributeValueExceptionList $e){
@@ -348,9 +275,9 @@ abstract class Entity {
 	}
 
 
-	# ---> see trait Attributes
-	# final public function edit_attribute(string $name, mixed $input) : void;
-	# protected function edit_custom_attribute(AttributeDefinition $definition, mixed $input) : void;
+	final public function edit_attribute($name, $input) : void {
+
+	}
 
 
 	### STORING AND DELETING METHODS
@@ -368,71 +295,38 @@ abstract class Entity {
 
 		$this->flow->step('storing'); # start the storing process
 
-		if($this->db->is_synced()){
-			# this entity is not newly created and has not been altered, so do not perform any request
-			$request = false;
-		} else if($this->db->is_local()){
+		if($this->is_new()){
 			# this entity is not yet or not anymore stored in the database, so perform an insert query
 			$request = new InsertRequest(static::DB_TABLE);
 		} else {
-			# this entity is already stored in the database, but has been altered.
-			# perform an update query to update its database values
 			$request = new UpdateRequest(static::DB_TABLE);
-			$request->set_condition(new IdentifierEquals(static::$attributes['id'], $this->id));
+			$request->set_condition(new IdentifierEquals($this->attributes['id'], $this->attributes['id']->get_value()));
 		}
 
-		# add the attributes to the request and push the dependencies.
-		# the entity attributes this entity contains can be pushed before or after this entity, depending on whether
-		# this entity references them (then before) or they reference this entity (then after)
-		# naturally, a database record can only be referenced if it already exists
-		$push_later = [];
-		foreach(static::$attributes as $name => $definition){ // FIXME no side-effects
-			if($definition->supclass_is(Entity::class)){
-				# single entities are pushed before, so this entity can then reference them in the db
-				$this->$name?->push();
-			} else if($definition->supclass_is(RelationshipList::class)){
-				$push_later[] = $name; # relationship lists are pushed after, as they reference this entity
-				continue;
-			}
-
-			# if this is local, all attributes are included, otherwise only the alterable ones
-			if($request !== false && ($definition->is_alterable() || $this->db->is_local())){
-				$request->add_attribute($definition);
+		foreach($this->attributes as $name => $attribute){
+			if($attribute->is_pullable() && $attribute->has_been_edited()){
+				$request->add_attribute($attribute);
 			}
 		}
 
-		if($request !== false){ # if the request was set to false because this is synced, no db request is performed
-			$request->set_values($this->get_push_values());
-
-			try {
-				$s = $this->db->prepare($request->get_query());
-				$s->execute($request->get_values());
-			} catch(PDOException $e){
-				throw new DatabaseException($e, $s);
-			}
+		try {
+			$s = $this->db->prepare($request->get_query());
+			$s->execute($request->get_values());
+		} catch(EmptyRequestException $e){
+			return false;
+		} catch(PDOException $e){
+			throw new DatabaseException($e, $s);
 		}
+		// IDEA maybe use finally to cleanup attributes on fail or store them on success
 
-		foreach($push_later as $name){ # push the attributes that should be pushed later
-			$this->$name?->push();
-		}
-
-		if($request !== false){ // FIXME this is a hotfix
-			$this->push_custom();
+		foreach($this->attributes as $name => $_){
+			$this->attributes[$name]->store();
 		}
 
 		$this->flow->step('stored'); # finish the storing process
-		$this->db->set_synced();
 
-		return $request !== false; # return whether a request was performed (for this entity only)
+		return true; # return whether a request was performed (for this entity only)
 	}
-
-
-	protected function push_custom() : void {}
-
-
-	# ---> see trait Attributes
-	# final protected function get_push_values() : array;
-	# protected function get_custom_push_values() : array;
 
 
 	# Erase this entity out of the database.
@@ -442,7 +336,7 @@ abstract class Entity {
 	final public function delete() : bool {
 		$this->flow->check_step('deleted');
 
-		if($this->db->is_local()){
+		if($this->is_new()){
 			# this entity is not yet or not anymore stored in the database, so just return false
 			$this->flow->step('deleted');
 			return false;
@@ -450,7 +344,7 @@ abstract class Entity {
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
 		$request = new DeleteRequest(static::DB_TABLE);
-		$request->set_condition(new IdentifierEquals(static::$attributes['id'], $this->id));
+		$request->set_condition(new IdentifierEquals($this->attributes['id'], $this->attributes['id']->get_value()));
 
 		try {
 			$s = $this->db->prepare($request->get_query());
@@ -459,16 +353,15 @@ abstract class Entity {
 			throw new DatabaseException($e, $s);
 		}
 
-		$this->delete_custom();
+		foreach($this->attributes as $attribute){
+			$attribute->erase();
+		}
 
 		$this->flow->step('deleted');
-		$this->db->set_local();
+		$this->is_new = true;
 
 		return true;
 	}
-
-
-	protected function delete_custom() : void {}
 
 
 	### OUTPUT METHODS
@@ -479,7 +372,7 @@ abstract class Entity {
 
 	# Transform this entity object into an array (containing all its attributes).
 	# attributes that are entities themselves are recursively transformed too (using theír own arrayify functions).
-	final public function arrayify() : array|null {
+	final public function export() : array|null {
 		# if this entity is already in the freezing process, return null. prevents endless loops
 		# this also makes sure that this entity only occurs once in the final array, preventing redundancies
 		if($this->flow->is_at('freezing')){
@@ -493,12 +386,8 @@ abstract class Entity {
 		$result = [];
 
 		# loop through all attributes and copy them to $result. for entities, copy their arrayified version
-		foreach(static::$attributes as $name => $definition){
-			if($definition->type_is('entity') || $definition->type_is('object')){
-				$result[$name] = $this->$name?->arrayify();
-			} else {
-				$result[$name] = $this->$name;
-			}
+		foreach($this->attributes as $name => $attribute){
+			$result[$name] = $attribute->export();
 		}
 
 		$result = array_merge($result, $this->arrayify_custom()); // TEMP
@@ -509,12 +398,18 @@ abstract class Entity {
 	}
 
 
+	// TEMP
 	protected function arrayify_custom() : array {
 		return [];
 	}
 
 
 	### GENERAL METHODS
+
+	final public function is_new() : bool {
+		return $this->is_new;
+	}
+
 
 	// TODO explaination
 	final public static function has_relationships() : bool {

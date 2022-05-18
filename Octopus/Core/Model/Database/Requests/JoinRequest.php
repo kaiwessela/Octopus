@@ -6,8 +6,7 @@ use \Octopus\Core\Model\Database\Requests\SelectAndJoin;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\RelationshipList;
-use \Octopus\Core\Model\Attributes\StaticObject;
-use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Attributes\Attribute;
 use Exception;
 
 // TODO explainations
@@ -23,7 +22,7 @@ class JoinRequest extends Request {
 	protected array $joins;
 
 
-	function __construct(string $table, AttributeDefinition $native_attribute, AttributeDefinition $foreign_attribute) {
+	function __construct(string $table, Attribute $native_attribute, Attribute $foreign_attribute) {
 		parent::__construct($table);
 
 		$this->joins = [];
@@ -69,7 +68,7 @@ class JoinRequest extends Request {
 	}
 
 
-	public function get_foreign_attribute() : AttributeDefinition {
+	public function get_foreign_attribute() : Attribute {
 		return $this->foreign_attribute;
 	}
 

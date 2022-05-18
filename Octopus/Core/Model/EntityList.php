@@ -64,6 +64,14 @@ abstract class EntityList {
 		$request = new SelectRequest(static::ENTITY_CLASS::DB_TABLE);
 
 		foreach(static::ENTITY_CLASS::get_attribute_definitions() as $name => $attribute){
+			if($attribute->is_pullable()){
+				$request->add_attribute($attribute);
+
+				if($attribute->is_joinable()){
+					$request->add_join($attribute);
+				}
+			}
+
 			if($attribute->supclass_is(Entity::class)){
 				$request->add_join($attribute->get_class()::join(on:$attribute)); # recursively join Entity attribute
 			} else if($attribute->is_pullable()){

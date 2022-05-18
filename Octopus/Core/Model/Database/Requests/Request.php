@@ -3,7 +3,7 @@ namespace Octopus\Core\Model\Database\Requests;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\EntityList;
-use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Attributes\Attribute;
 use \Octopus\Core\Model\FlowControl\Flow;
 use Exception;
 
@@ -35,22 +35,22 @@ abstract class Request {
 
 		$this->table = $table;
 		$this->attributes = [];
-		$this->values = [];
+		// $this->values = [];
 		$this->condition = null;
 	}
 
 
-	final public function add_attribute(AttributeDefinition $definition) : void {
-		if($this->table !== $definition->get_db_table()){
+	final public function add_attribute(Attribute $attribute) : void {
+		if($this->table !== $attribute->get_db_table()){
 			throw new Exception("Property and Request db tables do not match.");
 		}
 
-		$this->attributes[$definition->get_full_db_column()] = $definition;
+		$this->attributes[$attribute->get_full_db_column()] = $attribute;
 	}
 
 
-	final public function remove_attribute(AttributeDefinition $definition) : void {
-		unset($this->attributes[$definition->get_full_db_column()]);
+	final public function remove_attribute(Attribute $attribute) : void {
+		unset($this->attributes[$attribute->get_full_db_column()]);
 	}
 
 
@@ -70,7 +70,17 @@ abstract class Request {
 			$this->resolve();
 		}
 
-		return $this->values;
+		// return $this->values;
+
+		$values = [];
+
+		foreach($this->attributes as $name => $attribute){
+			$values[$name] = $attribute->get_db_value();
+		}
+
+		// TODO condition values
+
+		return $values;
 	}
 
 
@@ -91,6 +101,7 @@ abstract class Request {
 	}
 
 
+	// DEPRECATED
 	public function set_values(array $values) : void {
 		$this->values = $values + $this->values; # values with the same key are overwritten, all others just stay
 	}

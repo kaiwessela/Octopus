@@ -40,15 +40,6 @@ abstract class Request {
 	}
 
 
-	final public function add_attribute(Attribute $attribute) : void {
-		if($this->table !== $attribute->get_db_table()){
-			throw new Exception("Property and Request db tables do not match.");
-		}
-
-		$this->attributes[$attribute->get_full_db_column()] = $attribute;
-	}
-
-
 	final public function remove_attribute(Attribute $attribute) : void {
 		unset($this->attributes[$attribute->get_full_db_column()]);
 	}

@@ -153,7 +153,12 @@ abstract class Entity {
 
 		foreach($this->attributes as $attribute){
 			if($attribute instanceof EntityAttribute){
+				$request->
 				$request->join($attribute);
+			} else if($attribute instanceof RelationshipListAttribute){
+
+			} else {
+
 			}
 
 			if($attribute->is_pullable()){
@@ -227,7 +232,13 @@ abstract class Entity {
 
 		# loop through all attributes and load the value
 		foreach($this->attributes as $name => $attribute){
-			$this->attributes[$name]->load($row[$attribute->get_prefixed_db_column()]);
+			if($attribute instanceof EntityAttribute){
+				$this->attributes[$name]->load($row);
+			} else if($attribute instanceof RelationshipListAttribute){
+				$this->attributes[$name]->load($data);
+			} else {
+				$this->attributes[$name]->load($row[$attribute->get_prefixed_db_column()]);
+			}
 		}
 
 		$this->flow->step('loaded');

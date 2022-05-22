@@ -14,6 +14,11 @@ use Exception;
 // TODO explainations
 
 class SelectRequest extends Request {
+	protected string $table;
+	protected array $attributes;
+
+
+
 	protected ?int $limit;
 	protected ?int $offset;
 	protected ?Attribute $order_by;
@@ -24,6 +29,31 @@ class SelectRequest extends Request {
 	# for SelectAndJoin
 	protected array $columns;
 	protected array $joins;
+
+
+	// public static function single(Entity $entity, Attribute $identify_by, mixed $identifier) : SelectRequest {
+	// 	$request = new SelectRequest();
+	//
+	// 	$request->table = $entity::DB_TABLE; // TODO validate
+	//
+	// 	foreach($entity::get_attribute_definitions())
+	// 
+	// 	$request->attributes = $entity::get_attribute_definitions();
+	//
+	// 	$this->condition = new IdentifierEquals();
+	// }
+	//
+	//
+	// public static function multi(EntityList $entity_list) : SelectRequest {
+	// 	$request = new SelectRequest();
+	//
+	// 	$request->table = $entity_list::ENTITY_CLASS::DB_TABLE; // TODO validate
+	// }
+	//
+	//
+	// public function join(EntityAttribute|RelationshipListAttribute $attribute) : void {
+	//
+	// }
 
 
 	function __construct(string $table) {

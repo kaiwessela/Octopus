@@ -1,6 +1,9 @@
 <?php
 namespace Octopus\Core\Model;
 use \Octopus\Core\Model\Attributes\Attributes;
+use \Octopus\Core\Model\Attributes\EntityAttribute;
+use \Octopus\Core\Model\Attributes\RelationshipAttribute;
+use \Octopus\Core\Model\Attributes\IDAttribute;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
 use \Octopus\Core\Model\Database\DatabaseAccess;
@@ -91,34 +94,39 @@ abstract class Relationship {
 
 		if(!isset(static::$attributes)){ # load all attribute definitions
 			static::load_attribute_definitions();
-		}
 
-		# note: the possibility that someone defines a relation with both entities being of the same class is not
-		# prevented here. however, there is no use case for that constellation, and at the latest on a pull(), a
-		# DatabaseException will be thrown due to column names not being distinct. just hope nobody is that stupid.
+			# note: the possibility that someone defines a relation with both entities being of the same class is not
+			# prevented here. however, there is no use case for that constellation, and at the latest on a pull(), a
+			# DatabaseException will be thrown due to column names not being distinct. just hope nobody is that stupid.
 
-		$id_found = false;
-		foreach(static::$attributes as $name => &$definition){ # validate the attribute definitions
-			if($definition->class_is('id')){
-				$id_found = true;
-			} else if($definition->supclass_is(Entity::class)){
-				if($definition->class_is($this->context::class)){
-					$this->$name = &$this->context;
-				} else {
-					$this->joined_entity_attribute = $name;
+			$id_found = false;
+			foreach(static::$attributes as $name => &$attribute){ # validate the attribute definitions
+				if($attribute instanceof IDAttribute){
+					$id_found = true;
+				} else if($attribute instanceof EntityAttribute){
+					if($attribute->get_class() === $this->context::class){
+						$this->$name = &$this->context;
+					} else {
+						$this->joined_entity_attribute = $name;
+					}
+
+					// $definition->set_alterable(false); TODO
+					// $definition->set_required(true); TODO
+				} else if($attribute instanceof RelationshipList){ // TEMP/FIXME
+					throw new Exception('Invalid attribute definition: only entities, primitives and id are allowed.');
 				}
+			}
 
-				$definition->set_alterable(false);
-				$definition->set_required(true);
-			} else if(!$definition->type_is('primitive')){
-				throw new Exception('Invalid attribute definition: only entities, primitives and id are allowed.');
+			if(!$id_found){
+				throw new Exception('Invalid attribute definitions: valid id definition missing.');
 			}
 		}
 
-		if(!$id_found){
-			throw new Exception('Invalid attribute definitions: valid id definition missing.');
-		}
+		$this->bind_attributes();
 	}
+
+
+	abstract protected function define_attributes() : array;
 
 
 	### INITIALIZATION AND LOADING METHODS
@@ -129,14 +137,12 @@ abstract class Relationship {
 		$this->flow->step('init/load');
 		$this->db->set_local();
 
-		$this->id = self::generate_id(); # generate and set a random, unique id for the relationship. (--> Properties)
-		$this->initialize_attributes();
+		$this->id->generate(); # generate and set a random, unique id for the relationship. (--> IDAttribute)
 	}
 
 
 	# ---> see trait Attributes
-	# final protected static function generate_id() : string;
-	# final protected function initialize_attributes() : void;
+	# final protected function bind_attributes() : void;
 
 
 	# Load rows of relationship and entity data from the database into this Relationship object
@@ -145,11 +151,8 @@ abstract class Relationship {
 		$this->flow->check_step('init/load');
 
 		# basically the same procedure as in Entity::load(), but shorter
-		foreach(static::$attributes as $name => $definition){
-			if($definition->type_is('primitive') || $definition->type_is('identifier')){
-				$this->$name = $data[$definition->get_prefixed_db_column()]; # for primitives and identifiers just copy the value
-
-			} else if($definition->supclass_is(Entity::class)){
+		foreach(static::$attributes as $name => $attribute){
+			if($attribute instanceof EntityAttribute){
 				if(isset($this->$name)){ # if the entity is alredy set, it is the context entity, so skip loading it
 					continue;
 				}
@@ -158,6 +161,8 @@ abstract class Relationship {
 				$cls = $definition->get_class();
 				$this->$name = new $cls($this); # reference this relationship as context
 				$this->$name->load($data);
+			} else {
+				$this->$name->load($row[$this->$name->get_prefixed_db_column()]);
 			}
 		}
 
@@ -180,6 +185,9 @@ abstract class Relationship {
 		# that occur during the editing of the attribute (i.e. invalid or missing inputs)
 		$errors = new AttributeValueExceptionList();
 
+		// FIXME file inputs via $_FILES are not taken into account. the following is a hotfix.
+		$data = array_merge($data, array_flip(array_keys($_FILES)));
+
 		foreach($data as $name => $input){ # loop through all input fields
 			if(!isset(static::$attributes[$name])){
 				continue;
@@ -199,18 +207,17 @@ abstract class Relationship {
 			throw $errors;
 		}
 
-		$this->flow->step('edit');
+		$this->flow->step('edit'); // TODO FIXME
 	}
 
 
 	# ---> see trait Attributes
 	# final public function edit_attribute(string $name, mixed $input) : void;
-	# protected function edit_custom_attribute(AttributeDefinition $definition, mixed $input) : void;
 
 
 	# Set the joined entity; shortcut for edit_attribute([joined entity name], [value])
 	final public function set_joined_entity(Entity &$entity) : void {
-		$this->edit_attribute(static::$attributes[$this->joined_entity_attribute], $entity);
+		$this->edit_attribute($this->joined_entity_attribute, $entity);
 	}
 
 
@@ -242,17 +249,17 @@ abstract class Relationship {
 			# if the relationship is not updatable because it has no attributes to be updated, this method
 			# automatically returns false because it then also cannot be altered and always remains synced
 			$request = new UpdateRequest(static::DB_TABLE);
-			$request->set_condition(new IdentifierEquals($this->properties['id'], $this->id));
+			$request->set_condition(new IdentifierEquals($this->attributes['id'], $this->id->get_value()));
 		}
 
 		# add the attributes to the request and push the entities this relationship contains
-		foreach(static::$attributes as $name => $definition){
+		foreach(static::$attributes as $name => $attribute){
 			# if this is local, all attributes are included, otherwise only the alterable ones
-			if($request !== false && ($definition->is_alterable() || $this->db->is_local())){
-				$request->add_attribute($definition);
+			if($request !== false && ($attribute->is_editable() || $this->db->is_local())){
+				$request->add_attribute($attribute);
 			}
 
-			if($definition->supclass_is(Entity::class)){
+			if($attribute instanceof EntityAttribute){ // TODO FIXME remove this to prevent side-effects
 				$this->$name?->push();
 			}
 		}
@@ -293,7 +300,7 @@ abstract class Relationship {
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
 		$request = new DeleteRequest(static::DB_TABLE);
-		$request->set_condition(new IdentifierEquals(static::$attributes['id'], $this->id));
+		$request->set_condition(new IdentifierEquals(static::$attributes['id'], $this->id->get_value()));
 
 		try {
 			$s = $this->db->prepare($request->get_query());

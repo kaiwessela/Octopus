@@ -1,19 +1,19 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests\Conditions;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Attributes\Attribute;
 use DateTime;
 use Exception;
 
 // TODO explainations
 
 class DateTimeRange extends Condition {
-	protected AttributeDefinition $attribute;
+	protected Attribute $attribute;
 	protected DateTime $from;
 	protected DateTime $to;
 
 
-	function __construct(AttributeDefinition $attribute, DateTime $from, DateTime $to) {
+	function __construct(Attribute $attribute, DateTime $from, DateTime $to) {
 		parent::__construct();
 
 		$this->attribute = $attribute;

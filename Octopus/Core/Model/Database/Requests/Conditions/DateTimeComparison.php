@@ -1,19 +1,19 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests\Conditions;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Attributes\Attribute;
 use DateTime;
 use Exception;
 
 // TODO explainations
 
 class DateTimeComparison extends Condition {
-	protected AttributeDefinition $attribute;
+	protected Attribute $attribute;
 	protected string $operator;
 	protected DateTime|string $value;
 
 
-	function __construct(AttributeDefinition $attribute, string $operator, DateTime|string $value = 'now') {
+	function __construct(Attribute $attribute, string $operator, DateTime|string $value = 'now') {
 		parent::__construct();
 
 		if(!in_array($operator, ['=', '<', '>', '<=', '>='])){

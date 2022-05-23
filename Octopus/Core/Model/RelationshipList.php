@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model;
 use \Octopus\Core\Model\Entity;
-use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Attributes\Attribute;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
 use \Octopus\Core\Model\Database\DatabaseAccess;
 use \Octopus\Core\Model\Database\Exceptions\DatabaseException;
@@ -115,20 +115,20 @@ abstract class RelationshipList {
 	# relationships in the entity
 	# @param $on: The attribute on the calling relationship that identifies these relationships
 	# paraphrased: LEFT JOIN [these relationships’ table] ON [these reelationships’ prefix].id = [on]
-	public static function join(AttributeDefinition $on) : JoinRequest {
+	public static function join(Attribute $on) : JoinRequest {
 		// TODO explaination
 		$identifier;
 		$join;
 		$columns = [];
-		foreach(static::RELATION_CLASS::get_attribute_definitions() as $name => $definition){
-			if($definition->supclass_is(Entity::class)){
-				if($definition->get_class()::DB_TABLE === $on->get_db_table()){
-					$identifier = $definition;
+		foreach(static::RELATION_CLASS::get_attribute_definitions() as $name => $attribute){
+			if($attribute instanceof EntityAttribute){
+				if($attribute->get_class()::DB_TABLE === $on->get_db_table()){
+					$identifier = $attribute;
 				} else {
-					$join = $definition;
+					$join = $attribute;
 				}
 			} else {
-				$columns[] = $definition;
+				$columns[] = $attribute;
 			}
 		}
 
@@ -337,7 +337,7 @@ abstract class RelationshipList {
 		}
 
 		foreach($this->relationships as $index => $_){
-			$callback($index, $this->relationships[$index]->get_joined_object());
+			$callback($index, $this->relationships[$index]->get_joined_entity());
 		}
 	}
 

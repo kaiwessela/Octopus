@@ -4,9 +4,11 @@ use \Octopus\Core\Model\EntityList;
 use \Octopus\Core\Model\Relationship;
 use \Octopus\Core\Model\RelationshipList;
 use \Octopus\Core\Model\Attributes\Attributes;
-use \Octopus\Core\Model\Attributes\AttributeDefinition;
-use \Octopus\Core\Model\Attributes\StaticObject;
-use \Octopus\Core\Model\Attributes\Collection;
+use \Octopus\Core\Model\Attributes\Attribute;
+use \Octopus\Core\Model\Attributes\IDAttribute;
+use \Octopus\Core\Model\Attributes\IdentifierAttribute;
+use \Octopus\Core\Model\Attributes\EntityAttribute;
+use \Octopus\Core\Model\Attributes\RelationshipAttribute;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
 use \Octopus\Core\Model\Database\DatabaseAccess;
@@ -39,20 +41,15 @@ use Exception;
 # it serves as a database abstraction layer, similar to an object-relational mapper.
 
 abstract class Entity {
-	protected readonly string $id;	# main unique identifier of the object; uneditable; randomly generated on create()
-	protected ?string $longid;		# another unique identifier; editable; set by the user
+	protected IDAttribute $id;	# main unique identifier of the object; uneditable; randomly generated on create()
+	protected IdentifierAttribute $longid;		# another unique identifier; editable; set by the user
 
 	# this class uses the Attributes trait which contains standard methods that handle the attributes of this class
 	# for documentation on the following definitions, check the Attributes trait source file
 	use Attributes;
 
+	const DB_TABLE = '';
 	const DB_PREFIX = ''; # prefix of this object's row names in the database (i.e. [prefix]_id, [prefix]_longid)
-
-	const ATTRIBUTES = [
-		# 'id' => 'id',
-		# 'longid' => 'longid',
-		# ...raw attribute definitions for all other attributes
-	];
 
 	# all child classes must set the following property:
 	# protected static array $attributes;
@@ -77,10 +74,12 @@ abstract class Entity {
 		if(!isset(static::$attributes)){ # load all attribute definitions
 			static::load_attribute_definitions();
 
-			if(!static::$attributes['id']?->class_is('id')){
+			if(!(static::$attributes['id'] ?? null) instanceof IdentifierAttribute){
 				throw new Exception('Invalid attribute definitions: valid id definition missing.');
 			}
 		}
+
+		$this->bind_attributes();
 
 		$this->db = new DatabaseAccess(); # prepare a connection to the database
 
@@ -115,6 +114,9 @@ abstract class Entity {
 	}
 
 
+	abstract protected static function define_attributes() : array;
+
+
 	### INITIALIZATION AND LOADING METHODS
 
 	# Initialize a new entity that is not yet stored in the database
@@ -123,20 +125,12 @@ abstract class Entity {
 		$this->flow->step('created');
 		$this->db->set_local();
 
-		$this->id = self::generate_id(); # generate and set a random, unique id for the entity. (--> trait Attributes)
-		$this->initialize_attributes();
-
-		$this->create_custom(); # call the custom initialization method
+		$this->id->generate(); # generate and set a random, unique id for the entity. (--> IDAttribute)
 	}
 
 
 	# ---> see trait Attributes
-	# final protected static function generate_id() : string;
-	# final protected function initialize_attributes() : void;
-
-
-	# the custom initialization method can be used to add class-specific initialization procedures
-	protected function create_custom() : void {}
+	# final protected function bind_attributes() : void;
 
 
 	# Download entity data from the database and use load() to load it into this Entity object
@@ -148,19 +142,19 @@ abstract class Entity {
 
 		# verify the identify_by value
 		$identifying_attribute = static::$attributes[$identify_by] ?? null;
-		if(!$identifying_attribute?->type_is('identifier')){
+		if(!$identifying_attribute instanceof IdentifierAttribute){
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» not found or is not an identifier.");
 		}
 
 		$request = new SelectRequest(static::DB_TABLE);
 
 		foreach(static::$attributes as $name => $attribute){ # $attribute is an AttributeDefinition
-			if($attribute->supclass_is(Entity::class)){
+			if($attribute instanceof EntityAttribute){
 				$request->add_join($attribute->get_class()::join(on:$attribute)); # join Entity attributes recursively
 				$request->add_attribute($attribute); // FIXME this is a hotfix. entities need not only be joined, but also pulled. i.e. the key post_image_id must be in the values, not only image_id. that is because load needs this value to check if it is set.
-			} else if($attribute->supclass_is(RelationshipList::class)){
+			} else if($attribute instanceof RelationshipAttribute){
 				$request->add_join($attribute->get_class()::join(on:static::$attributes['id'])); # join RelationshipList
-			} else if($attribute->is_pullable()){
+			} else { // TEMP/TODO if($attribute->is_pullable()){ / ContextualAttribute
 				$request->add_attribute($attribute);
 			}
 		}
@@ -190,13 +184,15 @@ abstract class Entity {
 	# single entities that this entity contains as attributes are joined too (recursively), but not relationships!
 	# @param $on: The attribute on the calling entity/relationship that identifies this entity
 	# paraphrased: LEFT JOIN [this entity’s table] ON [this entity’s prefix].id = [on]
-	final public static function join(AttributeDefinition $on) : JoinRequest {
+	final public static function join(Attribute $on) : JoinRequest {
 		$request = new JoinRequest(static::DB_TABLE, static::get_attribute_definitions()['id'], $on);
 
 		foreach(static::get_attribute_definitions() as $name => $attribute){ # $attribute is an AttributeDefinition
-			if($attribute->supclass_is(Entity::class)){
+			if($attribute instanceof EntityAttribute){
 				$request->add_join($attribute->get_class()::join(on:$attribute)); # recursively join entities this entity contains
-			} else if($attribute->is_pullable()){
+			} else if($attribute instanceof RelationshipAttribute){
+				continue;
+			} else { // TEMP/TODO if($attribute->is_pullable()){ / ContextualAttribute
 				$request->add_attribute($attribute);
 			}
 		}
@@ -216,34 +212,6 @@ abstract class Entity {
 	final public function load(array $data) : void {
 		$this->flow->check_step('loaded');
 
-		# $data can have two formats, depending on whether relationships were pulled or not:
-		# Without Relationships: (simple key-value array)
-		# 	[
-		#		'id' => 'abcdef01',
-		#		'longid' => 'example-object',
-		#		…
-		# 	], …
-		# With Relationships: (nested array)
-		# 	[
-		#		[
-		#			'id' => 'abcdef01',
-		#			'relationship_id' => '12345678',
-		#			'relationship_entity_longid' => 'joined-object-1',
-		#			…
-		#		],
-		#		[
-		#			'id' => 'abcdef01',
-		#			'relationship_id' => 'abababab',
-		#			'relationship_entity_longid' => 'joined-object-2',
-		#			…
-		#		], …
-		# 	]
-
-		# The first example, a response without relationships, has only one row (because only one entity was pulled).
-		# If relationships are pulled using a JOIN statement, the columns of the joined entity are simply appended to
-		# the row containing the base entity’s columns. If multiple related entities are pulled, for every row, the base
-		# entity’s columns just get repeated (they are basically "filled up" with the same values).
-
 		# To parse the columns containing our entity data, we must do a distinction:
 		if(is_array($data[0])){ # check whether the data array is nested
 			$row = $data[0]; # with relationships
@@ -251,63 +219,31 @@ abstract class Entity {
 			$row = $data; # without relationships
 		}
 
-		# loop through all attribute definitions and load the attributes
-		foreach(static::$attributes as $name => $definition){
-			if($definition->type_is('contextual')){
-				continue;
-			} else if($definition->type_is('primitive') || $definition->type_is('identifier')){
-				$this->$name = $row[$definition->get_prefixed_db_column()]; # for primitives and identifiers just copy the value
-
-			} else if($definition->type_is('custom')){
-				$this->load_custom_attribute($definition, $row);
-
-			} else if($definition->class_is(Collection::class)){
-				// TODO
-				throw new Exception('collections are not yet supported');
-
-			} else if($definition->supclass_is(StaticObject::class)){
-				if(empty($row[$definition->get_prefixed_db_column()])){
-					continue;
-				}
-
-				$cls = $definition->get_class();
-				$this->$name = new $cls($this, $definition);
-				$this->$name->load($row[$definition->get_prefixed_db_column()]);
-
-			} else if($definition->supclass_is(Entity::class)){
-				# check whether an entity was referenced by checking the column referring to the entity
-				# that column should contain an id or null, which is from now on stored as $id
-				if(empty($row[$definition->get_prefixed_db_column()])){
-					# no entity was referenced, set the attribute to null
+		foreach(static::$attributes as $name => $attribute){
+			if($attribute instanceof EntityAttribute){
+				if(empty($row[$attribute->get_prefixed_db_column()])){
 					$this->$name = null;
-					continue;
+				} else {
+					$class = $attribute->get_class();
+					$this->$name = new $class($this); # set $this as the context entity
+					$this->$name->load($row);
 				}
-
-				# create a new Entity of the defined class and load it
-				$cls = $definition->get_class();
-				$this->$name = new $cls($this); # set $this as the context entity
-				$this->$name->load($row);
-
-			} else if($definition->supclass_is(RelationshipList::class)){
+			} else if($attribute instanceof RelationshipAttribute){
 				if(isset($this->context)){ # relationships are disabled (thus set null) on non-independent entities
 					$this->$name = null;
-					continue;
+				} else {
+					$class = $attribute->get_class();
+					$this->$name = new $class($this); # $this is referenced as context entity
+					$this->$name->load($data);
 				}
-
-				# create and set the relationship list and let it load the relationships
-				$cls = $definition->get_class();
-				$this->$name = new $cls($this); # $this is referenced as context entity
-				$this->$name->load($data);
-
+			} else {
+				$this->$name->load($row[$this->$name->get_prefixed_db_column()]);
 			}
 		}
 
 		$this->flow->step('loaded');
 		$this->db->set_synced();
 	}
-
-
-	protected function load_custom_attribute(AttributeDefinition $definition, array $row) : void {}
 
 
 	### EDITING METHODS
@@ -350,7 +286,6 @@ abstract class Entity {
 
 	# ---> see trait Attributes
 	# final public function edit_attribute(string $name, mixed $input) : void;
-	# protected function edit_custom_attribute(AttributeDefinition $definition, mixed $input) : void;
 
 
 	### STORING AND DELETING METHODS
@@ -378,7 +313,7 @@ abstract class Entity {
 			# this entity is already stored in the database, but has been altered.
 			# perform an update query to update its database values
 			$request = new UpdateRequest(static::DB_TABLE);
-			$request->set_condition(new IdentifierEquals(static::$attributes['id'], $this->id));
+			$request->set_condition(new IdentifierEquals(static::$attributes['id'], $this->id->get_value()));
 		}
 
 		# add the attributes to the request and push the dependencies.
@@ -386,18 +321,18 @@ abstract class Entity {
 		# this entity references them (then before) or they reference this entity (then after)
 		# naturally, a database record can only be referenced if it already exists
 		$push_later = [];
-		foreach(static::$attributes as $name => $definition){ // FIXME no side-effects
-			if($definition->supclass_is(Entity::class)){
+		foreach(static::$attributes as $name => $attribute){ // FIXME no side-effects
+			if($attribute instanceof EntityAttribute){
 				# single entities are pushed before, so this entity can then reference them in the db
 				$this->$name?->push();
-			} else if($definition->supclass_is(RelationshipList::class)){
+			} else if($attribute instanceof RelationshipAttribute){
 				$push_later[] = $name; # relationship lists are pushed after, as they reference this entity
 				continue;
 			}
 
 			# if this is local, all attributes are included, otherwise only the alterable ones
-			if($request !== false && ($definition->is_alterable() || $this->db->is_local())){
-				$request->add_attribute($definition);
+			if($request !== false && ($attribute->is_editable() || $this->db->is_local())){
+				$request->add_attribute($attribute);
 			}
 		}
 
@@ -432,7 +367,6 @@ abstract class Entity {
 
 	# ---> see trait Attributes
 	# final protected function get_push_values() : array;
-	# protected function get_custom_push_values() : array;
 
 
 	# Erase this entity out of the database.
@@ -450,7 +384,7 @@ abstract class Entity {
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
 		$request = new DeleteRequest(static::DB_TABLE);
-		$request->set_condition(new IdentifierEquals(static::$attributes['id'], $this->id));
+		$request->set_condition(new IdentifierEquals(static::$attributes['id'], $this->id->get_value()));
 
 		try {
 			$s = $this->db->prepare($request->get_query());
@@ -492,12 +426,11 @@ abstract class Entity {
 
 		$result = [];
 
-		# loop through all attributes and copy them to $result. for entities, copy their arrayified version
-		foreach(static::$attributes as $name => $definition){
-			if($definition->type_is('entity') || $definition->type_is('object')){
+		foreach(static::$attributes as $name => $attribute){
+			if($attribute instanceof EntityAttribute || $attribute instanceof RelationshipAttribute){
 				$result[$name] = $this->$name?->arrayify();
 			} else {
-				$result[$name] = $this->$name;
+				$result[$name] = $this->$name->get_value();
 			}
 		}
 
@@ -516,10 +449,16 @@ abstract class Entity {
 
 	### GENERAL METHODS
 
+	public function is_new() : bool { // TEMP
+		return $this->db->is_local();
+	}
+
+
+
 	// TODO explaination
 	final public static function has_relationships() : bool {
-		foreach(static::get_attribute_definitions() as $definition){
-			if($definition->supclass_is(RelationshipList::class)){
+		foreach(static::get_attribute_definitions() as $attribute){
+			if($attribute instanceof RelationshipAttribute){
 				return true;
 			}
 		}
@@ -531,9 +470,9 @@ abstract class Entity {
 	final public function get_relationships() : ?RelationshipList {
 		// TODO check flow state
 
-		foreach(static::get_attribute_definitions() as $attribute => $definition){
-			if($definition->supclass_is(RelationshipList::class)){
-				return $this->$attribute;
+		foreach(static::get_attribute_definitions() as $name => $attribute){
+			if($attribute instanceof RelationshipAttribute){
+				return $this->$name;
 			}
 		}
 

@@ -1,16 +1,16 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests\Conditions;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Attributes\Attribute;
 
 // TODO explainations
 
 class InList extends Condition {
-	protected AttributeDefinition $attribute;
+	protected Attribute $attribute;
 	protected array $vals;
 
 
-	function __construct(AttributeDefinition $column, array $values) {
+	function __construct(Attribute $column, array $values) {
 		parent::__construct();
 
 		$this->attribute = $column;

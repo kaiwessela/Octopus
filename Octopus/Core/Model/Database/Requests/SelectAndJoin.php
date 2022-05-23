@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
 use \Octopus\Core\Model\Database\Requests\JoinRequest;
-use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Attributes\Attribute;
 use Exception;
 
 // TODO explainations
@@ -29,7 +29,7 @@ trait SelectAndJoin {
 	}
 
 
-	protected static function create_column_string(AttributeDefinition $attribute) : string {
+	protected static function create_column_string(Attribute $attribute) : string {
 		return "	{$attribute->get_full_db_column()} AS '{$attribute->get_prefixed_db_column()}'";
 	}
 

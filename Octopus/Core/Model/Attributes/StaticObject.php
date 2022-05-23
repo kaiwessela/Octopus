@@ -1,22 +1,23 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
 use \Octopus\Core\Model\Entity;
+use \Octopus\Core\Model\Attributes\Attribute;
 
 abstract class StaticObject {
 	protected Entity $context;
-	protected AttributeDefinition $definition;
+	protected Attribute $attribute;
 
 	// TODO check
 
 
-	function __construct(Entity &$context, AttributeDefinition $definition) {
+	function __construct(Entity &$context, Attribute $attribute) {
 		$this->context = $context;
-		$this->definition = $definition;
+		$this->attribute = $attribute;
 	}
 
 
-	final protected function check_edit() : void {
-		$this->context->edit_attribute($this->definition->get_name(), $this->definition); # pass definition to signal a dry run
+	final protected function check_edit() : void { // TODO
+		$this->context->edit_attribute($this->attribute->get_name(), $this->attribute); # pass definition to signal a dry run
 	}
 
 

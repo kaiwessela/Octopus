@@ -1,22 +1,18 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests\Conditions;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Attributes\IdentifierAttribute;
 use Exception;
 
 // TODO explainations
 
 class IdentifierEquals extends Condition {
-	protected AttributeDefinition $attribute;
+	protected IdentifierAttribute $attribute;
 	protected string $value;
 
 
-	function __construct(AttributeDefinition $attribute, string $value) {
+	function __construct(IdentifierAttribute $attribute, string $value) {
 		parent::__construct();
-
-		if(!$attribute->type_is('identifier')){
-			throw new Exception("Property must be of type identifier. «{$attribute->get_type()}» given.");
-		}
 
 		$this->attribute = $attribute;
 		$this->value = $value;

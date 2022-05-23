@@ -1,16 +1,16 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests\Conditions;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Attributes\Attribute;
 
 // TODO explainations
 
 class Equals extends Condition {
-	protected AttributeDefinition $attribute;
+	protected Attribute $attribute;
 	protected string|int|float|null $value;
 
 
-	function __construct(AttributeDefinition $column, string|int|float|null $value) {
+	function __construct(Attribute $column, string|int|float|null $value) {
 		parent::__construct();
 
 		$this->attribute = $column;

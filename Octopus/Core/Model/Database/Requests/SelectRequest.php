@@ -5,7 +5,7 @@ use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\SelectAndJoin;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierCondition;
-use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Attributes\Attribute;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\RelationshipList;
 use \Octopus\Core\Model\DataType;
@@ -16,7 +16,7 @@ use Exception;
 class SelectRequest extends Request {
 	protected ?int $limit;
 	protected ?int $offset;
-	protected ?AttributeDefinition $order_by;
+	protected ?Attribute $order_by;
 	protected bool $order_desc;
 
 	use SelectAndJoin;
@@ -61,7 +61,7 @@ class SelectRequest extends Request {
 	}
 
 
-	public function set_order(?AttributeDefinition $by, bool $desc = false) : void {
+	public function set_order(?Attribute $by, bool $desc = false) : void {
 		$this->flow->step('build');
 
 		$this->order_by = $by;

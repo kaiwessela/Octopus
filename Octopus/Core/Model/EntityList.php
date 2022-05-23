@@ -2,6 +2,8 @@
 namespace Octopus\Core\Model;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\RelationshipList;
+use \Octopus\Core\Model\Attributes\EntityAttribute;
+use \Octopus\Core\Model\Attributes\RelationshipAttribute;
 use \Octopus\Core\Model\Database\DatabaseAccess;
 use \Octopus\Core\Model\Database\Exceptions\DatabaseException;
 use \Octopus\Core\Model\Database\Exceptions\EmptyResultException;
@@ -64,9 +66,9 @@ abstract class EntityList {
 		$request = new SelectRequest(static::ENTITY_CLASS::DB_TABLE);
 
 		foreach(static::ENTITY_CLASS::get_attribute_definitions() as $name => $attribute){
-			if($attribute->supclass_is(Entity::class)){
+			if($attribute instanceof EntityAttribute){
 				$request->add_join($attribute->get_class()::join(on:$attribute)); # recursively join Entity attribute
-			} else if($attribute->is_pullable()){
+			} else if(!$attribute instanceof RelationshipAttribute){
 				$request->add_attribute($attribute);
 			}
 		}
@@ -110,9 +112,9 @@ abstract class EntityList {
 		$request = new SelectRequest(static::ENTITY_CLASS::DB_TABLE);
 
 		foreach(static::ENTITY_CLASS::get_attribute_definitions() as $name => $attribute){
-			if($attribute->supclass_is(Entity::class)){
+			if($attribute instanceof EntityAttribute){
 				$request->add_join($attribute->get_class()::join(on:$attribute)); # recursively join Entity attribute
-			} else if($attribute->is_pullable()){
+			} else if(!$attribute instanceof RelationshipAttribute){
 				$request->add_attribute($attribute);
 			}
 		}

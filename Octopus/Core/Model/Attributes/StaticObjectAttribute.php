@@ -25,16 +25,15 @@ class StaticObjectAttribute extends PropertyAttribute {
 
 
 	public function load(null|string|int|float $data) : void {
-		$this->edited = false;
-
 		if(is_null($data)){
 			$this->value = null;
-			return;
+		} else {
+			$class = $this->get_class();
+			$this->value = new $class($this->parent, $this);
+			$this->value->load($data);
 		}
 
-		$class = $this->get_class();
-		$this->value = new $class($this->parent, $this);
-		$this->value->load($data);
+		$this->loaded = true;
 	}
 
 

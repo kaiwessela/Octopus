@@ -15,6 +15,7 @@ use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
 use \Octopus\Core\Model\Database\DatabaseAccess;
 use \Octopus\Core\Model\Database\Exceptions\DatabaseException;
 use \Octopus\Core\Model\Database\Exceptions\EmptyResultException;
+use \Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
 use \Octopus\Core\Model\Database\Requests\SelectRequest;
 use \Octopus\Core\Model\Database\Requests\InsertRequest;
 use \Octopus\Core\Model\Database\Requests\UpdateRequest;
@@ -44,6 +45,8 @@ use Exception;
 abstract class Entity {
 	protected IDAttribute $id;	# main unique identifier of the object; uneditable; randomly generated on create()
 	protected IdentifierAttribute $longid;		# another unique identifier; editable; set by the user
+
+	protected bool $is_new;
 
 	# this class uses the Attributes trait which contains standard methods that handle the attributes of this class
 	# for documentation on the following definitions, check the Attributes trait source file
@@ -124,7 +127,8 @@ abstract class Entity {
 	# Generate a random id for the new entity and set all attributes to null
 	final public function create() : void {
 		$this->flow->step('created');
-		$this->db->set_local();
+
+		$this->is_new = true;
 
 		$this->id->generate(); # generate and set a random, unique id for the entity. (--> IDAttribute)
 	}
@@ -219,9 +223,7 @@ abstract class Entity {
 		}
 
 		foreach(static::$attributes as $name => $attribute){
-			if($attribute instanceof EntityAttribute){
-				$this->$name->load($row);
-			} else if($attribute instanceof RelationshipAttribute){
+			if($attribute instanceof RelationshipAttribute){
 				if(isset($this->context)){ # relationships are disabled (thus set null) on non-independent entities
 					$this->$name = null;
 				} else {
@@ -229,13 +231,20 @@ abstract class Entity {
 					$this->$name = new $class($this); # $this is referenced as context entity
 					$this->$name->load($data);
 				}
-			} else if($attribute instanceof PropertyAttribute){
-				$this->$name->load($row[$this->$name->get_prefixed_db_column()] ?? null);
+
+			} else if(array_key_exists($attribute->get_prefixed_db_column(), $row)){
+				if($attribute instanceof EntityAttribute){
+					$this->$name->load($row);
+				} else if($attribute instanceof PropertyAttribute){
+					$this->$name->load($row[$attribute->get_prefixed_db_column()]);
+				}
 			}
+
 		}
 
+		$this->is_new = false;
+
 		$this->flow->step('loaded');
-		$this->db->set_synced();
 	}
 
 
@@ -258,6 +267,11 @@ abstract class Entity {
 
 		foreach($data as $name => $input){ # loop through all input fields
 			if(!isset(static::$attributes[$name])){ # check if the attribute exists
+				continue;
+			}
+
+			if(!$this->$name->is_loaded()){
+				$errors->push(new AttributeNotAlterableException()); // TODO
 				continue;
 			}
 
@@ -296,67 +310,50 @@ abstract class Entity {
 
 		$this->flow->step('storing'); # start the storing process
 
-		if($this->db->is_synced()){
-			# this entity is not newly created and has not been altered, so do not perform any request
-			$request = false;
-		} else if($this->db->is_local()){
-			# this entity is not yet or not anymore stored in the database, so perform an insert query
+		if($this->is_new()){
 			$request = new InsertRequest(static::DB_TABLE);
 		} else {
-			# this entity is already stored in the database, but has been altered.
-			# perform an update query to update its database values
 			$request = new UpdateRequest(static::DB_TABLE);
 			$request->set_condition(new IdentifierEquals(static::$attributes['id'], $this->id->get_value()));
 		}
 
-		# add the attributes to the request and push the dependencies.
-		# the entity attributes this entity contains can be pushed before or after this entity, depending on whether
-		# this entity references them (then before) or they reference this entity (then after)
-		# naturally, a database record can only be referenced if it already exists
+		$errors = new AttributeValueExceptionList();
+		$push_values = [];
 		$push_later = [];
-		foreach(static::$attributes as $name => $attribute){ // FIXME no side-effects
+
+		foreach(static::$attributes as $name => $attribute){
 			if($attribute instanceof RelationshipAttribute){
-				$push_later[] = $name; # relationship lists are pushed after, as they reference this entity
-				continue;
-			}
-
-			# if this is local, all attributes are included, otherwise only the alterable ones
-			if($request !== false && ($attribute->is_editable() || $this->db->is_local())){
+				$push_later[] = $name;
+			} else if($attribute->is_required() && $this->$name->is_empty()){
+				$errors->push(new MissingValueException($attribute));
+			} else if($this->is_new() || $this->$name->has_been_edited()){
 				$request->add_attribute($attribute);
+				$push_values[$attribute->get_db_column()] = $this->$name->get_push_value();
 			}
 		}
 
-		if($request !== false){ # if the request was set to false because this is synced, no db request is performed
-			$request->set_values($this->get_push_values());
-
-			try {
-				$s = $this->db->prepare($request->get_query());
-				$s->execute($request->get_values());
-			} catch(PDOException $e){
-				throw new DatabaseException($e, $s);
-			}
+		if(!$errors->is_empty()){
+			throw $errors;
 		}
 
-		foreach($push_later as $name){ # push the attributes that should be pushed later
+		$request->set_values($push_values);
+
+		try {
+			$s = $this->db->prepare($request->get_query());
+			$s->execute($request->get_values());
+		} catch(EmptyRequestException $e){
+			return false;
+		} catch(PDOException $e){
+			throw new DatabaseException($e, $s);
+		}
+
+		foreach($push_later as $name){
 			$this->$name?->push();
 		}
 
-		if($request !== false){ // FIXME this is a hotfix
-			$this->push_custom();
-		}
-
-		$this->flow->step('stored'); # finish the storing process
-		$this->db->set_synced();
-
-		return $request !== false; # return whether a request was performed (for this entity only)
+		$this->flow->step('stored');
+		return true;
 	}
-
-
-	protected function push_custom() : void {}
-
-
-	# ---> see trait Attributes
-	# final protected function get_push_values() : array;
 
 
 	# Erase this entity out of the database.
@@ -366,7 +363,7 @@ abstract class Entity {
 	final public function delete() : bool {
 		$this->flow->check_step('deleted');
 
-		if($this->db->is_local()){
+		if($this->is_new()){
 			# this entity is not yet or not anymore stored in the database, so just return false
 			$this->flow->step('deleted');
 			return false;
@@ -386,13 +383,10 @@ abstract class Entity {
 		$this->delete_custom();
 
 		$this->flow->step('deleted');
-		$this->db->set_local();
+		$this->is_new = true;
 
 		return true;
 	}
-
-
-	protected function delete_custom() : void {}
 
 
 	### OUTPUT METHODS
@@ -441,8 +435,8 @@ abstract class Entity {
 
 	### GENERAL METHODS
 
-	public function is_new() : bool { // TEMP
-		return $this->db->is_local();
+	public function is_new() : bool {
+		return $this->is_new;
 	}
 
 

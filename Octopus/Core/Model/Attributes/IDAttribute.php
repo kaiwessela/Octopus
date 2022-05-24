@@ -20,7 +20,7 @@ class IDAttribute extends IdentifierAttribute {
 		}
 
 		$this->value = $data;
-		$this->edited = false;
+		$this->loaded = true;
 	}
 
 

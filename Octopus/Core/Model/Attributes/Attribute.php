@@ -9,7 +9,8 @@ abstract class Attribute {
 	protected string $name;
 	protected bool $required;
 	protected bool $editable;
-	protected ?bool $edited; # null = has never been edited because the entity is new
+	protected bool $loaded;
+	protected bool $edited;
 	protected mixed $value;
 
 
@@ -26,14 +27,14 @@ abstract class Attribute {
 		// TODO check DB_TABLE
 
 		$this->parent = $parent_class;
-		$this->edited = false; // FIXME this is a hotfix to prevent access before initialization on is_editable()
+		$this->loaded = false;
 	}
 
 
 	final public function bind(Entity &$parent) : void {
 		$this->parent = &$parent;
 		$this->value = null;
-		$this->edited = null;
+		$this->edited = false;
 	}
 
 
@@ -44,7 +45,17 @@ abstract class Attribute {
 
 
 	final public function has_been_edited() : bool {
-		return $this->edited !== false; # true if $this->edited is true or null
+		return $this->edited;
+	}
+
+
+	final public function is_bound() : bool {
+		return !is_string($this->parent);
+	}
+
+
+	final public function is_loaded() : bool {
+		return $this->loaded;
 	}
 
 
@@ -54,7 +65,11 @@ abstract class Attribute {
 
 
 	final public function is_editable() : bool {
-		return $this->editable === true || $this->edited === null; // TODO see init()
+		if($this->is_bound()){
+			return $this->editable;
+		} else {
+			return $this->is_loaded() && ($this->editable || $this->parent->is_new());
+		}
 	}
 
 

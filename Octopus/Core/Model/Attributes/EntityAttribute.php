@@ -28,7 +28,7 @@ final class EntityAttribute extends Attribute {
 
 
 	final public function load(array $data) : void {
-		if(!isset($data[$this->get_prefixed_db_column()])){
+		if(is_null($data[$this->get_prefixed_db_column()])){
 			$this->value = null;
 		} else {
 			$class = $this->get_class();
@@ -36,7 +36,7 @@ final class EntityAttribute extends Attribute {
 			$this->value->load($data);
 		}
 
-		// TODO is_loaded
+		$this->loaded = true;
 	}
 
 

@@ -62,7 +62,7 @@ class StringAttribute extends PropertyAttribute {
 		}
 
 		$this->value = $data;
-		$this->edited = false;
+		$this->loaded = true;
 	}
 
 

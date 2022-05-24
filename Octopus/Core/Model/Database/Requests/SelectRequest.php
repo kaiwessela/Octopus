@@ -5,6 +5,7 @@ use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\SelectAndJoin;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierCondition;
+use \Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
 use \Octopus\Core\Model\Attributes\Attribute;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\RelationshipList;
@@ -70,6 +71,10 @@ class SelectRequest extends Request {
 
 
 	protected function resolve() : void {
+		if(empty($this->attributes)){
+			throw new EmptyRequestException($this);
+		}
+		
 		$this->flow->step('resolve');
 
 		$this->query = 'SELECT'.PHP_EOL;

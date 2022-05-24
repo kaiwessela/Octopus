@@ -3,6 +3,7 @@ namespace Octopus\Core\Model\Database\Requests;
 use \Octopus\Core\Model\Database\Requests\Request;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierCondition;
+use \Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
 use Exception;
 
 // TODO explainations
@@ -14,6 +15,10 @@ class UpdateRequest extends Request {
 
 
 	protected function resolve() : void {
+		if(empty($this->attributes)){
+			throw new EmptyRequestException($this);
+		}
+		
 		$this->flow->step('resolve');
 
 		if(is_null($this->condition)){

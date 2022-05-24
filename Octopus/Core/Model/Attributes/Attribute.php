@@ -37,13 +37,13 @@ abstract class Attribute {
 	}
 
 
-	abstract public function load(null|string|int|float $value) : void;
+	// abstract public function load(mixed $data) : void;
 
 
 	abstract public function edit(mixed $input) : void;
 
 
-	public function has_been_edited() : bool {
+	final public function has_been_edited() : bool {
 		return $this->edited !== false; # true if $this->edited is true or null
 	}
 
@@ -73,9 +73,7 @@ abstract class Attribute {
 	}
 
 
-	public function get_db_column() : string {
-		return $this->name;
-	}
+	abstract public function get_db_column() : string;
 
 
 	final public function get_full_db_column() : string {
@@ -84,7 +82,7 @@ abstract class Attribute {
 
 
 	final public function get_prefixed_db_column() : string {
-		return "{$this->get_db_prefix()}.{$this->get_db_column()}";
+		return "{$this->get_db_prefix()}_{$this->get_db_column()}";
 	}
 
 

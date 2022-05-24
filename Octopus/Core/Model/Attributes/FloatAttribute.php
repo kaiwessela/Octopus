@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
 
-class FloatAttribute extends Attribute {
+class FloatAttribute extends PropertyAttribute {
 
 
 	public static function define() : FloatAttribute {
@@ -9,7 +9,7 @@ class FloatAttribute extends Attribute {
 	}
 
 
-	public function load(null|string|int|float $value) : void {
+	public function load(null|string|int|float $data) : void {
 
 	}
 

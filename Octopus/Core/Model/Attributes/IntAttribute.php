@@ -1,15 +1,15 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
 
-class IntAttribute extends Attribute {
+class IntAttribute extends PropertyAttribute {
 
 
-	public static function define() : IntAttribute {
+	public static function define() : PropertyAttribute {
 
 	}
 
 
-	public function load(null|string|int|float $value) : void {
+	public function load(null|string|int|float $data) : void {
 
 	}
 

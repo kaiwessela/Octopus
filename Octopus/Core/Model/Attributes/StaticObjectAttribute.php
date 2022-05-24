@@ -3,11 +3,11 @@
 // TEMP
 
 namespace Octopus\Core\Model\Attributes;
-use \Octopus\Core\Model\Attributes\Attribute;
+use \Octopus\Core\Model\Attributes\PropertyAttribute;
 use \Octopus\Core\Model\Attributes\StaticObject;
 use \Exception;
 
-class StaticObjectAttribute extends Attribute {
+class StaticObjectAttribute extends PropertyAttribute {
 	protected string $class;
 
 
@@ -24,22 +24,22 @@ class StaticObjectAttribute extends Attribute {
 	}
 
 
-	public function load(null|string|int|float $value) : void {
+	public function load(null|string|int|float $data) : void {
 		$this->edited = false;
 
-		if(is_null($value)){
+		if(is_null($data)){
 			$this->value = null;
 			return;
 		}
 
 		$class = $this->get_class();
 		$this->value = new $class($this->parent, $this);
-		$this->value->load($value);
+		$this->value->load($data);
 	}
 
 
 	public function edit(mixed $input) : void {
-		if($input instanceof Attribute){ # dry run; used by StaticObjects’ internal edit methods
+		if($input instanceof PropertyAttribute){ # dry run; used by StaticObjects’ internal edit methods
 			return;
 		}
 

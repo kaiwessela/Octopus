@@ -8,6 +8,7 @@ use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\RelationshipList;
 use \Octopus\Core\Model\Attributes\StaticObject;
 use \Octopus\Core\Model\Attributes\Attribute;
+use \Octopus\Core\Model\Attributes\IdentifierAttribute;
 use \Octopus\Core\Model\Attributes\EntityAttribute;
 use Exception;
 

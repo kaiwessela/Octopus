@@ -1,12 +1,12 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
-use \Octopus\Core\Model\Attributes\Attribute;
+use \Octopus\Core\Model\Attributes\PropertyAttribute;
 use \Octopus\Core\Model\Attributes\Exceptions\MissingValueException;
 use \Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
 use \Exception;
 
-class StringAttribute extends Attribute {
+class StringAttribute extends PropertyAttribute {
 	protected ?int $min;
 	protected ?int $max;
 	protected ?string $pattern;
@@ -56,12 +56,12 @@ class StringAttribute extends Attribute {
 	}
 
 
-	public function load(null|string|int|float $value) : void {
-		if(!is_string($value) && !is_null($value)){
+	public function load(null|string|int|float $data) : void {
+		if(!is_string($data) && !is_null($data)){
 			throw new Exception('Database value corrupted.');
 		}
 
-		$this->value = $value;
+		$this->value = $data;
 		$this->edited = false;
 	}
 

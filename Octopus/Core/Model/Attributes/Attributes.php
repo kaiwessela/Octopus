@@ -51,7 +51,7 @@ trait Attributes {
 
 	final protected function bind_attributes() : void {
 		foreach(static::$attributes as $name => $attribute){
-			if($attribute instanceof EntityAttribute || $attribute instanceof RelationshipAttribute){
+			if($attribute instanceof RelationshipAttribute){
 				$this->$name = null;
 			} else {
 				$this->$name = clone $attribute;
@@ -74,6 +74,7 @@ trait Attributes {
 
 		$attribute = static::$attributes[$name];
 
+		/*
 		if($attribute instanceof EntityAttribute){
 			$class = $attribute->get_class();
 
@@ -140,7 +141,9 @@ trait Attributes {
 				$this->db->set_altered();
 			}
 
-		} else if($attribute instanceof RelationshipAttribute){
+		} else */
+
+		if($attribute instanceof RelationshipAttribute){
 			// TODO maybe remove this and move it into the DataObject::receive_input() function as it only makes sense there
 		   # relationship lists cannot be edited if this object is not independent
 		   if(isset($this->context)){
@@ -250,19 +253,13 @@ trait Attributes {
 		$errors = new AttributeValueExceptionList();
 
 		foreach(static::$attributes as $name => $attribute){
-			if($attribute instanceof EntityAttribute){
-				if(is_null($this->$name) && $attribute->is_required()){
-					$errors->push(new MissingValueException($attribute));
-				} else {
-					$result[$name] = $this->$name?->id;
-				}
-			} else if($attribute instanceof RelationshipAttribute){
+			if($attribute instanceof RelationshipAttribute){
 				continue;
 			} else {
 				if($attribute->is_required() && $this->$name->is_empty()){
 					$errors->push(new MissingValueException($attribute));
 				} else if($this->$name->has_been_edited()){
-					$result[$name] = $this->$name->get_push_value();
+					$result[$attribute->get_db_column()] = $this->$name->get_push_value();
 				}
 			}
 		}
@@ -333,7 +330,9 @@ trait Attributes {
 
 		# freeze all attributes that are entities or relationships
 		foreach(static::$attributes as $name => $attribute){
-			if($attribute instanceof EntityAttribute || $attribute instanceof RelationshipAttribute){
+			if($attribute instanceof EntityAttribute){
+				$this->$name?->get_value()?->freeze(); // TODO check
+			} else if($attribute instanceof RelationshipAttribute){
 				$this->$name?->freeze();
 			}
 		}

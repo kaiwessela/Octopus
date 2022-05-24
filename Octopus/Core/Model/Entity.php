@@ -5,10 +5,11 @@ use \Octopus\Core\Model\Relationship;
 use \Octopus\Core\Model\RelationshipList;
 use \Octopus\Core\Model\Attributes\Attributes;
 use \Octopus\Core\Model\Attributes\Attribute;
-use \Octopus\Core\Model\Attributes\IDAttribute;
-use \Octopus\Core\Model\Attributes\IdentifierAttribute;
+use \Octopus\Core\Model\Attributes\PropertyAttribute;
 use \Octopus\Core\Model\Attributes\EntityAttribute;
 use \Octopus\Core\Model\Attributes\RelationshipAttribute;
+use \Octopus\Core\Model\Attributes\IDAttribute;
+use \Octopus\Core\Model\Attributes\IdentifierAttribute;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
 use \Octopus\Core\Model\Database\DatabaseAccess;
@@ -154,7 +155,7 @@ abstract class Entity {
 				$request->add_attribute($attribute); // FIXME this is a hotfix. entities need not only be joined, but also pulled. i.e. the key post_image_id must be in the values, not only image_id. that is because load needs this value to check if it is set.
 			} else if($attribute instanceof RelationshipAttribute){
 				$request->add_join($attribute->get_class()::join(on:static::$attributes['id'])); # join RelationshipList
-			} else { // TEMP/TODO if($attribute->is_pullable()){ / ContextualAttribute
+			} else if($attribute instanceof PropertyAttribute){
 				$request->add_attribute($attribute);
 			}
 		}
@@ -190,9 +191,7 @@ abstract class Entity {
 		foreach(static::get_attribute_definitions() as $name => $attribute){ # $attribute is an AttributeDefinition
 			if($attribute instanceof EntityAttribute){
 				$request->add_join($attribute->get_class()::join(on:$attribute)); # recursively join entities this entity contains
-			} else if($attribute instanceof RelationshipAttribute){
-				continue;
-			} else { // TEMP/TODO if($attribute->is_pullable()){ / ContextualAttribute
+			} else if($attribute instanceof PropertyAttribute){
 				$request->add_attribute($attribute);
 			}
 		}
@@ -221,13 +220,7 @@ abstract class Entity {
 
 		foreach(static::$attributes as $name => $attribute){
 			if($attribute instanceof EntityAttribute){
-				if(empty($row[$attribute->get_prefixed_db_column()])){
-					$this->$name = null;
-				} else {
-					$class = $attribute->get_class();
-					$this->$name = new $class($this); # set $this as the context entity
-					$this->$name->load($row);
-				}
+				$this->$name->load($row);
 			} else if($attribute instanceof RelationshipAttribute){
 				if(isset($this->context)){ # relationships are disabled (thus set null) on non-independent entities
 					$this->$name = null;
@@ -236,8 +229,8 @@ abstract class Entity {
 					$this->$name = new $class($this); # $this is referenced as context entity
 					$this->$name->load($data);
 				}
-			} else {
-				$this->$name->load($row[$this->$name->get_prefixed_db_column()]);
+			} else if($attribute instanceof PropertyAttribute){
+				$this->$name->load($row[$this->$name->get_prefixed_db_column()] ?? null);
 			}
 		}
 
@@ -322,10 +315,7 @@ abstract class Entity {
 		# naturally, a database record can only be referenced if it already exists
 		$push_later = [];
 		foreach(static::$attributes as $name => $attribute){ // FIXME no side-effects
-			if($attribute instanceof EntityAttribute){
-				# single entities are pushed before, so this entity can then reference them in the db
-				$this->$name?->push();
-			} else if($attribute instanceof RelationshipAttribute){
+			if($attribute instanceof RelationshipAttribute){
 				$push_later[] = $name; # relationship lists are pushed after, as they reference this entity
 				continue;
 			}
@@ -427,7 +417,9 @@ abstract class Entity {
 		$result = [];
 
 		foreach(static::$attributes as $name => $attribute){
-			if($attribute instanceof EntityAttribute || $attribute instanceof RelationshipAttribute){
+			if($attribute instanceof EntityAttribute){
+				$result[$name] = $this->$name->get_value()?->arrayify();
+			} else if($attribute instanceof RelationshipAttribute){
 				$result[$name] = $this->$name?->arrayify();
 			} else {
 				$result[$name] = $this->$name->get_value();

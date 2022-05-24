@@ -15,7 +15,7 @@ class RelationshipAttribute extends Attribute {
 	}
 
 
-	public function load(null|string|int|float $value) : void {
+	public function load(null|string|int|float $data) : void {
 		throw new Exception('do not call!');
 	}
 

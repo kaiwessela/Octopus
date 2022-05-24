@@ -14,12 +14,12 @@ class IDAttribute extends IdentifierAttribute {
 	}
 
 
-	public function load(null|string|int|float $value) : void {
-		if(!is_string($value) && !is_null($value)){
+	public function load(null|string|int|float $data) : void {
+		if(!is_string($data) && !is_null($data)){
 			throw new Exception('Database value corrupted.');
 		}
 
-		$this->value = $value;
+		$this->value = $data;
 		$this->edited = false;
 	}
 

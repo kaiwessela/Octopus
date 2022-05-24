@@ -2,6 +2,7 @@
 namespace Octopus\Core\Model;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\RelationshipList;
+use \Octopus\Core\Model\Attributes\PropertyAttribute;
 use \Octopus\Core\Model\Attributes\EntityAttribute;
 use \Octopus\Core\Model\Attributes\RelationshipAttribute;
 use \Octopus\Core\Model\Database\DatabaseAccess;
@@ -68,7 +69,7 @@ abstract class EntityList {
 		foreach(static::ENTITY_CLASS::get_attribute_definitions() as $name => $attribute){
 			if($attribute instanceof EntityAttribute){
 				$request->add_join($attribute->get_class()::join(on:$attribute)); # recursively join Entity attribute
-			} else if(!$attribute instanceof RelationshipAttribute){
+			} else if($attribute instanceof PropertyAttribute){
 				$request->add_attribute($attribute);
 			}
 		}
@@ -114,7 +115,7 @@ abstract class EntityList {
 		foreach(static::ENTITY_CLASS::get_attribute_definitions() as $name => $attribute){
 			if($attribute instanceof EntityAttribute){
 				$request->add_join($attribute->get_class()::join(on:$attribute)); # recursively join Entity attribute
-			} else if(!$attribute instanceof RelationshipAttribute){
+			} else if($attribute instanceof PropertyAttribute){
 				$request->add_attribute($attribute);
 			}
 		}

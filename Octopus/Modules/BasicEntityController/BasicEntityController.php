@@ -33,7 +33,7 @@ class BasicEntityController extends EntityController {
 	public ?EntityList $entities;
 
 
-	public function load(Request &$request, ControllerCall $call) : void {
+	public function load(Request $request, ControllerCall $call) : void {
 		if(!$call->has_option('mode') || $call->get_option('mode') === 'FORM'){
 			$this->mode = 'FORM';
 		} else if($call->get_option('mode') === 'REST'){
@@ -53,7 +53,7 @@ class BasicEntityController extends EntityController {
 			$list_class = $entity_class::LIST_CLASS;
 
 			$this->entity = null;
-			$this->entities = new $list_class();
+			$this->entities = new $list_class($this->endpoint->get_db());
 			$this->action = 'list';
 		} else if($action === 'new'){
 			$this->entities = null;
@@ -66,7 +66,7 @@ class BasicEntityController extends EntityController {
 				$this->entity = null;
 				$this->action = 'empty';
 			} else if($request->method_is('POST')){
-				$this->entity = new $entity_class();
+				$this->entity = new $entity_class(null, $this->endpoint->get_db());
 				$this->action = 'new';
 			} else {
 				throw new ControllerException(405, 'Method not allowed.');
@@ -78,7 +78,7 @@ class BasicEntityController extends EntityController {
 				throw new ControllerException(405, 'Method not allowed.');
 			}
 
-			$this->entity = new $entity_class();
+			$this->entity = new $entity_class(null, $this->endpoint->get_db());
 			$this->action = 'show';
 		} else if($action === 'edit'){
 			$this->entities = null;
@@ -101,7 +101,7 @@ class BasicEntityController extends EntityController {
 				throw new ControllerException(405, 'Method not allowed.');
 			}
 
-			$this->entity = new $entity_class();
+			$this->entity = new $entity_class(null, $this->endpoint->get_db());
 		} else if($action === 'delete'){
 			$this->entities = null;
 
@@ -123,7 +123,7 @@ class BasicEntityController extends EntityController {
 				throw new ControllerException(405, 'Method not allowed.');
 			}
 
-			$this->entity = new $entity_class();
+			$this->entity = new $entity_class(null, $this->endpoint->get_db());
 		} else {
 			throw new ControllerException(500, 'Route: Invalid option «action».');
 		}
@@ -200,7 +200,7 @@ class BasicEntityController extends EntityController {
 	}
 
 
-	public function execute(Request &$request) : void {
+	public function execute(Request $request) : void {
 		if($this->action === 'empty'){
 			$this->status_code = 200;
 			return; // TODO status code
@@ -268,9 +268,6 @@ class BasicEntityController extends EntityController {
 
 
 	public function finish() : void {
-		$this->entity?->freeze();
-		$this->entities?->freeze();
-
 		if(isset($this->entities)){
 			$pagination_count = $this->entities->count_total();
 		} else if($this->entity?->get_relationships() !== null){

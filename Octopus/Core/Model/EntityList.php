@@ -11,7 +11,7 @@ use \Octopus\Core\Model\Database\Exceptions\EmptyResultException;
 use \Octopus\Core\Model\Database\Requests\SelectRequest;
 use \Octopus\Core\Model\Database\Requests\CountRequest;
 use \Octopus\Core\Model\Database\Requests\Conditions\InList;
-use \Octopus\Core\Model\FlowControl\Flow;
+use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
 use PDOException;
 use Exception;
 
@@ -27,31 +27,18 @@ abstract class EntityList {
 	const ENTITY_CLASS = ''; # the fully qualified name of the concrete Entity class whose instances this list contains
 
 	protected DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
-	protected Flow $flow; # this class uses the Flow class to control the order of its method calls. see there for more.
 
 
 	### CONSTRUCTION METHODS
 
-	final function __construct() {
+	final function __construct(DatabaseAccess $db) {
 		if(!is_subclass_of(static::ENTITY_CLASS, Entity::class)){
 			throw new Exception('Invalid EntityList class: constant ENTITY_CLASS must describe a subclass of Entity.');
 		}
 
 		$this->entities = [];
 
-		$this->db = new DatabaseAccess(); # prepare a connection to the database
-
-		$this->flow = new Flow([
-			['root', 'constructed'],
-			['constructed', 'loaded'],
-			['loaded', 'counted'],
-			['loaded', 'freezing'],
-			['counted', 'freezing'],
-			['freezing', 'frozen'],
-			['frozen', 'freezing']
-		]);
-
-		$this->flow->start();
+		$this->db = $db;
 	}
 
 
@@ -62,7 +49,9 @@ abstract class EntityList {
 	# @param $offset: the number of entities to be skipped (SQL OFFSET)
 	# @param $options: additional, custom pull options
 	final public function pull(?int $limit = null, ?int $offset = null, array $options = []) : void {
-		$this->flow->check_step('loaded');
+		if($this->is_loaded()){
+			throw new CallOutOfOrderException();
+		}
 
 		$request = new SelectRequest(static::ENTITY_CLASS::DB_TABLE);
 
@@ -104,7 +93,9 @@ abstract class EntityList {
 	# in contrast to pull(), there is no exception if an id is not found.
 	# @param $idlist: a list of ids of all entities that should be pulled
 	final public function pull_by_ids(array $idlist) : void {
-		$this->flow->check_step('loaded');
+		if($this->is_loaded()){
+			throw new CallOutOfOrderException();
+		}
 
 		if(empty($idlist)){
 			return;
@@ -143,7 +134,9 @@ abstract class EntityList {
 	# Load data of multiple entities from the database into Entity objects and load them into this list.
 	# @param $data: rows of entity data from a database request's response
 	final public function load(array $data) : void {
-		$this->flow->check_step('loaded');
+		if($this->is_loaded()){
+			throw new CallOutOfOrderException();
+		}
 
 		foreach($data as $row){
 			$cls = $this::ENTITY_CLASS;
@@ -151,8 +144,6 @@ abstract class EntityList {
 			$entity->load($row); # load the entity
 			$this->entities[$entity->id] = $entity;
 		}
-
-		$this->flow->step('loaded');
 	}
 
 
@@ -161,7 +152,9 @@ abstract class EntityList {
 	# only performed on the first call. after that, a cached value is returned. this param overrides this
 	final public function count_total(bool $force_request = false) : int {
 		if(!isset($this->total_count) || $force_request){
-			$this->flow->check_step('counted');
+			if(!isset($this->pull_request)){
+				throw new CallOutOfOrderException();
+			}
 
 			$request = new CountRequest($this->pull_request); # create a CountRequest from the former PullRequest
 
@@ -173,7 +166,6 @@ abstract class EntityList {
 			}
 
 			$this->total_count = $s->fetch()['total'];
-			$this->flow->step('counted');
 		}
 
 		return $this->total_count;
@@ -182,43 +174,12 @@ abstract class EntityList {
 
 	### OUTPUT METHODS
 
-	# Disable the database access for this list and all entities it contanins. (compare --> Entity, Attributes)
-	final public function freeze() : void {
-		# if this entity list is currently in the freezing process, do nothing. this prevents endless loops.
-		if($this->flow->is_at('freezing')){
-			return;
-		}
-
-		$this->flow->step('freezing');
-
-		$this->db->disable();
-
-		foreach($this->entities as $index => $_){
-			$this->entities[$index]->freeze();
-		}
-
-		$this->flow->step('frozen');
-	}
-
-
 	# Transform this list into an array, containing its arrayified (transformed) entities. (compare --> Entity)
 	public function arrayify() : array|null {
-		# if this entity list is already in the freezing process, return null. prevents endless loops
-		# this also makes sure that this entity only occurs once in the final array, preventing redundancies
-		if($this->flow->is_at('freezing')){
-			return null;
-		}
-
-		$this->flow->step('freezing');
-
-		$this->db->disable();
-
 		$result = [];
 		foreach($this->entities as $entity){
 			$result[] = $entity->arrayify();
 		}
-
-		$this->flow->step('frozen');
 
 		return $result;
 	}
@@ -259,7 +220,12 @@ abstract class EntityList {
 
 
 	final public function is_empty() : bool {
-		return ($this->length() == 0);
+		return ($this->length() === 0);
+	}
+
+
+	final public function is_loaded() : bool {
+		return isset($this->request); // TEMP
 	}
 }
 ?>

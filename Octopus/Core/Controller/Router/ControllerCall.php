@@ -19,7 +19,7 @@ class ControllerCall {
 	private array $options;
 
 
-	function __construct(Request &$request, array $module_config) {
+	function __construct(Request $request, array $module_config) {
 		$this->request = $request;
 		$this->module_config = $module_config;
 	}

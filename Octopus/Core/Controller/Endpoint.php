@@ -6,6 +6,7 @@ use \Octopus\Core\Controller\Controllers\Controller;
 use \Octopus\Core\Controller\Controllers\EntityController;
 use \Octopus\Core\Controller\Router\Router;
 use \Octopus\Core\Controller\Exceptions\ControllerException;
+use \Octopus\Core\Model\Database\DatabaseAccess;
 use \Octopus\Core\Config;
 use \Exception;
 
@@ -15,6 +16,7 @@ class Endpoint {
 	private Request $request;
 	private Response $response;
 	private ?Exception $exception;
+	private DatabaseAccess $db;
 
 
 	function __construct(array $options = []) {
@@ -40,6 +42,8 @@ class Endpoint {
 			ini_set('display_errors', '0');
 			error_reporting(0);
 		}
+
+		$this->db = new DatabaseAccess(); // TODO
 
 		if(isset($options['modules'])){
 			$this->router->load_module_config($options['modules']);
@@ -73,6 +77,7 @@ class Endpoint {
 
 		foreach($controller_calls as $call){
 			$controller = $call->create_controller();
+			$controller->load_endpoint($this);
 
 			if(isset($this->controllers[$call->get_name()])){
 				$this->abort(new ControllerException(500, "Controller name «{$call->get_name()}» already in use."));
@@ -150,6 +155,8 @@ class Endpoint {
 
 
 	private function send(?int $status_code, array $environment = []) : void {
+		$this->db->disable();
+
 		$environment['server'] = (object)[
 			'url' => $this->request->get_base_url(), // maybe TEMP
 			'lang' => Config::get('Server.lang'),
@@ -159,6 +166,11 @@ class Endpoint {
 		];
 
 		$this->response->send($status_code, $environment);
+	}
+
+
+	public function &get_db() : DatabaseAccess {
+		return $this->db;
 	}
 
 

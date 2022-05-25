@@ -22,7 +22,7 @@ use \Octopus\Core\Model\Database\Requests\UpdateRequest;
 use \Octopus\Core\Model\Database\Requests\DeleteRequest;
 use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEquals;
-use \Octopus\Core\Model\FlowControl\Flow;
+use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
 use PDOException;
 use Exception;
 
@@ -61,18 +61,22 @@ abstract class Entity {
 	public readonly null|Entity|EntityList|Relationship $context;
 	public readonly ?SelectRequest $pull_request;
 
-	protected DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
-	protected Flow $flow; # this class uses the Flow class to control the order of its method calls. see there for more.
-
+	protected ?DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
 
 
 	### CONSTRUCTION METHODS
 
-	final function __construct(null|Entity|EntityList|Relationship &$context = null) {
+	final function __construct(null|Entity|EntityList|Relationship $context = null, ?DatabaseAccess $db = null) {
 		$this->context = &$context;
 
-		if(!is_null($context)){
+		if(isset($context)){
+			if($context instanceof Entity){
+				$this->db =& $db ?? $context->db;
+			}
+
 			$this->pull_request = null;
+		} else if(!isset($db)){
+			throw new Exception('Database access required.');
 		}
 
 		if(!isset(static::$attributes)){ # load all attribute definitions
@@ -85,36 +89,7 @@ abstract class Entity {
 
 		$this->bind_attributes();
 
-		$this->db = new DatabaseAccess(); # prepare a connection to the database
-
-		$this->flow = new Flow([
-			['root', 'constructed'], 	# flow entry edge
-			['constructed', 'created'], # create()
-			['constructed', 'loaded'], 	# pull(), load()
-			['created', 'edited'], 		# receive_input(), edit_attribute()
-			['created', 'freezing'], 	# after editing fails, e.g. to inspect the entity
-			['loaded', 'edited'], 		# receive_input(), edit_attribute()
-			['loaded', 'deleted'], 		# delete()
-			['loaded', 'freezing'], 	# freeze(), arrayify()
-			['loaded', 'storing'], 		# no impact because entity has not yet been altered
-			['edited', 'edited'], 		# editing can be done multiple times in sequence
-			['edited', 'storing'], 		# push()
-			['edited', 'deleted'], 		# nonsense; changes are not being saved
-			['edited', 'freezing'], 	# changes are not being saved, but helpful if editing fails
-			['storing', 'stored'], 		# two-step storing process
-			['storing', 'freezing'], 	# helpful if storing fails
-			['stored', 'freezing'], 	# freeze(), arrayify()
-			['stored', 'storing'], 		# no impact, but allowed
-			['stored', 'edited'], 		# entity can be edited again after storing
-			['deleted', 'freezing'], 	# entity can still be output after deleting
-			['deleted', 'deleted'], 	# no impact, but allowed
-			['deleted', 'editing'], 	# deleted entities can be edited (and stored again after that)
-			['deleted', 'storing'], 	# deleted entities can be re-stored
-			['freezing', 'frozen'], 	# two-step freezing process; end
-			['frozen', 'freezing']
-		]);
-
-		$this->flow->start();
+		$this->db = &$db;
 	}
 
 
@@ -126,7 +101,9 @@ abstract class Entity {
 	# Initialize a new entity that is not yet stored in the database
 	# Generate a random id for the new entity and set all attributes to null
 	final public function create() : void {
-		$this->flow->step('created');
+		if($this->is_loaded()){
+			throw new CallOutOfOrderException();
+		}
 
 		$this->is_new = true;
 
@@ -143,7 +120,9 @@ abstract class Entity {
 	# @param $identify_by: the name of the attribute $identifier is matched with.
 	# @param $options: additional, custom pull options
 	final public function pull(string $identifier, string $identify_by = 'id', array $options = []) : void {
-		$this->flow->check_step('loaded');
+		if($this->is_loaded() || !$this->is_independent()){
+			throw new CallOutOfOrderException();
+		}
 
 		# verify the identify_by value
 		$identifying_attribute = static::$attributes[$identify_by] ?? null;
@@ -213,7 +192,9 @@ abstract class Entity {
 	# Load rows of entity data from the database into this Entity object
 	# @param $data: single fetched row or multiple rows from the database request’s response
 	final public function load(array $data) : void {
-		$this->flow->check_step('loaded');
+		if($this->is_loaded()){
+			throw new CallOutOfOrderException();
+		}
 
 		# To parse the columns containing our entity data, we must do a distinction:
 		if(is_array($data[0])){ # check whether the data array is nested
@@ -243,8 +224,6 @@ abstract class Entity {
 		}
 
 		$this->is_new = false;
-
-		$this->flow->step('loaded');
 	}
 
 
@@ -256,7 +235,9 @@ abstract class Entity {
 	#	attributes that are not contained are ignored
 	# @throws: AttributeValueExceptionList
 	final public function receive_input(array $data) : void {
-		$this->flow->check_step('edited');
+		if(!$this->is_loaded() || !$this->is_independent()){
+			throw new CallOutOfOrderException();
+		}
 
 		# create a new container exception that buffers and stores all AttributeValueExceptions
 		# that occur during the editing of the attributes (i.e. invalid or missing values)
@@ -303,12 +284,9 @@ abstract class Entity {
 	# all attributes this entity contains that are Entities or Relationships themselves are pushed too (recursively).
 	# @return: true if a database request was performed for this entity, false if not.
 	final public function push() : bool {
-		# if $this is already at storing right now, do nothing. this prevents endless loops
-		if($this->flow->is_at('storing')){
-			return false;
+		if(!$this->is_loaded() || !$this->is_independent()){
+			throw new CallOutOfOrderException();
 		}
-
-		$this->flow->step('storing'); # start the storing process
 
 		if($this->is_new()){
 			$request = new InsertRequest(static::DB_TABLE);
@@ -351,7 +329,6 @@ abstract class Entity {
 			$this->$name?->push();
 		}
 
-		$this->flow->step('stored');
 		return true;
 	}
 
@@ -361,11 +338,12 @@ abstract class Entity {
 	# to the mysql ON DELETE CASCADE constraint.
 	# @return: true if a database request was performed, false if not (i.e. because the entity still/already is local)
 	final public function delete() : bool {
-		$this->flow->check_step('deleted');
+		if(!$this->is_loaded() || !$this->is_independent()){
+			throw new CallOutOfOrderException();
+		}
 
 		if($this->is_new()){
 			# this entity is not yet or not anymore stored in the database, so just return false
-			$this->flow->step('deleted');
 			return false;
 		}
 
@@ -380,9 +358,6 @@ abstract class Entity {
 			throw new DatabaseException($e, $s);
 		}
 
-		$this->delete_custom();
-
-		$this->flow->step('deleted');
 		$this->is_new = true;
 
 		return true;
@@ -391,23 +366,9 @@ abstract class Entity {
 
 	### OUTPUT METHODS
 
-	# ---> see trait Attributes
-	# final public function freeze() : void;
-
-
 	# Transform this entity object into an array (containing all its attributes).
 	# attributes that are entities themselves are recursively transformed too (using theír own arrayify functions).
 	final public function arrayify() : array|null {
-		# if this entity is already in the freezing process, return null. prevents endless loops
-		# this also makes sure that this entity only occurs once in the final array, preventing redundancies
-		if($this->flow->is_at('freezing')){
-			return null;
-		}
-
-		$this->flow->step('freezing'); # start the freezing process
-
-		$this->db->disable(); # disable the database access
-
 		$result = [];
 
 		foreach(static::$attributes as $name => $attribute){
@@ -422,8 +383,6 @@ abstract class Entity {
 
 		$result = array_merge($result, $this->arrayify_custom()); // TEMP
 
-		$this->flow->step('frozen'); # finish the freezing process
-
 		return $result;
 	}
 
@@ -437,6 +396,16 @@ abstract class Entity {
 
 	public function is_new() : bool {
 		return $this->is_new;
+	}
+
+
+	public function is_loaded() : bool {
+		return isset($this->is_new);
+	}
+
+
+	public function is_independent() : bool {
+		return !isset($this->context);
 	}
 
 

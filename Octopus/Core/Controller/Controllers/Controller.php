@@ -1,9 +1,11 @@
 <?php
 namespace Octopus\Core\Controller\Controllers;
+use \Octopus\Core\Controller\Endpoint;
 use \Octopus\Core\Controller\Request;
 use \Octopus\Core\Controller\Router\ControllerCall;
 
 abstract class Controller {
+	protected Endpoint $endpoint;
 	protected string $importance; # primary | essential | accessory
 	protected ?int $status_code;
 
@@ -14,10 +16,15 @@ abstract class Controller {
 	}
 
 
-	abstract public function load(Request &$request, ControllerCall $call) : void;
+	final public function load_endpoint(Endpoint $endpoint) : void {
+		$this->endpoint = $endpoint;
+	}
 
 
-	abstract public function execute(Request &$request) : void;
+	abstract public function load(Request $request, ControllerCall $call) : void;
+
+
+	abstract public function execute(Request $request) : void;
 
 
 	abstract public function finish() : void;

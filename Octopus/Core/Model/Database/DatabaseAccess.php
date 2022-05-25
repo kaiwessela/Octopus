@@ -37,6 +37,12 @@ class DatabaseAccess {
 	}
 
 
+	function __clone() {
+		$this->pdo = null;
+		$this->disabled = true;
+	}
+
+
 	# Establish a connection to the database (if it has not been disabled already) by creating a new PDO using
 	# access details read from the config
 	public function enable() : void {

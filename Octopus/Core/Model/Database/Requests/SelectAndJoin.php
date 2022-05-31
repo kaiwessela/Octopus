@@ -29,8 +29,8 @@ trait SelectAndJoin {
 	}
 
 
-	protected static function create_column_string(Attribute $attribute) : string {
-		return "	{$attribute->get_full_db_column()} AS '{$attribute->get_prefixed_db_column()}'";
+	protected static function create_column_string(Attribute $attribute, ?string $alias = null) : string {
+		return "	{$attribute->get_a_full_db_column($alias)} AS `{$attribute->get_a_prefixed_db_column($alias)}`";
 	}
 
 

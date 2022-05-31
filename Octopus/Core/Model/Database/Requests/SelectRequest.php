@@ -74,7 +74,7 @@ class SelectRequest extends Request {
 		if(empty($this->attributes)){
 			throw new EmptyRequestException($this);
 		}
-		
+
 		$this->flow->step('resolve');
 
 		$this->query = 'SELECT'.PHP_EOL;
@@ -92,7 +92,7 @@ class SelectRequest extends Request {
 
 		$this->query .= implode(','.PHP_EOL, $this->columns).PHP_EOL;
 
-		$this->query .= "FROM {$this->table}".PHP_EOL;
+		$this->query .= "FROM `{$this->table}`".PHP_EOL;
 		$this->query .= $join_str;
 
 		if(!is_null($this->condition)){

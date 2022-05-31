@@ -80,12 +80,17 @@ abstract class Attribute {
 
 
 	final public function get_db_table() : string {
-		return $this->parent::DB_TABLE;
+		if($this->is_bound() && isset($this->parent->db_alias)){
+			return $this->parent->db_alias;
+		} else {
+			return $this->parent::DB_TABLE;
+		}
 	}
 
 
 	final public function get_db_prefix() : string {
-		return $this->parent::DB_PREFIX;
+		return $this->get_db_table();
+		// return $this->parent::DB_TABLE;
 	}
 
 
@@ -93,12 +98,29 @@ abstract class Attribute {
 
 
 	final public function get_full_db_column() : string {
-		return "{$this->get_db_table()}.{$this->get_db_column()}";
+		return "`{$this->get_db_table()}`.`{$this->get_db_column()}`";
 	}
 
 
 	final public function get_prefixed_db_column() : string {
-		return "{$this->get_db_prefix()}_{$this->get_db_column()}";
+		return "{$this->get_db_table()}.{$this->get_db_column()}";
+	}
+
+
+	final public function get_a_full_db_column(?string $alias) : string { // TEMP
+		if(is_null($alias)){
+			return $this->get_full_db_column();
+		} else {
+			return "`{$alias}`.`{$this->get_db_column()}`";
+		}
+	}
+
+	final public function get_a_prefixed_db_column(?string $alias) : string { // TEMP
+		if(is_null($alias)){
+			return $this->get_prefixed_db_column();
+		} else {
+			return "{$alias}.{$this->get_db_column()}";
+		}
 	}
 
 

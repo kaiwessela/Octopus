@@ -97,7 +97,7 @@ abstract class RelationshipList {
 			}
 		}
 
-		$request = new JoinRequest(static::RELATION_CLASS::DB_TABLE, $identifier, $on);
+		$request = new JoinRequest(static::RELATION_CLASS::DB_TABLE, null, $identifier, $on);
 
 		foreach($columns as $column){
 			$request->add_attribute($column);

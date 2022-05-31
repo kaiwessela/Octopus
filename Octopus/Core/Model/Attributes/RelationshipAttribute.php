@@ -47,5 +47,12 @@ class RelationshipAttribute extends Attribute {
 	public function get_push_value() : null|string|int|float {
 		throw new Exception('do not call!');
 	}
+
+
+	// public function get_join() : JoinRequest {
+	// 	$class = $this->get_class();
+	// 	$prototype = new $class($this->parent);
+	// 	$prototype->join()
+	// }
 }
 ?>

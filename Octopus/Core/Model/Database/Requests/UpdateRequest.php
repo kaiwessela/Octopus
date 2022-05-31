@@ -18,7 +18,7 @@ class UpdateRequest extends Request {
 		if(empty($this->attributes)){
 			throw new EmptyRequestException($this);
 		}
-		
+
 		$this->flow->step('resolve');
 
 		if(is_null($this->condition)){
@@ -30,7 +30,7 @@ class UpdateRequest extends Request {
 			$columns[] = "	{$attribute->get_db_column()} = :{$attribute->get_name()}";
 		}
 
-		$this->query = "UPDATE {$this->table} SET".PHP_EOL;
+		$this->query = "UPDATE `{$this->table}` SET".PHP_EOL;
 		$this->query .= implode(','.PHP_EOL, $columns).PHP_EOL;
 		$this->query .= "WHERE {$this->condition->get_query()}".PHP_EOL;
 

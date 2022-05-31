@@ -34,7 +34,7 @@ final class EntityAttribute extends Attribute {
 			$this->value = null;
 		} else {
 			$class = $this->get_class();
-			$this->value = new $class($this->parent);
+			$this->value = new $class($this->parent, null, $this->get_name());
 			$this->value->load($data);
 		}
 
@@ -95,5 +95,10 @@ final class EntityAttribute extends Attribute {
 	final public function get_class() : string {
 		return $this->class;
 	}
+
+
+	// public function get_join() : JoinRequest {
+	//
+	// }
 }
 ?>

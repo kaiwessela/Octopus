@@ -20,7 +20,7 @@ class CountRequest extends Request {
 	protected function resolve() : void {
 		$this->flow->step('resolve');
 
-		$this->query = "SELECT COUNT(*) AS 'total' FROM {$this->table}".PHP_EOL;
+		$this->query = "SELECT COUNT(*) AS 'total' FROM `{$this->table}`".PHP_EOL;
 
 		foreach($this->joins as $join){
 			$this->query .= $join->get_query().PHP_EOL;

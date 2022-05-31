@@ -20,7 +20,7 @@ class DeleteRequest extends Request {
 			throw new Exception('An IdentifierCondition must be set for this request.');
 		}
 
-		$this->query = "DELETE FROM {$this->table} WHERE {$this->condition->get_query()}";
+		$this->query = "DELETE FROM `{$this->table}` WHERE {$this->condition->get_query()}";
 
 		$this->set_values($this->condition->get_values());
 	}

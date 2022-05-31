@@ -38,12 +38,12 @@ abstract class Entity {
 	use Attributes;
 
 	const DB_TABLE = '';
-	const DB_PREFIX = ''; # prefix of this object's row names in the database (i.e. [prefix]_id, [prefix]_longid)
 
 	# all child classes must set the following property:
 	# protected static array $attributes;
 
 	public readonly null|Entity|EntityList|Relationship $context;
+	public readonly ?string $db_alias;
 	public readonly ?SelectRequest $pull_request;
 
 	protected ?DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
@@ -51,8 +51,9 @@ abstract class Entity {
 
 	### CONSTRUCTION METHODS
 
-	final function __construct(null|Entity|EntityList|Relationship $context = null, ?DatabaseAccess $db = null) {
+	final function __construct(null|Entity|EntityList|Relationship $context = null, ?DatabaseAccess $db = null, ?string $db_alias = null) {
 		$this->context = &$context;
+		$this->db_alias = $db_alias;
 
 		// if(isset($context)){
 		// 	if($context instanceof Entity){
@@ -131,6 +132,8 @@ abstract class Entity {
 
 		$request->set_condition(new IdentifierEquals($identifying_attribute, $identifier));
 
+		var_dump($request->get_query());
+
 		try {
 			$s = $this->db->prepare($request->get_query());
 			$s->execute($request->get_values());
@@ -147,13 +150,25 @@ abstract class Entity {
 	}
 
 
+
+
+
+
+
+
+	// final public function join(Attribute $on) : JoinRequest {
+	// 	$request = new JoinRequest(static::DB_TABLE, $on->get_name(), static::$attributes['id'], $on);
+	// }
+
+
+
 	# Return a JoinRequest for this entity that can be used by another entity’s or relationship’s pull() method to
 	# include this entity as an attribute.
 	# single entities that this entity contains as attributes are joined too (recursively), but not relationships!
 	# @param $on: The attribute on the calling entity/relationship that identifies this entity
 	# paraphrased: LEFT JOIN [this entity’s table] ON [this entity’s prefix].id = [on]
 	final public static function join(Attribute $on) : JoinRequest {
-		$request = new JoinRequest(static::DB_TABLE, static::get_attribute_definitions()['id'], $on);
+		$request = new JoinRequest(static::DB_TABLE, $on->get_name(), static::get_attribute_definitions()['id'], $on);
 
 		foreach(static::get_attribute_definitions() as $name => $attribute){ # $attribute is an AttributeDefinition
 			if($attribute instanceof EntityAttribute){

@@ -1,6 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
 use \Octopus\Core\Model\Entity;
+use \Octopus\Core\Model\Relationship;
 use \Octopus\Core\Model\Attributes\Attribute;
 use \Exception;
 
@@ -20,7 +21,7 @@ abstract class Attribute {
 	final public function init(string $name, string $parent_class) : void {
 		$this->name = $name;
 
-		if(!class_exists($parent_class) || !is_subclass_of($parent_class, Entity::class)){
+		if(!class_exists($parent_class) || !(is_subclass_of($parent_class, Entity::class) || is_subclass_of($parent_class, Relationship::class))){
 			throw new Exception("Invalid parent class: «{$parent_class}».");
 		}
 
@@ -31,7 +32,7 @@ abstract class Attribute {
 	}
 
 
-	final public function bind(Entity &$parent) : void {
+	final public function bind(Entity $parent) : void {
 		$this->parent = &$parent;
 		$this->value = null;
 		$this->edited = false;
@@ -101,7 +102,7 @@ abstract class Attribute {
 	}
 
 
-	final public function get_value() : mixed {
+	final public function &get_value() : mixed {
 		return $this->value;
 	}
 

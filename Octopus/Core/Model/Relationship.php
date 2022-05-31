@@ -3,130 +3,82 @@ namespace Octopus\Core\Model;
 use \Octopus\Core\Model\Attributes\Attributes;
 use \Octopus\Core\Model\Attributes\EntityAttribute;
 use \Octopus\Core\Model\Attributes\RelationshipAttribute;
+use \Octopus\Core\Model\Attributes\PropertyAttribute;
 use \Octopus\Core\Model\Attributes\IDAttribute;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
+use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
+use \Octopus\Core\Model\Attributes\Exceptions\MissingValueException;
 use \Octopus\Core\Model\Database\DatabaseAccess;
 use \Octopus\Core\Model\Database\Requests\InsertRequest;
 use \Octopus\Core\Model\Database\Requests\UpdateRequest;
 use \Octopus\Core\Model\Database\Requests\DeleteRequest;
 use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEquals;
 use \Octopus\Core\Model\Database\Exceptions\DatabaseException;
-use \Octopus\Core\Model\FlowControl\Flow;
+use \Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
+use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
 use \Octopus\Core\Model\Entity;
-use PDOException;
-use Exception;
-
-# What is a DataObjectRelation? // TODO
-# A DataObjectRelation is a construct used to create and store many-to-many relations between two classes of DataObjects.
-# To illustrate: Imagine you have a blog with some articles about various topics. What you might want to do is to
-# categorize them by their topic, so that your readers can search by category and find your articles more easily.
-# To each category, you might also want to write a little introductory text.
-# So now you need to have two tables in your Database (and two respective subclasses of DataObject):
-# Articles (with i.e. a title, the author's name and content) and Categories (with a name and an introduction).
-# The difficulty is that each article should be able to have multiple categories and (obviously) each category can
-# include multiple articles. This construct is called a many-to-many relationship.
-# To store this in the database, you not only need the two object tables, but also a junction table containing a
-# list of all existing relations between these objects (search for "many-to-many relation" for detailed explainations).
-# So each instance of this class constitutes a relation between two objects. Its data is stored as a row in the
-# junction table.
-# This class is an abstract class, so for every pair of dataobject classes related to each other, there has to be
-# a separate 'concrete' child class of this containing details (for the two classes Category and Article, there might
-# be a class ArticleCategoryRelation).
-# Every concrete subclass of this has to define two private properties for the DataObjects related to each other, so
-# i.e. the class ArticleCategoryRelation would have the following properties:
-#	protected ?Article $article;
-#	protected ?Category $category;
-# Each instance of DataObjectRelation also gets an unique, randomly-generated id (works and looks the same as
-# the id of a DataObject and has the same function).
-# It is possible to define other properties, just as for concrete DataObjects. These properties, however, can only be
-# of the type 'primitive'.
+use \PDOException;
+use \Exception;
 
 
 abstract class Relationship {
-	protected readonly string $id;
-	# protected ?[child of Entity] $[name of 1st entity];
-	# protected ?[child of Entity] $[name of 2nd entity];
+	protected IDAttribute $id;
+	# protected EntityAttribute $[name of 1st entity];
+	# protected EntityAttribute $[name of 2nd entity];
 	# ...other attributes
 
-	// TODO collision check
-	# this constant defines whether multiple relationships of the same pair of entities should be allowed to exist
-	const UNIQUE = false; # true = forbidden; false = allowed
+	protected EntityAttribute $context;
+	protected EntityAttribute $relatum;
 
-	# this class uses the Attributes trait which contains standard methods that handle the attributes of this class
-	# for documentation on the following constants, check the Attributes trait source file
+	const DISTINCT = false;
+
+	protected bool $is_new;
+
 	use Attributes;
 
-	const ATTRIBUTES = [
-		# 'id' => 'id',
-		# '[name of 1st entity]' => [child of Entity]::class,
-		# '[name of 2nd entity]' => [child of Entity]::class,
-		# ...attribute definitions for all other attributes
-	];
+	protected DatabaseAccess $db;
 
 	# all child classes must set the following property:
 	# protected static array $attributes;
 
-	public readonly Entity $context;
-	protected readonly string $joined_entity_attribute;
 
-	protected DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
-	protected Flow $flow; # this class uses the Flow class to control the order of its method calls. see there for more.
+
+	// HIER weiter: DB-Übergabe in allen Klassen überprüfen und konsistent machen
+
+
 
 
 	### CONSTRUCTION METHODS
 
-	final function __construct(Entity &$context) {
-		$this->context = $context;
-
-		$this->db = new DatabaseAccess();
-
-		$this->flow = new Flow([ // TODO
-			['root', 'construct'],
-			['construct', 'init/load'],
-			['init/load', 'edit'], ['init/load', 'store/delete'], ['init/load', 'output'],
-			['edit', 'edit'], ['edit', 'store/delete'], ['edit', 'output'],
-			['store/delete', 'store/delete'], ['store/delete', 'output'], ['store/delete', 'edit'],
-			['output', 'output']
-		]);
-
-		$this->flow->start();
-
-		if(!isset(static::$attributes)){ # load all attribute definitions
+	final function __construct(Entity $context, DatabaseAccess $db) {
+		if(!isset(static::$attributes)){
 			static::load_attribute_definitions();
 
-			# note: the possibility that someone defines a relation with both entities being of the same class is not
-			# prevented here. however, there is no use case for that constellation, and at the latest on a pull(), a
-			# DatabaseException will be thrown due to column names not being distinct. just hope nobody is that stupid.
+			// TODO validate attribute definitions (type, required, editable)
+		}
 
-			$id_found = false;
-			foreach(static::$attributes as $name => &$attribute){ # validate the attribute definitions
-				if($attribute instanceof IDAttribute){
-					$id_found = true;
-				} else if($attribute instanceof EntityAttribute){
-					if($attribute->get_class() === $this->context::class){
-						$this->$name = &$this->context;
-					} else {
-						$this->joined_entity_attribute = $name;
-					}
+		$this->db = &$db;
 
-					// $definition->set_alterable(false); TODO
-					// $definition->set_required(true); TODO
-				} else if($attribute instanceof RelationshipList){ // TEMP/FIXME
-					throw new Exception('Invalid attribute definition: only entities, primitives and id are allowed.');
-				}
+		$this->bind_attributes();
+
+		foreach(static::$attributes as $name => $attribute){
+			if(!$attribute instanceof EntityAttribute){
+				continue;
 			}
 
-			if(!$id_found){
-				throw new Exception('Invalid attribute definitions: valid id definition missing.');
+			if($attribute->get_class() === $context::class){
+				$this->$name->load($context); // IDEA
+				$this->context = &$this->$name;
+			} else {
+				$this->relatum = &$this->$name;
 			}
 		}
 
-		$this->bind_attributes();
+		// TODO check that all entity attributes have been handled properly
 	}
 
-
-	abstract protected function define_attributes() : array;
+	abstract protected static function define_attributes() : array;
 
 
 	### INITIALIZATION AND LOADING METHODS
@@ -134,8 +86,11 @@ abstract class Relationship {
 	# Initialize a new relationship that is not yet stored in the database
 	# Generate a random id for the new relationship and set all attributes to null
 	final public function create() : void {
-		$this->flow->step('init/load');
-		$this->db->set_local();
+		if($this->is_loaded()){
+			throw new CallOutOfOrderException();
+		}
+
+		$this->is_new = true;
 
 		$this->id->generate(); # generate and set a random, unique id for the relationship. (--> IDAttribute)
 	}
@@ -147,27 +102,28 @@ abstract class Relationship {
 
 	# Load rows of relationship and entity data from the database into this Relationship object
 	# @param $data: single fetched row or multiple rows from the database request's response
-	final public function load(array $data) : void {
-		$this->flow->check_step('init/load');
+	final public function load(array $data, ?Entity $relatum = null) : void {
+		if($this->is_loaded()){
+			throw new CallOutOfOrderException();
+		}
 
-		# basically the same procedure as in Entity::load(), but shorter
 		foreach(static::$attributes as $name => $attribute){
 			if($attribute instanceof EntityAttribute){
-				if(isset($this->$name)){ # if the entity is alredy set, it is the context entity, so skip loading it
+				if($attribute->get_class() === $this->context->get_class()){
 					continue;
 				}
 
-				# entity attributes in relations cannot be null/unset, so simply create the entity and load it
-				$cls = $definition->get_class();
-				$this->$name = new $cls($this); # reference this relationship as context
-				$this->$name->load($data);
-			} else {
-				$this->$name->load($row[$this->$name->get_prefixed_db_column()]);
+				if(!array_key_exists($attribute->get_prefixed_db_column(), $data)){
+					// an error occured; invalid data
+				}
+
+				$this->relatum->load($relatum ?? $data);
+			} else if($attribute instanceof PropertyAttribute){
+				$this->$name->load($data[$attribute->get_prefixed_db_column()]);
 			}
 		}
 
-		$this->flow->step('init/load');
-		$this->db->set_synced();
+		$this->is_new = false;
 	}
 
 
@@ -179,7 +135,9 @@ abstract class Relationship {
 	#	attributes that are not contained are ignored
 	# @throws: AttributeValueExceptionList
 	final public function receive_input(array $input) : void {
-		$this->flow->check_step('edit');
+		if(!$this->is_loaded()){
+			throw new CallOutOfOrderException();
+		}
 
 		# create a new container exception that buffers and stores all AttributeValueExceptions
 		# that occur during the editing of the attribute (i.e. invalid or missing inputs)
@@ -190,6 +148,11 @@ abstract class Relationship {
 
 		foreach($data as $name => $input){ # loop through all input fields
 			if(!isset(static::$attributes[$name])){
+				continue;
+			}
+
+			if(!$this->$name->is_loaded()){ // TODO really necessary?
+				$errors->push(new AttributeNotAlterableException()); // TODO
 				continue;
 			}
 
@@ -206,19 +169,11 @@ abstract class Relationship {
 		if(!$errors->is_empty()){
 			throw $errors;
 		}
-
-		$this->flow->step('edit'); // TODO FIXME
 	}
 
 
 	# ---> see trait Attributes
 	# final public function edit_attribute(string $name, mixed $input) : void;
-
-
-	# Set the joined entity; shortcut for edit_attribute([joined entity name], [value])
-	final public function set_joined_entity(Entity &$entity) : void {
-		$this->edit_attribute($this->joined_entity_attribute, $entity);
-	}
 
 
 	### STORING AND DELETING METHODS
@@ -229,72 +184,62 @@ abstract class Relationship {
 	# all attributes this relationship contains that are Entities themselves are pushed too (recursively).
 	# @return: true if a database request was performed for this entity, false if not.
 	final public function push() : bool {
-		# if $this is already at storing right now, do nothing. this prevents endless loops
-		if($this->flow->is_at('storing')){
-			return false;
+		if(!$this->is_loaded()){
+			throw new CallOutOfOrderException();
 		}
 
-		$this->flow->step('storing'); # start the storing process
-
-		if($this->db->is_synced()){
-			# this relationship is not newly created and has not been altered, so do not perform a request
-			$request = false;
-		} else if($this->db->is_local()){
-			# this relationship is not yet or not anymore stored in the database, so perform an insert query
+		if($this->is_new()){
 			$request = new InsertRequest(static::DB_TABLE);
 		} else {
-			# this relationship is already stored in the database, but has been altered.
-			# perform an update query to update its database values
-
-			# if the relationship is not updatable because it has no attributes to be updated, this method
-			# automatically returns false because it then also cannot be altered and always remains synced
 			$request = new UpdateRequest(static::DB_TABLE);
-			$request->set_condition(new IdentifierEquals($this->attributes['id'], $this->id->get_value()));
+			$request->set_condition(new IdentifierEquals(static::$attributes['id'], $this->id->get_value()));
 		}
 
-		# add the attributes to the request and push the entities this relationship contains
+		$errors = new AttributeValueExceptionList();
+		$push_values = [];
+
 		foreach(static::$attributes as $name => $attribute){
-			# if this is local, all attributes are included, otherwise only the alterable ones
-			if($request !== false && ($attribute->is_editable() || $this->db->is_local())){
+			if($attribute instanceof EntityAttribute && !$this->is_new()){
+				continue;
+			}
+
+			if($attribute->is_required() && $this->$name->is_empty()){
+				$errors->push(new MissingValueException($attribute));
+			} else if($this->is_new() || $this->$name->has_been_edited()){
 				$request->add_attribute($attribute);
-			}
-
-			if($attribute instanceof EntityAttribute){ // TODO FIXME remove this to prevent side-effects
-				$this->$name?->push();
+				$push_values[$attribute->get_db_column()] = $this->$name->get_push_value();
 			}
 		}
 
-		if($request !== false){ # if the request was set to false because this is synced, no db request is performed
-			$request->set_values($this->get_push_values());
-
-			try {
-				$s = $this->db->prepare($request->get_query());
-				$s->execute($request->get_values());
-			} catch(PDOException $e){
-				throw new DatabaseException($e, $s);
-			}
+		if(!$errors->is_empty()){
+			throw $errors;
 		}
 
-		$this->flow->step('stored'); # finish the storing process
-		$this->db->set_synced();
+		$request->set_values($push_values);
 
-		return $request !== false; # return whether a request was performed (for this relationship only)
+		try {
+			$s = $this->db->prepare($request->get_query());
+			$s->execute($request->get_values());
+		} catch(EmptyRequestException $e){
+			return false;
+		} catch(PDOException $e){
+			throw new DatabaseException($e, $s);
+		}
+
+		return true;
 	}
 
 
-	# ---> see trait Attributes
-	# final protected function get_push_values() : array;
-
-
 	# Erase this relationship out of the database.
-	# this does not delete entities it contains as attributes.
+	# this does not delete its context and realtum entities.
 	# @return: true if a database request was performed, false if not (i.e. because $this is still/already local)
 	final public function delete() : bool {
-		$this->flow->check_step('store/delete');
+		if(!$this->is_loaded()){
+			throw new CallOutOfOrderException();
+		}
 
-		if($this->db->is_local()){
+		if($this->is_new()){
 			# this relationship is not yet or not anymore stored in the database, so just return false
-			$this->flow->step('store/delete');
 			return false;
 		}
 
@@ -309,8 +254,7 @@ abstract class Relationship {
 			throw new DatabaseException($e, $s);
 		}
 
-		$this->flow->step('store/delete');
-		$this->db->set_local();
+		$this->is_new = true;
 
 		return true;
 	}
@@ -318,27 +262,26 @@ abstract class Relationship {
 
 	### OUTPUT METHODS
 
-	# ---> see trait Attributes
-	# final public function freeze() : void;
-
-
 	# Return the arrayified joined entity
 	final public function arrayify() : array {
-		$this->flow->step('freezing');
-		$this->db->disable(); # disable the database access
-		$this->flow->step('frozen');
-
-		return $this->get_joined_entity()->arrayify();
+		return $this->relatum->get_value();
 	}
 
 
-	# Return the joined entity; if it is not set yet, return null
-	final public function &get_joined_entity() : ?Entity {
-		if(!isset($this->joined_entity_attribute)){
-			return null;
-		}
+	### GENERAL METHODS
 
-		return $this->{$this->joined_entity_attribute};
+	public function is_new() : bool {
+		return $this->is_new;
+	}
+
+
+	public function is_loaded() : bool {
+		return isset($this->is_new);
+	}
+
+
+	public function &get_relatum() : Entity {
+		return $this->relatum;
 	}
 }
 ?>

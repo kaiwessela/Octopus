@@ -26,21 +26,6 @@ use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
 use PDOException;
 use Exception;
 
-# What is a DataObject? // TODO
-# A DataObject is basically a representation of a real thing. Any single object that is handled
-# by Octopus (i.e. a blog article, a person profile, an image etc.) is handled as an instance of
-# this class.
-# DataObjects have attributes, in which the actual information is stored. A DataObject that
-# represents a person for example has the attributes name, date of birth, etc.
-# As there are many different kinds of objects in the real world, it would not make much sense
-# to wedge all of them into the same class of DataObject. Therefore, for every different kind of
-# object, there is a separate class in Octopus defining specific attributes for it. This class,
-# DataObject, is only the superclass for all of them, containing only attributes and methods all
-# of these subclasses have in common (like the id and longid attributes).
-# DataObjects are stored in a database. To make them handleable for Octopus, it is necessary to
-# transfer the data from the database into Octopus and, after editing, back from there into the
-# database. This class provides all necessary methods to perform such operations. In this sense,
-# it serves as a database abstraction layer, similar to an object-relational mapper.
 
 abstract class Entity {
 	protected IDAttribute $id;	# main unique identifier of the object; uneditable; randomly generated on create()
@@ -69,15 +54,16 @@ abstract class Entity {
 	final function __construct(null|Entity|EntityList|Relationship $context = null, ?DatabaseAccess $db = null) {
 		$this->context = &$context;
 
-		if(isset($context)){
-			if($context instanceof Entity){
-				$this->db =& $db ?? $context->db;
-			}
-
-			$this->pull_request = null;
-		} else if(!isset($db)){
-			throw new Exception('Database access required.');
-		}
+		// if(isset($context)){
+		// 	if($context instanceof Entity){
+		// 		$this->db =& $db ?? $context->db;
+		// 	}
+		//
+		// 	$this->pull_request = null;
+		// } else if(!isset($db)){
+		// 	throw new Exception('Database access required.');
+		// }
+		$this->db = &$db;
 
 		if(!isset(static::$attributes)){ # load all attribute definitions
 			static::load_attribute_definitions();
@@ -88,8 +74,6 @@ abstract class Entity {
 		}
 
 		$this->bind_attributes();
-
-		$this->db = &$db;
 	}
 
 
@@ -191,7 +175,7 @@ abstract class Entity {
 
 	# Load rows of entity data from the database into this Entity object
 	# @param $data: single fetched row or multiple rows from the database request’s response
-	final public function load(array $data) : void {
+	final public function load(array $data, ?Entity &$shared_relatum = null) : void {
 		if($this->is_loaded()){
 			throw new CallOutOfOrderException();
 		}
@@ -204,23 +188,21 @@ abstract class Entity {
 		}
 
 		foreach(static::$attributes as $name => $attribute){
-			if($attribute instanceof RelationshipAttribute){
-				if(isset($this->context)){ # relationships are disabled (thus set null) on non-independent entities
-					$this->$name = null;
-				} else {
-					$class = $attribute->get_class();
-					$this->$name = new $class($this); # $this is referenced as context entity
-					$this->$name->load($data);
-				}
-
-			} else if(array_key_exists($attribute->get_prefixed_db_column(), $row)){
-				if($attribute instanceof EntityAttribute){
-					$this->$name->load($row);
-				} else if($attribute instanceof PropertyAttribute){
-					$this->$name->load($row[$attribute->get_prefixed_db_column()]);
-				}
+			if(!array_key_exists($attribute->get_prefixed_db_column(), $row)){
+				continue;
 			}
 
+			if($attribute instanceof PropertyAttribute){
+				$this->$name->load($row[$attribute->get_prefixed_db_column()]);
+			} else if($attribute instanceof EntityAttribute){
+				$this->$name->load($row);
+			} else if($attribute instanceof RelationshipAttribute){
+				if(!$this->is_independent() && !$this->context instanceof EntityList){
+					continue;
+				}
+
+				$this->$name->load($data, $this->db, $this->is_independent(), $shared_relatum);
+			}
 		}
 
 		$this->is_new = false;
@@ -326,7 +308,7 @@ abstract class Entity {
 		}
 
 		foreach($push_later as $name){
-			$this->$name?->push();
+			$this->$name->get_value()?->push();
 		}
 
 		return true;
@@ -372,10 +354,8 @@ abstract class Entity {
 		$result = [];
 
 		foreach(static::$attributes as $name => $attribute){
-			if($attribute instanceof EntityAttribute){
+			if($attribute instanceof EntityAttribute || $attribute instanceof RelationshipAttribute){
 				$result[$name] = $this->$name->get_value()?->arrayify();
-			} else if($attribute instanceof RelationshipAttribute){
-				$result[$name] = $this->$name?->arrayify();
 			} else {
 				$result[$name] = $this->$name->get_value();
 			}

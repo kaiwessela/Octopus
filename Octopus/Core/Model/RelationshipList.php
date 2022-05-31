@@ -2,17 +2,15 @@
 namespace Octopus\Core\Model;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\Attributes\Attribute;
+use \Octopus\Core\Model\Attributes\EntityAttribute;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
 use \Octopus\Core\Model\Database\DatabaseAccess;
-use \Octopus\Core\Model\Database\Exceptions\DatabaseException;
 use \Octopus\Core\Model\Database\Requests\SelectRequest;
 use \Octopus\Core\Model\Database\Requests\CountRequest;
 use \Octopus\Core\Model\Database\Requests\JoinRequest;
-use \Octopus\Core\Model\FlowControl\Flow;
-use PDOException;
-use Exception;
-
-// TODO explaination
+use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
+use \PDOException;
+use \Exception;
 
 abstract class RelationshipList {
 	protected array $relationships;
@@ -20,43 +18,22 @@ abstract class RelationshipList {
 	protected array $deletions;
 
 	protected Entity $context;
-	protected int $total_count;
+
+	protected DatabaseAccess $db;
 
 	const RELATION_CLASS = ''; # the fully qualified name of the Relationship class whose instances this list contains
 
-	protected Flow $flow; # this class uses the Flow class to control the order of its method calls. see there for more.
+	protected bool $is_complete;
 
 
 	### CONSTRUCTION METHODS
 
-	function __construct(Entity &$context) {
+	function __construct(Entity $context, DatabaseAccess $db) {
 		$this->context = &$context;
+		$this->db = &$db;
 
 		$this->relationships = [];
 		$this->deletions = [];
-
-		$this->flow = new Flow([
-			['root', 'constructed'],
-			['constructed', 'loaded'],
-			['loaded', 'counted'],
-			['loaded', 'edited'],
-			['loaded', 'storing'],
-			['loaded', 'freezing'],
-			['counted', 'edited'],
-			['counted', 'storing'],
-			['counted', 'freezing'],
-			['edited', 'edited'],
-			['edited', 'storing'],
-			['edited', 'freezing'],
-			['storing', 'stored'],
-			['storing', 'freezing'],
-			['stored', 'storing'],
-			['stored', 'freezing'],
-			['freezing', 'frozen'],
-			['frozen', 'freezing']
-		]);
-
-		$this->flow->start();
 	}
 
 
@@ -64,50 +41,38 @@ abstract class RelationshipList {
 
 	# Load data of multiple relationships from the database into Relationship objects and load them into this list.
 	# @param $data: rows of relationship data from the database request's response
-	final public function load(array $data) : void {
-		$this->flow->check_step('loaded');
+	final public function load(array $data, bool $complete, ?Entity &$shared_relatum = null) : void {
+		if($this->is_loaded()){
+			throw new CallOutOfOrderException();
+		}
 
+		if(count($data) > 1){
+			$shared_relatum = null;
+		}
+
+		$id = '';
 		foreach($data as $row){
-			if(is_null($row[static::RELATION_CLASS::get_attribute_definitions()['id']->get_prefixed_db_column()])){
+			$id_column = static::RELATION_CLASS::get_attribute_definitions()['id']->get_prefixed_db_column();
+
+			if(!isset($row[$id_column])){
+				continue;
+			} else if($row[$id_column] === $id){
 				continue;
 			}
 
-			$cls = static::RELATION_CLASS;
-			$relationship = new $cls($this->context); # initialize a new instance of this relationship class
-			$relationship->load($row); # load the relationship
-			$this->relationships[$relationship->id] = $relationship;
+			$id = $row[$id_column];
+
+			$class = static::RELATION_CLASS;
+			$relationship = new $class($this->context); # initialize a new instance of this relationship class
+			$relationship->load($row, $shared_relatum); # load the relationship
+			$this->relationships[$id] = $relationship;
 		}
 
-		$this->flow->step('loaded');
-	}
-
-
-	# Return the total amount of entities that are listed in the database and match the constraints given on pull().
-	# @param $force_request: whether reloading the count from the database is enforced. normally, a database request is
-	# only performed on the first call. after that, a cached value is returned. this param overrides this
-	final public function count_total(bool $force_request = false) : int {
-		if(!isset($this->total_count) || $force_request){
-			$this->flow->check_step('counted');
-
-			$db = new DatabaseAccess();
-
-			# use the context’s pull request to create a new CountRequest from
-			$request = new CountRequest($this->context->pull_request);
-
-			try {
-				$s = $db->prepare($request->get_query());
-				$s->execute($request->get_values());
-			} catch(PDOException $e){
-				throw new DatabaseException($e, $s);
-			}
-
-			$db->disable();
-
-			$this->total_count = (int) $s->fetch()['total'];
-			$this->flow->step('counted');
+		if(count($this->relationships) === 1){
+			$shared_relatum = $relationship->get_relatum();
 		}
 
-		return $this->total_count;
+		$this->is_complete = $complete;
 	}
 
 
@@ -146,17 +111,80 @@ abstract class RelationshipList {
 
 	### EDITING METHODS
 
-	# Edit multiple relationships of this list at once, for example to process POST data from an html form
-	# works quite differently than that in Entity. in order for a relationship in this list to be altered, a string
-	# value 'action' has to be included in the input, which can have the following contents:
-	# ignore (not altering anything) | new (adding new relationship) | edit | delete
-	# @param $data: an array of all relationships that should be altered:
-	#	[
-	# 		[attribute_name => new_attribute_value, ...]
-	#	], …
-	# @throws: AttributeValueExceptionList
-	final public function receive_input(array $data) : void {
-		$this->flow->check_step('edited');
+	final public function receive_input(mixed $data) : void { // TODO
+		if(!$this->is_loaded()){
+			throw new CallOutOfOrderException();
+		}
+
+		throw new Exception('not ready yet');
+
+		$errors = new AttributeValueExceptionList();
+
+		if(!$this->is_complete()){
+			// error
+		}
+
+		if(!$this->is_distinct()){
+			// error
+		}
+
+		if(is_null($data)){
+			return;
+		} else if(!is_array($data)){
+			// error
+		}
+
+		foreach($data as $value){
+			if(is_string($value)){
+				$relatum_id = $value;
+			} else if(is_array($value)){
+				if(!isset($value['relatum'])){
+					// error
+				}
+
+				$relatum_id = $value['relatum'];
+			} else {
+				// invalid
+			}
+
+			$relationship = $this->find_by_relatum($relatum_id);
+
+			if(is_null($relationship)){
+				$class = static::RELATION_CLASS;
+				$relationship = new $class($this->context);
+			}
+
+			$relationship->edit($value);
+
+			// find the relationship with this foreign entity
+			// if not found, create a new one
+
+			// edit the relationship
+			// push it
+
+			// delete the relationships that are not in $data
+		}
+
+		/*
+		columns => [
+			column1.id,
+			column2.id,
+			column3.id
+
+			OR
+
+			[
+				column: id,
+				other attributes
+			],
+			...
+		]
+		*/
+
+
+
+		// $this->flow->check_step('edited');
+
 
 		# create a new container exception that buffers and stores all AttributeValueExceptions
 		# that occur during the editing of the relationships (i.e. invalid or missing inputs)
@@ -204,39 +232,40 @@ abstract class RelationshipList {
 			throw $errors;
 		}
 
-		$this->flow->step('edited');
+		// $this->flow->step('edited');
 	}
 
 
-	# Add a new relationship by providing the joined entity.
-	final public function add(Entity &$entity) : void {
-		$this->flow->check_step('edited');
+	final public function add(array $input) : string {
+		if(!$this->is_loaded()){
+			throw new CallOutOfOrderException();
+		}
 
-		$cls = static::RELATION_CLASS;
-		$relation = new $cls($this->context);
-		$relation->create();
+		$class = static::RELATION_CLASS;
+		$relationship = new $class($this->context, $this->context->get_db());
 
-		$relation->set_joined_entity($entity);
+		$relationship->create();
 
-		$this->relationships[$relation->id] = $relation;
+		$relationship->receive_input($input);
 
-		$this->flow->step('edited');
+		$this->relationships[$relationship->id] = $relationship;
+
+		return $relationship->id;
 	}
 
 
 	# Remove a relationship from this list
-	final public function remove(int|string $index_or_id) : bool {
-		$this->flow->check_step('edited');
-
-		if(!isset($this->relationships[$index_or_id])){
-			return false; # if the relationship is not found, return false
+	final public function remove(string $id) : bool {
+		if(!$this->is_loaded()){
+			throw new CallOutOfOrderException();
 		}
 
-		$id = $this->relationships[$index_or_id]->id;
+		if(!isset($this->relationships[$id])){
+			return false; # if the relationship is not found, return false // TODO maybe exception
+		}
+
 		$this->deletions[$id] = $this->relationships[$id];
 		unset($this->relationships[$id]);
-
-		$this->flow->step('edited');
 
 		return true;
 	}
@@ -248,12 +277,9 @@ abstract class RelationshipList {
 	# this method simply calls the Relationship::push() method on every relationship in this list
 	# @return: whether a database request was performed (= whether the list or a relationship of it changed)
 	final public function push() : bool {
-		# if this relationship is currently in the storing process, do nothing. this prevents endless loops
-		if($this->flow->is_at('storing')){
-			return false;
+		if(!$this->is_loaded()){
+			throw new CallOutOfOrderException();
 		}
-
-		$this->flow->step('storing');
 
 		$request_performed = false;
 
@@ -267,47 +293,23 @@ abstract class RelationshipList {
 			$request_performed = true;
 		}
 
-		$this->flow->step('stored');
-
 		return $request_performed;
 	}
 
 
 	### OUTPUT METHODS
 
-	# Disable the database access for this list and all relationships it contanins.
-	final public function freeze() : void {
-		# if this relationship list is currently in the freezing process, do nothing. this prevents endless loops.
-		if($this->flow->is_at('freezing')){
-			return;
-		}
-
-		$this->flow->step('freezing');
-
-		foreach($this->relationships as $index => $_){
-			$this->relationships[$index]->freeze();
-		}
-
-		$this->flow->step('frozen');
-	}
-
 
 	# Transform this list into an array, containing its arrayified (transformed) relationships. (see --> Relationship)
 	final public function arrayify() : array|null {
-		# if this relationship list is already in the freezing process, return null. prevents endless loops
-		# this also makes sure that this list only occurs once in the final array, preventing redundancies
-		if($this->flow->is_at('freezing')){
-			return null;
+		if(!$this->is_loaded()){
+			throw new CallOutOfOrderException();
 		}
-
-		$this->flow->step('freezing');
 
 		$result = [];
 		foreach($this->relationships as $relation){
 			$result[$relation->id] = $relation->arrayify();
 		}
-
-		$this->flow->step('frozen');
 
 		return $result;
 	}
@@ -349,6 +351,16 @@ abstract class RelationshipList {
 
 	final public function is_empty() : bool {
 		return ($this->length() === 0);
+	}
+
+
+	final public function is_complete() : bool {
+		return $this->complete;
+	}
+
+
+	final public function is_loaded() : bool {
+		return isset($this->complete);
 	}
 }
 ?>

@@ -51,12 +51,8 @@ trait Attributes {
 
 	final protected function bind_attributes() : void {
 		foreach(static::$attributes as $name => $attribute){
-			if($attribute instanceof RelationshipAttribute){
-				$this->$name = null;
-			} else {
-				$this->$name = clone $attribute;
-				$this->$name->bind($this);
-			}
+			$this->$name = clone $attribute;
+			$this->$name->bind($this);
 		}
 	}
 
@@ -77,13 +73,11 @@ trait Attributes {
 		$attribute = static::$attributes[$name];
 
 		if($attribute instanceof RelationshipAttribute){
-			// TODO maybe remove this and move it into the DataObject::receive_input() function as it only makes sense there
-		   # relationship lists cannot be edited if this object is not independent
-		   if(isset($this->context)){
-			   return;
-		   }
+			if(!$this->is_independent()){
+				return;
+			}
 
-		   $this->$name->receive_input($input); # let the relationship list handle the input
+			$this->$name->edit($input);
 
 	   } else {
 			$this->$name->edit($input);
@@ -112,7 +106,7 @@ trait Attributes {
 
 
 	function __isset(string $name) : bool {
-		return array_key_exists(static::get_attribute_definitions(), $name);
+		return array_key_exists($name, static::get_attribute_definitions());
 	}
 }
 ?>

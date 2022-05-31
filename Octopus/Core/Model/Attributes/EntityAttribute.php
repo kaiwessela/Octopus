@@ -27,8 +27,10 @@ final class EntityAttribute extends Attribute {
 	}
 
 
-	final public function load(array $data) : void {
-		if(is_null($data[$this->get_prefixed_db_column()])){
+	final public function load(Entity|array $data) : void {
+		if($data instanceof Entity){ // IDEA
+			$this->value = $value;
+		} else if(is_null($data[$this->get_prefixed_db_column()])){
 			$this->value = null;
 		} else {
 			$class = $this->get_class();

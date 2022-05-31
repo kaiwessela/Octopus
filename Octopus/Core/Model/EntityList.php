@@ -15,14 +15,37 @@ use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
 use PDOException;
 use Exception;
 
-# What is a DataObjectList? // TODO
-# A DataObjectList is pretty much what the name suggests: A list of DataObjects of the same class.
+/*
+Idee:
+EntityList pullen, aber bestimmtes relatum als WHERE
+und die Relationship rechts/links ran joinen
+
+SELECT * FROM posts
+LEFT JOIN postcolumnrelations ON postcolumnrelations.post_id = posts.id
+LEFT JOIN columns ON columns.id = postcolumnrelations.column_id
+WHERE column.id = :id
+
+sodass die contextuals erhalten bleiben
+
+also eigentlich umgekehrt wie es jetzt läuft.
+jetzt muss man eine column pullen, wenn man ihre posts will.
+man soll aber die posts pullen und die column joinen, falls man die posts will.
+
+FRAGE: Kann man dann den ganzen Unsinn mit LIMIT bei single Entity pull weglassen?
+
+
+Dann müsste das RelationshipAttribute je nachdem eine RelationshipList oder nur eine Relationship enthalten
+
+*/
+
 
 abstract class EntityList {
 	protected array $entities; # an array of the Entities this list contains [entity_id => entity, ...]
 
 	protected readonly ?SelectRequest $pull_request;
 	protected int $total_count;
+
+	protected ?Relationship $shared_relatum;
 
 	const ENTITY_CLASS = ''; # the fully qualified name of the concrete Entity class whose instances this list contains
 
@@ -38,7 +61,7 @@ abstract class EntityList {
 
 		$this->entities = [];
 
-		$this->db = $db;
+		$this->db = &$db;
 	}
 
 
@@ -138,10 +161,11 @@ abstract class EntityList {
 			throw new CallOutOfOrderException();
 		}
 
+		$shared_relatum = null; // IDEA
 		foreach($data as $row){
 			$cls = $this::ENTITY_CLASS;
-			$entity = new $cls($this); # initialize a new instance of this entity class
-			$entity->load($row); # load the entity
+			$entity = new $cls($this, $this->db); # initialize a new instance of this entity class
+			$entity->load($row, $shared_relatum); # load the entity
 			$this->entities[$entity->id] = $entity;
 		}
 	}

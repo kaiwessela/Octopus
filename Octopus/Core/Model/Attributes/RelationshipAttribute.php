@@ -1,5 +1,9 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
+use \Octopus\Core\Model\Attributes\Attribute;
+use \Octopus\Core\Model\RelationshipList;
+use \Octopus\Core\Model\Database\DatabaseAccess;
+use \Exception;
 
 class RelationshipAttribute extends Attribute {
 	protected string $class;
@@ -10,28 +14,38 @@ class RelationshipAttribute extends Attribute {
 			throw new Exception("Invalid class «{$class}».");
 		}
 
-		// TODO
-		$this->class = $class;
+		$attr = new RelationshipAttribute();
+		$attr->required = false;
+		$attr->editable = true;
+		$attr->class = $class;
+		return $attr;
 	}
 
 
-	public function load(null|string|int|float $data) : void {
-		throw new Exception('do not call!');
+	final public function load(array $data, DatabaseAccess $db, bool $complete, ?Entity &$shared_relatum = null) : void {
+		$class = $this->get_class();
+		$this->value = new $class($this->parent, $db);
+		$this->value->load($data, $complete, $shared_relatum);
 	}
 
 
-	public function edit(mixed $value) : void {
-		throw new Exception('do not call!');
+	final public function edit(mixed $value) : void {
+		$this->value->receive_input($value);
 	}
 
 
-	public function get_db_column() : string {
-		throw new Exception('do not call!');
+	final public function get_db_column() : string {
+		return $this->class::RELATION_CLASS::get_attribute_definitions()['id']->get_db_column();
 	}
 
 
 	public function get_class() : string {
 		return $this->class;
+	}
+
+
+	public function get_push_value() : null|string|int|float {
+		throw new Exception('do not call!');
 	}
 }
 ?>

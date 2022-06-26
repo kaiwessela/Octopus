@@ -79,21 +79,25 @@ class SelectRequest extends Request {
 
 		$this->query = 'SELECT'.PHP_EOL;
 
-		$join_str = '';
-
+		$this->columns = [];
 		foreach($this->attributes as $attribute){
-			$this->columns[] = static::create_column_string($attribute);
+			if($attribute->is_pullable()){
+				$this->columns[] = static::create_column_string($attribute);
+			} else {
+				throw new Exception(); // TODO
+			}
 		}
 
+		$join_string = '';
 		foreach($this->joins as $join){
+			$join_string .= $join->get_query();
 			$this->columns = array_merge($this->columns, $join->get_columns());
-			$join_str .= $join->get_query();
 		}
 
 		$this->query .= implode(','.PHP_EOL, $this->columns).PHP_EOL;
 
 		$this->query .= "FROM `{$this->table}`".PHP_EOL;
-		$this->query .= $join_str;
+		$this->query .= $join_string;
 
 		if(!is_null($this->condition)){
 			$this->query .= "WHERE {$this->condition->get_query()}".PHP_EOL;
@@ -122,20 +126,6 @@ class SelectRequest extends Request {
 
 	public function get_joins() : array { // FIXME this is a hotfix for CountRequest
 		return $this->joins;
-	}
-
-
-	protected function validate_condition(?Condition $condition) : void {
-		/*
-		if(is_subclass_of($this->object_class, DataObject::class)){
-			if(!$condition instanceof IdentifierCondition){
-				// Error condition type not allowed
-				// TODO improve condition type checking
-				// maybe move to check right before get_query() and also check for illegally empty condition
-				throw new Exception('illegal condition.');
-			}
-		}
-		*/
 	}
 }
 ?>

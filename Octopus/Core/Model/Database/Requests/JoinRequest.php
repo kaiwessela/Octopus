@@ -15,7 +15,6 @@ use Exception;
 // TODO explainations
 
 class JoinRequest extends Request {
-	protected ?string $table_alias;
 	protected Attribute $native_attribute;
 	protected Attribute $foreign_attribute;
 
@@ -26,10 +25,8 @@ class JoinRequest extends Request {
 	protected array $joins;
 
 
-	function __construct(string $table, ?string $table_alias, Attribute $native_attribute, Attribute $foreign_attribute) {
+	function __construct(string $table, Attribute $native_attribute, Attribute $foreign_attribute) {
 		parent::__construct($table);
-
-		$this->table_alias = $table_alias;
 
 		$this->joins = [];
 		$this->columns = [];
@@ -59,14 +56,14 @@ class JoinRequest extends Request {
 		$this->flow->step('resolve');
 
 		foreach($this->attributes as $attribute){
-			$this->columns[] = static::create_column_string($attribute, $this->table_alias);
+			$this->columns[] = static::create_column_string($attribute);
 		}
 
-		$native_col = $this->native_attribute->get_a_full_db_column($this->table_alias);
+		$native_col = $this->native_attribute->get_full_db_column();
 		$foreign_col = $this->foreign_attribute->get_full_db_column();
 
-		if(!is_null($this->table_alias)){
-			$this->query = "LEFT JOIN `{$this->table}` AS `{$this->table_alias}` ON {$native_col} = {$foreign_col}".PHP_EOL;
+		if($this->native_attribute->get_db_table() !== $this->native_attribute->get_db_table_alias()){
+			$this->query = "LEFT JOIN `{$this->table}` AS `{$this->native_attribute->get_db_table_alias()}` ON {$native_col} = {$foreign_col}".PHP_EOL;
 		} else {
 			$this->query = "LEFT JOIN `{$this->table}` ON {$native_col} = {$foreign_col}".PHP_EOL;
 		}
@@ -78,18 +75,17 @@ class JoinRequest extends Request {
 	}
 
 
-	public function get_foreign_attribute() : Attribute {
-		return $this->foreign_attribute;
+	public function get_columns() : array {
+		if(!$this->flow->is_at('resolve')){
+			$this->resolve();
+		}
+
+		return $this->columns;
 	}
 
 
-
-
-
-	protected function validate_condition(?Condition $condition) : void {
-		if(!is_null($condition)){
-			throw new Exception('condition must be null for this type of request.');
-		}
+	public function get_foreign_attribute() : Attribute {
+		return $this->foreign_attribute;
 	}
 }
 ?>

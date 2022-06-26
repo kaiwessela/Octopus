@@ -44,7 +44,6 @@ abstract class Entity {
 
 	public readonly null|Entity|EntityList|Relationship $context;
 	public readonly ?string $db_alias;
-	public readonly ?SelectRequest $pull_request;
 
 	protected ?DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
 
@@ -55,26 +54,18 @@ abstract class Entity {
 		$this->context = &$context;
 		$this->db_alias = $db_alias;
 
-		// if(isset($context)){
-		// 	if($context instanceof Entity){
-		// 		$this->db =& $db ?? $context->db;
-		// 	}
-		//
-		// 	$this->pull_request = null;
-		// } else if(!isset($db)){
-		// 	throw new Exception('Database access required.');
-		// }
 		$this->db = &$db;
 
-		if(!isset(static::$attributes)){ # load all attribute definitions
-			static::load_attribute_definitions();
+		$this->load_attributes();
 
-			if(!(static::$attributes['id'] ?? null) instanceof IdentifierAttribute){
-				throw new Exception('Invalid attribute definitions: valid id definition missing.');
-			}
+		if(!($this->id ?? null) instanceof IdentifierAttribute){
+			throw new Exception('Invalid attribute definitions: valid id definition missing.');
 		}
+	}
 
-		$this->bind_attributes();
+
+	public function &get_db() : DatabaseAccess { // TODO check
+		return $this->db ?? $this->context?->get_db();
 	}
 
 
@@ -104,35 +95,21 @@ abstract class Entity {
 	# @param $identifier: the identifier string that specifies which entity to download.
 	# @param $identify_by: the name of the attribute $identifier is matched with.
 	# @param $options: additional, custom pull options
-	final public function pull(string $identifier, string $identify_by = 'id', array $options = []) : void {
+	final public function pull(string $identifier, string $identify_by = 'id', array $attributes = []) : void {
 		if($this->is_loaded() || !$this->is_independent()){
 			throw new CallOutOfOrderException();
 		}
 
 		# verify the identify_by value
-		$identifying_attribute = static::$attributes[$identify_by] ?? null;
-		if(!$identifying_attribute instanceof IdentifierAttribute){
-			throw new Exception("Argument identify_by: attribute «{$identify_by}» not found or is not an identifier.");
+		if(!in_array($identify_by, static::$attributes)){
+			throw new Exception("Argument identify_by: attribute «{$identify_by}» not found.");
+		} else if(!$this->$identify_by instanceof IdentifierAttribute){
+			throw new Exception("Argument identify_by: attribute «{$identify_by}» is not an identifier.");
 		}
 
 		$request = new SelectRequest(static::DB_TABLE);
-
-		foreach(static::$attributes as $name => $attribute){ # $attribute is an AttributeDefinition
-			if($attribute instanceof EntityAttribute){
-				$request->add_join($attribute->get_class()::join(on:$attribute)); # join Entity attributes recursively
-				$request->add_attribute($attribute); // FIXME this is a hotfix. entities need not only be joined, but also pulled. i.e. the key post_image_id must be in the values, not only image_id. that is because load needs this value to check if it is set.
-			} else if($attribute instanceof RelationshipAttribute){
-				$request->add_join($attribute->get_class()::join(on:static::$attributes['id'])); # join RelationshipList
-			} else if($attribute instanceof PropertyAttribute){
-				$request->add_attribute($attribute);
-			}
-		}
-
-		static::shape_select_request($request, $options);
-
-		$request->set_condition(new IdentifierEquals($identifying_attribute, $identifier));
-
-		var_dump($request->get_query());
+		$this->build_request($request, $attributes);
+		$request->set_condition(new IdentifierEquals($this->$identify_by, $identifier));
 
 		try {
 			$s = $this->db->prepare($request->get_query());
@@ -145,65 +122,39 @@ abstract class Entity {
 			throw new EmptyResultException($s);
 		}
 
-		$this->pull_request = $request; # the pull request might be needed later for count requests in relationships
 		$this->load($s->fetchAll());
 	}
 
 
-
-
-
-
-
-
-	// final public function join(Attribute $on) : JoinRequest {
-	// 	$request = new JoinRequest(static::DB_TABLE, $on->get_name(), static::$attributes['id'], $on);
-	// }
-
-
-
-	# Return a JoinRequest for this entity that can be used by another entity’s or relationship’s pull() method to
-	# include this entity as an attribute.
-	# single entities that this entity contains as attributes are joined too (recursively), but not relationships!
-	# @param $on: The attribute on the calling entity/relationship that identifies this entity
-	# paraphrased: LEFT JOIN [this entity’s table] ON [this entity’s prefix].id = [on]
-	final public static function join(Attribute $on) : JoinRequest {
-		$request = new JoinRequest(static::DB_TABLE, $on->get_name(), static::get_attribute_definitions()['id'], $on);
-
-		foreach(static::get_attribute_definitions() as $name => $attribute){ # $attribute is an AttributeDefinition
-			if($attribute instanceof EntityAttribute){
-				$request->add_join($attribute->get_class()::join(on:$attribute)); # recursively join entities this entity contains
-			} else if($attribute instanceof PropertyAttribute){
-				$request->add_attribute($attribute);
-			}
-		}
-
-		static::shape_join_request($request);
-
+	final public function join(Attribute $on, array $attributes = []) : JoinRequest {
+		$request = new JoinRequest(static::DB_TABLE, $this->id, $on);
+		$this->build_request($request, $attributes);
 		return $request;
 	}
 
 
-	protected static function shape_select_request(SelectRequest &$request, array $options) : void {}
-	protected static function shape_join_request(JoinRequest &$request) : void {}
-
-
 	# Load rows of entity data from the database into this Entity object
 	# @param $data: single fetched row or multiple rows from the database request’s response
-	final public function load(array $data, ?Entity &$shared_relatum = null) : void {
+	final public function load(array $data) : void {
 		if($this->is_loaded()){
 			throw new CallOutOfOrderException();
 		}
 
+
+		// TODO fix from here
 		# To parse the columns containing our entity data, we must do a distinction:
 		if(is_array($data[0])){ # check whether the data array is nested
+			$relationships = true;
 			$row = $data[0]; # with relationships
 		} else {
+			$relationships = false;
 			$row = $data; # without relationships
 		}
 
 		foreach(static::$attributes as $name => $attribute){
-			if(!array_key_exists($attribute->get_prefixed_db_column(), $row)){
+			if(!array_key_exists($attribute->get_prefixed_db_column(), $row)){ // FIXME
+				continue;
+			} else if(!$relationships && $attribute instanceof RelationshipAttribute){
 				continue;
 			}
 
@@ -212,11 +163,7 @@ abstract class Entity {
 			} else if($attribute instanceof EntityAttribute){
 				$this->$name->load($row);
 			} else if($attribute instanceof RelationshipAttribute){
-				if(!$this->is_independent() && !$this->context instanceof EntityList){
-					continue;
-				}
-
-				$this->$name->load($data, $this->db, $this->is_independent(), $shared_relatum);
+				$this->$name->load($data, $this->db);
 			}
 		}
 

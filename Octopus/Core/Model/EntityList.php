@@ -41,11 +41,10 @@ Dann müsste das RelationshipAttribute je nachdem eine RelationshipList oder nur
 
 abstract class EntityList {
 	protected array $entities; # an array of the Entities this list contains [entity_id => entity, ...]
+	protected Entity $prototype;
 
 	protected readonly ?SelectRequest $pull_request;
 	protected int $total_count;
-
-	protected ?Relationship $shared_relatum;
 
 	const ENTITY_CLASS = ''; # the fully qualified name of the concrete Entity class whose instances this list contains
 
@@ -59,9 +58,12 @@ abstract class EntityList {
 			throw new Exception('Invalid EntityList class: constant ENTITY_CLASS must describe a subclass of Entity.');
 		}
 
+		$this->db = &$db;
+
 		$this->entities = [];
 
-		$this->db = &$db;
+		$class = static::ENTITY_CLASS;
+		$this->prototype = new $class($this, $this->db);
 	}
 
 
@@ -71,22 +73,13 @@ abstract class EntityList {
 	# @param $limit: how many entities to pull (SQL LIMIT)
 	# @param $offset: the number of entities to be skipped (SQL OFFSET)
 	# @param $options: additional, custom pull options
-	final public function pull(?int $limit = null, ?int $offset = null, array $options = []) : void {
+	final public function pull(?int $limit = null, ?int $offset = null, array $attributes = [], array $conditions = []) : void {
 		if($this->is_loaded()){
 			throw new CallOutOfOrderException();
 		}
 
 		$request = new SelectRequest(static::ENTITY_CLASS::DB_TABLE);
-
-		foreach(static::ENTITY_CLASS::get_attribute_definitions() as $name => $attribute){
-			if($attribute instanceof EntityAttribute){
-				$request->add_join($attribute->get_class()::join(on:$attribute)); # recursively join Entity attribute
-			} else if($attribute instanceof PropertyAttribute){
-				$request->add_attribute($attribute);
-			}
-		}
-
-		static::shape_select_request($request, $options);
+		$this->prototype->build_request($request, $attributes, $conditions);
 
 		$request->set_limit($limit);
 		$request->set_offset($offset);
@@ -109,51 +102,6 @@ abstract class EntityList {
 	}
 
 
-	protected static function shape_select_request(SelectRequest &$request, array $options) : void {}
-
-
-	# Download data of multiple entities from the database, based on a list of ids, and load them into this list.
-	# in contrast to pull(), there is no exception if an id is not found.
-	# @param $idlist: a list of ids of all entities that should be pulled
-	final public function pull_by_ids(array $idlist) : void {
-		if($this->is_loaded()){
-			throw new CallOutOfOrderException();
-		}
-
-		if(empty($idlist)){
-			return;
-		}
-
-		$request = new SelectRequest(static::ENTITY_CLASS::DB_TABLE);
-
-		foreach(static::ENTITY_CLASS::get_attribute_definitions() as $name => $attribute){
-			if($attribute instanceof EntityAttribute){
-				$request->add_join($attribute->get_class()::join(on:$attribute)); # recursively join Entity attribute
-			} else if($attribute instanceof PropertyAttribute){
-				$request->add_attribute($attribute);
-			}
-		}
-
-		static::shape_select_request($request, []);
-
-		$request->set_condition(new InList(static::ENTITY_CLASS::get_property_definitions()['id'], $idlist));
-
-		try {
-			$s = $this->db->prepare($request->get_query());
-			$s->execute($request->get_values());
-		} catch(PDOException $e){
-			throw new DatabaseException($e, $s);
-		}
-
-		if($s->rowCount() === 0){
-			return;
-		}
-
-		$this->pull_request = $request; # the pull request might be needed later for count requests
-		$this->load($s->fetchAll());
-	}
-
-
 	# Load data of multiple entities from the database into Entity objects and load them into this list.
 	# @param $data: rows of entity data from a database request's response
 	final public function load(array $data) : void {
@@ -161,11 +109,23 @@ abstract class EntityList {
 			throw new CallOutOfOrderException();
 		}
 
-		$shared_relatum = null; // IDEA
+		$datasets = [];
+
+		$buffer = null;
 		foreach($data as $row){
-			$cls = $this::ENTITY_CLASS;
-			$entity = new $cls($this, $this->db); # initialize a new instance of this entity class
-			$entity->load($row, $shared_relatum); # load the entity
+			if(empty($buffer) || $buffer[0][0] === $row[0]){
+				$buffer[] = $row;
+			} else {
+				$datasets[] = $buffer;
+				$buffer = null;
+			}
+		}
+
+		$datasets[] = $buffer;
+
+		foreach($datasets as $dataset){
+			$entity = clone $this->prototype;
+			$entity->load($dataset);
 			$this->entities[$entity->id] = $entity;
 		}
 	}

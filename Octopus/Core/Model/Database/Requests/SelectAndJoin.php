@@ -20,17 +20,8 @@ trait SelectAndJoin {
 	}
 
 
-	public function get_columns() : array {
-		if(!$this->flow->is_at('resolve')){
-			$this->resolve();
-		}
-
-		return $this->columns;
-	}
-
-
-	protected static function create_column_string(Attribute $attribute, ?string $alias = null) : string {
-		return "	{$attribute->get_a_full_db_column($alias)} AS `{$attribute->get_a_prefixed_db_column($alias)}`";
+	protected static function create_column_string(Attribute $attribute) : string {
+		return "	{$attribute->get_full_db_column()} AS `{$attribute->get_prefixed_db_column()}`";
 	}
 
 

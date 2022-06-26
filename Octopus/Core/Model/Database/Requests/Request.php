@@ -40,7 +40,7 @@ abstract class Request {
 	}
 
 
-	final public function add_attribute(Attribute $attribute) : void {
+	final public function add(Attribute $attribute) : void {
 		if($this->table !== $attribute->get_db_table()){
 			throw new Exception("Property and Request db tables do not match.");
 		}
@@ -49,7 +49,7 @@ abstract class Request {
 	}
 
 
-	final public function remove_attribute(Attribute $attribute) : void {
+	final public function remove(Attribute $attribute) : void {
 		unset($this->attributes[$attribute->get_full_db_column()]);
 	}
 
@@ -79,14 +79,7 @@ abstract class Request {
 	}
 
 
-
-
-
-	protected function validate_condition(?Condition $condition) : void {}
-
 	public function set_condition(?Condition $condition) : void {
-		$this->validate_condition($condition);
-
 		$this->condition = $condition;
 	}
 

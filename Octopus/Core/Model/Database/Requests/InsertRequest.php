@@ -28,12 +28,5 @@ class InsertRequest extends Request {
 		$this->query = "INSERT INTO `{$this->table}` SET".PHP_EOL;
 		$this->query .= implode(','.PHP_EOL, $columns);
 	}
-
-
-	protected function check_condition(?Condition $condition) : void {
-		if(!is_null($condition)){
-			throw new Exception('condition must be null for this type of request.');
-		}
-	}
 }
 ?>

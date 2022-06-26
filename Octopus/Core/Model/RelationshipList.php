@@ -4,7 +4,6 @@ use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\Attributes\Attribute;
 use \Octopus\Core\Model\Attributes\EntityAttribute;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
-use \Octopus\Core\Model\Database\DatabaseAccess;
 use \Octopus\Core\Model\Database\Requests\SelectRequest;
 use \Octopus\Core\Model\Database\Requests\CountRequest;
 use \Octopus\Core\Model\Database\Requests\JoinRequest;
@@ -19,8 +18,6 @@ abstract class RelationshipList {
 
 	protected Entity $context;
 
-	protected DatabaseAccess $db;
-
 	const RELATION_CLASS = ''; # the fully qualified name of the Relationship class whose instances this list contains
 
 	protected bool $is_complete;
@@ -28,9 +25,8 @@ abstract class RelationshipList {
 
 	### CONSTRUCTION METHODS
 
-	function __construct(Entity $context, DatabaseAccess $db) {
+	function __construct(Entity $context) {
 		$this->context = &$context;
-		$this->db = &$db;
 
 		$this->relationships = [];
 		$this->deletions = [];
@@ -44,10 +40,6 @@ abstract class RelationshipList {
 	final public function load(array $data, bool $complete, ?Entity &$shared_relatum = null) : void {
 		if($this->is_loaded()){
 			throw new CallOutOfOrderException();
-		}
-
-		if(count($data) > 1){
-			$shared_relatum = null;
 		}
 
 		$id = '';
@@ -64,48 +56,9 @@ abstract class RelationshipList {
 
 			$class = static::RELATION_CLASS;
 			$relationship = new $class($this->context); # initialize a new instance of this relationship class
-			$relationship->load($row, $shared_relatum); # load the relationship
+			$relationship->load($row); # load the relationship
 			$this->relationships[$id] = $relationship;
 		}
-
-		if(count($this->relationships) === 1){
-			$shared_relatum = $relationship->get_relatum();
-		}
-
-		$this->is_complete = $complete;
-	}
-
-
-	# Return a JoinRequest for this relationship class that can be used by an entity's pull() method to include these
-	# relationships in the entity
-	# @param $on: The attribute on the calling relationship that identifies these relationships
-	# paraphrased: LEFT JOIN [these relationships’ table] ON [these reelationships’ prefix].id = [on]
-	public static function join(Attribute $on) : JoinRequest {
-		// TODO explaination
-		$identifier;
-		$join;
-		$columns = [];
-		foreach(static::RELATION_CLASS::get_attribute_definitions() as $name => $attribute){
-			if($attribute instanceof EntityAttribute){
-				if($attribute->get_class()::DB_TABLE === $on->get_db_table()){
-					$identifier = $attribute;
-				} else {
-					$join = $attribute;
-				}
-			} else {
-				$columns[] = $attribute;
-			}
-		}
-
-		$request = new JoinRequest(static::RELATION_CLASS::DB_TABLE, null, $identifier, $on);
-
-		foreach($columns as $column){
-			$request->add_attribute($column);
-		}
-
-		$request->add_join($join->get_class()::join(on:$join));
-
-		return $request;
 	}
 
 
@@ -242,7 +195,7 @@ abstract class RelationshipList {
 		}
 
 		$class = static::RELATION_CLASS;
-		$relationship = new $class($this->context, $this->context->get_db());
+		$relationship = new $class($this->context);
 
 		$relationship->create();
 

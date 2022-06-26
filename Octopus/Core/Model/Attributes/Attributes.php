@@ -29,30 +29,111 @@ trait Attributes {
 	# protected readonly […, depending] $context; – a reference to the context entity/list/relationship/…
 
 
-	final protected static function load_attribute_definitions() : void {
+	final public function build_request(Request &$request, array $attributes = [], array $conditions = []) : void {
+		foreach($attributes as $name => $option){
+			if(!in_array($name, static::$attributes)){
+				throw new Exception(); // Error
+			}
+
+			if(!is_null($option) && !is_bool($option) && !(is_array($option) && $this->$name->is_joinable())){
+				throw new Exception(); // Error
+			}
+		}
+
+		foreach(static::$attributes as $name){
+			$option = $attributes[$name] ?? static::DEFAULT_PULL_ATTRIBUTES[$name] ?? null;
+
+			if(is_array($option) || is_null($option)){
+				$pull = true;
+				$join = true;
+			} else if($option === true){
+				$pull = true;
+				$join = false;
+			} else if($option === false){
+				$pull = false;
+				$join = false;
+			} else {
+				throw new Exception(); // Error
+			}
+
+			if($attribute->is_pullable() && $pull){
+				$request->add($this->$name);
+			}
+
+			if($attribute->is_joinable() && $join && ($this->$name->get_class() !== $this->context::class)){
+				$request->add_join($this->$name->get_prototype()->join()); // TODO
+			}
+		}
+
+		if(!empty($conditions)){
+			$request->set_condition($this->resolve_conditions($conditions));
+		}
+
+		// TODO order
+	}
+
+
+	final public function resolve_conditions(array $options, bool $mode = 'AND') : ?Condition {
+		$conditions = [];
+
+		foreach($options as $attribute => $option){
+			if(is_int($attribute)){ # resolve listed options (like in an AND/OR chain)
+				if(!is_array($option)){
+					throw new Exception(); // Error
+				}
+
+				$conditions[] = $this->resolve_conditions($option);
+
+			} else if($attribute === 'AND' || $attribute === 'OR'){
+				if(!is_array($option)){
+					throw new Exception(); // Error
+				}
+
+				$conditions[] = $this->resolve_conditions($option, $attribute);
+
+			} else if(in_array($attribute, static::$attributes)){
+				$conditions[] = $this->$attribute->resolve_condition($option);
+
+			} else {
+				throw new Exception(); // Error
+			}
+		}
+
+		if(empty($conditions)){
+			return null;
+		} else if(count($conditions) === 1){
+			return $condition;
+		} else if($mode === 'OR'){
+			return new OrCondition(...$conditions);
+		} else if($mode === 'AND'){
+			return new AndCondition(...$conditions);
+		}
+	}
+	/*
+	posts
+	[
+		'columns' => [
+			'OR' => [
+				[
+					'id' => 'test',
+				],
+				[
+					'id' => 'abc',
+				]
+			]
+
+		]
+	]
+	*/
+
+
+	final protected function load_attributes() : void {
 		static::$attributes = [];
 
 		foreach(static::define_attributes() as $name => $attribute){
-			$attribute->init($name, static::class);
-			static::$attributes[$name] = $attribute;
-		}
-	}
-
-
-	# Return the array of Attributes for this class (static::$attributes). If they are not loaded yet, load them
-	final public static function get_attribute_definitions() : array {
-		if(!isset(static::$attributes)){
-			static::load_attribute_definitions();
-		}
-
-		return static::$attributes;
-	}
-
-
-	final protected function bind_attributes() : void {
-		foreach(static::$attributes as $name => $attribute){
-			$this->$name = clone $attribute;
-			$this->$name->bind($this);
+			$this->$name = $attribute;
+			$this->$name->bind($name, $this);
+			static::$attributes[] = $name;
 		}
 	}
 
@@ -70,9 +151,7 @@ trait Attributes {
 			throw new Exception("Attribute «{$name}» is not defined.");
 		}
 
-		$attribute = static::$attributes[$name];
-
-		if($attribute instanceof RelationshipAttribute){
+		if($this->$name instanceof RelationshipAttribute){
 			if(!$this->is_independent()){
 				return;
 			}
@@ -88,25 +167,14 @@ trait Attributes {
 	// TODO from here
 	function __get($name) {
 		# if $this->$name is a defined attribute, return its value
-		if(isset(static::get_attribute_definitions()[$name])){
-			$definition = static::$attributes[$name];
-
-			# if the attribute is contextual, let the context relationship return its value (if there is one)
-			// if($definition->type_is('contextual')){
-			// 	if($this->context instanceof Relationship){
-			// 		return $this->context->$name;
-			// 	} else {
-			// 		return null;
-			// 	}
-			// } else {
-				return $this->$name->get_value();
-			// }
+		if(isset(static::$attributes[$name])){
+			return $this->$name->get_value();
 		}
 	}
 
 
 	function __isset(string $name) : bool {
-		return array_key_exists($name, static::get_attribute_definitions());
+		return isset(static::$attributes[$name]);
 	}
 }
 ?>

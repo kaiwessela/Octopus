@@ -36,11 +36,4 @@ class UpdateRequest extends Request {
 
 		$this->set_values($this->condition->get_values());
 	}
-
-
-	protected function check_condition(?Condition $condition) : void {
-		if(!$condition instanceof IdentifierCondition){
-			throw new Exception('This request’s condition must be an IdentifierCondition.');
-		}
-	}
 }

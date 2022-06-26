@@ -6,7 +6,7 @@ use \Octopus\Core\Model\Attributes\Attribute;
 use \Exception;
 
 abstract class Attribute {
-	protected string|Entity $parent;
+	protected Entity|Relationship $parent;
 	protected string $name;
 	protected bool $required;
 	protected bool $editable;
@@ -18,24 +18,14 @@ abstract class Attribute {
 	// abstract public static function define() : Attribute;
 
 
-	final public function init(string $name, string $parent_class) : void {
+	public function bind(string $name, Entity|Relationship $parent) : void {
 		$this->name = $name;
-
-		if(!class_exists($parent_class) || !(is_subclass_of($parent_class, Entity::class) || is_subclass_of($parent_class, Relationship::class))){
-			throw new Exception("Invalid parent class: «{$parent_class}».");
-		}
-
-		// TODO check DB_TABLE
-
-		$this->parent = $parent_class;
-		$this->loaded = false;
-	}
-
-
-	final public function bind(Entity $parent) : void {
 		$this->parent = &$parent;
 		$this->value = null;
 		$this->edited = false;
+		$this->loaded = false;
+
+		// TODO check DB_TABLE
 	}
 
 
@@ -50,11 +40,6 @@ abstract class Attribute {
 	}
 
 
-	final public function is_bound() : bool {
-		return !is_string($this->parent);
-	}
-
-
 	final public function is_loaded() : bool {
 		return $this->loaded;
 	}
@@ -66,12 +51,13 @@ abstract class Attribute {
 
 
 	final public function is_editable() : bool {
-		if($this->is_bound()){
-			return $this->editable;
-		} else {
-			return $this->is_loaded() && ($this->editable || $this->parent->is_new());
-		}
+		return $this->is_loaded() && ($this->editable || $this->parent->is_new());
 	}
+
+
+	abstract public function is_pullable() : bool;
+
+	abstract public function is_joinable() : bool;
 
 
 	final public function get_name() : string {
@@ -80,17 +66,16 @@ abstract class Attribute {
 
 
 	final public function get_db_table() : string {
-		if($this->is_bound() && isset($this->parent->db_alias)){
-			return $this->parent->db_alias;
-		} else {
-			return $this->parent::DB_TABLE;
-		}
+		return $this->parent::DB_TABLE;
 	}
 
 
-	final public function get_db_prefix() : string {
-		return $this->get_db_table();
-		// return $this->parent::DB_TABLE;
+	final public function get_db_table_alias() : string {
+		if(isset($this->parent->db_alias)){
+			return $this->parent->db_alias;
+		} else {
+			return $this->get_db_table();
+		}
 	}
 
 
@@ -98,29 +83,12 @@ abstract class Attribute {
 
 
 	final public function get_full_db_column() : string {
-		return "`{$this->get_db_table()}`.`{$this->get_db_column()}`";
+		return "`{$this->get_db_table_alias()}`.`{$this->get_db_column()}`";
 	}
 
 
 	final public function get_prefixed_db_column() : string {
-		return "{$this->get_db_table()}.{$this->get_db_column()}";
-	}
-
-
-	final public function get_a_full_db_column(?string $alias) : string { // TEMP
-		if(is_null($alias)){
-			return $this->get_full_db_column();
-		} else {
-			return "`{$alias}`.`{$this->get_db_column()}`";
-		}
-	}
-
-	final public function get_a_prefixed_db_column(?string $alias) : string { // TEMP
-		if(is_null($alias)){
-			return $this->get_prefixed_db_column();
-		} else {
-			return "{$alias}.{$this->get_db_column()}";
-		}
+		return "{$this->get_db_table_alias()}.{$this->get_db_column()}";
 	}
 
 
@@ -135,6 +103,9 @@ abstract class Attribute {
 
 
 	abstract public function get_push_value() : null|string|int|float;
+
+
+	abstract public function resolve_condition(mixed $option) : ?Condition;
 
 }
 ?>

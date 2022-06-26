@@ -37,28 +37,18 @@ abstract class Relationship {
 
 	use Attributes;
 
-	protected DatabaseAccess $db;
-
 	# all child classes must set the following property:
 	# protected static array $attributes;
 
 
-
-	// HIER weiter: DB-Übergabe in allen Klassen überprüfen und konsistent machen
-
-
-
-
 	### CONSTRUCTION METHODS
 
-	final function __construct(Entity $context, DatabaseAccess $db) {
+	final function __construct(Entity $context) {
 		if(!isset(static::$attributes)){
 			static::load_attribute_definitions();
 
 			// TODO validate attribute definitions (type, required, editable)
 		}
-
-		$this->db = &$db;
 
 		$this->bind_attributes();
 
@@ -78,7 +68,35 @@ abstract class Relationship {
 		// TODO check that all entity attributes have been handled properly
 	}
 
+
+	public function &get_db() : DatabaseAccess { // TODO check
+		return &$this->context->get_db();
+	}
+
+
 	abstract protected static function define_attributes() : array;
+
+
+	final public function join(Attribute $on, array $attributes = []) : JoinRequest {
+		$request = new JoinRequest(static::DB_TABLE, $this->id, $on);
+		$this->build_request($request, $attributes);
+		return $request;
+	}
+
+
+	// final public function join(Attribute $on) : JoinRequest {
+	// 	$request = new JoinRequest(static::DB_TABLE, $this->id, $on);
+	//
+	// 	foreach(static::$attributes as $name){
+	// 		if($this->$name instanceof PropertyAttribute)){
+	// 			$request->add($this->$name);
+	// 		}
+	// 	}
+	//
+	// 	$request->add($this->relatum);
+	//
+	// 	return $request;
+	// }
 
 
 	### INITIALIZATION AND LOADING METHODS
@@ -218,7 +236,7 @@ abstract class Relationship {
 		$request->set_values($push_values);
 
 		try {
-			$s = $this->db->prepare($request->get_query());
+			$s = $this->get_db()->prepare($request->get_query());
 			$s->execute($request->get_values());
 		} catch(EmptyRequestException $e){
 			return false;
@@ -248,7 +266,7 @@ abstract class Relationship {
 		$request->set_condition(new IdentifierEquals(static::$attributes['id'], $this->id->get_value()));
 
 		try {
-			$s = $this->db->prepare($request->get_query());
+			$s = $this->get_db()->prepare($request->get_query());
 			$s->execute($request->get_values());
 		} catch(PDOException $e){
 			throw new DatabaseException($e, $s);

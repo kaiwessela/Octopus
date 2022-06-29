@@ -2,62 +2,66 @@
 namespace Octopus\Core\Model\Attributes;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\Relationship;
-use \Octopus\Core\Model\Attributes\Attribute;
-use \Exception;
+use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 
 abstract class Attribute {
 	protected Entity|Relationship $parent;
 	protected string $name;
-	protected bool $required;
-	protected bool $editable;
-	protected bool $loaded;
-	protected bool $edited;
+	protected bool $is_loaded;
+	protected bool $is_required;
+	protected bool $is_editable;
+	protected bool $is_dirty;
 	protected mixed $value;
 
 
-	// abstract public static function define() : Attribute;
+	abstract public static function define() : Attribute;
 
 
-	public function bind(string $name, Entity|Relationship $parent) : void {
+	final public function bind(string $name, Entity|Relationship $parent) : void {
 		$this->name = $name;
 		$this->parent = &$parent;
 		$this->value = null;
-		$this->edited = false;
-		$this->loaded = false;
+		$this->is_dirty = false;
+		$this->is_loaded = false;
 
 		// TODO check DB_TABLE
 	}
 
 
-	// abstract public function load(mixed $data) : void;
+	abstract public function load($data) : void;
 
 
 	abstract public function edit(mixed $input) : void;
 
 
-	final public function has_been_edited() : bool {
-		return $this->edited;
-	}
-
-
 	final public function is_loaded() : bool {
-		return $this->loaded;
+		return $this->is_loaded;
 	}
 
 
 	final public function is_required() : bool {
-		return $this->required;
+		return $this->is_required;
 	}
 
 
 	final public function is_editable() : bool {
-		return $this->is_loaded() && ($this->editable || $this->parent->is_new());
+		return $this->is_loaded() && ($this->is_editable || $this->parent->is_new());
 	}
 
 
-	abstract public function is_pullable() : bool;
+	final public function is_dirty() : bool {
+		return $this->is_dirty;
+	}
 
-	abstract public function is_joinable() : bool;
+
+	public function is_pullable() : bool {
+		return false;
+	}
+
+
+	public function is_joinable() : bool {
+		return false;
+	}
 
 
 	final public function get_name() : string {
@@ -70,29 +74,16 @@ abstract class Attribute {
 	}
 
 
-	final public function get_db_table_alias() : string {
-		if(isset($this->parent->db_alias)){
-			return $this->parent->db_alias;
+	final public function get_prefixed_db_table() : string {
+		if(isset($this->parent->db_prefix)){
+			return "{$this->parent->db_prefix}~{$this->get_db_table()}";
 		} else {
 			return $this->get_db_table();
 		}
 	}
 
 
-	abstract public function get_db_column() : string;
-
-
-	final public function get_full_db_column() : string {
-		return "`{$this->get_db_table_alias()}`.`{$this->get_db_column()}`";
-	}
-
-
-	final public function get_prefixed_db_column() : string {
-		return "{$this->get_db_table_alias()}.{$this->get_db_column()}";
-	}
-
-
-	final public function &get_value() : mixed {
+	final public function &get_value() : mixed { // TODO maybe error if not loaded
 		return $this->value;
 	}
 
@@ -102,10 +93,7 @@ abstract class Attribute {
 	}
 
 
-	abstract public function get_push_value() : null|string|int|float;
-
-
-	abstract public function resolve_condition(mixed $option) : ?Condition;
+	abstract public function resolve_pull_condition(mixed $option) : ?Condition;
 
 }
 ?>

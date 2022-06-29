@@ -1,28 +1,44 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
 use \Octopus\Core\Model\Database\Requests\Request;
-use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierCondition;
-use Exception;
+use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEqualsCondition;
+use \Exception;
 
 // TODO explainations
 
-class DeleteRequest extends Request {
+final class DeleteRequest extends Request {
+	# inherited from Request:
+	# protected string $table;
+	# protected array $attributes;
+	# protected string $query;
+	# protected array $values;
+
+	protected IdentifierCondition $condition;
 
 
-	# function __construct() is handled by the parent
+	# ---> Request:
+	# function __construct(string $table);
+	# final public function add(Attribute $attribute) : void;
+	# final public function remove(Attribute $attribute) : void;
+	# final public function is_resolved() : bool;
+	# final public function get_query() : string;
+	# final public function get_values() : array;
+	# final public function is_resolved() : bool;
 
 
-	protected function resolve() : void {
-		$this->flow->step('resolve');
 
-		if(is_null($this->condition)){
+	final protected function set_condition(IdentifierEqualsCondition $condition) : void {
+		$this->condition = $condition;
+	}
+
+
+	final protected function resolve() : void {
+		if(!isset($this->condition)){
 			throw new Exception('An IdentifierCondition must be set for this request.');
 		}
 
 		$this->query = "DELETE FROM `{$this->table}` WHERE {$this->condition->get_query()}";
-
-		$this->set_values($this->condition->get_values());
+		$this->values = $this->condition->get_values();
 	}
 }
 ?>

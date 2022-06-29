@@ -1,25 +1,25 @@
 <?php
 namespace Octopus\Core\Model;
+use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\Attributes\Attributes;
-use \Octopus\Core\Model\Attributes\EntityAttribute;
-use \Octopus\Core\Model\Attributes\RelationshipAttribute;
+use \Octopus\Core\Model\Attributes\Attribute;
 use \Octopus\Core\Model\Attributes\PropertyAttribute;
+use \Octopus\Core\Model\Attributes\EntityAttribute;
 use \Octopus\Core\Model\Attributes\IDAttribute;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
 use \Octopus\Core\Model\Attributes\Exceptions\MissingValueException;
 use \Octopus\Core\Model\Database\DatabaseAccess;
+use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\InsertRequest;
 use \Octopus\Core\Model\Database\Requests\UpdateRequest;
 use \Octopus\Core\Model\Database\Requests\DeleteRequest;
-use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEquals;
+use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEqualsCondition;
 use \Octopus\Core\Model\Database\Exceptions\DatabaseException;
 use \Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
 use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
-use \Octopus\Core\Model\Entity;
 use \PDOException;
-use \Exception;
 
 
 abstract class Relationship {
@@ -37,13 +37,21 @@ abstract class Relationship {
 
 	use Attributes;
 
+	const DB_TABLE = '';
+
 	# all child classes must set the following property:
 	# protected static array $attributes;
+
+	public readonly ?string $db_prefix;
 
 
 	### CONSTRUCTION METHODS
 
-	final function __construct(Entity $context) {
+	final function __construct(Entity $context, ?string $db_prefix = null) {
+		$this->db_prefix = $db_prefix;
+
+		// TODO from here
+
 		if(!isset(static::$attributes)){
 			static::load_attribute_definitions();
 
@@ -120,24 +128,20 @@ abstract class Relationship {
 
 	# Load rows of relationship and entity data from the database into this Relationship object
 	# @param $data: single fetched row or multiple rows from the database request's response
-	final public function load(array $data, ?Entity $relatum = null) : void {
+	final public function load(array $row) : void {
 		if($this->is_loaded()){
 			throw new CallOutOfOrderException();
 		}
 
-		foreach(static::$attributes as $name => $attribute){
-			if($attribute instanceof EntityAttribute){
-				if($attribute->get_class() === $this->context->get_class()){
-					continue;
-				}
+		foreach(static::$attributes as $name){
+			if(!isset($row[$this->$name->get_result_column()]) || isset($this->$name)){
+				continue;
+			}
 
-				if(!array_key_exists($attribute->get_prefixed_db_column(), $data)){
-					// an error occured; invalid data
-				}
-
-				$this->relatum->load($relatum ?? $data);
-			} else if($attribute instanceof PropertyAttribute){
-				$this->$name->load($data[$attribute->get_prefixed_db_column()]);
+			if($this->$name instanceof PropertyAttribute){
+				$this->$name->load($row[$this->$name->get_result_column()]);
+			} else if($this->$name instanceof EntityAttribute){
+				$this->$name->load($row);
 			}
 		}
 
@@ -210,7 +214,7 @@ abstract class Relationship {
 			$request = new InsertRequest(static::DB_TABLE);
 		} else {
 			$request = new UpdateRequest(static::DB_TABLE);
-			$request->set_condition(new IdentifierEquals(static::$attributes['id'], $this->id->get_value()));
+			$request->set_condition(new IdentifierEqualsCondition(static::$attributes['id'], $this->id->get_value()));
 		}
 
 		$errors = new AttributeValueExceptionList();
@@ -263,7 +267,7 @@ abstract class Relationship {
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
 		$request = new DeleteRequest(static::DB_TABLE);
-		$request->set_condition(new IdentifierEquals(static::$attributes['id'], $this->id->get_value()));
+		$request->set_condition(new IdentifierEqualsCondition(static::$attributes['id'], $this->id->get_value()));
 
 		try {
 			$s = $this->get_db()->prepare($request->get_query());

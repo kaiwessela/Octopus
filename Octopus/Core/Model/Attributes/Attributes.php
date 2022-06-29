@@ -1,20 +1,15 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
-use \Octopus\Core\Model\Entity;
-use \Octopus\Core\Model\Relationship;
-use \Octopus\Core\Model\RelationshipList;
-use \Octopus\Core\Model\Attributes\Collection;
-use \Octopus\Core\Model\Attributes\StaticObject;
-use \Octopus\Core\Model\Attributes\AttributeDefinition;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
-use \Octopus\Core\Model\Attributes\Exceptions\IdentifierCollisionException;
-use \Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
-use \Octopus\Core\Model\Attributes\Exceptions\MissingValueException;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
-use \Octopus\Core\Model\Attributes\Exceptions\EntityNotFoundException;
-use \Octopus\Core\Model\Database\Exceptions\EmptyResultException;
-use Exception;
+use \Octopus\Core\Model\EntityList;
+use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
+use \Octopus\Core\Model\Attributes\PropertyAttribute;
+use \Octopus\Core\Model\Attributes\EntityAttribute;
+use \Octopus\Core\Model\Attributes\RelationshipAttribute;
+use \Octopus\Core\Model\Database\Requests\Request;
+use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
+use \Octopus\Core\Model\Database\Requests\Conditions\AndCondition;
+use \Octopus\Core\Model\Database\Requests\Conditions\OrCondition;
+use \Exception;
 
 # This trait shares common methods for Entity and Relationship that relate to the loading, altering, validating and
 # outputting of attributes.
@@ -29,7 +24,18 @@ trait Attributes {
 	# protected readonly […, depending] $context; – a reference to the context entity/list/relationship/…
 
 
-	final public function build_request(Request &$request, array $attributes = [], array $conditions = []) : void {
+	final protected function load_attributes() : void {
+		static::$attributes = [];
+
+		foreach(static::define_attributes() as $name => $attribute){
+			$this->$name = $attribute;
+			$this->$name->bind($name, $this);
+			static::$attributes[] = $name;
+		}
+	}
+
+
+	final public function build_pull_request(Request &$request, array $attributes = []) : void {
 		foreach($attributes as $name => $option){
 			if(!in_array($name, static::$attributes)){
 				throw new Exception(); // Error
@@ -56,24 +62,30 @@ trait Attributes {
 				throw new Exception(); // Error
 			}
 
-			if($attribute->is_pullable() && $pull){
+			if($this->$name->is_pullable() && $pull){
 				$request->add($this->$name);
 			}
 
-			if($attribute->is_joinable() && $join && ($this->$name->get_class() !== $this->context::class)){
-				$request->add_join($this->$name->get_prototype()->join()); // TODO
+			if($this->$name->is_joinable() && $join){
+				if($this->$name->get_class() !== $this->context::class){
+					continue;
+				}
+
+				if(!$this->is_pullable() && !($this->is_independent() || $this->context instanceof EntityList)){ // TEMP
+					continue;
+				}
+
+				if($this->$name instanceof EntityAttribute){
+					$request->add_join($this->$name->get_prototype()->join(on:$this->$name, attributes:$option));
+				} else if($this->$name instanceof RelationshipAttribute){
+					$request->add_join($this->$name->get_prototype()->join(on:$this->id, attributes:$option));
+				}
 			}
 		}
-
-		if(!empty($conditions)){
-			$request->set_condition($this->resolve_conditions($conditions));
-		}
-
-		// TODO order
 	}
 
 
-	final public function resolve_conditions(array $options, bool $mode = 'AND') : ?Condition {
+	final public function resolve_pull_conditions(array $options, bool $mode = 'AND') : ?Condition {
 		$conditions = [];
 
 		foreach($options as $attribute => $option){
@@ -82,17 +94,17 @@ trait Attributes {
 					throw new Exception(); // Error
 				}
 
-				$conditions[] = $this->resolve_conditions($option);
+				$conditions[] = $this->resolve_pull_conditions($option);
 
 			} else if($attribute === 'AND' || $attribute === 'OR'){
 				if(!is_array($option)){
 					throw new Exception(); // Error
 				}
 
-				$conditions[] = $this->resolve_conditions($option, $attribute);
+				$conditions[] = $this->resolve_pull_conditions($option, $attribute);
 
 			} else if(in_array($attribute, static::$attributes)){
-				$conditions[] = $this->$attribute->resolve_condition($option);
+				$conditions[] = $this->$attribute->resolve_pull_condition($option);
 
 			} else {
 				throw new Exception(); // Error
@@ -127,15 +139,55 @@ trait Attributes {
 	*/
 
 
-	final protected function load_attributes() : void {
-		static::$attributes = [];
+	final public function resolve_pull_order(array $options) : array {
+		$level0 = [];
+		$level1 = [];
+		$level2 = [];
 
-		foreach(static::define_attributes() as $name => $attribute){
-			$this->$name = $attribute;
-			$this->$name->bind($name, $this);
-			static::$attributes[] = $name;
+		foreach($options as $attribute => $option){
+			if(!in_array($attribute, static::$attributes)){
+				throw new Exception(); // Error
+			}
+
+			if($this->$attribute instanceof PropertyAttribute){
+				if($option === 'ascending' || $option === 'ASC' || $option === '+'){
+					$level0[] = [$this->$attribute, 'ASC'];
+				} else if($option === 'descending' || $option === 'DESC' || $option === '-'){
+					$level0[] = [$this->$attribute, 'DESC'];
+				} else {
+					throw new Exception();
+				}
+
+			} else if($this->$attribute instanceof EntityAttribute){
+				if(!is_array($option)){
+					throw new Exception(); // Error
+				}
+
+				$level1 = [...$level1, ...$this->$attribute->get_prototype()->resolve_pull_order($option)];
+			} else if($this->$attribute instanceof RelationshipAttribute){
+				if(!is_array($option)){
+					throw new Exception(); // Error
+				}
+
+				$level2 = [...$level2, ...$this->$attribute->get_prototype()->resolve_pull_order($option)];
+			}
 		}
+
+		if(empty($level0) && !empty($level2)){
+			$level0[] = [$this->id, 'ASC'];
+		}
+
+		return [...$level0, ...$level1, ...$level2];
 	}
+	/*
+	posts
+	[
+		'timestamp' => 'ascending'|'ASC'|'+',
+		'columns' => [
+			'name' => 'descending'|'DESC'|'-'
+		]
+	]
+	*/
 
 
 	# Change an attributes value (and check before whether that change is allowed)

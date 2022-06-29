@@ -1,58 +1,51 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
 use \Octopus\Core\Model\Database\Requests\Request;
-use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\SelectAndJoin;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierCondition;
 use \Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
 use \Octopus\Core\Model\Attributes\Attribute;
-use \Octopus\Core\Model\Entity;
-use \Octopus\Core\Model\RelationshipList;
-use \Octopus\Core\Model\DataType;
 use Exception;
 
 // TODO explainations
 
-class SelectRequest extends Request {
+final class SelectRequest extends Request {
+	# inherited from Request:
+	# protected string $table;
+	# protected array $attributes;
+	# protected string $query;
+	# protected ?array $values;
+
+	protected string $count_query;
+
 	protected ?int $limit;
 	protected ?int $offset;
-	protected ?Attribute $order_by;
-	protected bool $order_desc;
+	protected array $order;
+	protected ?Condition $condition;
 
 	use SelectAndJoin;
 
-	# for SelectAndJoin
+	# required by SelectAndJoin
 	protected array $columns;
 	protected array $joins;
 
 
-	function __construct(string $table) {
-		parent::__construct($table);
-
-		$this->joins = [];
-		$this->columns = [];
-
-		$this->limit = null;
-		$this->offset = null;
-		$this->order_by = null;
-		$this->order_desc = false;
-	}
+	# ---> Request:
+	# function __construct();
+	# final public function add(Attribute $attribute) : void;
+	# final public function remove(Attribute $attribute) : void;
+	# final public function get_query() : string;
+	# final public function get_values() : array;
+	# final public function set_values(array $values) : void;
+	# final public function is_resolved() : bool;
 
 
-	public function set_limit(?int $limit) : void {
-		$this->flow->step('build');
-
+	public function set_limit(?int $limit, ?int $offset = null) : void {
 		if(is_int($limit) && $limit <= 0){
 			throw new Exception('limit cannot be negative or zero.');
 		}
 
 		$this->limit = $limit;
-	}
-
-
-	public function set_offset(?int $offset) : void {
-		$this->flow->step('build');
 
 		if(is_int($offset) && $offset < 0){
 			throw new Exception('offset cannot be negative.');
@@ -62,9 +55,24 @@ class SelectRequest extends Request {
 	}
 
 
-	public function set_order(?Attribute $by, bool $desc = false) : void {
-		$this->flow->step('build');
+	public function set_order(array $order = []) : void {
+		foreach($order as $ord){
+			if(!is_array($ord)){
+				throw new Exception();
+			}
 
+			if(!$ord[0] instanceof Attribute){
+				throw new Exception();
+			}
+
+			if($ord[1] !== 'ASC' || $ord[1] !== 'DESC'){
+				throw new Exception();
+			}
+		}
+	}
+
+
+	public function set_order(?Attribute $by, bool $desc = false) : void {
 		$this->order_by = $by;
 		$this->order_desc = $desc;
 	}
@@ -75,57 +83,125 @@ class SelectRequest extends Request {
 			throw new EmptyRequestException($this);
 		}
 
-		$this->flow->step('resolve');
+		$columns = $this->resolve_columns();
+		$joins = $this->resolve_joins();
+		$where = $this->resolve_condition();
+		$order = $this->resolve_order();
+		$limit = $this->resolve_limit();
 
-		$this->query = 'SELECT'.PHP_EOL;
+		if(!$this->is_multidimensional() || $this->has_unique_identifier($this->condition)){ // unidimensional
+			$this->query = <<<"SQL"
+SELECT
+{$columns}
+FROM `{$this->table}`
+{$joins}
+{$where}
+{$order}
+{$limit}
+SQL;
 
-		$this->columns = [];
-		foreach($this->attributes as $attribute){
-			if($attribute->is_pullable()){
-				$this->columns[] = static::create_column_string($attribute);
-			} else {
-				throw new Exception(); // TODO
-			}
-		}
 
-		$join_string = '';
-		foreach($this->joins as $join){
-			$join_string .= $join->get_query();
-			$this->columns = array_merge($this->columns, $join->get_columns());
-		}
+			$this->count_query = "SELECT COUNT(*) AS `total` FROM `{$this->table}` {$joins} {$where}";
 
-		$this->query .= implode(','.PHP_EOL, $this->columns).PHP_EOL;
+		} else { // multidimensional
+			$this->query = <<<"SQL"
+SELECT
+{$columns}
+FROM (
+	SELECT DISTINCT `{$this->table}`.`*` FROM `{$this->table}`
+	{$joins}
+	{$where}
+	{$order}
+	{$limit}
+) AS `{$this->table}`
+{$joins}
+{$where}
+{$order}
+SQL;
 
-		$this->query .= "FROM `{$this->table}`".PHP_EOL;
-		$this->query .= $join_string;
 
-		if(!is_null($this->condition)){
-			$this->query .= "WHERE {$this->condition->get_query()}".PHP_EOL;
-			$this->set_values($this->condition->get_values());
-		}
-
-		if(!is_null($this->order_by)){
-			$this->query .= "ORDER BY {$this->order_by->get_full_db_column()}";
-
-			if($this->order_desc === true){
-				$this->query .= ' DESC';
-			}
-
-			$this->query .= PHP_EOL;
-		}
-
-		if(!is_null($this->limit)){
-			$this->query .= "LIMIT {$this->limit}";
-
-			if(!is_null($this->offset)){
-				$this->query .= " OFFSET {$this->offset}";
-			}
+			$this->count_query = "SELECT COUNT(DISTINCT {$this->table}.*) AS `total` FROM `{$this->table}` {$joins} {$where}";
 		}
 	}
 
 
-	public function get_joins() : array { // FIXME this is a hotfix for CountRequest
-		return $this->joins;
+	protected function resolve_columns() : string {
+		$columns = [];
+
+		foreach($this->attributes as $attribute){
+			$columns[] = static::create_column_string($attribute);
+		}
+
+		foreach($this->joins as $join){
+			$columns = [...$columns, ...$join->get_columns()];
+		}
+
+		return implode(','.PHP_EOL, $columns);
+	}
+
+
+	protected function resolve_joins() : string {
+		$join_string = '';
+
+		foreach($this->joins as $join){
+			$join_string .= $join->get_query().PHP_EOL;
+		}
+
+		return $join_string;
+	}
+
+
+	protected function resolve_condition() : string {
+		if(isset($this->condition)){
+			$condition = "WHERE {$this->condition->get_query()}".PHP_EOL;
+			$this->values = $this->condition->get_values();
+			return $condition;
+		} else {
+			return '';
+		}
+	}
+
+
+	protected function resolve_order() : string {
+		if(empty($this->order)){
+			return '';
+		}
+
+		$orders = [];
+		foreach($this->order as $ord){
+			$orders[] = "{$ord[0]->get_prefixed_db_column()} {$ord[1]}";
+		}
+
+		return 'ORDER BY '.implode(', ', $orders).PHP_EOL;
+	}
+
+
+	protected function resolve_limit() : string {
+		if(isset($this->limit)){
+			$limit = "LIMIT {$this->limit}";
+
+			if(isset($this->offset)){
+				$limit .= " OFFSET {$this->offset}";
+			}
+
+			return $limit.PHP_EOL;
+		} else {
+			return '';
+		}
+	}
+
+
+	final public function get_count_query() : string {
+		if(!$this->is_resolved()){
+			$this->resolve();
+		}
+
+		return $this->count_query;
+	}
+
+
+	final public function set_condition(?Condition $condition) : void {
+		$this->condition = $condition;
 	}
 }
 ?>

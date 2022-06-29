@@ -2,17 +2,54 @@
 namespace Octopus\Core\Model\Attributes;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\Attributes\Attribute;
+use \Octopus\Core\Model\Attributes\PullableAttributes;
+use \Octopus\Core\Model\Attributes\JoinableAttributes;
 use \Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
 use \Octopus\Core\Model\Attributes\Exceptions\EntityNotFoundException;
 use \Octopus\Core\Model\Attributes\Exceptions\MissingValueException;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
 use \Octopus\Core\Model\Database\Exceptions\EmptyResultException;
+use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
+use \Octopus\Core\Model\Database\Requests\Conditions\EqualsCondition;
 use \Exception;
 
 final class EntityAttribute extends Attribute {
-	protected Entity $prototype;
+	# inherited from Attribute
+	# protected Entity|Relationship $parent;
+	# protected string $name;
+	# protected bool $is_loaded;
+	# protected bool $is_required;
+	# protected bool $is_editable;
+	# protected bool $is_dirty;
+	# protected mixed $value;
+
 	protected string $class;
+	protected Entity $prototype;
+
+
+	# ---> Attribute
+	# final public function bind(string $name, Entity|Relationship $parent) : void;
+	# final public function is_loaded() : bool;
+	# final public function is_required() : bool;
+	# final public function is_editable() : bool;
+	# final public function is_dirty() : bool;
+	# final public function get_name() : string;
+	# final public function get_db_table() : string;
+	# final public function get_prefixed_db_table() : string;
+	# final public function &get_value() : mixed;
+	# public function is_empty() : bool;
+
+	use PullableAttributes;
+	# final public function is_pullable();
+	# final public function get_prefixed_db_column() : string;
+	# final public function get_result_column() : string;
+
+	use JoinableAttributes;
+	# final public function is_joinable() : bool;
+	# final public function get_class() : string;
+	# final public function get_detection_column() : string;
+
 
 
 	final public static function define(string $class, bool $required = false, bool $editable = true) : EntityAttribute {
@@ -28,22 +65,11 @@ final class EntityAttribute extends Attribute {
 	}
 
 
-	final public function bind(string $name, Entity|Relationship $parent) : void {
-		parent::bind($name, $parent);
-
-		$class = $this->get_class();
-		$this->prototype = new $class($this->parent, null, $this->get_name());
-	}
-
-
-	final public function load(Entity|array $data) : void {
-		if($data instanceof Entity){ // IDEA
-			$this->value = $value;
-		} else if(is_null($data[$this->get_prefixed_db_column()])){
+	final public function load(array $data) : void {
+		if(is_null($data[$this->get_detection_column()])){
 			$this->value = null;
 		} else {
-			$this->value = clone $this->prototype;
-			// $this->value = new $class($this->parent, null, $this->get_name());
+			$this->value = clone $this->get_prototype();
 			$this->value->load($data);
 		}
 
@@ -52,8 +78,6 @@ final class EntityAttribute extends Attribute {
 
 
 	final public function edit(mixed $input) : void {
-		// $class = $this->get_class();
-
 		if($input instanceof Entity){
 			if($input::class !== $this->get_class()){
 				throw new IllegalValueException($this, $input, 'wrong class');
@@ -63,8 +87,7 @@ final class EntityAttribute extends Attribute {
 
 		} else if(is_string($input) || (is_array($input) && isset($input['id']))){ // FIXME
 			$id = $input['id'] ?? $input;
-			$entity = clone $this->prototype;
-			// $entity = new $class($this->parent);
+			$entity = clone $this->get_prototype();
 
 			try {
 				$entity->pull($id);
@@ -102,21 +125,24 @@ final class EntityAttribute extends Attribute {
 	}
 
 
-	final public function get_class() : string {
-		return $this->class;
-	}
+	final public function get_prototype() : Entity {
+		if(!isset($this->prototype)){
+			$class = $this->get_class();
+			$this->prototype = new $class($this->parent, null, $this->get_prefixed_db_column());
+		}
 
-
-	public function get_prototype() : Entity {
 		return $this->prototype;
 	}
 
 
-
-	public function get_join() : JoinRequest { // FIXME DEPRECATED
-		$class = $this->class;
-		$prototype = new $class($this->parent, null, $this->get_name());
-		return $prototype->join();
+	final public function resolve_pull_condition(mixed $option) : ?Condition {
+		if(is_string($option)){
+			return new EqualsCondition($this, $option);
+		} else if(is_array($option)){
+			return $this->get_prototype()->resolve_pull_conditions($option);
+		} else {
+			throw new Exception('invalid option.'); // TODO
+		}
 	}
 }
 ?>

@@ -2,11 +2,11 @@
 namespace Octopus\Core\Model\Database\Requests\Conditions;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Attributes\IdentifierAttribute;
-use Exception;
+use \Exception;
 
 // TODO explainations
 
-class IdentifierEquals extends Condition {
+class IdentifierEqualsCondition extends Condition {
 	protected IdentifierAttribute $attribute;
 	protected string $value;
 
@@ -20,10 +20,15 @@ class IdentifierEquals extends Condition {
 
 
 	public function resolve(int $index = 0) : int {
-		$this->query = "{$this->attribute->get_db_table()}.{$this->attribute->get_db_column()} = :cond_{$index}";
+		$this->query = "{$this->attribute->get_prefixed_db_column()} = :cond_{$index}";
 		$this->values = ["cond_{$index}" => $this->value];
 
 		return $index + 1;
+	}
+
+
+	public function get_attribute() : IdentifierAttribute {
+		return $this->attribute;
 	}
 }
 ?>

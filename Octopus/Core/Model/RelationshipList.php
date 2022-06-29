@@ -1,17 +1,13 @@
 <?php
 namespace Octopus\Core\Model;
 use \Octopus\Core\Model\Entity;
-use \Octopus\Core\Model\Attributes\Attribute;
-use \Octopus\Core\Model\Attributes\EntityAttribute;
+use \Octopus\Core\Model\Relationship;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
-use \Octopus\Core\Model\Database\Requests\SelectRequest;
-use \Octopus\Core\Model\Database\Requests\CountRequest;
-use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
-use \PDOException;
 use \Exception;
 
 abstract class RelationshipList {
+	protected Relationship $prototype;
 	protected array $relationships;
 
 	protected array $deletions;
@@ -28,6 +24,9 @@ abstract class RelationshipList {
 	function __construct(Entity $context) {
 		$this->context = &$context;
 
+		$class = static::RELATION_CLASS;
+		$this->prototype = new $class($this->context);
+
 		$this->relationships = [];
 		$this->deletions = [];
 	}
@@ -37,28 +36,18 @@ abstract class RelationshipList {
 
 	# Load data of multiple relationships from the database into Relationship objects and load them into this list.
 	# @param $data: rows of relationship data from the database request's response
-	final public function load(array $data, bool $complete, ?Entity &$shared_relatum = null) : void {
+	final public function load(array $data, bool $is_complete = false) : void {
 		if($this->is_loaded()){
 			throw new CallOutOfOrderException();
 		}
 
-		$id = '';
 		foreach($data as $row){
-			$id_column = static::RELATION_CLASS::get_attribute_definitions()['id']->get_prefixed_db_column();
-
-			if(!isset($row[$id_column])){
-				continue;
-			} else if($row[$id_column] === $id){
-				continue;
-			}
-
-			$id = $row[$id_column];
-
-			$class = static::RELATION_CLASS;
-			$relationship = new $class($this->context); # initialize a new instance of this relationship class
+			$relationship = clone $this->prototype;
 			$relationship->load($row); # load the relationship
-			$this->relationships[$id] = $relationship;
+			$this->relationships[$relationship->id] = $relationship;
 		}
+
+		$this->is_complete = $is_complete;
 	}
 
 

@@ -1,28 +1,39 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
 use \Octopus\Core\Model\Database\Requests\Request;
-use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\SelectAndJoin;
-use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Entity;
-use \Octopus\Core\Model\RelationshipList;
-use \Octopus\Core\Model\Attributes\StaticObject;
 use \Octopus\Core\Model\Attributes\Attribute;
 use \Octopus\Core\Model\Attributes\IdentifierAttribute;
 use \Octopus\Core\Model\Attributes\EntityAttribute;
-use Exception;
+use \Exception;
 
 // TODO explainations
 
-class JoinRequest extends Request {
+final class JoinRequest extends Request {
+	# inherited from Request:
+	# protected string $table;
+	# protected array $attributes;
+	# protected string $query;
+	# protected ?array $values;
+
 	protected Attribute $native_attribute;
 	protected Attribute $foreign_attribute;
 
 	use SelectAndJoin;
 
-	# for SelectAndJoin
+	# required by SelectAndJoin
 	protected array $columns;
 	protected array $joins;
+
+
+	# ---> Request:
+	# function __construct();
+	# final public function add(Attribute $attribute) : void;
+	# final public function remove(Attribute $attribute) : void;
+	# final public function get_query() : string;
+	# final public function get_values() : array;
+	# final public function set_values(array $values) : void;
+	# final public function is_resolved() : bool;
 
 
 	function __construct(string $table, Attribute $native_attribute, Attribute $foreign_attribute) {
@@ -53,17 +64,15 @@ class JoinRequest extends Request {
 
 
 	protected function resolve() : void {
-		$this->flow->step('resolve');
-
 		foreach($this->attributes as $attribute){
 			$this->columns[] = static::create_column_string($attribute);
 		}
 
-		$native_col = $this->native_attribute->get_full_db_column();
-		$foreign_col = $this->foreign_attribute->get_full_db_column();
+		$native_col = $this->native_attribute->get_prefixed_db_column();
+		$foreign_col = $this->foreign_attribute->get_prefixed_db_column();
 
-		if($this->native_attribute->get_db_table() !== $this->native_attribute->get_db_table_alias()){
-			$this->query = "LEFT JOIN `{$this->table}` AS `{$this->native_attribute->get_db_table_alias()}` ON {$native_col} = {$foreign_col}".PHP_EOL;
+		if($this->native_attribute->get_db_table() !== $this->native_attribute->get_aliased_db_table()){
+			$this->query = "LEFT JOIN `{$this->table}` AS `{$this->native_attribute->get_aliased_db_table()}` ON {$native_col} = {$foreign_col}".PHP_EOL;
 		} else {
 			$this->query = "LEFT JOIN `{$this->table}` ON {$native_col} = {$foreign_col}".PHP_EOL;
 		}
@@ -76,7 +85,7 @@ class JoinRequest extends Request {
 
 
 	public function get_columns() : array {
-		if(!$this->flow->is_at('resolve')){
+		if(!$this->is_resolved()){
 			$this->resolve();
 		}
 
@@ -86,6 +95,11 @@ class JoinRequest extends Request {
 
 	public function get_foreign_attribute() : Attribute {
 		return $this->foreign_attribute;
+	}
+
+
+	public function is_multijoin() : bool {
+		return !($this->native_attribute instanceof IdentifierAttribute);
 	}
 }
 ?>

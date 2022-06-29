@@ -1,10 +1,11 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests\Conditions;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
+use \Exception;
 
 // TODO explainations
 
-class Or extends Condition {
+class AndCondition extends Condition {
 	protected array $conditions;
 
 	function __construct(Condition ...$conditions) {
@@ -30,8 +31,13 @@ class Or extends Condition {
 			$index = $new_index;
 		}
 
-		$this->query = '('.implode(') OR (', $queries).')';
+		$this->query = '('.implode(') AND (', $queries).')';
 
 		return $index;
+	}
+
+
+	public function get_conditions() : array {
+		return $this->conditions;
 	}
 }

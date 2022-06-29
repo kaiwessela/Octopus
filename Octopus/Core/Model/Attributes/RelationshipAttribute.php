@@ -1,50 +1,72 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
-use \Octopus\Core\Model\Attributes\Attribute;
+use \Octopus\Core\Model\Relationship;
 use \Octopus\Core\Model\RelationshipList;
-use \Octopus\Core\Model\Database\DatabaseAccess;
+use \Octopus\Core\Model\Attributes\Attribute;
+use \Octopus\Core\Model\Attributes\JoinableAttributes;
+use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Exception;
 
 class RelationshipAttribute extends Attribute {
-	protected RelationshipList|Relationship $prototype;
-	protected string $single_class;
+	# inherited from Attribute
+	# protected Entity|Relationship $parent;
+	# protected string $name;
+	# protected bool $is_loaded;
+	# protected bool $is_required;
+	# protected bool $is_editable;
+	# protected bool $is_dirty;
+	# protected mixed $value;
+
+	protected string $class;
 	protected string $list_class;
+	protected Relationship $prototype;
+	protected RelationshipList $list_prototype;
 
 
-	public static function define(string $class) : RelationshipAttribute {
+	# ---> Attribute
+	# final public function bind(string $name, Entity|Relationship $parent) : void;
+	# final public function is_loaded() : bool;
+	# final public function is_required() : bool;
+	# final public function is_editable() : bool;
+	# final public function is_dirty() : bool;
+	# public function is_pullable() : bool;
+	# final public function get_name() : string;
+	# final public function get_db_table() : string;
+	# final public function get_prefixed_db_table() : string;
+	# final public function &get_value() : mixed;
+	# public function is_empty() : bool;
+
+	use JoinableAttributes;
+	# final public function is_joinable() : bool;
+	# final public function get_class() : string;
+	# final public function get_detection_column() : string;
+
+
+
+	final public static function define(string $class) : RelationshipAttribute {
 		$attr = new RelationshipAttribute();
 
 		if(!class_exists($class) || !is_subclass_of($class, RelationshipList::class)){
 			throw new Exception("Invalid class «{$class}».");
 		} else {
 			$attr->list_class = $class;
-			$attr->single_class = $class::RELATION_CLASS; // TODO validate
+			$attr->class = $class::RELATION_CLASS; // TODO validate
 		}
 
 		$attr->required = false;
 		$attr->editable = true;
-		$attr->class = $class;
 		return $attr;
 	}
 
 
-	final public function bind(string $name, Entity|Relationship $parent) : void {
-		parent::bind($name, $parent);
+	final public function load(array $data, bool $is_complete = false) : void {
+		$this->value = clone $this->get_list_prototype();
 
-		$class = $this->get_class();
-		$this->prototype = new $class($this->parent, null, $this->get_name());
-	}
-
-
-	final public function load(array $data, ?DatabaseAccess $db = null) : void {
-		if($this->parent->is_independent()){
-			$class = $this->get_list_class();
+		if(is_null($data[0][$this->get_detection_column()])){
+			$this->value->load([], $is_complete);
 		} else {
-			$class = $this->get_single_class();
+			$this->value->load($data, $is_complete);
 		}
-
-		$this->value = new $class($this->parent, $db);
-		$this->value->load($data);
 	}
 
 
@@ -53,30 +75,37 @@ class RelationshipAttribute extends Attribute {
 	}
 
 
-	final public function get_db_column() : string { // so that Entity->load() can find out whether this relationlist has been pulled
-		return 'id';
-	}
-
-
-	public function get_single_class() : string {
-		return $this->single_class;
-	}
-
-
-	public function get_list_class() : string {
+	final public function get_list_class() : string {
 		return $this->list_class;
 	}
 
 
-	public function get_push_value() : null|string|int|float {
-		throw new Exception('do not call!');
+	final public function get_prototype() : Relationship {
+		if(!isset($this->prototype)){
+			$class = $this->get_class();
+			$this->prototype = new $class($this->parent, $this->get_prefixed_db_column());
+		}
+
+		return $this->prototype;
 	}
 
 
-	public function get_join() : JoinRequest {
-		$class = $this->get_single_class();
-		$prototype = new $class($this->parent);
-		$prototype->join();
+	final public function get_list_prototype() : RelationshipList {
+		if(isset($this->list_prototype)){
+			$class = $this->get_list_class();
+			$this->list_prototype = new $class($this->parent);
+		}
+
+		return $this->list_prototype;
+	}
+
+
+	final public function resolve_pull_condition(mixed $option) : ?Condition {
+		if(is_array($option)){
+			return $this->get_prototype()->resolve_pull_conditions($option);
+		} else {
+			throw new Exception('invalid option.'); // TODO
+		}
 	}
 }
 ?>

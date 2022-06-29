@@ -1,19 +1,12 @@
 <?php
 namespace Octopus\Core\Model;
 use \Octopus\Core\Model\Entity;
-use \Octopus\Core\Model\RelationshipList;
-use \Octopus\Core\Model\Attributes\PropertyAttribute;
-use \Octopus\Core\Model\Attributes\EntityAttribute;
-use \Octopus\Core\Model\Attributes\RelationshipAttribute;
 use \Octopus\Core\Model\Database\DatabaseAccess;
-use \Octopus\Core\Model\Database\Exceptions\DatabaseException;
-use \Octopus\Core\Model\Database\Exceptions\EmptyResultException;
 use \Octopus\Core\Model\Database\Requests\SelectRequest;
-use \Octopus\Core\Model\Database\Requests\CountRequest;
-use \Octopus\Core\Model\Database\Requests\Conditions\InList;
+use \Octopus\Core\Model\Database\Exceptions\DatabaseException;
 use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
-use PDOException;
-use Exception;
+use \PDOException;
+use \Exception;
 
 /*
 Idee:
@@ -40,10 +33,9 @@ Dann müsste das RelationshipAttribute je nachdem eine RelationshipList oder nur
 
 
 abstract class EntityList {
-	protected array $entities; # an array of the Entities this list contains [entity_id => entity, ...]
 	protected Entity $prototype;
+	protected array $entities; # an array of the Entities this list contains [entity_id => entity, ...]
 
-	protected readonly ?SelectRequest $pull_request;
 	protected int $total_count;
 
 	const ENTITY_CLASS = ''; # the fully qualified name of the concrete Entity class whose instances this list contains
@@ -60,10 +52,13 @@ abstract class EntityList {
 
 		$this->db = &$db;
 
-		$this->entities = [];
-
 		$class = static::ENTITY_CLASS;
-		$this->prototype = new $class($this, $this->db);
+		$this->prototype = new $class($this);
+	}
+
+
+	public function &get_db() : DatabaseAccess { // TODO check
+		return $this->db ?? $this->context?->get_db();
 	}
 
 
@@ -73,16 +68,17 @@ abstract class EntityList {
 	# @param $limit: how many entities to pull (SQL LIMIT)
 	# @param $offset: the number of entities to be skipped (SQL OFFSET)
 	# @param $options: additional, custom pull options
-	final public function pull(?int $limit = null, ?int $offset = null, array $attributes = [], array $conditions = []) : void {
+	final public function pull(?int $limit = null, ?int $offset = null, array $attributes = [], array $conditions = [], array $order = []) : void {
 		if($this->is_loaded()){
 			throw new CallOutOfOrderException();
 		}
 
 		$request = new SelectRequest(static::ENTITY_CLASS::DB_TABLE);
-		$this->prototype->build_request($request, $attributes, $conditions);
+		$this->prototype->build_pull_request($request, $attributes);
 
-		$request->set_limit($limit);
-		$request->set_offset($offset);
+		$request->set_conditions($this->resolve_pull_conditions($conditions));
+		$request->set_order($this->resolve_pull_order($order));
+		$request->set_limit($limit, $offset);
 
 		try {
 			$s = $this->db->prepare($request->get_query());
@@ -91,14 +87,15 @@ abstract class EntityList {
 			throw new DatabaseException($e, $s);
 		}
 
-		$this->pull_request = $request; # the pull request might be needed later for count requests
-		$this->load($s->fetchAll()); // see next FIXME: this used to be below the RowCount
-
-		if($s->rowCount() === 0){
-			// FIXME this is a hotfix. maybe not even throw an exception
-			throw new EmptyResultException($s);
+		try {
+			$c = $this->db->prepare($request->get_count_query());
+			$c->execute($request->get_values());
+		} catch(PDOException $e){
+			throw new DatabaseException($e, $c);
 		}
 
+		$this->total_count = (int) $c->fetch()['total'];
+		$this->load($s->fetchAll());
 	}
 
 
@@ -108,6 +105,8 @@ abstract class EntityList {
 		if($this->is_loaded()){
 			throw new CallOutOfOrderException();
 		}
+
+		$this->entities = [];
 
 		$datasets = [];
 
@@ -131,27 +130,8 @@ abstract class EntityList {
 	}
 
 
-	# Return the total amount of entities that are listed in the database and match the constraints given on pull().
-	# @param $force_request: whether reloading the count from the database is enforced. normally, a database request is
-	# only performed on the first call. after that, a cached value is returned. this param overrides this
-	final public function count_total(bool $force_request = false) : int {
-		if(!isset($this->total_count) || $force_request){
-			if(!isset($this->pull_request)){
-				throw new CallOutOfOrderException();
-			}
-
-			$request = new CountRequest($this->pull_request); # create a CountRequest from the former PullRequest
-
-			try {
-				$s = $this->db->prepare($request->get_query());
-				$s->execute($request->get_values());
-			} catch(PDOException $e){
-				throw new DatabaseException($e, $s);
-			}
-
-			$this->total_count = $s->fetch()['total'];
-		}
-
+	# Return the total amount of entities, matching the constraints given on pull(), that are listed in the database.
+	final public function count_total() : int {
 		return $this->total_count;
 	}
 
@@ -209,7 +189,7 @@ abstract class EntityList {
 
 
 	final public function is_loaded() : bool {
-		return isset($this->request); // TEMP
+		return isset($this->entities);
 	}
 }
 ?>

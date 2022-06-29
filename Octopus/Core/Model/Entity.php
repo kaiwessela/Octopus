@@ -2,9 +2,8 @@
 namespace Octopus\Core\Model;
 use \Octopus\Core\Model\EntityList;
 use \Octopus\Core\Model\Relationship;
-use \Octopus\Core\Model\RelationshipList;
-use \Octopus\Core\Model\Attributes\Attributes;
 use \Octopus\Core\Model\Attributes\Attribute;
+use \Octopus\Core\Model\Attributes\Attributes;
 use \Octopus\Core\Model\Attributes\PropertyAttribute;
 use \Octopus\Core\Model\Attributes\EntityAttribute;
 use \Octopus\Core\Model\Attributes\RelationshipAttribute;
@@ -12,19 +11,21 @@ use \Octopus\Core\Model\Attributes\IDAttribute;
 use \Octopus\Core\Model\Attributes\IdentifierAttribute;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
+use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
+use \Octopus\Core\Model\Attributes\Exceptions\MissingValueException;
 use \Octopus\Core\Model\Database\DatabaseAccess;
 use \Octopus\Core\Model\Database\Exceptions\DatabaseException;
-use \Octopus\Core\Model\Database\Exceptions\EmptyResultException;
 use \Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
+use \Octopus\Core\Model\Database\Exceptions\EmptyResultException;
+use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
 use \Octopus\Core\Model\Database\Requests\SelectRequest;
+use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\InsertRequest;
 use \Octopus\Core\Model\Database\Requests\UpdateRequest;
 use \Octopus\Core\Model\Database\Requests\DeleteRequest;
-use \Octopus\Core\Model\Database\Requests\JoinRequest;
-use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEquals;
-use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
-use PDOException;
-use Exception;
+use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEqualsCondition;
+use \PDOException;
+use \Exception;
 
 
 abstract class Entity {
@@ -42,18 +43,21 @@ abstract class Entity {
 	# all child classes must set the following property:
 	# protected static array $attributes;
 
-	public readonly null|Entity|EntityList|Relationship $context;
-	public readonly ?string $db_alias;
+	public readonly null|Entity|EntityList|Relationship $context; // TODO maybe protected
+	public readonly ?string $db_prefix;
 
 	protected ?DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
 
 
 	### CONSTRUCTION METHODS
 
-	final function __construct(null|Entity|EntityList|Relationship $context = null, ?DatabaseAccess $db = null, ?string $db_alias = null) {
-		$this->context = &$context;
-		$this->db_alias = $db_alias;
+	final function __construct(null|Entity|EntityList|Relationship $context = null, ?DatabaseAccess $db = null, ?string $db_prefix = null) {
+		if(is_null($context) === is_null($db)){
+			throw new Exception('either one of context or db must be set.');
+		}
 
+		$this->context = &$context;
+		$this->db_prefix = $db_prefix;
 		$this->db = &$db;
 
 		$this->load_attributes();
@@ -108,8 +112,8 @@ abstract class Entity {
 		}
 
 		$request = new SelectRequest(static::DB_TABLE);
-		$this->build_request($request, $attributes);
-		$request->set_condition(new IdentifierEquals($this->$identify_by, $identifier));
+		$this->build_pull_request($request, $attributes);
+		$request->set_condition(new IdentifierEqualsCondition($this->$identify_by, $identifier));
 
 		try {
 			$s = $this->db->prepare($request->get_query());
@@ -128,7 +132,7 @@ abstract class Entity {
 
 	final public function join(Attribute $on, array $attributes = []) : JoinRequest {
 		$request = new JoinRequest(static::DB_TABLE, $this->id, $on);
-		$this->build_request($request, $attributes);
+		$this->build_pull_request($request, $attributes);
 		return $request;
 	}
 
@@ -140,30 +144,28 @@ abstract class Entity {
 			throw new CallOutOfOrderException();
 		}
 
-
-		// TODO fix from here
 		# To parse the columns containing our entity data, we must do a distinction:
 		if(is_array($data[0])){ # check whether the data array is nested
-			$relationships = true;
 			$row = $data[0]; # with relationships
 		} else {
-			$relationships = false;
 			$row = $data; # without relationships
 		}
 
-		foreach(static::$attributes as $name => $attribute){
-			if(!array_key_exists($attribute->get_prefixed_db_column(), $row)){ // FIXME
-				continue;
-			} else if(!$relationships && $attribute instanceof RelationshipAttribute){
+		foreach(static::$attributes as $name){
+			if($this->$name->is_pullable() && !array_key_exists($this->$name->get_result_column(), $row)){
 				continue;
 			}
 
-			if($attribute instanceof PropertyAttribute){
-				$this->$name->load($row[$attribute->get_prefixed_db_column()]);
-			} else if($attribute instanceof EntityAttribute){
+			if($this->$name->is_joinable() && !array_key_exists($this->$name->get_detection_column(), $row)){
+				continue;
+			}
+
+			if($this->$name instanceof PropertyAttribute){
+				$this->$name->load($row[$this->$name->get_result_column()]);
+			} else if($this->$name instanceof EntityAttribute){
 				$this->$name->load($row);
-			} else if($attribute instanceof RelationshipAttribute){
-				$this->$name->load($data, $this->db);
+			} else if($this->$name instanceof RelationshipAttribute){
+				$this->$name->load($data, is_complete:$this->is_independent()); // the relationshiplist is complete if this is independent because then there definitely was no limit in the request. is_complete determines whether the relationships can be edited.
 			}
 		}
 
@@ -236,7 +238,7 @@ abstract class Entity {
 			$request = new InsertRequest(static::DB_TABLE);
 		} else {
 			$request = new UpdateRequest(static::DB_TABLE);
-			$request->set_condition(new IdentifierEquals(static::$attributes['id'], $this->id->get_value()));
+			$request->set_condition(new IdentifierEqualsCondition(static::$attributes['id'], $this->id->get_value()));
 		}
 
 		$errors = new AttributeValueExceptionList();
@@ -293,7 +295,7 @@ abstract class Entity {
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
 		$request = new DeleteRequest(static::DB_TABLE);
-		$request->set_condition(new IdentifierEquals(static::$attributes['id'], $this->id->get_value()));
+		$request->set_condition(new IdentifierEqualsCondition(static::$attributes['id'], $this->id->get_value()));
 
 		try {
 			$s = $this->db->prepare($request->get_query());
@@ -352,6 +354,7 @@ abstract class Entity {
 
 
 
+	/* DEPRECATED
 	// TODO explaination
 	final public static function has_relationships() : bool {
 		foreach(static::get_attribute_definitions() as $attribute){
@@ -375,5 +378,6 @@ abstract class Entity {
 
 		return null;
 	}
+	*/
 }
 ?>

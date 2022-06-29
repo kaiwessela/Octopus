@@ -44,18 +44,15 @@ class RelationshipAttribute extends Attribute {
 
 
 	final public static function define(string $class) : RelationshipAttribute {
-		$attr = new RelationshipAttribute();
-
 		if(!class_exists($class) || !is_subclass_of($class, RelationshipList::class)){
 			throw new Exception("Invalid class «{$class}».");
-		} else {
-			$attr->list_class = $class;
-			$attr->class = $class::RELATION_CLASS; // TODO validate
 		}
 
-		$attr->required = false;
-		$attr->editable = true;
-		return $attr;
+		$attribute = parent::define(is_required:false, is_editable:true);
+		$attribute->class = $class::RELATION_CLASS; // TODO maybe improve this
+		$attribute->list_class = $class;
+
+		return $attribute;
 	}
 
 
@@ -67,11 +64,15 @@ class RelationshipAttribute extends Attribute {
 		} else {
 			$this->value->load($data, $is_complete);
 		}
+
+		$this->is_loaded = true;
 	}
 
 
 	final public function edit(mixed $value) : void {
 		$this->value->receive_input($value);
+
+		// TODO is_dirty
 	}
 
 
@@ -83,7 +84,7 @@ class RelationshipAttribute extends Attribute {
 	final public function get_prototype() : Relationship {
 		if(!isset($this->prototype)){
 			$class = $this->get_class();
-			$this->prototype = new $class($this->parent, $this->get_prefixed_db_column());
+			$this->prototype = new $class($this->parent, "{$this->get_prefixed_db_table()}.{$this->get_name()}"); // TODO improve
 		}
 
 		return $this->prototype;
@@ -91,7 +92,7 @@ class RelationshipAttribute extends Attribute {
 
 
 	final public function get_list_prototype() : RelationshipList {
-		if(isset($this->list_prototype)){
+		if(!isset($this->list_prototype)){
 			$class = $this->get_list_class();
 			$this->list_prototype = new $class($this->parent);
 		}
@@ -106,6 +107,11 @@ class RelationshipAttribute extends Attribute {
 		} else {
 			throw new Exception('invalid option.'); // TODO
 		}
+	}
+
+
+	final public function arrayify() : null|string|int|float|bool|array {
+		return $this->value->arrayify();
 	}
 }
 ?>

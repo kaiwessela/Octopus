@@ -85,7 +85,7 @@ trait Attributes {
 	}
 
 
-	final public function resolve_pull_conditions(array $options, bool $mode = 'AND') : ?Condition {
+	final public function resolve_pull_conditions(array $options, string $mode = 'AND') : ?Condition {
 		$conditions = [];
 
 		foreach($options as $attribute => $option){
@@ -119,6 +119,8 @@ trait Attributes {
 			return new OrCondition(...$conditions);
 		} else if($mode === 'AND'){
 			return new AndCondition(...$conditions);
+		} else {
+			throw new Exception(); // TODO
 		}
 	}
 	/*
@@ -216,17 +218,30 @@ trait Attributes {
 	}
 
 
-	// TODO from here
+	final public function get_db_table() : string {
+		return static::DB_TABLE;
+	}
+
+
+	final public function get_prefixed_db_table() : string {
+		if(isset($this->db_prefix)){
+			return "{$this->db_prefix}~{$this->get_db_table()}";
+		} else {
+			return $this->get_db_table();
+		}
+	}
+
+
 	function __get($name) {
 		# if $this->$name is a defined attribute, return its value
-		if(isset(static::$attributes[$name])){
+		if(in_array($name, static::$attributes) && $this->$name->is_loaded()){
 			return $this->$name->get_value();
 		}
 	}
 
 
 	function __isset(string $name) : bool {
-		return isset(static::$attributes[$name]);
+		return in_array($name, static::$attributes) && $this->$name->is_loaded();
 	}
 }
 ?>

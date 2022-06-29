@@ -7,18 +7,51 @@ use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
 use \Exception;
 
 class StringAttribute extends PropertyAttribute {
+	# inherited from PropertyAttribute
+	# protected Entity|Relationship $parent;
+	# protected string $name;
+	# protected bool $is_loaded;
+	# protected bool $is_required;
+	# protected bool $is_editable;
+	# protected bool $is_dirty;
+	# protected mixed $value;
+
 	protected ?int $min;
 	protected ?int $max;
 	protected ?string $pattern;
 
 
+	# ---> Attribute
+	# final public function bind(string $name, Entity|Relationship $parent) : void;
+	# final public function is_loaded() : bool;
+	# final public function is_required() : bool;
+	# final public function is_editable() : bool;
+	# final public function is_dirty() : bool;
+	# public function is_joinable() : bool;
+	# final public function get_name() : string;
+	# final public function get_db_table() : string;
+	# final public function get_prefixed_db_table() : string;
+	# final public function &get_value() : mixed;
+	# public function is_empty() : bool;
+
+	# ---> PullableAttributes
+	# final public function is_pullable();
+	# final public function get_prefixed_db_column() : string;
+	# final public function get_result_column() : string;
+
+	# ---> PropertyAttribute
+	# final public function get_db_column() : string;
+	# public function arrayify() : null|string|int|float|bool|array;
+
+
+
 	public static function define(
-			bool $required = false,
-			bool $editable = true,
-			?int $min = null,
-			?int $max = null,
-			?string $pattern = null
-		) : StringAttribute {
+		bool $is_required = false,
+		bool $is_editable = true,
+		?int $min = null,
+		?int $max = null,
+		?string $pattern = null
+	) : StringAttribute {
 
 		if(is_int($min)){
 			if($min < 0){
@@ -46,13 +79,12 @@ class StringAttribute extends PropertyAttribute {
 			}
 		}
 
-		$attr = new StringAttribute();
-		$attr->required = $required;
-		$attr->editable = $editable;
-		$attr->min = $min;
-		$attr->max = $max;
-		$attr->pattern = $pattern;
-		return $attr;
+		$attribute = parent::define(is_required:$is_required, is_editable:$is_editable);
+		$attribute->min = $min;
+		$attribute->max = $max;
+		$attribute->pattern = $pattern;
+
+		return $attribute;
 	}
 
 
@@ -62,7 +94,7 @@ class StringAttribute extends PropertyAttribute {
 		}
 
 		$this->value = $data;
-		$this->loaded = true;
+		$this->is_loaded = true;
 	}
 
 
@@ -98,7 +130,7 @@ class StringAttribute extends PropertyAttribute {
 			}
 
 			$this->value = $escaped_input;
-			$this->edited = true;
+			$this->is_dirty = true;
 		}
 	}
 
@@ -106,5 +138,11 @@ class StringAttribute extends PropertyAttribute {
 	public function get_push_value() : null|string|int|float {
 		return $this->value;
 	}
+
+
+	// TODO
+	// public function resolve_pull_condition(mixed $option) : ?Condition {
+	//
+	// }
 }
 ?>

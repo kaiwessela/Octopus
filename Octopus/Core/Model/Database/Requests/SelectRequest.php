@@ -31,13 +31,25 @@ final class SelectRequest extends Request {
 
 
 	# ---> Request:
-	# function __construct();
 	# final public function add(Attribute $attribute) : void;
 	# final public function remove(Attribute $attribute) : void;
 	# final public function get_query() : string;
 	# final public function get_values() : array;
 	# final public function set_values(array $values) : void;
 	# final public function is_resolved() : bool;
+
+
+	function __construct(string $table) {
+		parent::__construct($table);
+
+		$this->limit = null;
+		$this->offset = null;
+		$this->order = [];
+		$this->condition = null;
+
+		$this->columns = [];
+		$this->joins = [];
+	}
 
 
 	public function set_limit(?int $limit, ?int $offset = null) : void {
@@ -72,13 +84,7 @@ final class SelectRequest extends Request {
 	}
 
 
-	public function set_order(?Attribute $by, bool $desc = false) : void {
-		$this->order_by = $by;
-		$this->order_desc = $desc;
-	}
-
-
-	protected function resolve() : void {
+	public function resolve() : void {
 		if(empty($this->attributes)){
 			throw new EmptyRequestException($this);
 		}

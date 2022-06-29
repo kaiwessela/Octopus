@@ -1,7 +1,4 @@
 <?php
-
-// TEMP
-
 namespace Octopus\Core\Model\Attributes;
 use \Octopus\Core\Model\Attributes\PropertyAttribute;
 use \Octopus\Core\Model\Attributes\StaticObject;
@@ -16,11 +13,10 @@ class StaticObjectAttribute extends PropertyAttribute {
 			throw new Exception('invalid class.');
 		}
 
-		$attr = new StaticObjectAttribute();
-		$attr->required = false;
-		$attr->editable = true;
-		$attr->class = $class;
-		return $attr;
+		$attribute = parent::define(is_required:false, is_editable:true);
+		$attribute->class = $class;
+
+		return $attribute;
 	}
 
 
@@ -33,7 +29,7 @@ class StaticObjectAttribute extends PropertyAttribute {
 			$this->value->load($data);
 		}
 
-		$this->loaded = true;
+		$this->is_loaded = true;
 	}
 
 
@@ -48,7 +44,7 @@ class StaticObjectAttribute extends PropertyAttribute {
 		}
 
 		$this->value->edit($input);
-		$this->edited = true; // FIXME
+		$this->is_dirty = true; // FIXME
 	}
 
 
@@ -59,6 +55,11 @@ class StaticObjectAttribute extends PropertyAttribute {
 
 	public function get_class() : string {
 		return $this->class;
+	}
+
+
+	final public function arrayify() : null|string|int|float|bool|array {
+		return $this->value->arrayify();
 	}
 }
 ?>

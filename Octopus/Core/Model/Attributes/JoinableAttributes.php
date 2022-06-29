@@ -19,7 +19,7 @@ trait JoinableAttributes {
 
 
 	final public function get_detection_column() : string {
-		return "{$this->get_prefixed_db_table()}.id";
+		return "{$this->get_prototype()->get_prefixed_db_table()}.id";
 	}
 
 

@@ -37,12 +37,12 @@ abstract class Relationship {
 
 	use Attributes;
 
-	const DB_TABLE = '';
+	protected const DB_TABLE = '';
 
 	# all child classes must set the following property:
 	# protected static array $attributes;
 
-	public readonly ?string $db_prefix;
+	protected ?string $db_prefix;
 
 
 	### CONSTRUCTION METHODS
@@ -50,22 +50,16 @@ abstract class Relationship {
 	final function __construct(Entity $context, ?string $db_prefix = null) {
 		$this->db_prefix = $db_prefix;
 
+		$this->load_attributes();
+
 		// TODO from here
 
-		if(!isset(static::$attributes)){
-			static::load_attribute_definitions();
-
-			// TODO validate attribute definitions (type, required, editable)
-		}
-
-		$this->bind_attributes();
-
-		foreach(static::$attributes as $name => $attribute){
-			if(!$attribute instanceof EntityAttribute){
+		foreach(static::$attributes as $name){
+			if(!$this->$name instanceof EntityAttribute){
 				continue;
 			}
 
-			if($attribute->get_class() === $context::class){
+			if($this->$name->get_class() === $context::class){
 				$this->$name->load($context); // IDEA
 				$this->context = &$this->$name;
 			} else {
@@ -78,7 +72,7 @@ abstract class Relationship {
 
 
 	public function &get_db() : DatabaseAccess { // TODO check
-		return &$this->context->get_db();
+		return $this->context->get_db();
 	}
 
 
@@ -286,7 +280,7 @@ abstract class Relationship {
 
 	# Return the arrayified joined entity
 	final public function arrayify() : array {
-		return $this->relatum->get_value();
+		return $this->relatum->arrayify();
 	}
 
 

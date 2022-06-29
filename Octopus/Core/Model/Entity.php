@@ -38,13 +38,13 @@ abstract class Entity {
 	# for documentation on the following definitions, check the Attributes trait source file
 	use Attributes;
 
-	const DB_TABLE = '';
+	protected const DB_TABLE = '';
 
 	# all child classes must set the following property:
 	# protected static array $attributes;
 
-	public readonly null|Entity|EntityList|Relationship $context; // TODO maybe protected
-	public readonly ?string $db_prefix;
+	protected null|Entity|EntityList|Relationship $context; // TODO maybe protected
+	protected ?string $db_prefix;
 
 	protected ?DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
 
@@ -317,11 +317,9 @@ abstract class Entity {
 	final public function arrayify() : array|null {
 		$result = [];
 
-		foreach(static::$attributes as $name => $attribute){
-			if($attribute instanceof EntityAttribute || $attribute instanceof RelationshipAttribute){
-				$result[$name] = $this->$name->get_value()?->arrayify();
-			} else {
-				$result[$name] = $this->$name->get_value();
+		foreach(static::$attributes as $name){
+			if($this->$name->is_loaded()){
+				$result[$name] = $this->$name->arrayify();
 			}
 		}
 

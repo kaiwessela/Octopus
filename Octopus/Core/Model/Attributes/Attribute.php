@@ -14,7 +14,14 @@ abstract class Attribute {
 	protected mixed $value;
 
 
-	abstract public static function define() : Attribute;
+	public static function define(bool $is_required, bool $is_editable) : Attribute {
+		$attribute = new self();
+
+		$attribute->is_required = $is_required;
+		$attribute->is_editable = $is_editable;
+
+		return $attribute;
+	}
 
 
 	final public function bind(string $name, Entity|Relationship $parent) : void {
@@ -23,12 +30,10 @@ abstract class Attribute {
 		$this->value = null;
 		$this->is_dirty = false;
 		$this->is_loaded = false;
-
-		// TODO check DB_TABLE
 	}
 
 
-	abstract public function load($data) : void;
+	// abstract public function load($data) : void;
 
 
 	abstract public function edit(mixed $input) : void;
@@ -70,16 +75,12 @@ abstract class Attribute {
 
 
 	final public function get_db_table() : string {
-		return $this->parent::DB_TABLE;
+		return $this->parent->get_db_table();
 	}
 
 
 	final public function get_prefixed_db_table() : string {
-		if(isset($this->parent->db_prefix)){
-			return "{$this->parent->db_prefix}~{$this->get_db_table()}";
-		} else {
-			return $this->get_db_table();
-		}
+		return $this->parent->get_prefixed_db_table();
 	}
 
 
@@ -94,6 +95,9 @@ abstract class Attribute {
 
 
 	abstract public function resolve_pull_condition(mixed $option) : ?Condition;
+
+
+	abstract public function arrayify() : null|string|int|float|bool|array;
 
 }
 ?>

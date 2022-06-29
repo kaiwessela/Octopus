@@ -3,6 +3,8 @@ namespace Octopus\Core\Model\Attributes;
 use \Octopus\Core\Model\Attributes\Attribute;
 use \Octopus\Core\Model\Attributes\PullableAttributes;
 
+use \Octopus\Core\Model\Database\Requests\Conditions\Condition; // TEMP
+
 abstract class PropertyAttribute extends Attribute {
 	# inherited from Attribute
 	# protected Entity|Relationship $parent;
@@ -15,7 +17,7 @@ abstract class PropertyAttribute extends Attribute {
 
 
 	# ---> Attribute
-	# abstract public static function define() : Attribute;
+	# public static function define() : Attribute;
 	# final public function bind(string $name, Entity|Relationship $parent) : void;
 	# abstract public function edit(mixed $input) : void;
 	# final public function is_loaded() : bool;
@@ -43,6 +45,17 @@ abstract class PropertyAttribute extends Attribute {
 
 	final public function get_db_column() : string {
 		return $this->name;
+	}
+
+
+	// TEMP
+	public function resolve_pull_condition(mixed $option) : ?Condition {
+		throw new Exception('do not call yet');
+	}
+
+
+	public function arrayify() : null|string|int|float|bool|array {
+		return $this->value;
 	}
 }
 ?>

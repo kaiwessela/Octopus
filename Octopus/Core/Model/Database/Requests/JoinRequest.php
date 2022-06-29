@@ -63,7 +63,7 @@ final class JoinRequest extends Request {
 	}
 
 
-	protected function resolve() : void {
+	public function resolve() : void {
 		foreach($this->attributes as $attribute){
 			$this->columns[] = static::create_column_string($attribute);
 		}

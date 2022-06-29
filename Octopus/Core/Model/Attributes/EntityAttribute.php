@@ -52,28 +52,29 @@ final class EntityAttribute extends Attribute {
 
 
 
-	final public static function define(string $class, bool $required = false, bool $editable = true) : EntityAttribute {
+	final public static function define(string $class, bool $is_required = false, bool $is_editable = true) : EntityAttribute {
 		if(!class_exists($class) || !is_subclass_of($class, Entity::class)){
 			throw new Exception("Invalid class «{$class}».");
 		}
 
-		$attr = new EntityAttribute();
-		$attr->required = $required;
-		$attr->editable = $editable;
-		$attr->class = $class;
-		return $attr;
+		$attribute = parent::define(is_required:$is_required, is_editable:$is_editable);
+		$attribute->class = $class;
+
+		return $attribute;
 	}
 
 
-	final public function load(array $data) : void {
-		if(is_null($data[$this->get_detection_column()])){
+	final public function load(Entity|array $data) : void {
+		if($data instanceof Entity){
+			$this->value = $data; // TODO check this
+		} else if(is_null($data[$this->get_detection_column()])){
 			$this->value = null;
 		} else {
 			$this->value = clone $this->get_prototype();
 			$this->value->load($data);
 		}
 
-		$this->loaded = true;
+		$this->is_loaded = true;
 	}
 
 
@@ -110,7 +111,7 @@ final class EntityAttribute extends Attribute {
 			}
 
 			$this->value = $entity;
-			$this->edited = true;
+			$this->is_dirty = true;
 		}
 	}
 
@@ -128,7 +129,7 @@ final class EntityAttribute extends Attribute {
 	final public function get_prototype() : Entity {
 		if(!isset($this->prototype)){
 			$class = $this->get_class();
-			$this->prototype = new $class($this->parent, null, $this->get_prefixed_db_column());
+			$this->prototype = new $class($this->parent, null, $this->get_result_column());
 		}
 
 		return $this->prototype;
@@ -143,6 +144,11 @@ final class EntityAttribute extends Attribute {
 		} else {
 			throw new Exception('invalid option.'); // TODO
 		}
+	}
+
+
+	final public function arrayify() : null|string|int|float|bool|array {
+		return $this->value->arrayify();
 	}
 }
 ?>

@@ -1,5 +1,5 @@
 <?php
-namespace Octopus\Core\Model\Attributes;
+namespace Octopus\Core\Model;
 use \Octopus\Core\Model\EntityList;
 use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
 use \Octopus\Core\Model\Attributes\PropertyAttribute;
@@ -13,16 +13,8 @@ use \Exception;
 
 # This trait shares common methods for Entity and Relationship that relate to the loading, altering, validating and
 # outputting of attributes.
-# It heavily uses the AttributeDefinition class, so it may be wise to take a look on that too.
 
-trait Attributes {
-	# This trait requires the following to be defined in every class using it:
-	# const DB_TABLE; – the name of the database table containing the objects data
-	# const DB_PREFIX; – the prefix that is added to the objects columns on database requests (without underscore [_])
-	# const ATTRIBUTES; – an array of raw definitions of the objects attributes
-	# protected static array $attributes; – the raw definitions are turned into AttributeDefinitions and stored here
-	# protected readonly […, depending] $context; – a reference to the context entity/list/relationship/…
-
+trait EntityAndRelationship {
 
 	final protected function load_attributes() : void {
 		static::$attributes = [];
@@ -32,6 +24,21 @@ trait Attributes {
 			$this->$name->bind($name, $this);
 			static::$attributes[] = $name;
 		}
+	}
+
+
+	public function is_new() : bool {
+		return $this->is_new;
+	}
+
+
+	public function is_loaded() : bool {
+		return isset($this->is_new);
+	}
+
+
+	public function is_independent() : bool {
+		return !isset($this->context);
 	}
 
 
@@ -67,11 +74,11 @@ trait Attributes {
 			}
 
 			if($this->$name->is_joinable() && $join){
-				if($this->$name->get_class() !== $this->context::class){
+				if(!$this->is_independent() && $this->$name->get_class() === $this->context::class){ // FIXME DOES NOT WORK! Relationship must have an Entity as context, not an EntityAttribute.
 					continue;
 				}
 
-				if(!$this->is_pullable() && !($this->is_independent() || $this->context instanceof EntityList)){ // TEMP
+				if(!$this->$name->is_pullable() && !($this->is_independent() || $this->context instanceof EntityList)){ // TEMP
 					continue;
 				}
 

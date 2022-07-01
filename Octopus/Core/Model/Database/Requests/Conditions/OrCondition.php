@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests\Conditions;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Exception
+use \Exception;
 
 // TODO explainations
 

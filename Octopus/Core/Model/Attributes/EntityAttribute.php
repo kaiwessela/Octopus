@@ -34,6 +34,7 @@ final class EntityAttribute extends Attribute {
 	# final public function is_required() : bool;
 	# final public function is_editable() : bool;
 	# final public function is_dirty() : bool;
+	# final public function set_clean() : void;
 	# final public function get_name() : string;
 	# final public function get_db_table() : string;
 	# final public function get_prefixed_db_table() : string;
@@ -57,7 +58,7 @@ final class EntityAttribute extends Attribute {
 			throw new Exception("Invalid class «{$class}».");
 		}
 
-		$attribute = parent::define(is_required:$is_required, is_editable:$is_editable);
+		$attribute = new static($is_required, $is_editable);
 		$attribute->class = $class;
 
 		return $attribute;
@@ -81,7 +82,7 @@ final class EntityAttribute extends Attribute {
 	final public function edit(mixed $input) : void {
 		if($input instanceof Entity){
 			if($input::class !== $this->get_class()){
-				throw new IllegalValueException($this, $input, 'wrong class');
+				throw new IllegalValueException($this, $input, 'class not matching');
 			}
 
 			$entity = $input;
@@ -102,12 +103,12 @@ final class EntityAttribute extends Attribute {
 				$entity = null;
 			}
 		} else {
-			throw new AttributeValueException($this, 'Unsuppoted input format.', $input);
+			throw new AttributeValueException($this, $input, 'unsuppoted input format.');
 		}
 
 		if($entity?->id !== $this->value?->id){
 			if(!$this->is_editable()){
-				throw new AttributeNotAlterableException($this, $this, $entity); // FIXME
+				throw new AttributeNotAlterableException($this, $entity?->id);
 			}
 
 			$this->value = $entity;

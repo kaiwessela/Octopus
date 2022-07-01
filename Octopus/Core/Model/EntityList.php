@@ -73,7 +73,7 @@ abstract class EntityList {
 			throw new CallOutOfOrderException();
 		}
 
-		$request = new SelectRequest(static::ENTITY_CLASS::DB_TABLE);
+		$request = new SelectRequest($this->prototype->get_db_table());
 		$this->prototype->build_pull_request($request, $attributes);
 
 		$request->set_conditions($this->resolve_pull_conditions($conditions));

@@ -23,7 +23,7 @@ class DateTimeRange extends Condition {
 
 
 	public function resolve(int $index = 0) : int {
-		$this->query = "{$this->attribute->get_db_table()}.{$this->attribute->get_db_column()} BETWEEN :cond_{$index} AND :cond_{$index+1}";
+		$this->query = "{$this->attribute->get_prefixed_db_column()} BETWEEN :cond_{$index} AND :cond_{$index+1}";
 		$this->values = [
 			"cond_{$index}" => $this->from->format('Y-m-d H:i:s'),
 			"cond_{$index+1}" => $this->to->format('Y-m-d H:i:s')

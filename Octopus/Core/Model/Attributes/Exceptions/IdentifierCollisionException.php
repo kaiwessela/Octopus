@@ -2,13 +2,12 @@
 namespace Octopus\Core\Model\Attributes\Exceptions;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\Relationship;
-use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Attributes\Attribute;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 
 class IdentifierCollisionException extends AttributeValueException {
 	# inherited from AttributeValueException
-	# public AttributeDefinition $definition;
-	# public string $name;
+	# public Attribute $attribute;
 	# public mixed $value;
 
 	# inherited from Exception:
@@ -17,14 +16,14 @@ class IdentifierCollisionException extends AttributeValueException {
 	public Entity|Relationship $existing;
 
 
-	function __construct(AttributeDefinition $definition, Entity|Relationship $existing) {
-		$this->definition = $definition;
-		$this->name = $this->definition->get_name();
-
+	function __construct(Attribute $attribute, Entity|Relationship $existing) {
+		$this->attribute = $attribute;
 		$this->existing = $existing;
-		$this->value = $this->existing->{$this->definition->get_name()};
 
-		$this->message = "An attempt to set the identifier «{$this->name}» to the value «{$this->value}» "
+		$name = $attribute->get_name();
+		$this->value = $this->existing->$name;
+
+		$this->message = "An attempt to set the identifier «{$attribute->get_name()}» to the value «{$this->value}» "
 			. 'failed because that value is already used as identifier on another entity.';
 	}
 }

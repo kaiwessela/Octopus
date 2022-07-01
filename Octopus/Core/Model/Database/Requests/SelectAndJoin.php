@@ -12,8 +12,6 @@ use \Exception;
 trait SelectAndJoin {
 
 	public function add_join(JoinRequest $request) : void {
-		$this->flow->check_step('build');
-
 		if($request->get_foreign_attribute()->get_db_table() !== $this->table){
 			throw new Exception('Foreign Attribute db table must match this request’s table');
 		}
@@ -45,7 +43,7 @@ trait SelectAndJoin {
 	}
 
 
-	protected function is_multidimensional() : bool { // TODO could be improved, can produce false positives
+	public function is_multidimensional() : bool { // TODO could be improved, can produce false positives
 		$md = false;
 
 		foreach($this->joins as $join){

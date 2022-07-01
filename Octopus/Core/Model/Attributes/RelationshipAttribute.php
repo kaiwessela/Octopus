@@ -29,6 +29,7 @@ class RelationshipAttribute extends Attribute {
 	# final public function is_required() : bool;
 	# final public function is_editable() : bool;
 	# final public function is_dirty() : bool;
+	# final public function set_clean() : void;
 	# public function is_pullable() : bool;
 	# final public function get_name() : string;
 	# final public function get_db_table() : string;
@@ -48,7 +49,7 @@ class RelationshipAttribute extends Attribute {
 			throw new Exception("Invalid class «{$class}».");
 		}
 
-		$attribute = parent::define(is_required:false, is_editable:true);
+		$attribute = new static(false, true);
 		$attribute->class = $class::RELATION_CLASS; // TODO maybe improve this
 		$attribute->list_class = $class;
 

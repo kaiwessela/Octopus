@@ -1,33 +1,27 @@
 <?php
 namespace Octopus\Core\Model\Attributes\Exceptions;
-use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Attributes\Attribute;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\Relationship;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 
 class AttributeNotAlterableException extends AttributeValueException {
 	# inherited from AttributeValueException
-	# public AttributeDefinition $definition;
-	# public string $name;
+	# public Attribute $attribute;
 	# public mixed $value;
 
 	# inherited from Exception:
 	# protected string $message;
 
-	public Entity|Relationship $object;
 
-
-	function __construct(AttributeDefinition $definition, Entity|Relationship $object, mixed $value) {
-		$this->definition = $definition;
-		$this->name = $this->definition->get_name();
+	function __construct(Attribute $attribute, mixed $value) {
+		$this->attribute = $attribute;
 		$this->value = $value;
 
-		$this->object = $object;
-
-		$this->message = "The attribute «{$this->name}» cannot be set to the value «"
-			. var_dump($this->value)
+		$this->message = "The attribute «{$attribute->get_name()}» cannot be set to the value «"
+			. var_export($value)
 			. "» because the attribute is not alterable. Current value: «"
-			. var_dump($this->object->{$this->definition->get_name()})
+			. var_export($attribute->arrayify())
 			. "».";
 	}
 }

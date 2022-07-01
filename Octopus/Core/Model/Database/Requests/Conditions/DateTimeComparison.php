@@ -27,7 +27,7 @@ class DateTimeComparison extends Condition {
 
 
 	public function resolve(int $index = 0) : int {
-		$this->query = "{$this->attribute->get_db_table()}.{$this->attribute->get_db_column()} {$this->operator} ";
+		$this->query = "{$this->attribute->get_prefixed_db_column()} {$this->operator} ";
 
 		if($value === 'now'){
 			$this->query .= 'NOW()';

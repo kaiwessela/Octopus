@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
 use \Octopus\Core\Model\Attributes\PropertyAttribute;
-use \Octopus\Core\Model\Attributes\StaticObject;
+use \Octopus\Core\Model\StaticObject;
 use \Exception;
 
 class StaticObjectAttribute extends PropertyAttribute {
@@ -13,7 +13,7 @@ class StaticObjectAttribute extends PropertyAttribute {
 			throw new Exception('invalid class.');
 		}
 
-		$attribute = parent::define(is_required:false, is_editable:true);
+		$attribute = new static(false, true);
 		$attribute->class = $class;
 
 		return $attribute;

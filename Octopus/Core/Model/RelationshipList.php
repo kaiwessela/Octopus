@@ -14,7 +14,7 @@ abstract class RelationshipList {
 
 	protected Entity $context;
 
-	const RELATION_CLASS = ''; # the fully qualified name of the Relationship class whose instances this list contains
+	protected const RELATION_CLASS = ''; # the fully qualified name of the Relationship class whose instances this list contains
 
 	protected bool $is_complete;
 
@@ -44,7 +44,12 @@ abstract class RelationshipList {
 		foreach($data as $row){
 			$relationship = clone $this->prototype;
 			$relationship->load($row); # load the relationship
-			$this->relationships[$relationship->id] = $relationship;
+
+			if(isset($this->relationships[$relationship->id])){ // not optimal
+				break;
+			} else {
+				$this->relationships[$relationship->id] = $relationship;
+			}
 		}
 
 		$this->is_complete = $is_complete;
@@ -183,11 +188,8 @@ abstract class RelationshipList {
 			throw new CallOutOfOrderException();
 		}
 
-		$class = static::RELATION_CLASS;
-		$relationship = new $class($this->context);
-
+		$relationship = clone $this->prototype;
 		$relationship->create();
-
 		$relationship->receive_input($input);
 
 		$this->relationships[$relationship->id] = $relationship;
@@ -260,7 +262,7 @@ abstract class RelationshipList {
 	# Return the joined entity of a relationship in this list
 	# @param $index_or_id: list index or id of the relationship (not of the entity!)
 	final public function &get(int|string $index_or_id) : ?Entity {
-		return $this->relationships[$index_or_id]?->get_joined_entity();
+		return $this->relationships[$index_or_id]?->get_relatum();
 	}
 
 
@@ -270,7 +272,7 @@ abstract class RelationshipList {
 		}
 
 		foreach($this->relationships as $index => $_){
-			$callback($this->relationships[$index]->get_joined_entity());
+			$callback($this->relationships[$index]->get_relatum());
 		}
 	}
 
@@ -281,7 +283,7 @@ abstract class RelationshipList {
 		}
 
 		foreach($this->relationships as $index => $_){
-			$callback($index, $this->relationships[$index]->get_joined_entity());
+			$callback($index, $this->relationships[$index]->get_relatum());
 		}
 	}
 

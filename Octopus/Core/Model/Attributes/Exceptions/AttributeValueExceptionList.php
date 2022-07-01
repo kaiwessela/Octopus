@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Attributes\Exceptions;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
-use Exception;
+use \Exception;
 
 class AttributeValueExceptionList extends Exception {
 	public array $exceptions;
@@ -12,14 +12,18 @@ class AttributeValueExceptionList extends Exception {
 	}
 
 
-	public function push(AttributeValueException $e) : void {
-		$this->exceptions[$e->name] = $e; # $e->name is the attribute name
+	public function push(AttributeValueException $exception) : void {
+		$this->exceptions[$exception->attribute->get_name()] = $exception;
 	}
 
 
-	public function merge(AttributeValueExceptionList $el, $prefix = '') : void {
-		foreach($el->exceptions as $e){
-			$this->exceptions["{$prefix}:{$e->name}"] = $e; // TODO this is not perfect
+	public function merge(AttributeValueExceptionList $exceptions, ?string $prefix = null) : void {
+		foreach($exceptions->exceptions as $exception){
+			if(is_null($prefix)){
+				$this->exceptions[$exception->attribute->get_name()] = $exception;
+			} else {
+				$this->exceptions["{$prefix}:{$exception->attribute->get_name()}"] = $exception;
+			}
 		}
 	}
 

@@ -2,8 +2,8 @@
 namespace Octopus\Core\Model;
 use \Octopus\Core\Model\EntityList;
 use \Octopus\Core\Model\Relationship;
+use \Octopus\Core\Model\EntityAndRelationship;
 use \Octopus\Core\Model\Attributes\Attribute;
-use \Octopus\Core\Model\Attributes\Attributes;
 use \Octopus\Core\Model\Attributes\PropertyAttribute;
 use \Octopus\Core\Model\Attributes\EntityAttribute;
 use \Octopus\Core\Model\Attributes\RelationshipAttribute;
@@ -36,7 +36,7 @@ abstract class Entity {
 
 	# this class uses the Attributes trait which contains standard methods that handle the attributes of this class
 	# for documentation on the following definitions, check the Attributes trait source file
-	use Attributes;
+	use EntityAndRelationship;
 
 	protected const DB_TABLE = '';
 
@@ -57,6 +57,11 @@ abstract class Entity {
 		}
 
 		$this->context = &$context;
+
+		if($this->is_independent() && !is_null($db_prefix)){
+			throw new Exception('independent entities must not have a database prefix.');
+		}
+
 		$this->db_prefix = $db_prefix;
 		$this->db = &$db;
 
@@ -111,9 +116,11 @@ abstract class Entity {
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» is not an identifier.");
 		}
 
-		$request = new SelectRequest(static::DB_TABLE);
+		$request = new SelectRequest($this->get_db_table());
 		$this->build_pull_request($request, $attributes);
 		$request->set_condition(new IdentifierEqualsCondition($this->$identify_by, $identifier));
+
+		var_dump($request->get_query());
 
 		try {
 			$s = $this->db->prepare($request->get_query());
@@ -131,7 +138,7 @@ abstract class Entity {
 
 
 	final public function join(Attribute $on, array $attributes = []) : JoinRequest {
-		$request = new JoinRequest(static::DB_TABLE, $this->id, $on);
+		$request = new JoinRequest($this->get_db_table(), $this->get_prefixed_db_table(), $this->id, $on);
 		$this->build_pull_request($request, $attributes);
 		return $request;
 	}
@@ -235,24 +242,21 @@ abstract class Entity {
 		}
 
 		if($this->is_new()){
-			$request = new InsertRequest(static::DB_TABLE);
+			$request = new InsertRequest($this->get_db_table());
 		} else {
-			$request = new UpdateRequest(static::DB_TABLE);
-			$request->set_condition(new IdentifierEqualsCondition(static::$attributes['id'], $this->id->get_value()));
+			$request = new UpdateRequest($this->get_db_table());
+			$request->set_condition(new IdentifierEqualsCondition($this->id, $this->id->get_value()));
 		}
 
 		$errors = new AttributeValueExceptionList();
-		$push_values = [];
-		$push_later = [];
 
-		foreach(static::$attributes as $name => $attribute){
-			if($attribute instanceof RelationshipAttribute){
-				$push_later[] = $name;
-			} else if($attribute->is_required() && $this->$name->is_empty()){
-				$errors->push(new MissingValueException($attribute));
-			} else if($this->is_new() || $this->$name->has_been_edited()){
-				$request->add_attribute($attribute);
-				$push_values[$attribute->get_db_column()] = $this->$name->get_push_value();
+		foreach(static::$attributes as $name){
+			if($this->$name->is_pullable()){
+				if($this->$name->is_required() && $this->$name->is_empty()){
+					$errors->push(new MissingValueException($this->$name));
+				} else if($this->$name->is_dirty()){
+					$request->add($this->$name);
+				}
 			}
 		}
 
@@ -260,26 +264,29 @@ abstract class Entity {
 			throw $errors;
 		}
 
-		$request->set_values($push_values);
-
 		try {
 			$s = $this->db->prepare($request->get_query());
 			$s->execute($request->get_values());
-		} catch(EmptyRequestException $e){
-			return false;
+			$request_performed = true;
 		} catch(PDOException $e){
 			throw new DatabaseException($e, $s);
+		} catch(EmptyRequestException $e){
+			$request_performed = false;
 		}
 
-		foreach($push_later as $name){
-			$this->$name->get_value()?->push();
+		foreach(static::$attributes as $name){
+			if($this->$name instanceof RelationshipAttribute){
+				$request_performed |= $this->$name->push();
+			} else if($this->$name->is_pullable()){
+				$this->$name->set_clean();
+			}
 		}
 
-		return true;
+		return $request_performed;
 	}
 
 
-	# Erase this entity out of the database.
+	# Delete this entity out of the database.
 	# this does not delete entities it contains as attributes, but all relationships of this entity will be deleted due
 	# to the mysql ON DELETE CASCADE constraint.
 	# @return: true if a database request was performed, false if not (i.e. because the entity still/already is local)
@@ -294,7 +301,7 @@ abstract class Entity {
 		}
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
-		$request = new DeleteRequest(static::DB_TABLE);
+		$request = new DeleteRequest($this->get_db_table());
 		$request->set_condition(new IdentifierEqualsCondition(static::$attributes['id'], $this->id->get_value()));
 
 		try {
@@ -332,50 +339,5 @@ abstract class Entity {
 	protected function arrayify_custom() : array {
 		return [];
 	}
-
-
-	### GENERAL METHODS
-
-	public function is_new() : bool {
-		return $this->is_new;
-	}
-
-
-	public function is_loaded() : bool {
-		return isset($this->is_new);
-	}
-
-
-	public function is_independent() : bool {
-		return !isset($this->context);
-	}
-
-
-
-	/* DEPRECATED
-	// TODO explaination
-	final public static function has_relationships() : bool {
-		foreach(static::get_attribute_definitions() as $attribute){
-			if($attribute instanceof RelationshipAttribute){
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-
-	final public function get_relationships() : ?RelationshipList {
-		// TODO check flow state
-
-		foreach(static::get_attribute_definitions() as $name => $attribute){
-			if($attribute instanceof RelationshipAttribute){
-				return $this->$name;
-			}
-		}
-
-		return null;
-	}
-	*/
 }
 ?>

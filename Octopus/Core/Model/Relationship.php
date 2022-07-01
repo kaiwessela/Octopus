@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model;
 use \Octopus\Core\Model\Entity;
-use \Octopus\Core\Model\Attributes\Attributes;
+use \Octopus\Core\Model\EntityAndRelationship;
 use \Octopus\Core\Model\Attributes\Attribute;
 use \Octopus\Core\Model\Attributes\PropertyAttribute;
 use \Octopus\Core\Model\Attributes\EntityAttribute;
@@ -35,7 +35,7 @@ abstract class Relationship {
 
 	protected bool $is_new;
 
-	use Attributes;
+	use EntityAndRelationship;
 
 	protected const DB_TABLE = '';
 
@@ -52,27 +52,33 @@ abstract class Relationship {
 
 		$this->load_attributes();
 
-		// TODO from here
-
 		foreach(static::$attributes as $name){
-			if(!$this->$name instanceof EntityAttribute){
+			if($this->$name instanceof PropertyAttribute){
 				continue;
-			}
+			} else if($this->$name instanceof EntityAttribute){
+				if($this->$name->get_class() === $context::class){
+					if(isset($this->context)){
+						throw new Exception("Context collision: There can only be one context attribute.");
+					}
 
-			if($this->$name->get_class() === $context::class){
-				$this->$name->load($context); // IDEA
-				$this->context = &$this->$name;
+					$this->$name->load($context);
+					$this->context = &$this->$name;
+				} else {
+					if(isset($this->relatum)){
+						throw new Exception("Relatum collision: There can only be one relatum attribute.");
+					}
+
+					$this->relatum = &$this->$name;
+				}
 			} else {
-				$this->relatum = &$this->$name;
+				throw new Exception("Invalid attribute defined: «{$name}».");
 			}
 		}
-
-		// TODO check that all entity attributes have been handled properly
 	}
 
 
 	public function &get_db() : DatabaseAccess { // TODO check
-		return $this->context->get_db();
+		return $this->context->get_value()->get_db();
 	}
 
 
@@ -80,25 +86,10 @@ abstract class Relationship {
 
 
 	final public function join(Attribute $on, array $attributes = []) : JoinRequest {
-		$request = new JoinRequest(static::DB_TABLE, $this->id, $on);
-		$this->build_request($request, $attributes);
+		$request = new JoinRequest($this->get_db_table(), $this->get_prefixed_db_table(), $this->id, $on);
+		$this->build_pull_request($request, $attributes);
 		return $request;
 	}
-
-
-	// final public function join(Attribute $on) : JoinRequest {
-	// 	$request = new JoinRequest(static::DB_TABLE, $this->id, $on);
-	//
-	// 	foreach(static::$attributes as $name){
-	// 		if($this->$name instanceof PropertyAttribute)){
-	// 			$request->add($this->$name);
-	// 		}
-	// 	}
-	//
-	// 	$request->add($this->relatum);
-	//
-	// 	return $request;
-	// }
 
 
 	### INITIALIZATION AND LOADING METHODS
@@ -205,9 +196,9 @@ abstract class Relationship {
 		}
 
 		if($this->is_new()){
-			$request = new InsertRequest(static::DB_TABLE);
+			$request = new InsertRequest($this->get_db_table());
 		} else {
-			$request = new UpdateRequest(static::DB_TABLE);
+			$request = new UpdateRequest($this->get_db_table());
 			$request->set_condition(new IdentifierEqualsCondition(static::$attributes['id'], $this->id->get_value()));
 		}
 
@@ -260,7 +251,7 @@ abstract class Relationship {
 		}
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
-		$request = new DeleteRequest(static::DB_TABLE);
+		$request = new DeleteRequest($this->get_db_table());
 		$request->set_condition(new IdentifierEqualsCondition(static::$attributes['id'], $this->id->get_value()));
 
 		try {

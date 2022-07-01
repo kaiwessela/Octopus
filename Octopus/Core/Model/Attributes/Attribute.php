@@ -14,14 +14,14 @@ abstract class Attribute {
 	protected mixed $value;
 
 
-	public static function define(bool $is_required, bool $is_editable) : Attribute {
-		$attribute = new self();
 
-		$attribute->is_required = $is_required;
-		$attribute->is_editable = $is_editable;
-
-		return $attribute;
+	final function __construct(bool $is_required, bool $is_editable) {
+		$this->is_required = $is_required;
+		$this->is_editable = $is_editable;
 	}
+
+
+	// abstract public function define() : Attribute;
 
 
 	final public function bind(string $name, Entity|Relationship $parent) : void {
@@ -56,6 +56,11 @@ abstract class Attribute {
 
 	final public function is_dirty() : bool {
 		return $this->is_dirty;
+	}
+
+
+	final public function set_clean() : void {
+		$this->is_dirty = false;
 	}
 
 

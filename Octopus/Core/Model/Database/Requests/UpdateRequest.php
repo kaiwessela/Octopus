@@ -14,7 +14,7 @@ final class UpdateRequest extends Request {
 	# protected string $query;
 	# protected array $values;
 
-	protected IdentifierCondition $condition;
+	protected IdentifierEqualsCondition $condition;
 
 
 	# ---> Request:
@@ -33,11 +33,6 @@ final class UpdateRequest extends Request {
 	}
 
 
-	final public function set_values(array $values) : void {
-		$this->values = $values + $this->values; # values with the same key are overwritten, all others just stay
-	}
-
-
 	final public function resolve() : void {
 		if(empty($this->attributes)){
 			throw new EmptyRequestException($this);
@@ -50,12 +45,13 @@ final class UpdateRequest extends Request {
 		$columns = [];
 		foreach($this->attributes as $attribute){
 			$columns[] = "	{$attribute->get_db_column()} = :{$attribute->get_name()}";
+			$this->values[$attribute->get_name()] = $attribute->get_push_value();
 		}
 
 		$this->query = "UPDATE `{$this->table}` SET".PHP_EOL;
 		$this->query .= implode(','.PHP_EOL, $columns).PHP_EOL;
 		$this->query .= "WHERE {$this->condition->get_query()}".PHP_EOL;
 
-		$this->set_values($this->condition->get_values());
+		$this->values = [...$this->values, ...$this->condition->get_values()];
 	}
 }

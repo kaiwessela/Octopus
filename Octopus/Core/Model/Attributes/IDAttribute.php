@@ -20,6 +20,7 @@ class IDAttribute extends IdentifierAttribute {
 	# final public function is_required() : bool;
 	# final public function is_editable() : bool;
 	# final public function is_dirty() : bool;
+	# final public function set_clean() : void;
 	# public function is_joinable() : bool;
 	# final public function get_name() : string;
 	# final public function get_db_table() : string;
@@ -42,7 +43,7 @@ class IDAttribute extends IdentifierAttribute {
 
 
 
-	public static function define(bool $is_editable = false) : IDAttribute {
+	public static function define(bool $is_editable = false) : Attribute {
 		return parent::define(is_editable:$is_editable);
 	}
 

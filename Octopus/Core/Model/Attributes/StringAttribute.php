@@ -27,6 +27,7 @@ class StringAttribute extends PropertyAttribute {
 	# final public function is_required() : bool;
 	# final public function is_editable() : bool;
 	# final public function is_dirty() : bool;
+	# final public function set_clean() : void;
 	# public function is_joinable() : bool;
 	# final public function get_name() : string;
 	# final public function get_db_table() : string;
@@ -79,7 +80,7 @@ class StringAttribute extends PropertyAttribute {
 			}
 		}
 
-		$attribute = parent::define(is_required:$is_required, is_editable:$is_editable);
+		$attribute = new static($is_required, $is_editable);
 		$attribute->min = $min;
 		$attribute->max = $max;
 		$attribute->pattern = $pattern;
@@ -114,7 +115,7 @@ class StringAttribute extends PropertyAttribute {
 		# set the attribute value to the input
 		if($escaped_input !== $this->value){
 			if(!$this->is_editable()){
-				throw new AttributeNotAlterableException($this, $this, $new_value); // TODO
+				throw new AttributeNotAlterableException($this, $escaped_input);
 			}
 
 			if(isset($this->min) && strlen($escaped_input) < $this->min){

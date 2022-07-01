@@ -24,11 +24,6 @@ final class InsertRequest extends Request {
 
 
 
-	final public function set_values(array $values) : void {
-		$this->values = $values + $this->values; # values with the same key are overwritten, all others just stay
-	}
-
-
 	final protected function resolve() : void {
 		if(empty($this->attributes)){
 			throw new EmptyRequestException($this);
@@ -37,6 +32,7 @@ final class InsertRequest extends Request {
 		$columns = [];
 		foreach($this->attributes as $attribute){
 			$columns[] = "	`{$attribute->get_db_column()}` = :{$attribute->get_name()}";
+			$this->values[$attribute->get_name()] = $attribute->get_push_value();
 		}
 
 		$this->query = "INSERT INTO `{$this->table}` SET".PHP_EOL;

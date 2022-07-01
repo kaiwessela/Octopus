@@ -27,7 +27,7 @@ class InList extends Condition {
 		}
 
 		$placeholder_str = implode(', ', $placeholders);
-		$this->query = "{$this->attribute->get_db_table()}.{$this->attribute->get_db_column()} IN ({$placeholder_str})";
+		$this->query = "{$this->attribute->get_prefixed_db_column()} IN ({$placeholder_str})";
 
 		return $index;
 	}

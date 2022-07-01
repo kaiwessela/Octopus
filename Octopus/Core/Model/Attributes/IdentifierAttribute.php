@@ -24,6 +24,7 @@ class IdentifierAttribute extends PropertyAttribute {
 	# final public function is_required() : bool;
 	# final public function is_editable() : bool;
 	# final public function is_dirty() : bool;
+	# final public function set_clean() : void;
 	# public function is_joinable() : bool;
 	# final public function get_name() : string;
 	# final public function get_db_table() : string;
@@ -42,8 +43,8 @@ class IdentifierAttribute extends PropertyAttribute {
 
 
 
-	public static function define(bool $is_editable = true) : IdentifierAttribute {
-		return parent::define(is_required:true, is_editable:$is_editable);
+	public static function define(bool $is_editable = true) : Attribute {
+		return new static(true, $is_editable);
 	}
 
 

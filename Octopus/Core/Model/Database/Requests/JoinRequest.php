@@ -16,6 +16,8 @@ final class JoinRequest extends Request {
 	# protected string $query;
 	# protected ?array $values;
 
+	protected string $table_alias;
+
 	protected Attribute $native_attribute;
 	protected Attribute $foreign_attribute;
 
@@ -36,13 +38,15 @@ final class JoinRequest extends Request {
 	# final public function is_resolved() : bool;
 
 
-	function __construct(string $table, Attribute $native_attribute, Attribute $foreign_attribute) {
+	function __construct(string $table, string $table_alias, Attribute $native_attribute, Attribute $foreign_attribute) {
 		parent::__construct($table);
+
+		$this->table_alias = $table_alias;
 
 		$this->joins = [];
 		$this->columns = [];
 
-		if($native_attribute->get_db_table() !== $this->table){
+		if($native_attribute->get_prefixed_db_table() !== $this->table_alias){
 			throw new Exception('Native Attribute must be part of the joined table.');
 		}
 
@@ -50,7 +54,7 @@ final class JoinRequest extends Request {
 			throw new Exception('Native Attribute must be an identifier or an id of a foreign object.');
 		}
 
-		if($foreign_attribute->get_db_table() === $this->table){
+		if($foreign_attribute->get_prefixed_db_table() === $this->table_alias){
 			throw new Exception('Foreign Attribute must not be part of the joined table.');
 		}
 
@@ -71,8 +75,8 @@ final class JoinRequest extends Request {
 		$native_col = $this->native_attribute->get_prefixed_db_column();
 		$foreign_col = $this->foreign_attribute->get_prefixed_db_column();
 
-		if($this->native_attribute->get_db_table() !== $this->native_attribute->get_aliased_db_table()){
-			$this->query = "LEFT JOIN `{$this->table}` AS `{$this->native_attribute->get_aliased_db_table()}` ON {$native_col} = {$foreign_col}".PHP_EOL;
+		if($this->table !== $this->table_alias){
+			$this->query = "LEFT JOIN `{$this->table}` AS `{$this->table_alias}` ON {$native_col} = {$foreign_col}".PHP_EOL;
 		} else {
 			$this->query = "LEFT JOIN `{$this->table}` ON {$native_col} = {$foreign_col}".PHP_EOL;
 		}

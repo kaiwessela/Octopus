@@ -16,6 +16,8 @@ final class SelectRequest extends Request {
 	# protected string $query;
 	# protected ?array $values;
 
+	protected string $table_alias;
+
 	protected string $count_query;
 
 	protected ?int $limit;

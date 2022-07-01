@@ -1,24 +1,22 @@
 <?php
 namespace Octopus\Core\Model\Attributes\Exceptions;
-use \Octopus\Core\Model\Attributes\AttributeDefinition;
+use \Octopus\Core\Model\Attributes\Attribute;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 
 class MissingValueException extends AttributeValueException {
 	# inherited from AttributeValueException
-	# public AttributeDefinition $definition;
-	# public string $name;
+	# public Attribute $attribute;
 	# public mixed $value;
 
 	# inherited from Exception:
 	# protected string $message;
 
 
-	function __construct(AttributeDefinition $definition) {
-		$this->definition = $definition;
-		$this->name = $this->definition->get_name();
+	function __construct(Attribute $attribute) {
+		$this->attribute = $attribute;
 		$this->value = null;
 
-		$this->message = "An attempt to set the attribute «{$this->name}» to an empty value failed "
+		$this->message = "An attempt to set the attribute «{$attribute->get_name()}» to an empty value failed "
 			. 'because this attribute is not allowed to be empty';
 	}
 }

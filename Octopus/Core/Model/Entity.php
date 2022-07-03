@@ -43,7 +43,7 @@ abstract class Entity {
 	# all child classes must set the following property:
 	# protected static array $attributes;
 
-	protected null|Entity|EntityList|Relationship $context; // TODO maybe protected
+	protected null|Entity|EntityList|Relationship $context;
 	protected ?string $db_prefix;
 
 	protected ?DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
@@ -119,8 +119,6 @@ abstract class Entity {
 		$request = new SelectRequest($this->get_db_table());
 		$this->build_pull_request($request, $attributes);
 		$request->set_condition(new IdentifierEqualsCondition($this->$identify_by, $identifier));
-
-		var_dump($request->get_query());
 
 		try {
 			$s = $this->db->prepare($request->get_query());

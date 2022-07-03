@@ -20,6 +20,7 @@ use \Octopus\Core\Model\Database\Exceptions\DatabaseException;
 use \Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
 use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
 use \PDOException;
+use \Exception;
 
 
 abstract class Relationship {
@@ -28,8 +29,10 @@ abstract class Relationship {
 	# protected EntityAttribute $[name of 2nd entity];
 	# ...other attributes
 
-	protected EntityAttribute $context;
-	protected EntityAttribute $relatum;
+	protected string $context_attribute;
+	protected string $relatum_attribute;
+
+	protected Entity $context;
 
 	const DISTINCT = false;
 
@@ -42,12 +45,13 @@ abstract class Relationship {
 	# all child classes must set the following property:
 	# protected static array $attributes;
 
-	protected ?string $db_prefix;
+	protected string $db_prefix;
 
 
 	### CONSTRUCTION METHODS
 
-	final function __construct(Entity $context, ?string $db_prefix = null) {
+
+	final function __construct(Entity $context, string $db_prefix) {
 		$this->db_prefix = $db_prefix;
 
 		$this->load_attributes();
@@ -57,22 +61,27 @@ abstract class Relationship {
 				continue;
 			} else if($this->$name instanceof EntityAttribute){
 				if($this->$name->get_class() === $context::class){
-					if(isset($this->context)){
+					if(isset($this->context_attribute)){
 						throw new Exception("Context collision: There can only be one context attribute.");
 					}
 
 					$this->$name->load($context);
-					$this->context = &$this->$name;
+					$this->context_attribute = $name;
+					$this->context = &$context;
 				} else {
-					if(isset($this->relatum)){
+					if(isset($this->relatum_attribute)){
 						throw new Exception("Relatum collision: There can only be one relatum attribute.");
 					}
 
-					$this->relatum = &$this->$name;
+					$this->relatum_attribute = $name;
 				}
 			} else {
 				throw new Exception("Invalid attribute defined: «{$name}».");
 			}
+		}
+
+		if(!isset($this->context_attribute) || !isset($this->relatum_attribute)){
+			throw new Exception('Attribute error.'); // TODO
 		}
 	}
 
@@ -86,7 +95,7 @@ abstract class Relationship {
 
 
 	final public function join(Attribute $on, array $attributes = []) : JoinRequest {
-		$request = new JoinRequest($this->get_db_table(), $this->get_prefixed_db_table(), $this->id, $on);
+		$request = new JoinRequest($this->get_db_table(), $this->get_prefixed_db_table(), $this->get_context_attribute(), $on);
 		$this->build_pull_request($request, $attributes);
 		return $request;
 	}
@@ -119,13 +128,17 @@ abstract class Relationship {
 		}
 
 		foreach(static::$attributes as $name){
-			if(!isset($row[$this->$name->get_result_column()]) || isset($this->$name)){
-				continue;
-			}
-
 			if($this->$name instanceof PropertyAttribute){
+				if(!array_key_exists($this->$name->get_result_column(), $row)){
+					continue;
+				}
+
 				$this->$name->load($row[$this->$name->get_result_column()]);
 			} else if($this->$name instanceof EntityAttribute){
+				if(!array_key_exists($this->$name->get_detection_column(), $row)){
+					continue;
+				}
+
 				$this->$name->load($row);
 			}
 		}
@@ -270,25 +283,26 @@ abstract class Relationship {
 	### OUTPUT METHODS
 
 	# Return the arrayified joined entity
-	final public function arrayify() : array {
-		return $this->relatum->arrayify();
+	final public function arrayify() : ?array {
+		return $this->get_relatum()->arrayify();
 	}
 
 
 	### GENERAL METHODS
 
-	public function is_new() : bool {
-		return $this->is_new;
+
+	protected function get_context_attribute() : EntityAttribute {
+		return $this->{$this->context_attribute};
 	}
 
 
-	public function is_loaded() : bool {
-		return isset($this->is_new);
+	protected function get_relatum_attribute() : EntityAttribute {
+		return $this->{$this->relatum_attribute};
 	}
 
 
-	public function &get_relatum() : Entity {
-		return $this->relatum;
+	public function get_relatum() : Entity {
+		return $this->get_relatum_attribute()->get_value();
 	}
 }
 ?>

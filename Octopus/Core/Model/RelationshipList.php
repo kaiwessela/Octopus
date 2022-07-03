@@ -21,11 +21,10 @@ abstract class RelationshipList {
 
 	### CONSTRUCTION METHODS
 
-	function __construct(Entity $context) {
+	function __construct(Entity $context, Relationship $prototype) {
 		$this->context = &$context;
 
-		$class = static::RELATION_CLASS;
-		$this->prototype = new $class($this->context);
+		$this->prototype = $prototype; // TODO improve
 
 		$this->relationships = [];
 		$this->deletions = [];
@@ -48,9 +47,15 @@ abstract class RelationshipList {
 			if(isset($this->relationships[$relationship->id])){ // not optimal
 				break;
 			} else {
+				var_dump($relationship->id);
+				var_dump($relationship->column->id);
 				$this->relationships[$relationship->id] = $relationship;
 			}
 		}
+
+		// foreach($this->relationships as $rel){
+		// 	var_dump($rel->id);
+		// }
 
 		$this->is_complete = $is_complete;
 	}
@@ -251,8 +256,8 @@ abstract class RelationshipList {
 		}
 
 		$result = [];
-		foreach($this->relationships as $relation){
-			$result[$relation->id] = $relation->arrayify();
+		foreach($this->relationships as $id => $relation){
+			$result[$id] = $relation->arrayify();
 		}
 
 		return $result;
@@ -299,12 +304,12 @@ abstract class RelationshipList {
 
 
 	final public function is_complete() : bool {
-		return $this->complete;
+		return $this->is_complete;
 	}
 
 
 	final public function is_loaded() : bool {
-		return isset($this->complete);
+		return isset($this->is_complete);
 	}
 }
 ?>

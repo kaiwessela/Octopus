@@ -149,7 +149,7 @@ final class EntityAttribute extends Attribute {
 
 
 	final public function arrayify() : null|string|int|float|bool|array {
-		return $this->value->arrayify();
+		return $this->value?->arrayify();
 	}
 }
 ?>

@@ -239,6 +239,13 @@ trait EntityAndRelationship {
 	}
 
 
+	final function __clone() {
+		foreach(static::$attributes as $name){
+			$this->$name = clone $this->$name;
+		}
+	}
+
+
 	function __get($name) {
 		# if $this->$name is a defined attribute, return its value
 		if(in_array($name, static::$attributes) && $this->$name->is_loaded()){

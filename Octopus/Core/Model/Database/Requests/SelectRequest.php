@@ -116,7 +116,7 @@ SQL;
 SELECT
 {$columns}
 FROM (
-	SELECT DISTINCT `{$this->table}`.`*` FROM `{$this->table}`
+	SELECT DISTINCT `{$this->table}`.* FROM `{$this->table}`
 	{$joins}
 	{$where}
 	{$order}

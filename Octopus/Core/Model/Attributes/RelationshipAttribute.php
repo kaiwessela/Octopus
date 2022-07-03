@@ -95,7 +95,7 @@ class RelationshipAttribute extends Attribute {
 	final public function get_list_prototype() : RelationshipList {
 		if(!isset($this->list_prototype)){
 			$class = $this->get_list_class();
-			$this->list_prototype = new $class($this->parent);
+			$this->list_prototype = new $class($this->parent, $this->get_prototype());
 		}
 
 		return $this->list_prototype;
@@ -112,7 +112,7 @@ class RelationshipAttribute extends Attribute {
 
 
 	final public function arrayify() : null|string|int|float|bool|array {
-		return $this->value->arrayify();
+		return $this->value?->arrayify();
 	}
 }
 ?>

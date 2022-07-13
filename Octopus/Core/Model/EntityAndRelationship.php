@@ -74,7 +74,7 @@ trait EntityAndRelationship {
 			}
 
 			if($this->$name->is_joinable() && $join){
-				if(!$this->is_independent() && $this->$name->get_class() === $this->context::class){ // FIXME DOES NOT WORK! Relationship must have an Entity as context, not an EntityAttribute.
+				if(!$this->is_independent() && $this->$name->get_class() === $this->context::class){
 					continue;
 				}
 
@@ -83,9 +83,11 @@ trait EntityAndRelationship {
 				}
 
 				if($this->$name instanceof EntityAttribute){
-					$request->add_join($this->$name->get_prototype()->join(on:$this->$name, attributes:$option));
+					$request->add_join($this->$name->get_join_request($option));
+					// $request->add_join($this->$name->get_prototype()->join(on:$this->$name, attributes:$option));
 				} else if($this->$name instanceof RelationshipAttribute){
-					$request->add_join($this->$name->get_prototype()->join(on:$this->id, attributes:$option));
+					$request->add_join($this->$name->get_join_request($option));
+					// $request->add_join($this->$name->get_prototype()->join(on:$this->id, attributes:$option));
 				}
 			}
 		}

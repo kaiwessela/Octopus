@@ -47,8 +47,6 @@ abstract class RelationshipList {
 			if(isset($this->relationships[$relationship->id])){ // not optimal
 				break;
 			} else {
-				var_dump($relationship->id);
-				var_dump($relationship->column->id);
 				$this->relationships[$relationship->id] = $relationship;
 			}
 		}

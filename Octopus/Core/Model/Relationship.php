@@ -94,8 +94,8 @@ abstract class Relationship {
 	abstract protected static function define_attributes() : array;
 
 
-	final public function join(Attribute $on, array $attributes = []) : JoinRequest {
-		$request = new JoinRequest($this->get_db_table(), $this->get_prefixed_db_table(), $this->get_context_attribute(), $on);
+	final public function join(array $attributes = []) : JoinRequest {
+		$request = new JoinRequest($this->get_db_table(), $this->get_prefixed_db_table(), $this->get_context_attribute(), $this->context->{$this->get_context_attribute()->get_identify_by()});
 		$this->build_pull_request($request, $attributes);
 		return $request;
 	}

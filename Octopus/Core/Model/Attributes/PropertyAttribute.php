@@ -35,6 +35,7 @@ abstract class PropertyAttribute extends Attribute {
 
 	use PullableAttributes;
 	# final public function is_pullable();
+	# final public function get_db_column();
 	# final public function get_prefixed_db_column() : string;
 	# final public function get_result_column() : string;
 	# abstract public function get_push_value() : null|string|int|float;
@@ -42,11 +43,6 @@ abstract class PropertyAttribute extends Attribute {
 
 
 	abstract public function load(null|string|int|float $data) : void;
-
-
-	final public function get_db_column() : string {
-		return $this->name;
-	}
 
 
 	// TEMP

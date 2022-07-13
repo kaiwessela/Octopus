@@ -2,6 +2,7 @@
 namespace Octopus\Core\Model\Attributes;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\Relationship;
+use \Octopus\Core\Model\Database\Requests\JoinRequest;
 
 trait JoinableAttributes {
 	# requires:
@@ -18,9 +19,10 @@ trait JoinableAttributes {
 	}
 
 
-	final public function get_detection_column() : string {
-		return "{$this->get_prototype()->get_prefixed_db_table()}.id";
-	}
+	abstract public function get_join_request() : JoinRequest;
+
+
+	abstract public function get_detection_column() : string;
 
 
 	abstract public function get_prototype() : Entity|Relationship;

@@ -4,6 +4,7 @@ use \Octopus\Core\Model\Relationship;
 use \Octopus\Core\Model\RelationshipList;
 use \Octopus\Core\Model\Attributes\Attribute;
 use \Octopus\Core\Model\Attributes\JoinableAttributes;
+use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Exception;
 
@@ -99,6 +100,16 @@ class RelationshipAttribute extends Attribute {
 		}
 
 		return $this->list_prototype;
+	}
+
+
+	final public function get_detection_column() : string {
+		return "{$this->get_prototype()->get_prefixed_db_table()}.id";
+	}
+
+
+	final public function get_join_request(array $attributes = []) : JoinRequest {
+		return $this->get_prototype()->join($attributes);
 	}
 
 

@@ -10,6 +10,7 @@ use \Octopus\Core\Model\Attributes\Exceptions\MissingValueException;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
 use \Octopus\Core\Model\Database\Exceptions\EmptyResultException;
+use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Database\Requests\Conditions\EqualsCondition;
 use \Exception;
@@ -26,6 +27,8 @@ final class EntityAttribute extends Attribute {
 
 	protected string $class;
 	protected Entity $prototype;
+	protected bool $entity_must_exist;
+	protected string $identify_by;
 
 
 	# ---> Attribute
@@ -43,6 +46,7 @@ final class EntityAttribute extends Attribute {
 
 	use PullableAttributes;
 	# final public function is_pullable();
+	# final public function get_db_column();
 	# final public function get_prefixed_db_column() : string;
 	# final public function get_result_column() : string;
 
@@ -53,13 +57,15 @@ final class EntityAttribute extends Attribute {
 
 
 
-	final public static function define(string $class, bool $is_required = false, bool $is_editable = true) : EntityAttribute {
+	final public static function define(string $class, string $identify_by, bool $is_required = false, bool $is_editable = true, bool $entity_must_exist = true) : EntityAttribute {
 		if(!class_exists($class) || !is_subclass_of($class, Entity::class)){
 			throw new Exception("Invalid class «{$class}».");
 		}
 
 		$attribute = new static($is_required, $is_editable);
 		$attribute->class = $class;
+		$attribute->entity_must_exist = $entity_must_exist;
+		$attribute->identify_by = $identify_by; // TODO validate
 
 		return $attribute;
 	}
@@ -67,9 +73,12 @@ final class EntityAttribute extends Attribute {
 
 	final public function load(Entity|array $data) : void {
 		if($data instanceof Entity){
-			$this->value = $data; // TODO check this
-		} else if(is_null($data[$this->get_detection_column()])){
+			$this->value = $data; // TODO validate this
+		} else if(is_null($data[$this->get_result_column()])){
 			$this->value = null;
+		} else if(is_null($data[$this->get_detection_column()])){
+			$this->value = clone $this->get_prototype();
+			$this->value->load([$this->get_detection_column() => $data[$this->get_result_column()]]);
 		} else {
 			$this->value = clone $this->get_prototype();
 			$this->value->load($data);
@@ -82,33 +91,41 @@ final class EntityAttribute extends Attribute {
 	final public function edit(mixed $input) : void {
 		if($input instanceof Entity){
 			if($input::class !== $this->get_class()){
-				throw new IllegalValueException($this, $input, 'class not matching');
+				throw new IllegalValueException($this, $input, 'wrong class');
+			} else if(!$input->is_loaded()){
+				throw new IllegalValueException($this, $input, 'entity is not loaded');
 			}
 
 			$entity = $input;
-
-		} else if(is_string($input) || (is_array($input) && isset($input['id']))){ // FIXME
-			$id = $input['id'] ?? $input;
+			$identifier = $input->{$this->identify_by};
+		} else if(is_string($input)){
+			$identifier = $input;
 			$entity = clone $this->get_prototype();
 
 			try {
-				$entity->pull($id);
+				$entity->pull($identifier, $this->identify_by);
 			} catch(EmptyResultException $e){
-				throw new EntityNotFoundException($this, $id);
+				if($this->entity_must_exist){
+					throw new EntityNotFoundException($this, $identifier);
+				} else {
+					// TODO validate the identifier
+					$entity->load([$this->get_detection_column() => $identifier]);
+				}
 			}
 		} else if(empty($input)){
 			if($this->is_required()){
 				throw new MissingValueException($this);
 			} else {
 				$entity = null;
+				$identifier = null;
 			}
 		} else {
 			throw new AttributeValueException($this, $input, 'unsuppoted input format.');
 		}
 
-		if($entity?->id !== $this->value?->id){
+		if($identifier !== $this->value?->$this->identify_by){
 			if(!$this->is_editable()){
-				throw new AttributeNotAlterableException($this, $entity?->id);
+				throw new AttributeNotAlterableException($this, $identifier);
 			}
 
 			$this->value = $entity;
@@ -117,13 +134,8 @@ final class EntityAttribute extends Attribute {
 	}
 
 
-	final public function get_db_column() : string {
-		return $this->name.'_id';
-	}
-
-
 	final public function get_push_value() : null|string|int|float {
-		return $this->value?->id;
+		return $this->value?->{$this->identify_by};
 	}
 
 
@@ -134,6 +146,21 @@ final class EntityAttribute extends Attribute {
 		}
 
 		return $this->prototype;
+	}
+
+
+	final public function get_detection_column() : string {
+		return "{$this->get_prototype()->get_prefixed_db_table()}.{$this->identify_by}";
+	}
+
+
+	final public function get_join_request(array $attributes = []) : JoinRequest {
+		return $this->get_prototype()->join(on:$this, identify_by:$this->identify_by, attributes:$attributes);
+	}
+
+
+	final public function get_identify_by() : string { // this could be nicer maybe
+		return $this->identify_by;
 	}
 
 

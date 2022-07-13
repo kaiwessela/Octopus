@@ -29,8 +29,8 @@ use \Exception;
 
 
 abstract class Entity {
-	protected IDAttribute $id;	# main unique identifier of the object; uneditable; randomly generated on create()
-	protected IdentifierAttribute $longid;		# another unique identifier; editable; set by the user
+	// protected IDAttribute $id;	# main unique identifier of the object; uneditable; randomly generated on create()
+	// protected IdentifierAttribute $longid;		# another unique identifier; editable; set by the user
 
 	protected bool $is_new;
 
@@ -67,8 +67,16 @@ abstract class Entity {
 
 		$this->load_attributes();
 
-		if(!($this->id ?? null) instanceof IdentifierAttribute){
-			throw new Exception('Invalid attribute definitions: valid id definition missing.');
+		$identifier_found = false;
+		foreach(static::$attributes as $name){
+			if($this->$name instanceof IdentifierAttribute && $this->$name->is_required()){
+				$identifier_found = true;
+				break;
+			}
+		}
+
+		if(!$identifier_found){
+			throw new Exception('Invalid attribute definitions: unique identifier definition missing.');
 		}
 	}
 
@@ -135,8 +143,14 @@ abstract class Entity {
 	}
 
 
-	final public function join(Attribute $on, array $attributes = []) : JoinRequest {
-		$request = new JoinRequest($this->get_db_table(), $this->get_prefixed_db_table(), $this->id, $on);
+	final public function join(Attribute $on, string $identify_by, array $attributes = []) : JoinRequest {
+		if(!in_array($identify_by, static::$attributes)){
+			throw new Exception("Argument identify_by: attribute «{$identify_by}» not found.");
+		} else if(!$this->$identify_by instanceof IdentifierAttribute){
+			throw new Exception("Argument identify_by: attribute «{$identify_by}» is not an identifier.");
+		}
+
+		$request = new JoinRequest($this->get_db_table(), $this->get_prefixed_db_table(), $this->$identify_by, $on);
 		$this->build_pull_request($request, $attributes);
 		return $request;
 	}
@@ -159,9 +173,7 @@ abstract class Entity {
 		foreach(static::$attributes as $name){
 			if($this->$name->is_pullable() && !array_key_exists($this->$name->get_result_column(), $row)){
 				continue;
-			}
-
-			if($this->$name->is_joinable() && !array_key_exists($this->$name->get_detection_column(), $row)){
+			} else if($this->$name->is_joinable() && !array_key_exists($this->$name->get_detection_column(), $row)){
 				continue;
 			}
 

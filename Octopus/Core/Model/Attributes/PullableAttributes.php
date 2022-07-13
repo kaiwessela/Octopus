@@ -8,7 +8,9 @@ trait PullableAttributes {
 	}
 
 
-	abstract public function get_db_column() : string;
+	final public function get_db_column() : string {
+		return $this->name;
+	}
 
 
 	final public function get_prefixed_db_column() : string {
@@ -22,6 +24,5 @@ trait PullableAttributes {
 
 
 	abstract public function get_push_value() : null|string|int|float;
-	
 }
 ?>

@@ -39,11 +39,9 @@ abstract class Relationship {
 	protected bool $is_new;
 
 	use EntityAndRelationship;
+	protected static array $attributes;
 
 	protected const DB_TABLE = '';
-
-	# all child classes must set the following property:
-	# protected static array $attributes;
 
 	protected string $db_prefix;
 
@@ -56,7 +54,7 @@ abstract class Relationship {
 
 		$this->load_attributes();
 
-		foreach(static::$attributes as $name){
+		foreach($this->get_attributes() as $name){
 			if($this->$name instanceof PropertyAttribute){
 				continue;
 			} else if($this->$name instanceof EntityAttribute){
@@ -129,7 +127,7 @@ abstract class Relationship {
 			throw new CallOutOfOrderException();
 		}
 
-		foreach(static::$attributes as $name){
+		foreach($this->get_attributes() as $name){
 			if($this->$name instanceof PropertyAttribute){
 				if(!array_key_exists($this->$name->get_result_column(), $row)){
 					continue;
@@ -169,7 +167,7 @@ abstract class Relationship {
 		$data = array_merge($data, array_flip(array_keys($_FILES)));
 
 		foreach($data as $name => $input){ # loop through all input fields
-			if(!isset(static::$attributes[$name])){
+			if(!$this->has_attribute($name)){
 				continue;
 			}
 
@@ -214,13 +212,13 @@ abstract class Relationship {
 			$request = new InsertRequest($this);
 		} else {
 			$request = new UpdateRequest($this);
-			$request->set_condition(new IdentifierEqualsCondition(static::$attributes['id'], $this->id->get_value()));
+			$request->set_condition(new IdentifierEqualsCondition($this->get_main_identifier_attribute(), $this->get_main_identifier_attribute()->get_value()));
 		}
 
 		$errors = new AttributeValueExceptionList();
 		$push_values = [];
 
-		foreach(static::$attributes as $name => $attribute){
+		foreach($this->get_attributes() as $name => $attribute){
 			if($attribute instanceof EntityAttribute && !$this->is_new()){
 				continue;
 			}
@@ -267,7 +265,7 @@ abstract class Relationship {
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
 		$request = new DeleteRequest($this);
-		$request->set_condition(new IdentifierEqualsCondition(static::$attributes['id'], $this->id->get_value()));
+		$request->set_condition(new IdentifierEqualsCondition($this->get_main_identifier_attribute(), $this->get_main_identifier_attribute()->get_value()));
 
 		try {
 			$s = $this->get_db()->prepare($request->get_query());

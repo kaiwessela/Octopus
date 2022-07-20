@@ -19,12 +19,16 @@ use \Exception;
 trait EntityAndRelationship {
 
 	final protected function load_attributes() : void {
-		static::$attributes = [];
+		if(!isset(self::$attributes)){
+			self::$attributes = [];
+		}
+
+		self::$attributes[static::class] = [];
 
 		foreach(static::define_attributes() as $name => $attribute){
 			$this->$name = $attribute;
 			$this->$name->bind($name, $this);
-			static::$attributes[] = $name;
+			self::$attributes[static::class][] = $name;
 		}
 	}
 
@@ -44,8 +48,18 @@ trait EntityAndRelationship {
 	}
 
 
+	final public function get_attributes() : array {
+		return self::$attributes[static::class];
+	}
+
+
+	final public function has_attribute(string $name) : bool {
+		return in_array($name, $this->get_attributes());
+	}
+
+
 	final public function get_attribute(string $name) : Attribute {
-		if(in_array($name, static::$attributes)){
+		if(in_array($name, $this->get_attributes())){
 			return $this->$name;
 		} else {
 			throw new Exception("Attribute «{$name}» not found.");
@@ -60,7 +74,7 @@ trait EntityAndRelationship {
 
 	final public function build_pull_request(Request &$request, array $attributes = []) : void {
 		foreach($attributes as $name => $option){
-			if(!in_array($name, static::$attributes)){
+			if(!$this->has_attribute($name)){
 				throw new Exception(); // Error
 			}
 
@@ -69,7 +83,7 @@ trait EntityAndRelationship {
 			}
 		}
 
-		foreach(static::$attributes as $name){
+		foreach($this->get_attributes() as $name){
 			$option = $attributes[$name] ?? static::DEFAULT_PULL_ATTRIBUTES[$name] ?? null;
 
 			if(is_array($option) || is_null($option)){
@@ -98,13 +112,7 @@ trait EntityAndRelationship {
 					continue;
 				}
 
-				if($this->$name instanceof EntityAttribute){
-					$request->add_join($this->$name->get_join_request($option));
-					// $request->add_join($this->$name->get_prototype()->join(on:$this->$name, attributes:$option));
-				} else if($this->$name instanceof RelationshipAttribute){
-					$request->add_join($this->$name->get_join_request($option));
-					// $request->add_join($this->$name->get_prototype()->join(on:$this->id, attributes:$option));
-				}
+				$request->add_join($this->$name->get_join_request($option));
 			}
 		}
 	}
@@ -128,7 +136,7 @@ trait EntityAndRelationship {
 
 				$conditions[] = $this->resolve_pull_conditions($option, $attribute);
 
-			} else if(in_array($attribute, static::$attributes)){
+			} else if(!$this->has_attribute($attribute)){
 				$conditions[] = $this->$attribute->resolve_pull_condition($option);
 
 			} else {
@@ -172,7 +180,7 @@ trait EntityAndRelationship {
 		$level2 = [];
 
 		foreach($options as $attribute => $option){
-			if(!in_array($attribute, static::$attributes)){
+			if(!$this->has_attribute($attribute)){
 				throw new Exception(); // Error
 			}
 
@@ -226,7 +234,7 @@ trait EntityAndRelationship {
 			throw new CallOutOfOrderException();
 		}
 
-		if(!isset(static::$attributes[$name])){
+		if(!$this->has_attribute($name)){
 			throw new Exception("Attribute «{$name}» is not defined.");
 		}
 
@@ -258,7 +266,7 @@ trait EntityAndRelationship {
 
 
 	final function __clone() {
-		foreach(static::$attributes as $name){
+		foreach($this->get_attributes() as $name){
 			$this->$name = clone $this->$name;
 		}
 	}
@@ -266,14 +274,14 @@ trait EntityAndRelationship {
 
 	function __get($name) {
 		# if $this->$name is a defined attribute, return its value
-		if(in_array($name, static::$attributes) && $this->$name->is_loaded()){
+		if($this->has_attribute($name) && $this->$name->is_loaded()){
 			return $this->$name->get_value();
 		}
 	}
 
 
 	function __isset(string $name) : bool {
-		return in_array($name, static::$attributes) && $this->$name->is_loaded();
+		return $this->has_attribute($name) && $this->$name->is_loaded();
 	}
 }
 ?>

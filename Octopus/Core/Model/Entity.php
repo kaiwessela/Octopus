@@ -37,14 +37,12 @@ abstract class Entity {
 	# this class uses the Attributes trait which contains standard methods that handle the attributes of this class
 	# for documentation on the following definitions, check the Attributes trait source file
 	use EntityAndRelationship;
+	protected static array $attributes;
 
 	protected const DB_TABLE = null;
 	protected const LIST_CLASS = null;
 	protected const MAIN_IDENTIFIER = null;
 	protected string $main_identifier;
-
-	# all child classes must set the following property:
-	# protected static array $attributes;
 
 	protected null|Entity|EntityList|Relationship $context;
 	protected ?string $db_prefix;
@@ -78,7 +76,7 @@ abstract class Entity {
 
 		$this->load_attributes();
 
-		foreach(static::$attributes as $name){
+		foreach($this->get_attributes() as $name){
 			// the order of these two ifs is counterintuitive, but it is actually better for the performance this way
 			if($name !== (static::MAIN_IDENTIFIER ?? $name)){
 				continue;
@@ -133,7 +131,7 @@ abstract class Entity {
 		}
 
 		# verify the identify_by value
-		if(!in_array($identify_by, static::$attributes)){
+		if(!$this->has_attribute($identify_by)){
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» not found.");
 		} else if(!$this->$identify_by instanceof IdentifierAttribute){
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» is not an identifier.");
@@ -159,7 +157,7 @@ abstract class Entity {
 
 
 	final public function join(Attribute $on, string $identify_by, array $attributes = []) : JoinRequest {
-		if(!in_array($identify_by, static::$attributes)){
+		if(!$this->has_attribute($identify_by)){
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» not found.");
 		} else if(!$this->$identify_by instanceof IdentifierAttribute){
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» is not an identifier.");
@@ -185,7 +183,7 @@ abstract class Entity {
 			$row = $data; # without relationships
 		}
 
-		foreach(static::$attributes as $name){
+		foreach($this->get_attributes() as $name){
 			if($this->$name->is_pullable() && !array_key_exists($this->$name->get_result_column(), $row)){
 				continue;
 			} else if($this->$name->is_joinable() && !array_key_exists($this->$name->get_detection_column(), $row)){
@@ -225,7 +223,7 @@ abstract class Entity {
 		$data = array_merge($data, array_flip(array_keys($_FILES)));
 
 		foreach($data as $name => $input){ # loop through all input fields
-			if(!isset(static::$attributes[$name])){ # check if the attribute exists
+			if(!$this->has_attribute($name)){ # check if the attribute exists
 				continue;
 			}
 
@@ -270,12 +268,12 @@ abstract class Entity {
 			$request = new InsertRequest($this);
 		} else {
 			$request = new UpdateRequest($this);
-			$request->set_condition(new IdentifierEqualsCondition($this->id, $this->id->get_value()));
+			$request->set_condition(new IdentifierEqualsCondition($this->get_main_identifier_attribute(), $this->get_main_identifier_attribute()->get_value()));
 		}
 
 		$errors = new AttributeValueExceptionList();
 
-		foreach(static::$attributes as $name){
+		foreach($this->get_attributes() as $name){
 			if($this->$name->is_pullable()){
 				if($this->$name->is_required() && $this->$name->is_empty()){
 					$errors->push(new MissingValueException($this->$name));
@@ -299,7 +297,7 @@ abstract class Entity {
 			$request_performed = false;
 		}
 
-		foreach(static::$attributes as $name){
+		foreach($this->get_attributes() as $name){
 			if($this->$name instanceof RelationshipAttribute){
 				$request_performed |= $this->$name->push();
 			} else if($this->$name->is_pullable()){
@@ -327,7 +325,7 @@ abstract class Entity {
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
 		$request = new DeleteRequest($this);
-		$request->set_condition(new IdentifierEqualsCondition(static::$attributes['id'], $this->id->get_value()));
+		$request->set_condition(new IdentifierEqualsCondition($this->get_main_identifier_attribute(), $this->get_main_identifier_attribute()->get_value()));
 
 		try {
 			$s = $this->db->prepare($request->get_query());
@@ -349,7 +347,7 @@ abstract class Entity {
 	final public function arrayify() : array|null {
 		$result = [];
 
-		foreach(static::$attributes as $name){
+		foreach($this->get_attributes() as $name){
 			if($this->$name->is_loaded()){
 				$result[$name] = $this->$name->arrayify();
 			}

@@ -1,22 +1,23 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
+use \Octopus\Core\Model\Entity;
+use \Octopus\Core\Model\Relationship;
 use \Octopus\Core\Model\Database\Requests\Request;
 use \Octopus\Core\Model\Database\Requests\SelectAndJoin;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
 use \Octopus\Core\Model\Attributes\Attribute;
+use \Octopus\Core\Model\Attributes\IdentifierAttribute;
 use Exception;
 
 // TODO explainations
 
 final class SelectRequest extends Request {
 	# inherited from Request:
-	# protected string $table;
+	# protected Entity|Relationship $object;
 	# protected array $attributes;
 	# protected string $query;
 	# protected ?array $values;
-
-	protected string $table_alias;
 
 	protected string $count_query;
 
@@ -41,8 +42,8 @@ final class SelectRequest extends Request {
 	# final public function is_resolved() : bool;
 
 
-	function __construct(string $table) {
-		parent::__construct($table);
+	function __construct(Entity|Relationship $object) {
+		parent::__construct($object);
 
 		$this->limit = null;
 		$this->offset = null;
@@ -97,11 +98,11 @@ final class SelectRequest extends Request {
 		$order = $this->resolve_order();
 		$limit = $this->resolve_limit();
 
-		if(!$this->is_multidimensional() || $this->has_unique_identifier($this->condition)){ // unidimensional
+		if(!$this->is_convoluted()){ // unidimensional
 			$this->query = <<<"SQL"
 SELECT
 {$columns}
-FROM `{$this->table}`
+FROM `{$this->object->get_db_table()}`
 {$joins}
 {$where}
 {$order}
@@ -109,26 +110,26 @@ FROM `{$this->table}`
 SQL;
 
 
-			$this->count_query = "SELECT COUNT(*) AS `total` FROM `{$this->table}` {$joins} {$where}";
+			$this->count_query = "SELECT COUNT(*) AS `total` FROM `{$this->object->get_db_table()}` {$joins} {$where}";
 
 		} else { // multidimensional
 			$this->query = <<<"SQL"
 SELECT
 {$columns}
 FROM (
-	SELECT DISTINCT `{$this->table}`.* FROM `{$this->table}`
+	SELECT DISTINCT `{$this->object->get_db_table()}`.* FROM `{$this->object->get_db_table()}`
 	{$joins}
 	{$where}
 	{$order}
 	{$limit}
-) AS `{$this->table}`
+) AS `{$this->object->get_db_table()}`
 {$joins}
 {$where}
 {$order}
 SQL;
 
 
-			$this->count_query = "SELECT COUNT(DISTINCT {$this->table}.*) AS `total` FROM `{$this->table}` {$joins} {$where}";
+			$this->count_query = "SELECT COUNT(DISTINCT {$this->object->get_main_identifier_attribute()->get_prefixed_db_column()}) AS `total` FROM `{$this->object->get_db_table()}` {$joins} {$where}";
 		}
 	}
 
@@ -210,6 +211,21 @@ SQL;
 
 	final public function set_condition(?Condition $condition) : void {
 		$this->condition = $condition;
+	}
+
+
+	final public function is_convoluted() : bool {
+		if($this->has_unique_identifier($this->condition)){
+			return false;
+		}
+
+		foreach($this->joins as $join){
+			if($join->is_convoluted()){
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
 ?>

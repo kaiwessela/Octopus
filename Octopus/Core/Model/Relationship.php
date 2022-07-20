@@ -95,7 +95,9 @@ abstract class Relationship {
 
 
 	final public function join(array $attributes = []) : JoinRequest {
-		$request = new JoinRequest($this->get_db_table(), $this->get_prefixed_db_table(), $this->get_context_attribute(), $this->context->{$this->get_context_attribute()->get_identify_by()});
+		// TEMP the last argument uses a hotfix
+		// $request = new JoinRequest($this, $this->get_context_attribute(), $this->context->get_attribute($this->get_context_attribute()->get_identify_by()));
+		$request = new JoinRequest($this, $this->get_context_attribute(), $this->context->get_main_identifier_attribute());
 		$this->build_pull_request($request, $attributes);
 		return $request;
 	}
@@ -209,9 +211,9 @@ abstract class Relationship {
 		}
 
 		if($this->is_new()){
-			$request = new InsertRequest($this->get_db_table());
+			$request = new InsertRequest($this);
 		} else {
-			$request = new UpdateRequest($this->get_db_table());
+			$request = new UpdateRequest($this);
 			$request->set_condition(new IdentifierEqualsCondition(static::$attributes['id'], $this->id->get_value()));
 		}
 
@@ -264,7 +266,7 @@ abstract class Relationship {
 		}
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
-		$request = new DeleteRequest($this->get_db_table());
+		$request = new DeleteRequest($this);
 		$request->set_condition(new IdentifierEqualsCondition(static::$attributes['id'], $this->id->get_value()));
 
 		try {

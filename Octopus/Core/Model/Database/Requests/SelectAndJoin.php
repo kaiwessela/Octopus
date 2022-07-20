@@ -12,8 +12,8 @@ use \Exception;
 trait SelectAndJoin {
 
 	public function add_join(JoinRequest $request) : void {
-		if($request->get_foreign_attribute()->get_db_table() !== $this->table){
-			throw new Exception('Foreign Attribute db table must match this request’s table');
+		if($this instanceof JoinRequest && $request->is_reverse_join()){
+			throw new Exception('Reverse joins can only be performed on the first level.');
 		}
 
 		$this->joins[] = $request;
@@ -25,10 +25,11 @@ trait SelectAndJoin {
 	}
 
 
-	protected function has_unique_identifier(Condition $condition) : bool {
-		// TODO table might lead to trouble because of alias tables
-		if($condition instanceof IdentifierCondition){
-			return $condition->get_attribute()->get_db_table() === $this->table;
+	protected function has_unique_identifier(?Condition $condition = null) : bool {
+		if($this instanceof JoinRequest && $this->is_forward_join()){
+			return true;
+		} else if($condition instanceof IdentifierCondition){
+			return $condition->get_attribute()->get_prefixed_db_table() === $this->object->get_prefixed_db_table();
 		} else if($condition instanceof AndCondition){
 			foreach($condition->get_conditions() as $cond){
 				if($this->has_unique_identifier($cond)){
@@ -41,18 +42,5 @@ trait SelectAndJoin {
 			return false;
 		}
 	}
-
-
-	public function is_multidimensional() : bool { // TODO could be improved, can produce false positives
-		$md = false;
-
-		foreach($this->joins as $join){
-			$md |= ($join->is_multijoin() || $join->is_multidimensional());
-		}
-
-		return $md;
-	}
-
-
 }
 ?>

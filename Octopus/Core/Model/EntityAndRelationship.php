@@ -2,6 +2,8 @@
 namespace Octopus\Core\Model;
 use \Octopus\Core\Model\EntityList;
 use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
+use \Octopus\Core\Model\Attributes\Attribute;
+use \Octopus\Core\Model\Attributes\IdentifierAttribute;
 use \Octopus\Core\Model\Attributes\PropertyAttribute;
 use \Octopus\Core\Model\Attributes\EntityAttribute;
 use \Octopus\Core\Model\Attributes\RelationshipAttribute;
@@ -39,6 +41,20 @@ trait EntityAndRelationship {
 
 	public function is_independent() : bool {
 		return !isset($this->context);
+	}
+
+
+	final public function get_attribute(string $name) : Attribute {
+		if(in_array($name, static::$attributes)){
+			return $this->$name;
+		} else {
+			throw new Exception("Attribute «{$name}» not found.");
+		}
+	}
+
+
+	final public function get_main_identifier_attribute() : IdentifierAttribute {
+		return $this->get_attribute($this->main_identifier);
 	}
 
 

@@ -8,7 +8,7 @@ use \Exception;
 
 final class DeleteRequest extends Request {
 	# inherited from Request:
-	# protected string $table;
+	# protected Entity|Relationship $object;
 	# protected array $attributes;
 	# protected string $query;
 	# protected array $values;
@@ -17,7 +17,7 @@ final class DeleteRequest extends Request {
 
 
 	# ---> Request:
-	# function __construct(string $table);
+	# function __construct(Entity|Relationship $object);
 	# final public function add(Attribute $attribute) : void;
 	# final public function remove(Attribute $attribute) : void;
 	# final public function is_resolved() : bool;
@@ -37,7 +37,7 @@ final class DeleteRequest extends Request {
 			throw new Exception('An IdentifierCondition must be set for this request.');
 		}
 
-		$this->query = "DELETE FROM `{$this->table}` WHERE {$this->condition->get_query()}";
+		$this->query = "DELETE FROM `{$this->object->get_db_table()}` WHERE {$this->condition->get_query()}";
 		$this->values = $this->condition->get_values();
 	}
 }

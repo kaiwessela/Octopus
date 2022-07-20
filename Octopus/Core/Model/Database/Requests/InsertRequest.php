@@ -7,14 +7,14 @@ use \Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
 
 final class InsertRequest extends Request {
 	# inherited from Request:
-	# protected string $table;
+	# protected Entity|Relationship $object;
 	# protected array $attributes;
 	# protected string $query;
 	# protected array $values;
 
 
 	# ---> Request:
-	# function __construct(string $table);
+	# function __construct(Entity|Relationship $object);
 	# final public function add(Attribute $attribute) : void;
 	# final public function remove(Attribute $attribute) : void;
 	# final public function is_resolved() : bool;
@@ -35,7 +35,7 @@ final class InsertRequest extends Request {
 			$this->values[$attribute->get_name()] = $attribute->get_push_value();
 		}
 
-		$this->query = "INSERT INTO `{$this->table}` SET".PHP_EOL;
+		$this->query = "INSERT INTO `{$this->object->get_db_table()}` SET".PHP_EOL;
 		$this->query .= implode(','.PHP_EOL, $columns);
 	}
 }

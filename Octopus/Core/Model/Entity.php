@@ -38,7 +38,10 @@ abstract class Entity {
 	# for documentation on the following definitions, check the Attributes trait source file
 	use EntityAndRelationship;
 
-	protected const DB_TABLE = '';
+	protected const DB_TABLE = null;
+	protected const LIST_CLASS = null;
+	protected const MAIN_IDENTIFIER = null;
+	protected string $main_identifier;
 
 	# all child classes must set the following property:
 	# protected static array $attributes;
@@ -59,24 +62,36 @@ abstract class Entity {
 		$this->context = &$context;
 
 		if($this->is_independent() && !is_null($db_prefix)){
-			throw new Exception('independent entities must not have a database prefix.');
+			throw new Exception('independent entities cannot have a database prefix.');
 		}
 
 		$this->db_prefix = $db_prefix;
 		$this->db = &$db;
 
+		if(!is_string(static::DB_TABLE) || !preg_match('/^[a-z_]+$/', static::DB_TABLE)){
+			throw new Exception('invalid db table.');
+		}
+
+		if(!is_string(static::LIST_CLASS) || !is_subclass_of(static::LIST_CLASS, EntityList::class)){
+			throw new Exception('invalid list class.');
+		}
+
 		$this->load_attributes();
 
-		$identifier_found = false;
 		foreach(static::$attributes as $name){
+			// the order of these two ifs is counterintuitive, but it is actually better for the performance this way
+			if($name !== (static::MAIN_IDENTIFIER ?? $name)){
+				continue;
+			}
+
 			if($this->$name instanceof IdentifierAttribute && $this->$name->is_required()){
-				$identifier_found = true;
+				$this->main_identifier = $name;
 				break;
 			}
 		}
 
-		if(!$identifier_found){
-			throw new Exception('Invalid attribute definitions: unique identifier definition missing.');
+		if(!isset($this->main_identifier)){
+			throw new Exception('Invalid attribute definitions: main unique identifier missing/not found.');
 		}
 	}
 
@@ -124,7 +139,7 @@ abstract class Entity {
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» is not an identifier.");
 		}
 
-		$request = new SelectRequest($this->get_db_table());
+		$request = new SelectRequest($this);
 		$this->build_pull_request($request, $attributes);
 		$request->set_condition(new IdentifierEqualsCondition($this->$identify_by, $identifier));
 
@@ -150,7 +165,7 @@ abstract class Entity {
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» is not an identifier.");
 		}
 
-		$request = new JoinRequest($this->get_db_table(), $this->get_prefixed_db_table(), $this->$identify_by, $on);
+		$request = new JoinRequest($this, $this->$identify_by, $on);
 		$this->build_pull_request($request, $attributes);
 		return $request;
 	}
@@ -252,9 +267,9 @@ abstract class Entity {
 		}
 
 		if($this->is_new()){
-			$request = new InsertRequest($this->get_db_table());
+			$request = new InsertRequest($this);
 		} else {
-			$request = new UpdateRequest($this->get_db_table());
+			$request = new UpdateRequest($this);
 			$request->set_condition(new IdentifierEqualsCondition($this->id, $this->id->get_value()));
 		}
 
@@ -311,7 +326,7 @@ abstract class Entity {
 		}
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
-		$request = new DeleteRequest($this->get_db_table());
+		$request = new DeleteRequest($this);
 		$request->set_condition(new IdentifierEqualsCondition(static::$attributes['id'], $this->id->get_value()));
 
 		try {

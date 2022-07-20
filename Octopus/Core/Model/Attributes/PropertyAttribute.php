@@ -51,6 +51,11 @@ abstract class PropertyAttribute extends Attribute {
 	}
 
 
+	public function get_push_value() : null|string|int|float {
+		return $this->value;
+	}
+
+
 	public function arrayify() : null|string|int|float|bool|array {
 		return $this->value;
 	}

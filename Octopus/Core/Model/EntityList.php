@@ -57,8 +57,8 @@ abstract class EntityList {
 	}
 
 
-	public function &get_db() : DatabaseAccess { // TODO check
-		return $this->db ?? $this->context?->get_db();
+	public function &get_db() : DatabaseAccess {
+		return $this->db;
 	}
 
 
@@ -73,11 +73,11 @@ abstract class EntityList {
 			throw new CallOutOfOrderException();
 		}
 
-		$request = new SelectRequest($this->prototype->get_db_table());
+		$request = new SelectRequest($this->prototype);
 		$this->prototype->build_pull_request($request, $attributes);
 
-		$request->set_conditions($this->resolve_pull_conditions($conditions));
-		$request->set_order($this->resolve_pull_order($order));
+		$request->set_condition($this->prototype->resolve_pull_conditions($conditions));
+		$request->set_order($this->prototype->resolve_pull_order($order));
 		$request->set_limit($limit, $offset);
 
 		try {
@@ -109,23 +109,22 @@ abstract class EntityList {
 		$this->entities = [];
 
 		$datasets = [];
-
-		$buffer = null;
+		$last_id = null;
+		$i = -1;
 		foreach($data as $row){
-			if(empty($buffer) || $buffer[0][0] === $row[0]){
-				$buffer[] = $row;
-			} else {
-				$datasets[] = $buffer;
-				$buffer = null;
+			if($last_id !== $row[$this->prototype->get_main_identifier_attribute()->get_result_column()]){
+				$i++;
+				$datasets[$i] = [];
 			}
-		}
 
-		$datasets[] = $buffer;
+			$datasets[$i][] = $row;
+			$last_id = $row[$this->prototype->get_main_identifier_attribute()->get_result_column()];
+		}
 
 		foreach($datasets as $dataset){
 			$entity = clone $this->prototype;
 			$entity->load($dataset);
-			$this->entities[$entity->id] = $entity;
+			$this->entities[$entity->get_main_identifier_attribute()->get_value()] = $entity;
 		}
 	}
 

@@ -2,6 +2,7 @@
 namespace Octopus\Core\Model\Database\Requests;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\EntityList;
+use \Octopus\Core\Model\Relationship;
 use \Octopus\Core\Model\Attributes\Attribute;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Exception;
@@ -9,18 +10,14 @@ use \Exception;
 // TODO explainations
 
 abstract class Request {
-	protected string $table; # the name of the database table that contains the object data
+	protected Entity|Relationship $object;
 	protected array $attributes;
 	protected string $query;
 	protected array $values;
 
 
-	function __construct(string $table) {
-		if(!preg_match('/^[a-z_]+$/', $table)){
-			throw new Exception("Invalid table name: «{$table}».");
-		}
-
-		$this->table = $table;
+	function __construct(Entity|Relationship $object) {
+		$this->object = $object;
 		$this->attributes = [];
 		$this->values = [];
 	}
@@ -31,7 +28,7 @@ abstract class Request {
 			throw new Exception("Attribute must be pullable.");
 		}
 
-		if($this->table !== $attribute->get_db_table()){
+		if($this->object->get_db_table() !== $attribute->get_db_table()){
 			throw new Exception("Property and Request db tables do not match.");
 		}
 

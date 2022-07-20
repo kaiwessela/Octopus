@@ -1,5 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
+use \Octopus\Core\Model\Entity;
+use \Octopus\Core\Model\Relationship;
 use \Octopus\Core\Model\Database\Requests\Request;
 use \Octopus\Core\Model\Database\Requests\SelectAndJoin;
 use \Octopus\Core\Model\Attributes\Attribute;
@@ -11,15 +13,15 @@ use \Exception;
 
 final class JoinRequest extends Request {
 	# inherited from Request:
-	# protected string $table;
+	# protected Entity|Relationship $object;
 	# protected array $attributes;
 	# protected string $query;
 	# protected ?array $values;
 
-	protected string $table_alias;
-
 	protected Attribute $native_attribute;
 	protected Attribute $foreign_attribute;
+
+	protected string $direction; # forward|reverse
 
 	use SelectAndJoin;
 
@@ -29,7 +31,7 @@ final class JoinRequest extends Request {
 
 
 	# ---> Request:
-	# function __construct();
+	# function __construct(Entity|Relationship $object);
 	# final public function add(Attribute $attribute) : void;
 	# final public function remove(Attribute $attribute) : void;
 	# final public function get_query() : string;
@@ -38,28 +40,26 @@ final class JoinRequest extends Request {
 	# final public function is_resolved() : bool;
 
 
-	function __construct(string $table, string $table_alias, Attribute $native_attribute, Attribute $foreign_attribute) {
-		parent::__construct($table);
-
-		$this->table_alias = $table_alias;
+	function __construct(Entity|Relationship $object, Attribute $native_attribute, Attribute $foreign_attribute) {
+		parent::__construct($object);
 
 		$this->joins = [];
 		$this->columns = [];
 
-		if($native_attribute->get_prefixed_db_table() !== $this->table_alias){
+		if($native_attribute instanceof IdentifierAttribute && $foreign_attribute instanceof EntityAttribute){
+			$this->direction = 'forward';
+		} else if($native_attribute instanceof EntityAttribute && $foreign_attribute instanceof IdentifierAttribute){
+			$this->direction = 'reverse';
+		} else {
+			throw new Exception(); // TODO
+		}
+
+		if($native_attribute->get_prefixed_db_table() !== $this->object->get_prefixed_db_table()){
 			throw new Exception('Native Attribute must be part of the joined table.');
 		}
 
-		if(!$native_attribute instanceof IdentifierAttribute && !$native_attribute instanceof EntityAttribute){
-			throw new Exception('Native Attribute must be an identifier or an id of a foreign object.');
-		}
-
-		if($foreign_attribute->get_prefixed_db_table() === $this->table_alias){
+		if($foreign_attribute->get_prefixed_db_table() === $this->object->get_prefixed_db_table()){
 			throw new Exception('Foreign Attribute must not be part of the joined table.');
-		}
-
-		if(!$foreign_attribute instanceof IdentifierAttribute && !$foreign_attribute instanceof EntityAttribute){
-			throw new Exception('Foreign Attribute must be an identifier or an id of a foreign object.');
 		}
 
 		$this->native_attribute = $native_attribute;
@@ -67,7 +67,7 @@ final class JoinRequest extends Request {
 	}
 
 
-	public function resolve() : void {
+	final public function resolve() : void {
 		foreach($this->attributes as $attribute){
 			$this->columns[] = static::create_column_string($attribute);
 		}
@@ -75,10 +75,10 @@ final class JoinRequest extends Request {
 		$native_col = $this->native_attribute->get_prefixed_db_column();
 		$foreign_col = $this->foreign_attribute->get_prefixed_db_column();
 
-		if($this->table !== $this->table_alias){
-			$this->query = "LEFT JOIN `{$this->table}` AS `{$this->table_alias}` ON {$native_col} = {$foreign_col}".PHP_EOL;
+		if($this->object->get_db_table() !== $this->object->get_prefixed_db_table()){
+			$this->query = "LEFT JOIN `{$this->object->get_db_table()}` AS `{$this->object->get_prefixed_db_table()}` ON {$native_col} = {$foreign_col}".PHP_EOL;
 		} else {
-			$this->query = "LEFT JOIN `{$this->table}` ON {$native_col} = {$foreign_col}".PHP_EOL;
+			$this->query = "LEFT JOIN `{$this->object->get_db_table()}` ON {$native_col} = {$foreign_col}".PHP_EOL;
 		}
 
 		foreach($this->joins as $join){
@@ -88,7 +88,7 @@ final class JoinRequest extends Request {
 	}
 
 
-	public function get_columns() : array {
+	final public function get_columns() : array {
 		if(!$this->is_resolved()){
 			$this->resolve();
 		}
@@ -97,13 +97,28 @@ final class JoinRequest extends Request {
 	}
 
 
-	public function get_foreign_attribute() : Attribute {
-		return $this->foreign_attribute;
+	final public function is_forward_join() : bool {
+		return $this->direction === 'forward';
 	}
 
 
-	public function is_multijoin() : bool {
-		return !($this->native_attribute instanceof IdentifierAttribute);
+	final public function is_reverse_join() : bool {
+		return $this->direction === 'reverse';
+	}
+
+
+	final public function is_convoluted() : bool {
+		if($this->is_reverse_join()){
+			return true;
+		}
+
+		foreach($this->joins as $join){
+			if($join->is_convoluted()){
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
 ?>

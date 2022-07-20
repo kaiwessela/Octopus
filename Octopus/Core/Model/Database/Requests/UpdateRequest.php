@@ -9,7 +9,7 @@ use \Exception;
 
 final class UpdateRequest extends Request {
 	# inherited from Request:
-	# protected string $table;
+	# protected Entity|Relationship $object;
 	# protected array $attributes;
 	# protected string $query;
 	# protected array $values;
@@ -18,7 +18,7 @@ final class UpdateRequest extends Request {
 
 
 	# ---> Request:
-	# function __construct(string $table);
+	# function __construct(Entity|Relationship $object);
 	# final public function add(Attribute $attribute) : void;
 	# final public function remove(Attribute $attribute) : void;
 	# final public function is_resolved() : bool;
@@ -48,7 +48,7 @@ final class UpdateRequest extends Request {
 			$this->values[$attribute->get_name()] = $attribute->get_push_value();
 		}
 
-		$this->query = "UPDATE `{$this->table}` SET".PHP_EOL;
+		$this->query = "UPDATE `{$this->object->get_db_table()}` SET".PHP_EOL;
 		$this->query .= implode(','.PHP_EOL, $columns).PHP_EOL;
 		$this->query .= "WHERE {$this->condition->get_query()}".PHP_EOL;
 

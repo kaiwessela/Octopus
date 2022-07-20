@@ -42,6 +42,7 @@ class StringAttribute extends PropertyAttribute {
 
 	# ---> PropertyAttribute
 	# final public function get_db_column() : string;
+	# public function get_push_value() : null|string|int|float;
 	# public function arrayify() : null|string|int|float|bool|array;
 
 
@@ -133,11 +134,6 @@ class StringAttribute extends PropertyAttribute {
 			$this->value = $escaped_input;
 			$this->is_dirty = true;
 		}
-	}
-
-
-	public function get_push_value() : null|string|int|float {
-		return $this->value;
 	}
 
 

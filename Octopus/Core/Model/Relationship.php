@@ -4,8 +4,8 @@ use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\EntityAndRelationship;
 use \Octopus\Core\Model\Attributes\Attribute;
 use \Octopus\Core\Model\Attributes\PropertyAttribute;
+use \Octopus\Core\Model\Attributes\IdentifierAttribute;
 use \Octopus\Core\Model\Attributes\EntityAttribute;
-use \Octopus\Core\Model\Attributes\IDAttribute;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
@@ -15,7 +15,7 @@ use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\InsertRequest;
 use \Octopus\Core\Model\Database\Requests\UpdateRequest;
 use \Octopus\Core\Model\Database\Requests\DeleteRequest;
-use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEqualsCondition;
+use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEquals;
 use \Octopus\Core\Model\Database\Exceptions\DatabaseException;
 use \Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
 use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
@@ -24,7 +24,7 @@ use \Exception;
 
 
 abstract class Relationship {
-	protected IDAttribute $id;
+	# protected ID $id;
 	# protected EntityAttribute $[name of 1st entity];
 	# protected EntityAttribute $[name of 2nd entity];
 	# ...other attributes
@@ -55,7 +55,11 @@ abstract class Relationship {
 		$this->load_attributes();
 
 		foreach($this->get_attributes() as $name){
-			if($this->$name instanceof PropertyAttribute){
+			if($this->$name instanceof IdentifierAttribute){
+				if($this->$name->is_required()){
+					$this->main_identifier = $name;
+				}
+			} else if($this->$name instanceof PropertyAttribute){
 				continue;
 			} else if($this->$name instanceof EntityAttribute){
 				if($this->$name->get_class() === $context::class){
@@ -76,6 +80,10 @@ abstract class Relationship {
 			} else {
 				throw new Exception("Invalid attribute defined: «{$name}».");
 			}
+		}
+
+		if(!isset($this->main_identifier)){
+			throw new Exception('Invalid attribute definitions: main unique identifier missing/not found.');
 		}
 
 		if(!isset($this->context_attribute) || !isset($this->relatum_attribute)){
@@ -102,19 +110,6 @@ abstract class Relationship {
 
 
 	### INITIALIZATION AND LOADING METHODS
-
-	# Initialize a new relationship that is not yet stored in the database
-	# Generate a random id for the new relationship and set all attributes to null
-	final public function create() : void {
-		if($this->is_loaded()){
-			throw new CallOutOfOrderException();
-		}
-
-		$this->is_new = true;
-
-		$this->id->generate(); # generate and set a random, unique id for the relationship. (--> IDAttribute)
-	}
-
 
 	# ---> see trait Attributes
 	# final protected function bind_attributes() : void;
@@ -212,7 +207,7 @@ abstract class Relationship {
 			$request = new InsertRequest($this);
 		} else {
 			$request = new UpdateRequest($this);
-			$request->set_condition(new IdentifierEqualsCondition($this->get_main_identifier_attribute(), $this->get_main_identifier_attribute()->get_value()));
+			$request->set_condition(new IdentifierEquals($this->get_main_identifier_attribute(), $this->get_main_identifier_attribute()->get_value()));
 		}
 
 		$errors = new AttributeValueExceptionList();
@@ -265,7 +260,7 @@ abstract class Relationship {
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
 		$request = new DeleteRequest($this);
-		$request->set_condition(new IdentifierEqualsCondition($this->get_main_identifier_attribute(), $this->get_main_identifier_attribute()->get_value()));
+		$request->set_condition(new IdentifierEquals($this->get_main_identifier_attribute(), $this->get_main_identifier_attribute()->get_value()));
 
 		try {
 			$s = $this->get_db()->prepare($request->get_query());

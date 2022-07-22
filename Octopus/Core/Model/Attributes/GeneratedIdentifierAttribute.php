@@ -1,14 +1,11 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
-use \Octopus\Core\Model\Attributes\PropertyAttribute;
-use \Octopus\Core\Model\Attributes\Exceptions\MissingValueException;
-use \Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
+use \Octopus\Core\Model\Attributes\Attribute;
+use \Octopus\Core\Model\Attributes\IdentifierAttribute;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
-use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEquals;
 use \Exception;
 
-abstract class IdentifierAttribute extends PropertyAttribute {
+abstract class GeneratedIdentifierAttribute extends IdentifierAttribute {
 	# inherited from PropertyAttribute
 	# protected Entity|Relationship $parent;
 	# protected string $name;
@@ -42,34 +39,31 @@ abstract class IdentifierAttribute extends PropertyAttribute {
 	# final public function get_db_column() : string;
 	# public function arrayify() : null|string|int|float|bool|array;
 
+	# ---> IdentifierAttribute
+	# final public function load(null|string|int|float $data) : void;
+	# final public function get_push_value() : null|string|int|float;
+	# final public function resolve_pull_condition(mixed $option) : ?Condition;
 
 
-	// public static function define(bool $is_editable = true) : Attribute {
-	// 	return new static(true, $is_editable);
-	// }
+
+	public static function define() : Attribute {
+		return new static(true, false);
+	}
 
 
-	final public function load(null|string|int|float $data) : void {
-		if(!is_string($data) && !is_null($data)){
-			throw new Exception('Database value corrupted.');
+	final public function generate() : void {
+		if(!$this->is_editable()){
+			throw new AttributeNotAlterableException($this, null);
 		}
 
-		$this->value = $data;
-		$this->is_loaded = true;
+		$this->value = $this->generator();
 	}
 
 
-	final public function get_push_value() : null|string|int|float {
-		return $this->value;
+	final public function edit(mixed $input) : void {
+		throw new AttributeNotAlterableException($this, $input);
 	}
 
 
-	final public function resolve_pull_condition(mixed $option) : ?Condition {
-		if(is_string($option)){
-			return new IdentifierEquals($this, $option);
-		} else {
-			throw new Exception(); // TODO
-		}
-	}
+	abstract protected function generator() : string|int|float;
 }
-?>

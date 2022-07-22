@@ -2,8 +2,8 @@
 namespace Octopus\Core\Model\Database\Requests;
 use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierCondition;
-use \Octopus\Core\Model\Database\Requests\Conditions\AndCondition;
+use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEquals;
+use \Octopus\Core\Model\Database\Requests\Conditions\AndOp;
 use \Octopus\Core\Model\Attributes\Attribute;
 use \Exception;
 
@@ -28,9 +28,9 @@ trait SelectAndJoin {
 	protected function has_unique_identifier(?Condition $condition = null) : bool {
 		if($this instanceof JoinRequest && $this->is_forward_join()){
 			return true;
-		} else if($condition instanceof IdentifierCondition){
+		} else if($condition instanceof IdentifierEquals){
 			return $condition->get_attribute()->get_prefixed_db_table() === $this->object->get_prefixed_db_table();
-		} else if($condition instanceof AndCondition){
+		} else if($condition instanceof AndOp){
 			foreach($condition->get_conditions() as $cond){
 				if($this->has_unique_identifier($cond)){
 					return true;

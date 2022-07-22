@@ -4,13 +4,14 @@ use \Octopus\Core\Model\EntityList;
 use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
 use \Octopus\Core\Model\Attributes\Attribute;
 use \Octopus\Core\Model\Attributes\IdentifierAttribute;
+use \Octopus\Core\Model\Attributes\GeneratedIdentifierAttribute;
 use \Octopus\Core\Model\Attributes\PropertyAttribute;
 use \Octopus\Core\Model\Attributes\EntityAttribute;
 use \Octopus\Core\Model\Attributes\RelationshipAttribute;
 use \Octopus\Core\Model\Database\Requests\Request;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Database\Requests\Conditions\AndCondition;
-use \Octopus\Core\Model\Database\Requests\Conditions\OrCondition;
+use \Octopus\Core\Model\Database\Requests\Conditions\AndOp;
+use \Octopus\Core\Model\Database\Requests\Conditions\OrOp;
 use \Exception;
 
 # This trait shares common methods for Entity and Relationship that relate to the loading, altering, validating and
@@ -31,6 +32,24 @@ trait EntityAndRelationship {
 			self::$attributes[static::class][] = $name;
 		}
 	}
+
+
+	# Initialize a new entity that is not yet stored in the database
+	# Generate a random id for the new entity and set all attributes to null
+	final public function create() : void {
+		if($this->is_loaded()){
+			throw new CallOutOfOrderException();
+		}
+
+		$this->is_new = true;
+
+		foreach($this->get_attributes() as $name){
+			if($this->$name instanceof GeneratedIdentifierAttribute){
+				$this->$name->generate();
+			}
+		}
+	}
+
 
 
 	public function is_new() : bool {
@@ -149,9 +168,9 @@ trait EntityAndRelationship {
 		} else if(count($conditions) === 1){
 			return $condition;
 		} else if($mode === 'OR'){
-			return new OrCondition(...$conditions);
+			return new OrOp(...$conditions);
 		} else if($mode === 'AND'){
-			return new AndCondition(...$conditions);
+			return new AndOp(...$conditions);
 		} else {
 			throw new Exception(); // TODO
 		}

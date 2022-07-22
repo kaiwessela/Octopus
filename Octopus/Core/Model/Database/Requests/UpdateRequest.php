@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
 use \Octopus\Core\Model\Database\Requests\Request;
-use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEqualsCondition;
+use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEquals;
 use \Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
 use \Exception;
 
@@ -28,7 +28,7 @@ final class UpdateRequest extends Request {
 
 
 
-	final protected function set_condition(IdentifierEqualsCondition $condition) : void {
+	final protected function set_condition(IdentifierEquals $condition) : void {
 		$this->condition = $condition;
 	}
 

@@ -7,7 +7,6 @@ use \Octopus\Core\Model\Attributes\Attribute;
 use \Octopus\Core\Model\Attributes\PropertyAttribute;
 use \Octopus\Core\Model\Attributes\EntityAttribute;
 use \Octopus\Core\Model\Attributes\RelationshipAttribute;
-use \Octopus\Core\Model\Attributes\IDAttribute;
 use \Octopus\Core\Model\Attributes\IdentifierAttribute;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
@@ -23,14 +22,12 @@ use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\InsertRequest;
 use \Octopus\Core\Model\Database\Requests\UpdateRequest;
 use \Octopus\Core\Model\Database\Requests\DeleteRequest;
-use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEqualsCondition;
+use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEquals;
 use \PDOException;
 use \Exception;
 
 
 abstract class Entity {
-	// protected IDAttribute $id;	# main unique identifier of the object; uneditable; randomly generated on create()
-	// protected IdentifierAttribute $longid;		# another unique identifier; editable; set by the user
 
 	protected bool $is_new;
 
@@ -104,19 +101,6 @@ abstract class Entity {
 
 	### INITIALIZATION AND LOADING METHODS
 
-	# Initialize a new entity that is not yet stored in the database
-	# Generate a random id for the new entity and set all attributes to null
-	final public function create() : void {
-		if($this->is_loaded()){
-			throw new CallOutOfOrderException();
-		}
-
-		$this->is_new = true;
-
-		$this->id->generate(); # generate and set a random, unique id for the entity. (--> IDAttribute)
-	}
-
-
 	# ---> see trait Attributes
 	# final protected function bind_attributes() : void;
 
@@ -139,7 +123,7 @@ abstract class Entity {
 
 		$request = new SelectRequest($this);
 		$this->build_pull_request($request, $attributes);
-		$request->set_condition(new IdentifierEqualsCondition($this->$identify_by, $identifier));
+		$request->set_condition(new IdentifierEquals($this->$identify_by, $identifier));
 
 		try {
 			$s = $this->db->prepare($request->get_query());
@@ -268,7 +252,7 @@ abstract class Entity {
 			$request = new InsertRequest($this);
 		} else {
 			$request = new UpdateRequest($this);
-			$request->set_condition(new IdentifierEqualsCondition($this->get_main_identifier_attribute(), $this->get_main_identifier_attribute()->get_value()));
+			$request->set_condition(new IdentifierEquals($this->get_main_identifier_attribute(), $this->get_main_identifier_attribute()->get_value()));
 		}
 
 		$errors = new AttributeValueExceptionList();
@@ -325,7 +309,7 @@ abstract class Entity {
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
 		$request = new DeleteRequest($this);
-		$request->set_condition(new IdentifierEqualsCondition($this->get_main_identifier_attribute(), $this->get_main_identifier_attribute()->get_value()));
+		$request->set_condition(new IdentifierEquals($this->get_main_identifier_attribute(), $this->get_main_identifier_attribute()->get_value()));
 
 		try {
 			$s = $this->db->prepare($request->get_query());

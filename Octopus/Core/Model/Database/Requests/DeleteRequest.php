@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
 use \Octopus\Core\Model\Database\Requests\Request;
-use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEqualsCondition;
+use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEquals;
 use \Exception;
 
 // TODO explainations
@@ -13,7 +13,7 @@ final class DeleteRequest extends Request {
 	# protected string $query;
 	# protected array $values;
 
-	protected IdentifierCondition $condition;
+	protected IdentifierEquals $condition;
 
 
 	# ---> Request:
@@ -27,14 +27,14 @@ final class DeleteRequest extends Request {
 
 
 
-	final protected function set_condition(IdentifierEqualsCondition $condition) : void {
+	final protected function set_condition(IdentifierEquals $condition) : void {
 		$this->condition = $condition;
 	}
 
 
 	final protected function resolve() : void {
 		if(!isset($this->condition)){
-			throw new Exception('An IdentifierCondition must be set for this request.');
+			throw new Exception('An IdentifierEquals condition must be set for this request.');
 		}
 
 		$this->query = "DELETE FROM `{$this->object->get_db_table()}` WHERE {$this->condition->get_query()}";

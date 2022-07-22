@@ -1,6 +1,6 @@
 <?php
 namespace Octopus\Modules\StaticObjects;
-use \Octopus\Core\Model\Attributes\StaticObject;
+use \Octopus\Core\Model\StaticObject;
 use \Parsedown\Parsedown;
 
 // TODO UNFINISHED AND UNCHECKED

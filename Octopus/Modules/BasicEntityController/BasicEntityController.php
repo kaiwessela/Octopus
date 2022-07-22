@@ -235,7 +235,7 @@ class BasicEntityController extends EntityController {
 		} else { # action==='show'|'edit'|'delete'
 			try {
 				$this->entity->pull($this->identifier, $this->identify_by);
-				$this->entity->get_relationships()?->count_total(); // TEMP
+				// $this->entity->get_relationships()?->count_total(); // TEMP
 			} catch(EmptyResultException $e){
 				$this->status_code = 404;
 				throw new ControllerException(404, 'Entity not found.');
@@ -270,8 +270,8 @@ class BasicEntityController extends EntityController {
 	public function finish() : void {
 		if(isset($this->entities)){
 			$pagination_count = $this->entities->count_total();
-		} else if($this->entity?->get_relationships() !== null){
-			$pagination_count = $this->entity->get_relationships()->count_total();
+		/*} else if($this->entity?->get_relationships() !== null){
+			$pagination_count = $this->entity->get_relationships()->count_total(); TEMP */
 		} else {
 			$pagination_count = null;
 		}

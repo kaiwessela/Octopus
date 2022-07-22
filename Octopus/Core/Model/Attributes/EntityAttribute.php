@@ -12,7 +12,7 @@ use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
 use \Octopus\Core\Model\Database\Exceptions\EmptyResultException;
 use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Database\Requests\Conditions\EqualsCondition;
+use \Octopus\Core\Model\Database\Requests\Conditions\Equals;
 use \Exception;
 
 final class EntityAttribute extends Attribute {
@@ -166,7 +166,7 @@ final class EntityAttribute extends Attribute {
 
 	final public function resolve_pull_condition(mixed $option) : ?Condition {
 		if(is_string($option)){
-			return new EqualsCondition($this, $option);
+			return new Equals($this, $option);
 		} else if(is_array($option)){
 			return $this->get_prototype()->resolve_pull_conditions($option);
 		} else {

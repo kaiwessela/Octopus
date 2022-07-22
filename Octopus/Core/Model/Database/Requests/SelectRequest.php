@@ -7,7 +7,6 @@ use \Octopus\Core\Model\Database\Requests\SelectAndJoin;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
 use \Octopus\Core\Model\Attributes\Attribute;
-use \Octopus\Core\Model\Attributes\IdentifierAttribute;
 use Exception;
 
 // TODO explainations

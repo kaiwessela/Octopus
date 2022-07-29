@@ -131,7 +131,7 @@ trait EntityAndRelationship {
 					continue;
 				}
 
-				$request->add_join($this->$name->get_join_request($option));
+				$request->add_join($this->$name->get_join_request($option ?? [])); // TODO check []
 			}
 		}
 	}

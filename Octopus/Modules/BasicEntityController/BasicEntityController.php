@@ -50,10 +50,8 @@ class BasicEntityController extends EntityController {
 				throw new ControllerException(405, 'Method not allowed.');
 			}
 
-			$list_class = $entity_class::LIST_CLASS;
-
 			$this->entity = null;
-			$this->entities = new $list_class($this->endpoint->get_db());
+			$this->entities = $entity_class::create_list($this->endpoint->get_db());
 			$this->action = 'list';
 		} else if($action === 'new'){
 			$this->entities = null;

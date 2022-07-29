@@ -37,7 +37,7 @@ abstract class Entity {
 	protected static array $attributes;
 
 	protected const DB_TABLE = null;
-	protected const LIST_CLASS = null;
+	protected const LIST_CLASS = EntityList::class;
 	protected const MAIN_IDENTIFIER = null;
 	protected string $main_identifier;
 
@@ -67,7 +67,7 @@ abstract class Entity {
 			throw new Exception('invalid db table.');
 		}
 
-		if(!is_string(static::LIST_CLASS) || !is_subclass_of(static::LIST_CLASS, EntityList::class)){
+		if(!is_string(static::LIST_CLASS) || !(static::LIST_CLASS === EntityList::class || is_subclass_of(static::LIST_CLASS, EntityList::class))){
 			throw new Exception('invalid list class.');
 		}
 
@@ -161,7 +161,7 @@ abstract class Entity {
 		}
 
 		# To parse the columns containing our entity data, we must do a distinction:
-		if(is_array($data[0])){ # check whether the data array is nested
+		if(isset($data[0]) && is_array($data[0])){ # check whether the data array is nested
 			$row = $data[0]; # with relationships
 		} else {
 			$row = $data; # without relationships
@@ -345,6 +345,13 @@ abstract class Entity {
 
 	protected function arrayify_custom() : array {
 		return [];
+	}
+
+
+	final public static function create_list(DatabaseAccess $db) : EntityList {
+		// TODO check LIST_CLASS
+		$class = static::LIST_CLASS;
+		return new $class($db, static::class);
 	}
 }
 ?>

@@ -32,28 +32,24 @@ Dann müsste das RelationshipAttribute je nachdem eine RelationshipList oder nur
 */
 
 
-abstract class EntityList {
+class EntityList {
 	protected Entity $prototype;
 	protected array $entities; # an array of the Entities this list contains [entity_id => entity, ...]
 
 	protected int $total_count;
-
-	const ENTITY_CLASS = ''; # the fully qualified name of the concrete Entity class whose instances this list contains
 
 	protected DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
 
 
 	### CONSTRUCTION METHODS
 
-	final function __construct(DatabaseAccess $db) {
-		if(!is_subclass_of(static::ENTITY_CLASS, Entity::class)){
+	final function __construct(DatabaseAccess $db, string $entity_class) {
+		if(!is_subclass_of($entity_class, Entity::class)){
 			throw new Exception('Invalid EntityList class: constant ENTITY_CLASS must describe a subclass of Entity.');
 		}
 
 		$this->db = &$db;
-
-		$class = static::ENTITY_CLASS;
-		$this->prototype = new $class($this);
+		$this->prototype = new $entity_class($this);
 	}
 
 

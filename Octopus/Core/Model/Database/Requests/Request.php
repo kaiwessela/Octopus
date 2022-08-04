@@ -41,7 +41,7 @@ abstract class Request {
 	}
 
 
-	abstract public function resolve() : void;
+	abstract protected function resolve() : void;
 
 
 	final public function get_query() : string {

@@ -4,17 +4,20 @@ use \Octopus\Core\Model\Attributes\PropertyAttribute;
 use \Octopus\Core\Model\StaticObject;
 use \Exception;
 
-class StaticObjectAttribute extends PropertyAttribute {
+abstract class StaticObjectAttribute extends PropertyAttribute {
 	protected string $class;
+	protected StaticObject $prototype;
+
+	protected const OBJECT_CLASS = null;
 
 
-	public static function define(string $class) : StaticObjectAttribute {
-		if(!class_exists($class) || !is_subclass_of($class, StaticObject::class)){
+	public static function define() : StaticObjectAttribute {
+		if(!class_exists(static::OBJECT_CLASS) || !is_subclass_of(static::OBJECT_CLASS, StaticObject::class)){
 			throw new Exception('invalid class.');
 		}
 
 		$attribute = new static(false, true);
-		$attribute->class = $class;
+		$attribute->class = static::OBJECT_CLASS;
 
 		return $attribute;
 	}
@@ -44,7 +47,7 @@ class StaticObjectAttribute extends PropertyAttribute {
 		}
 
 		$this->value->edit($input);
-		$this->is_dirty = true; // FIXME
+		$this->set_dirty(); // FIXME
 	}
 
 
@@ -60,6 +63,16 @@ class StaticObjectAttribute extends PropertyAttribute {
 
 	final public function arrayify() : null|string|int|float|bool|array {
 		return $this->value?->arrayify();
+	}
+
+
+	final public function get_prototype() : StaticObject {
+		if(!isset($this->prototype)){
+			$class = $this->get_class();
+			$this->prototype = new $class($this->parent, $this);
+		}
+
+		return $this->prototype;
 	}
 }
 ?>

@@ -5,8 +5,10 @@ use \Octopus\Core\Controller\Exceptions\ControllerException;
 
 class URLSubstitution {
 
-	public static function replace(string|array $subject, Request $request, bool $force_string = false) : mixed {
-		if(is_array($subject)){
+	public static function replace(string|array|null $subject, Request $request, bool $force_string = false) : mixed {
+		if(is_null($subject)){
+			return null;
+		} else if(is_array($subject)){
 			foreach($subject as $key => $value){
 				if(is_string($value) || is_array($value)){
 					$subject[$key] = static::replace($value, $request);
@@ -43,7 +45,9 @@ class URLSubstitution {
 				return $replacement;
 			}
 
-			if($replacement === 'true' || $replacement === 'false'){
+			if($replacement === ''){
+				return null;
+			} else if($replacement === 'true' || $replacement === 'false'){
 				return ($replacement === 'true'); // converts to bool
 			} else if(is_numeric($replacement)){
 				if(floor($replacement) === ceil($replacement)){

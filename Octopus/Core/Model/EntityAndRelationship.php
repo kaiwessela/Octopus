@@ -155,7 +155,7 @@ trait EntityAndRelationship {
 
 				$conditions[] = $this->resolve_pull_conditions($option, $attribute);
 
-			} else if(!$this->has_attribute($attribute)){
+			} else if($this->has_attribute($attribute)){
 				$conditions[] = $this->$attribute->resolve_pull_condition($option);
 
 			} else {
@@ -166,7 +166,7 @@ trait EntityAndRelationship {
 		if(empty($conditions)){
 			return null;
 		} else if(count($conditions) === 1){
-			return $condition;
+			return $conditions[0];
 		} else if($mode === 'OR'){
 			return new OrOp(...$conditions);
 		} else if($mode === 'AND'){
@@ -257,6 +257,10 @@ trait EntityAndRelationship {
 			throw new Exception("Attribute «{$name}» is not defined.");
 		}
 
+		if(!$this->$name->is_editable()){
+			$errors->push(new AttributeNotAlterableException()); // TODO
+		}
+
 		if($this->$name instanceof RelationshipAttribute){
 			if(!$this->is_independent()){
 				return;
@@ -264,7 +268,7 @@ trait EntityAndRelationship {
 
 			$this->$name->edit($input);
 
-	   } else {
+		} else {
 			$this->$name->edit($input);
 		}
 	}

@@ -1,5 +1,7 @@
 <?php
 namespace Octopus\Core\Controller;
+use \Octopus\Core\Controller\Exceptions\ControllerException;
+use \JsonException;
 
 class Request {
 	private bool $https;
@@ -120,6 +122,20 @@ class Request {
 		return $this->method === $method;
 	}
 
+	public function require_method(string|array $method) : void {
+		if(is_string($method)){
+			if($this->method === $method){
+				return;
+			}
+		} else {
+			if(in_array($this->method, $method)){
+				return;
+			}
+		}
+
+		throw new ControllerException(405, 'Method not allowed.');
+	}
+
 	public function get_content_type() : ?string {
 		return $this->content_type;
 	}
@@ -138,9 +154,19 @@ class Request {
 	}
 
 
-	// TEMP
 	public function get_post_data() : array {
-		return $_POST;
+		if($this->content_type === 'multipart/form-data'){
+			return $_POST;
+		} else if($this->content_type === 'application/json'){
+			try {
+				return json_decode(file_get_contents('php://input'), true, 512, \JSON_THROW_ON_ERROR);
+			} catch(JsonException $e){
+				throw new ControllerException(422, 'Invalid JSON.', $e);
+			}
+		} else {
+			throw new ControllerException(415, 'Unsupported Content Type.'); // TODO maybe null instead of exception
+		}
+
 	}
 }
 ?>

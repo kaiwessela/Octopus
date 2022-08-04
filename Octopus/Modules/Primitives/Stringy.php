@@ -4,6 +4,9 @@ use \Octopus\Core\Model\Attributes\PropertyAttribute;
 use \Octopus\Core\Model\Attributes\Exceptions\MissingValueException;
 use \Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
+use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
+use \Octopus\Core\Model\Database\Requests\Conditions\Equals;
+use \Octopus\Core\Model\Database\Requests\Conditions\InList;
 use \Exception;
 
 class Stringy extends PropertyAttribute {
@@ -132,14 +135,25 @@ class Stringy extends PropertyAttribute {
 			}
 
 			$this->value = $escaped_input;
-			$this->is_dirty = true;
+			$this->set_dirty();
 		}
 	}
 
 
-	// TODO
-	// public function resolve_pull_condition(mixed $option) : ?Condition {
-	//
-	// }
+	public function resolve_pull_condition(mixed $option) : ?Condition {
+		if(is_array($option)){
+			foreach($option as $opt){
+				if(!is_string($opt)){
+					throw new Exception('invalid condition.'); // TODO
+				}
+			}
+
+			return new InList($this, $option);
+		} else if(is_string($option)){
+			return new Equals($this, $option);
+		} else {
+			throw new Exception('invalid condition.'); // TODO
+		}
+	}
 }
 ?>

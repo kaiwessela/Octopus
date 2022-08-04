@@ -14,7 +14,7 @@ final class UpdateRequest extends Request {
 	# protected string $query;
 	# protected array $values;
 
-	protected IdentifierEqualsCondition $condition;
+	protected IdentifierEquals $condition;
 
 
 	# ---> Request:
@@ -28,12 +28,12 @@ final class UpdateRequest extends Request {
 
 
 
-	final protected function set_condition(IdentifierEquals $condition) : void {
+	final public function set_condition(IdentifierEquals $condition) : void {
 		$this->condition = $condition;
 	}
 
 
-	final public function resolve() : void {
+	final protected function resolve() : void {
 		if(empty($this->attributes)){
 			throw new EmptyRequestException($this);
 		}

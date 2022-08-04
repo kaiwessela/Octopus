@@ -73,6 +73,9 @@ class Endpoint {
 		} catch(ControllerException $e){
 			$this->abort($e);
 			return;
+		} catch(Exception $e){
+			$this->abort(new ControllerException(500, 'Unknown Error.', $e));
+			return;
 		}
 
 		foreach($controller_calls as $call){
@@ -88,6 +91,9 @@ class Endpoint {
 				$controller->load($this->request, $call);
 			} catch(ControllerException $e){
 				$this->abort($e);
+				return;
+			} catch(Exception $e){
+				$this->abort(new ControllerException(500, 'Unknown Error.', $e));
 				return;
 			}
 
@@ -107,6 +113,9 @@ class Endpoint {
 					$this->abort($e);
 					return;
 				}
+			} catch(Exception $e){
+				$this->abort(new ControllerException(500, 'Unknown Error.', $e));
+				return;
 			}
 		}
 
@@ -119,6 +128,9 @@ class Endpoint {
 			} catch(ControllerException $e){
 				$this->abort($e);
 				return;
+			} catch(Exception $e){
+				$this->abort(new ControllerException(500, 'Unknown Error.', $e));
+				return;
 			}
 
 			if($controller->get_importance() === 'primary'){
@@ -128,12 +140,7 @@ class Endpoint {
 			// TODO check this to prevent overwriting
 			if($controller instanceof EntityController){
 				$environment["{$name}Controller"] = &$controller;
-
-				if(isset($controller->entity)){ // TEMP
-					$environment[$name] = &$controller->entity;
-				} else {
-					$environment[$name] = &$controller->entities;
-				}
+				$environment[$name] = &$controller->object;
 			} else {
 				$environment[$name] = &$controller;
 			}

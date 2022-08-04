@@ -13,6 +13,7 @@ use \Octopus\Core\Model\Database\Exceptions\EmptyResultException;
 use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Database\Requests\Conditions\Equals;
+use \Octopus\Core\Model\Database\Requests\Conditions\InList;
 use \Exception;
 
 final class EntityAttribute extends Attribute {
@@ -76,7 +77,7 @@ final class EntityAttribute extends Attribute {
 			$this->value = $data; // TODO validate this
 		} else if(is_null($data[$this->get_result_column()])){
 			$this->value = null;
-		} else if(is_null($data[$this->get_detection_column()])){
+		} else if(!array_key_exists($this->get_detection_column(), $data)){
 			$this->value = clone $this->get_prototype();
 			$this->value->load([$this->get_detection_column() => $data[$this->get_result_column()]]);
 		} else {
@@ -103,7 +104,7 @@ final class EntityAttribute extends Attribute {
 			$entity = clone $this->get_prototype();
 
 			try {
-				$entity->pull($identifier, $this->identify_by);
+				$entity->pull($identifier, $this->identify_by, [$this->identify_by => true]);
 			} catch(EmptyResultException $e){
 				if($this->entity_must_exist){
 					throw new EntityNotFoundException($this, $identifier);
@@ -123,13 +124,13 @@ final class EntityAttribute extends Attribute {
 			throw new AttributeValueException($this, $input, 'unsuppoted input format.');
 		}
 
-		if($identifier !== $this->value?->$this->identify_by){
+		if($identifier !== $this->value?->{$this->identify_by}){
 			if(!$this->is_editable()){
 				throw new AttributeNotAlterableException($this, $identifier);
 			}
 
 			$this->value = $entity;
-			$this->is_dirty = true;
+			$this->set_dirty();
 		}
 	}
 
@@ -142,7 +143,7 @@ final class EntityAttribute extends Attribute {
 	final public function get_prototype() : Entity {
 		if(!isset($this->prototype)){
 			$class = $this->get_class();
-			$this->prototype = new $class($this->parent, null, $this->get_result_column());
+			$this->prototype = new $class($this->parent, $this->parent->get_db(), $this->get_result_column());
 		}
 
 		return $this->prototype;
@@ -168,9 +169,19 @@ final class EntityAttribute extends Attribute {
 		if(is_string($option)){
 			return new Equals($this, $option);
 		} else if(is_array($option)){
-			return $this->get_prototype()->resolve_pull_conditions($option);
+			if(array_is_list($option)){
+				foreach($option as $opt){
+					if(!is_string($opt)){
+						throw new Exception('invalid condition.'); // TODO
+					}
+				}
+
+				return new InList($this, $option);
+			} else {
+				return $this->get_prototype()->resolve_pull_conditions($option);
+			}
 		} else {
-			throw new Exception('invalid option.'); // TODO
+			throw new Exception('invalid condition.'); // TODO
 		}
 	}
 

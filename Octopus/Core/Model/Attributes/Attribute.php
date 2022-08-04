@@ -50,12 +50,18 @@ abstract class Attribute {
 
 
 	final public function is_editable() : bool {
-		return $this->is_loaded() && ($this->is_editable || $this->parent->is_new());
+		return ($this->is_loaded() && $this->is_editable) || $this->parent->is_new();
 	}
 
 
 	final public function is_dirty() : bool {
 		return $this->is_dirty;
+	}
+
+
+	final public function set_dirty() : void {
+		$this->is_loaded = true;
+		$this->is_dirty = true;
 	}
 
 

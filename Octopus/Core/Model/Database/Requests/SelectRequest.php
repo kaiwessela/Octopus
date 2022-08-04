@@ -86,7 +86,7 @@ final class SelectRequest extends Request {
 	}
 
 
-	public function resolve() : void {
+	protected function resolve() : void {
 		if(empty($this->attributes)){
 			throw new EmptyRequestException($this);
 		}
@@ -101,7 +101,7 @@ final class SelectRequest extends Request {
 			$this->query = <<<"SQL"
 SELECT
 {$columns}
-FROM `{$this->object->get_db_table()}`
+FROM `{$this->object->get_db_table()}` AS `{$this->object->get_prefixed_db_table()}`
 {$joins}
 {$where}
 {$order}
@@ -121,7 +121,7 @@ FROM (
 	{$where}
 	{$order}
 	{$limit}
-) AS `{$this->object->get_db_table()}`
+) AS `{$this->object->get_prefixed_db_table()}`
 {$joins}
 {$where}
 {$order}

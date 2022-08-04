@@ -49,11 +49,7 @@ abstract class Entity {
 
 	### CONSTRUCTION METHODS
 
-	final function __construct(null|Entity|EntityList|Relationship $context = null, ?DatabaseAccess $db = null, ?string $db_prefix = null) {
-		if(is_null($context) === is_null($db)){
-			throw new Exception('either one of context or db must be set.');
-		}
-
+	final function __construct(null|Entity|EntityList|Relationship $context = null, DatabaseAccess $db = null, ?string $db_prefix = null) {
 		$this->context = &$context;
 
 		if($this->is_independent() && !is_null($db_prefix)){
@@ -109,13 +105,15 @@ abstract class Entity {
 	# @param $identifier: the identifier string that specifies which entity to download.
 	# @param $identify_by: the name of the attribute $identifier is matched with.
 	# @param $options: additional, custom pull options
-	final public function pull(string $identifier, string $identify_by = 'id', array $attributes = []) : void {
-		if($this->is_loaded() || !$this->is_independent()){
+	final public function pull(string $identifier, ?string $identify_by = null, array $attributes = []) : void {
+		if($this->is_loaded()){
 			throw new CallOutOfOrderException();
 		}
 
 		# verify the identify_by value
-		if(!$this->has_attribute($identify_by)){
+		if(is_null($identify_by)){
+			$identify_by = $this->main_identifier;
+		} else if(!$this->has_attribute($identify_by)){
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» not found.");
 		} else if(!$this->$identify_by instanceof IdentifierAttribute){
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» is not an identifier.");
@@ -168,9 +166,11 @@ abstract class Entity {
 		}
 
 		foreach($this->get_attributes() as $name){
-			if($this->$name->is_pullable() && !array_key_exists($this->$name->get_result_column(), $row)){
-				continue;
-			} else if($this->$name->is_joinable() && !array_key_exists($this->$name->get_detection_column(), $row)){
+			if($this->$name->is_pullable()){
+				if(!array_key_exists($this->$name->get_result_column(), $row)){
+					continue;
+				}
+			} else if(!array_key_exists($this->$name->get_detection_column(), $row)){
 				continue;
 			}
 
@@ -207,15 +207,6 @@ abstract class Entity {
 		$data = array_merge($data, array_flip(array_keys($_FILES)));
 
 		foreach($data as $name => $input){ # loop through all input fields
-			if(!$this->has_attribute($name)){ # check if the attribute exists
-				continue;
-			}
-
-			if(!$this->$name->is_loaded()){
-				$errors->push(new AttributeNotAlterableException()); // TODO
-				continue;
-			}
-
 			try {
 				$this->edit_attribute($name, $input);
 			} catch(AttributeValueException $e){
@@ -278,7 +269,11 @@ abstract class Entity {
 		} catch(PDOException $e){
 			throw new DatabaseException($e, $s);
 		} catch(EmptyRequestException $e){
-			$request_performed = false;
+			if($this->is_new()){
+				throw $e;
+			} else {
+				$request_performed = false;
+			}
 		}
 
 		foreach($this->get_attributes() as $name){

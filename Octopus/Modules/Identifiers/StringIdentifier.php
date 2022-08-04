@@ -27,9 +27,9 @@ class StringIdentifier extends IdentifierAttribute {
 			}
 
 			$this->value = $input;
-			$this->is_dirty = true;
+			$this->set_dirty();
 		}
 	}
-	
+
 }
 ?>

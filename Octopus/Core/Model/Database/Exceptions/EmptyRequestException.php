@@ -1,6 +1,6 @@
 <?php
 namespace Octopus\Core\Model\Database\Exceptions;
-use \Octopus\Core\Model\Database\Request;
+use \Octopus\Core\Model\Database\Requests\Request;
 use \Exception;
 
 class EmptyRequestException extends Exception {

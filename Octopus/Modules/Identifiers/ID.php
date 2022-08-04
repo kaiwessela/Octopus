@@ -20,7 +20,7 @@ final class ID extends GeneratedIdentifierAttribute {
 
 
 	final public function generator() : string|int|float {
-		return bin2hex(random_bytes($length / 2));
+		return bin2hex(random_bytes($this->length / 2));
 	}
 
 }

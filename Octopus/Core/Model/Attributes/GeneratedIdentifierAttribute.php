@@ -57,6 +57,7 @@ abstract class GeneratedIdentifierAttribute extends IdentifierAttribute {
 		}
 
 		$this->value = $this->generator();
+		$this->set_dirty();
 	}
 
 

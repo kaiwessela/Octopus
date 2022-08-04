@@ -27,7 +27,7 @@ final class DeleteRequest extends Request {
 
 
 
-	final protected function set_condition(IdentifierEquals $condition) : void {
+	final public function set_condition(IdentifierEquals $condition) : void {
 		$this->condition = $condition;
 	}
 

@@ -8,7 +8,7 @@ use \Octopus\Core\Model\Database\Requests\JoinRequest;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Exception;
 
-class RelationshipAttribute extends Attribute {
+final class RelationshipAttribute extends Attribute {
 	# inherited from Attribute
 	# protected Entity|Relationship $parent;
 	# protected string $name;

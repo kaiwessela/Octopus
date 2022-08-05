@@ -11,12 +11,12 @@ abstract class StaticObjectAttribute extends PropertyAttribute {
 	protected const OBJECT_CLASS = null;
 
 
-	public static function define() : StaticObjectAttribute {
+	public static function define(bool $is_required = false, bool $is_editable = true) : StaticObjectAttribute {
 		if(!class_exists(static::OBJECT_CLASS) || !is_subclass_of(static::OBJECT_CLASS, StaticObject::class)){
 			throw new Exception('invalid class.');
 		}
 
-		$attribute = new static(false, true);
+		$attribute = new static($is_required, $is_editable);
 		$attribute->class = static::OBJECT_CLASS;
 
 		return $attribute;

@@ -125,9 +125,9 @@ final class EntityAttribute extends Attribute {
 		}
 
 		if($identifier !== $this->value?->{$this->identify_by}){
-			if(!$this->is_editable()){
-				throw new AttributeNotAlterableException($this, $identifier);
-			}
+			// if(!$this->is_editable()){
+			// 	throw new AttributeNotAlterableException($this, $identifier);
+			// }
 
 			$this->value = $entity;
 			$this->set_dirty();

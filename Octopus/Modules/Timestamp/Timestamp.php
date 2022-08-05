@@ -3,27 +3,29 @@ namespace Octopus\Modules\Timestamp;
 use \Octopus\Core\Model\StaticObject;
 use \Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
 use \Octopus\Core\Config;
-use \DateTime;
+use \DateTimeImmutable;
+use \DateTimeZone;
 use \IntlDateFormatter;
+use \Exception;
 
 class Timestamp extends StaticObject {
 	# protected Entity $context;
 	# protected AttributeDefinition $definition;
-	protected DateTime $datetime;
+	protected DateTimeImmutable $datetime;
 
 
 	public function load(mixed $data) : void {
-		$this->datetime = new DateTime($data);
+		$this->datetime = new DateTimeImmutable($data, new DateTimeZone('UTC'));
 	}
 
 
 	public function export() : mixed {
-		return $this->datetime->format('Y-m-d H:i:s');
+		return $this->datetime->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
 	}
 
 
 	public function arrayify() : mixed {
-		return $this->datetime->format(DateTime::RFC2822);
+		return $this->datetime->setTimezone(new DateTimeZone('UTC'))->format(DateTimeImmutable::RFC2822);
 	}
 
 
@@ -32,11 +34,69 @@ class Timestamp extends StaticObject {
 	}
 
 
+	public static function parse_input(mixed $data, bool $round_up = false, bool $strict_format = true) : DateTimeImmutable {
+		$timestring = null;
+		$unix = null;
+		if(is_array($data)){
+			if(isset($data['date'])){
+				$timestring = $data[$date];
+
+				if(isset($data['time'])){
+					$timestring .= ' '.$data['time'];
+
+					if(isset($data['timezone'])){
+						$timestring .= ' '.$data['timezone'];
+					}
+				}
+			}
+		} else if(is_string($data)){
+			if(is_numeric($data)){
+				$unix = (int) $data;
+			} else {
+				$timestring = $data;
+			}
+		} else if(is_int($data)){
+			$unix = $data;
+		} else {
+			throw new Exception('invalid time format.');
+		}
+
+		$datetime = new DateTimeImmutable();
+
+		if(isset($unix)){
+			$datetime = $datetime->setTimestamp($unix);
+		} else if(preg_match('/^(\d{4})-(\d{2})-(\d{2})([T ](\d{2}):(\d{2})(:(\d{2}))?)?([Z ](.+))?$/', $timestring, $matches)){
+			$y = (int) $matches[1];
+			$m = (int) $matches[2];
+			$d = (int) $matches[3];
+			$h = (int) (empty($matches[5]) ? (($round_up) ? 23 : 0) : $matches[5]);
+			$i = (int) (empty($matches[6]) ? (($round_up) ? 59 : 0) : $matches[6]);
+			$s = (int) (empty($matches[8]) ? (($round_up) ? 59 : 0) : $matches[8]);
+
+			$timezone = $matches[10] ?? date_default_timezone_get();
+
+			if(preg_match('/^ \d{2}:?\d{2}/', $timezone)){
+				$timezone = '+'.ltrim($timezone, ' ');
+			}
+
+			$datetime = $datetime->setTimezone(new DateTimeZone($timezone));
+			$datetime = $datetime->setDate($y, $m, $d);
+			$datetime = $datetime->setTime($h, $i, $s);
+		} else if(!$strict_format){
+			$datetime = new DateTimeImmutable($timestring);
+		} else {
+			throw new Exception('invalid time format (not following strict format rules).');
+		}
+
+		return $datetime;
+	}
+
+
 	public function edit(mixed $data) : void {
 		$this->check_edit();
 
 		if(!isset($this->datetime)){
-			$this->datetime = new DateTime();
+			$this->datetime = new DateTimeImmutable();
 		}
 
 		if(is_array($data)){
@@ -62,23 +122,25 @@ class Timestamp extends StaticObject {
 		} else if(is_numeric($data)){
 			$this->datetime->setTimestamp((int) $data);
 		} else if(is_string($data)){
-			if(!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}(:[0-9]{2})?$/', $data)){
+			if(!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}(:[0-9]{2})?( .+)?$/', $data)){
 				throw new IllegalValueException($this->definition, $data, 'invalid datetime format');
 			}
 
-			$this->datetime = new DateTime($data);
+			$this->datetime = new DateTimeImmutable($data);
 		} else {
 			throw new IllegalValueException($this->definition, $data, 'invalid format');
 		}
 	}
 
 
-	public function format(string $format) : string {
+	public function format(string $format, string $timezone = null) : string {
+		$tz = new DateTimeZone($timezone ?? date_default_timezone_get());
+
 		$formatter = new IntlDateFormatter( // TEMP TESTING
 			'de', // Config::get('Server.lang'),
 			IntlDateFormatter::FULL,
 			IntlDateFormatter::FULL,
-			null,
+			$tz,
 			null,
 			$format
 		);
@@ -95,22 +157,22 @@ class Timestamp extends StaticObject {
 
 
 	public function to_w3c() : string {
-		return $this->datetime->format(DateTime::W3C);
+		return $this->datetime->setTimezone(new DateTimeZone('UTC'))->format(DateTimeImmutable::W3C);
 	}
 
 
 	public function to_html_datetime() : string {
-		return $this->datetime->format('Y-m-d H:i');
+		return $this->datetime->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i');
 	}
 
 
 	public function to_html_date() : string {
-		return $this->datetime->format('Y-m-d');
+		return $this->datetime->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d');
 	}
 
 
 	public function to_html_time() : string {
-		return $this->datetime->format('H:i');
+		return $this->datetime->setTimezone(new DateTimeZone('UTC'))->format('H:i');
 	}
 
 

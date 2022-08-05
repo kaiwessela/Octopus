@@ -79,7 +79,7 @@ final class SelectRequest extends Request {
 				throw new Exception();
 			}
 
-			if($ord[1] !== 'ASC' || $ord[1] !== 'DESC'){
+			if($ord[1] !== 'ASC' && $ord[1] !== 'DESC'){
 				throw new Exception();
 			}
 		}

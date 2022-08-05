@@ -180,7 +180,7 @@ class BasicEntityController extends EntityController {
 
 	protected function load_pull_order(Request $request, ControllerCall $call) : void {
 		// TODO
-		$this->order = [];
+		$this->order = $call->get_option('order') ?? [];
 	}
 
 

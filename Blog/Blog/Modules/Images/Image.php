@@ -58,6 +58,16 @@ class Image extends Entity {
 	];
 
 
+	// IDEA
+	// protected function init() : void {
+	// 	$this->file->add_event_listener(AttributeEditEvent::class, function($event) use ($this){
+	// 		$this->mime_type->edit($event->get_attribute()->get_value()->get_mime_type());
+	// 		$this->extension->edit($event->get_attribute()->get_value()->get_extension());
+	// 		$this->variants->edit($event->get_attribute()->get_value()->get_variants());
+	// 	});
+	// }
+
+
 	public function src(string $variant = 'original', string $url_base = '') : string {
 		return ''; // TODO
 	}

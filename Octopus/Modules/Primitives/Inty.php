@@ -14,7 +14,7 @@ class Inty extends PropertyAttribute {
 	}
 
 
-	public function edit(mixed $input) : void {
+	public function _edit(mixed $input) : void {
 
 	}
 }

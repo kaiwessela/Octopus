@@ -84,7 +84,12 @@ abstract class Entity {
 		if(!isset($this->main_identifier)){
 			throw new Exception('Invalid attribute definitions: main unique identifier missing/not found.');
 		}
+
+		$this->init();
 	}
+
+
+	protected function init() : void {}
 
 
 	public function &get_db() : DatabaseAccess { // TODO check

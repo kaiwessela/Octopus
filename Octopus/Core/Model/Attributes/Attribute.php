@@ -3,6 +3,9 @@ namespace Octopus\Core\Model\Attributes;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\Relationship;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
+use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotLoadedException;
+use \Octopus\Core\Model\Attributes\Events\AttributeEditEvent;
+use \Octopus\Core\Model\Events\Prevention;
 
 abstract class Attribute {
 	protected Entity|Relationship $parent;
@@ -12,16 +15,25 @@ abstract class Attribute {
 	protected bool $is_editable;
 	protected bool $is_dirty;
 	protected mixed $value;
+	protected mixed $old_value;
+	protected AttributeEditEvent $on_edit;
+
+	/* TEMP */
+	public function &get_on_edit() : AttributeEditEvent {
+		return $this->on_edit;
+	}
+	//
 
 
 
 	final function __construct(bool $is_required, bool $is_editable) {
 		$this->is_required = $is_required;
 		$this->is_editable = $is_editable;
+		$this->on_edit = new AttributeEditEvent();
 	}
 
 
-	// abstract public function define() : Attribute;
+	# abstract public function define() : Attribute;
 
 
 	final public function bind(string $name, Entity|Relationship $parent) : void {
@@ -33,10 +45,43 @@ abstract class Attribute {
 	}
 
 
-	// abstract public function load($data) : void;
+	# abstract public function load($data) : void;
 
 
-	abstract public function edit(mixed $input) : void;
+	final public function edit(mixed $input) : void {
+		if($this->parent->is_new()){
+			$this->is_loaded = true;
+		}
+
+		if(!$this->is_loaded()){
+			throw new AttributeNotLoadedException($this);
+		}
+
+		$former_value = $this->value;
+
+		$this->_edit($input);
+
+		if(!$this->equals($former_value)){
+			try {
+				$this->on_edit->fire($this);
+			} catch(Prevention $p){ # revert edit
+				$this->value = $former_value;
+				$p->throw_exception();
+				return;
+			}
+
+			if(!$this->is_dirty()){ # first edit
+				$this->set_dirty();
+				$this->old_value = $former_value;
+			} else if($this->equals($this->old_value)){ # set back to the old value
+				$this->set_clean();
+				unset($this->old_value);
+			}
+		}
+	}
+
+
+	abstract protected function _edit(mixed $input) : void;
 
 
 	final public function is_loaded() : bool {
@@ -59,8 +104,7 @@ abstract class Attribute {
 	}
 
 
-	final public function set_dirty() : void {
-		$this->is_loaded = true;
+	final protected function set_dirty() : void {
 		$this->is_dirty = true;
 	}
 
@@ -95,8 +139,30 @@ abstract class Attribute {
 	}
 
 
-	final public function &get_value() : mixed { // TODO maybe error if not loaded
+	final public function get_value(bool $quiet = false) : mixed {
+		if(!$this->is_loaded()){
+			if($quiet){
+				return null;
+			} else {
+				throw new AttributeNotLoadedException($this);
+			}
+		}
+
 		return $this->value;
+	}
+
+
+	final public function get_old_value(bool $quiet = false) : mixed {
+		if(!$this->is_dirty()){
+			return $this->get_value($quiet);
+		} else {
+			return $this->old_value;
+		}
+	}
+
+
+	public function equals(mixed $value) : bool {
+		return $this->value === $value;
 	}
 
 

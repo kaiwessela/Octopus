@@ -89,7 +89,7 @@ final class EntityAttribute extends Attribute {
 	}
 
 
-	final public function edit(mixed $input) : void {
+	final protected function _edit(mixed $input) : void {
 		if($input instanceof Entity){
 			if($input::class !== $this->get_class()){
 				throw new IllegalValueException($this, $input, 'wrong class');
@@ -97,8 +97,7 @@ final class EntityAttribute extends Attribute {
 				throw new IllegalValueException($this, $input, 'entity is not loaded');
 			}
 
-			$entity = $input;
-			$identifier = $input->{$this->identify_by};
+			$this->value = $input;
 		} else if(is_string($input)){
 			$identifier = $input;
 			$entity = clone $this->get_prototype();
@@ -106,32 +105,29 @@ final class EntityAttribute extends Attribute {
 			try {
 				$entity->pull($identifier, $this->identify_by, [$this->identify_by => true]);
 			} catch(EmptyResultException $e){
-				if($this->entity_must_exist){
+				if($this->entity_must_exist()){
 					throw new EntityNotFoundException($this, $identifier);
 				} else {
 					// TODO validate the identifier
 					$entity->load([$this->get_detection_column() => $identifier]);
 				}
 			}
+
+			$this->value = $entity;
 		} else if(empty($input)){
-			if($this->is_required()){
-				throw new MissingValueException($this);
-			} else {
-				$entity = null;
-				$identifier = null;
-			}
+			$this->value = null;
 		} else {
 			throw new AttributeValueException($this, $input, 'unsuppoted input format.');
 		}
+	}
 
-		if($identifier !== $this->value?->{$this->identify_by}){
-			// if(!$this->is_editable()){
-			// 	throw new AttributeNotAlterableException($this, $identifier);
-			// }
 
-			$this->value = $entity;
-			$this->set_dirty();
+	final public function equals(mixed $value) : bool {
+		if(!is_null($value) && !$value instanceof Entity){
+			return false;
 		}
+
+		return $this->value?->{$this->identify_by} === $value?->{$this->identify_by};
 	}
 
 
@@ -157,6 +153,11 @@ final class EntityAttribute extends Attribute {
 
 	final public function get_join_request(array $attributes = []) : JoinRequest {
 		return $this->get_prototype()->join(on:$this, identify_by:$this->identify_by, attributes:$attributes);
+	}
+
+
+	final public function entity_must_exist() : bool {
+		return $this->entity_must_exist;
 	}
 
 

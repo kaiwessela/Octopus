@@ -17,7 +17,7 @@ class Booly extends PropertyAttribute {
 	}
 
 
-	public function edit(mixed $input) : void {
+	public function _edit(mixed $input) : void {
 		throw new Exception('not yet');
 	}
 }

@@ -64,7 +64,7 @@ class Stringy extends PropertyAttribute {
 			}
 
 			if($min > 0){
-				$required = true;
+				$is_required = true;
 			}
 		}
 
@@ -103,40 +103,27 @@ class Stringy extends PropertyAttribute {
 	}
 
 
-	public function edit(mixed $input) : void {
-		if(empty($input)){ # if the input is empty but the attribute is required to be set, throw an error
-			if($this->is_required()){
-				throw new MissingValueException($this);
-			}
-
-			$escaped_input = null;
-		} else {
-			$escaped_input = htmlspecialchars($input); # escape html
+	protected function _edit(mixed $input) : void {
+		if(empty($input)){
+			$this->value = null;
+			return;
 		}
 
+		$input = htmlspecialchars($input); # escape html
 
-		# check whether the value has been altered
-		# set the attribute value to the input
-		if($escaped_input !== $this->value){
-			if(!$this->is_editable()){
-				throw new AttributeNotAlterableException($this, $escaped_input);
-			}
-
-			if(isset($this->min) && strlen($escaped_input) < $this->min){
-				throw new IllegalValueException($this, $escaped_input, 'too short');
-			}
-
-			if(isset($this->max) && strlen($escaped_input) > $this->max){
-				throw new IllegalValueException($this, $escaped_input, 'too long');
-			}
-
-			if(isset($this->pattern) && !preg_match("/{$this->pattern}/", $escaped_input)){
-				throw new IllegalValueException($this, $escaped_input, 'pattern not matching');
-			}
-
-			$this->value = $escaped_input;
-			$this->set_dirty();
+		if(isset($this->min) && strlen($input) < $this->min){
+			throw new IllegalValueException($this, $input, 'too short');
 		}
+
+		if(isset($this->max) && strlen($input) > $this->max){
+			throw new IllegalValueException($this, $input, 'too long');
+		}
+
+		if(isset($this->pattern) && !preg_match("/{$this->pattern}/", $input)){
+			throw new IllegalValueException($this, $input, 'pattern not matching');
+		}
+
+		$this->value = $input;
 	}
 
 

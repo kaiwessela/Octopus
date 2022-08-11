@@ -71,10 +71,8 @@ final class RelationshipAttribute extends Attribute {
 	}
 
 
-	final public function edit(mixed $value) : void {
+	final protected function _edit(mixed $value) : void {
 		$this->value->receive_input($value);
-
-		// TODO is_dirty
 	}
 
 

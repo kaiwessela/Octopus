@@ -57,11 +57,11 @@ abstract class GeneratedIdentifierAttribute extends IdentifierAttribute {
 		}
 
 		$this->value = $this->generator();
-		$this->set_dirty();
+		$this->is_dirty = true;
 	}
 
 
-	final public function edit(mixed $input) : void {
+	final protected function _edit(mixed $input) : void {
 		throw new AttributeNotAlterableException($this, $input);
 	}
 

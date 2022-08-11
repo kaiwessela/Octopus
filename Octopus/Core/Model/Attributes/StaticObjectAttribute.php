@@ -36,18 +36,13 @@ abstract class StaticObjectAttribute extends PropertyAttribute {
 	}
 
 
-	public function edit(mixed $input) : void {
-		if($input instanceof PropertyAttribute){ # dry run; used by StaticObjects’ internal edit methods
-			return;
-		}
-
+	protected function _edit(mixed $input) : void {
 		if(is_null($this->value)){ # if no StaticObject exists yet, create a new one
 			$class = $this->get_class();
 			$this->value = new $class($this->parent, $this);
 		}
 
 		$this->value->edit($input);
-		$this->set_dirty(); // FIXME
 	}
 
 

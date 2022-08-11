@@ -93,8 +93,6 @@ class Timestamp extends StaticObject {
 
 
 	public function edit(mixed $data) : void {
-		$this->check_edit();
-
 		if(!isset($this->datetime)){
 			$this->datetime = new DateTimeImmutable();
 		}

@@ -8,6 +8,8 @@ use \Octopus\Core\Model\Attributes\GeneratedIdentifierAttribute;
 use \Octopus\Core\Model\Attributes\PropertyAttribute;
 use \Octopus\Core\Model\Attributes\EntityAttribute;
 use \Octopus\Core\Model\Attributes\RelationshipAttribute;
+use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
+use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotLoadedException;
 use \Octopus\Core\Model\Database\Requests\Request;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Database\Requests\Conditions\AndOp;
@@ -44,6 +46,8 @@ trait EntityAndRelationship {
 		$this->is_new = true;
 
 		foreach($this->get_attributes() as $name){
+			$this->$name->load(null);
+
 			if($this->$name instanceof GeneratedIdentifierAttribute){
 				$this->$name->generate();
 			}
@@ -137,7 +141,7 @@ trait EntityAndRelationship {
 	}
 
 
-	final public function resolve_pull_conditions(array $options, string $mode = 'AND') : ?Condition {
+	final public function resolve_pull_conditions(array $options, string $mode = 'AND') : ?Condition { // TODO does not work on joins
 		$conditions = [];
 
 		foreach($options as $attribute => $option){
@@ -257,19 +261,20 @@ trait EntityAndRelationship {
 			throw new Exception("Attribute «{$name}» is not defined.");
 		}
 
-		if(!$this->$name->is_editable()){
-			$errors->push(new AttributeNotAlterableException()); // TODO
+		if(!$this->$name->is_loaded()){
+			throw new AttributeNotLoadedException($this->$name);
 		}
 
 		if($this->$name instanceof RelationshipAttribute){
 			if(!$this->is_independent()){
 				return;
 			}
+		}
 
-			$this->$name->edit($input);
+		$this->$name->edit($input);
 
-		} else {
-			$this->$name->edit($input);
+		if($this->$name->is_dirty() && !$this->$name->is_editable() && !$this->is_new()){
+			throw new AttributeNotAlterableException($this->$name);
 		}
 	}
 

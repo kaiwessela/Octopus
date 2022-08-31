@@ -144,6 +144,11 @@ class EntityList {
 	}
 
 
+	final public function get_all() : array {
+		return $this->entities;
+	}
+
+
 	# Return an entity in this list
 	# @param $index_or_id: list index or id of the entity
 	final public function &get(string $id) : ?Entity {

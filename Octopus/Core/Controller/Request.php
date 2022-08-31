@@ -155,7 +155,7 @@ class Request {
 
 
 	public function get_post_data() : array {
-		if($this->content_type === 'multipart/form-data'){
+		if($this->content_type === 'multipart/form-data' || $this->content_type === 'application/x-www-form-urlencoded'){
 			return $_POST;
 		} else if($this->content_type === 'application/json'){
 			try {

@@ -14,7 +14,7 @@ class AttributeNotAlterableException extends AttributeValueException {
 	# protected string $message;
 
 
-	function __construct(Attribute $attribute, mixed $value) {
+	function __construct(Attribute $attribute, mixed $value = null) { // TODO remove value
 		$this->attribute = $attribute;
 		$this->value = $value;
 

@@ -46,12 +46,13 @@ class BasicEntityController extends EntityController {
 			$this->load_pull_conditions($request, $call);
 			$this->load_pull_order($request, $call);
 			$this->load_pagination_scheme($request, $call);
-		} else {
+			$this->load_pull_attributes($request, $call);
+		} else if($this->action === 'show' || $this->action === 'edit' || $this->action === 'delete'){
 			$this->create_object($object_class, list:false);
 			$this->load_single_pull_parameters($request, $call);
+			$this->load_pull_attributes($request, $call);
 		}
 
-		$this->load_pull_attributes($request, $call);
 	}
 
 
@@ -72,7 +73,6 @@ class BasicEntityController extends EntityController {
 		if(!in_array($this->action, ['show', 'edit', 'delete', 'list', 'new'])){
 			throw new ControllerException(500, 'Route: Invalid action.');
 		}
-
 
 		if($this->action === 'list'){
 			$request->require_method('GET');

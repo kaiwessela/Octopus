@@ -49,10 +49,6 @@ abstract class Attribute {
 
 
 	final public function edit(mixed $input) : void {
-		if($this->parent->is_new()){
-			$this->is_loaded = true;
-		}
-
 		if(!$this->is_loaded()){
 			throw new AttributeNotLoadedException($this);
 		}
@@ -95,7 +91,7 @@ abstract class Attribute {
 
 
 	final public function is_editable() : bool {
-		return ($this->is_loaded() && $this->is_editable) || $this->parent->is_new();
+		return $this->is_editable;
 	}
 
 

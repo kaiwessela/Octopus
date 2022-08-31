@@ -72,12 +72,14 @@ final class EntityAttribute extends Attribute {
 	}
 
 
-	final public function load(Entity|array $data) : void {
-		if($data instanceof Entity){
+	final public function load(Entity|array|null $data) : void {
+		if(is_null($data)){
+			$this->value = null;
+		} else if($data instanceof Entity){
 			$this->value = $data; // TODO validate this
 		} else if(is_null($data[$this->get_result_column()])){
 			$this->value = null;
-		} else if(!array_key_exists($this->get_detection_column(), $data)){
+		} else if(empty($data[$this->get_detection_column()])){
 			$this->value = clone $this->get_prototype();
 			$this->value->load([$this->get_detection_column() => $data[$this->get_result_column()]]);
 		} else {

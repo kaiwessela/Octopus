@@ -83,6 +83,8 @@ final class SelectRequest extends Request {
 				throw new Exception();
 			}
 		}
+
+		$this->order = $order;
 	}
 
 

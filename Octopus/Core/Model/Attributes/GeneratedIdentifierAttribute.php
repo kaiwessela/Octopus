@@ -52,7 +52,7 @@ abstract class GeneratedIdentifierAttribute extends IdentifierAttribute {
 
 
 	final public function generate() : void {
-		if(!$this->is_editable()){
+		if(!$this->parent->is_new()){
 			throw new AttributeNotAlterableException($this, null);
 		}
 
@@ -62,7 +62,7 @@ abstract class GeneratedIdentifierAttribute extends IdentifierAttribute {
 
 
 	final protected function _edit(mixed $input) : void {
-		throw new AttributeNotAlterableException($this, $input);
+		return;
 	}
 
 

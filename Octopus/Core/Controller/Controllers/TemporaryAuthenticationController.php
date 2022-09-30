@@ -8,7 +8,5 @@ class TemporaryAuthenticationController extends AuthenticationController {
 
 	}
 
-
-	public function
 }
 ?>

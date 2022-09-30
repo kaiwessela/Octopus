@@ -1,5 +1,7 @@
 <?php
 
 
-class Config extends ModuleConfig
+class Config extends ModuleConfig {
+	
+}
 ?>

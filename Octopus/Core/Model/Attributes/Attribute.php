@@ -100,6 +100,13 @@ abstract class Attribute {
 	}
 
 
+	final public function require_loaded() : void { // TODO check
+		if(!$this->is_loaded()){
+			throw new Exception('attribute must be loaded');
+		}
+	}
+
+
 	final protected function set_dirty() : void {
 		$this->is_dirty = true;
 	}

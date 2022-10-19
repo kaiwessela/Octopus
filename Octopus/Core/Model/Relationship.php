@@ -299,5 +299,8 @@ abstract class Relationship {
 	public function get_relatum() : Entity {
 		return $this->get_relatum_attribute()->get_value();
 	}
+
+
+	protected const DEFAULT_PULL_ATTRIBUTES = [];
 }
 ?>

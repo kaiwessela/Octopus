@@ -102,6 +102,10 @@ class Request {
 		return empty($result) ? null : $result;
 	}
 
+	public function get_base_path() : string {
+		return rtrim(substr($this->path, 0, -1 * strlen($this->virtual_path)), '/');
+	}
+
 	public function get_query_string() : ?string {
 		return $this->query;
 	}
@@ -167,6 +171,16 @@ class Request {
 			throw new ControllerException(415, 'Unsupported Content Type.'); // TODO maybe null instead of exception
 		}
 
+	}
+
+
+	public function has_cookie(string $name) : bool {
+		return isset($_COOKIE[$name]);
+	}
+
+
+	public function get_cookie(string $name) : ?string {
+		return $_COOKIE[$name];
 	}
 }
 ?>

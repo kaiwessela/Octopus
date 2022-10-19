@@ -80,7 +80,7 @@ class Endpoint {
 
 		foreach($controller_calls as $call){
 			$controller = $call->create_controller();
-			$controller->load_endpoint($this);
+			$controller->load_environment($this, $this->request, $this->response);
 
 			if(isset($this->controllers[$call->get_name()])){
 				$this->abort(new ControllerException(500, "Controller name «{$call->get_name()}» already in use."));
@@ -114,7 +114,8 @@ class Endpoint {
 					return;
 				}
 			} catch(Exception $e){
-				$this->abort(new ControllerException(500, 'Unknown Error.', $e));
+				// $this->abort(new ControllerException(500, 'Unknown Error.', $e));
+				$this->abort($e);
 				return;
 			}
 		}
@@ -170,6 +171,7 @@ class Endpoint {
 			'debug_mode' => Config::get('Server.debug_mode'),
 			'request' => $this->request,
 			'response' => $this->response,
+			'base' => $this->request->get_base_path()
 		];
 
 		$this->response->send($status_code, $environment);

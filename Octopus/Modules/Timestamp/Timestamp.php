@@ -51,7 +51,7 @@ class Timestamp extends StaticObject {
 		if(is_int($data) || is_numeric($data)){
 			$unix = (int) $data;
 
-			$datetime = DateTimeImmutable::setTimestamp($unix);
+			$datetime = (new DateTimeImmutable())->setTimestamp($unix);
 			$this->granularity = 1;
 		} else if(is_string($data)){
 			// TODO

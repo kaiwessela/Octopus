@@ -353,5 +353,8 @@ abstract class Entity {
 		$class = static::LIST_CLASS;
 		return new $class($db, static::class);
 	}
+
+
+	protected const DEFAULT_PULL_ATTRIBUTES = [];
 }
 ?>

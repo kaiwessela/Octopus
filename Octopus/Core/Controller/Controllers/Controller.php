@@ -1,11 +1,14 @@
 <?php
 namespace Octopus\Core\Controller\Controllers;
-use \Octopus\Core\Controller\Endpoint;
 use \Octopus\Core\Controller\Request;
+use Octopus\Core\Controller\Response;
+use \Octopus\Core\Controller\Endpoint;
 use \Octopus\Core\Controller\Router\ControllerCall;
 
 abstract class Controller {
 	protected Endpoint $endpoint;
+	protected Request $request;
+	protected Response $response;
 	protected string $importance; # primary | essential | accessory
 	protected ?int $status_code;
 
@@ -16,8 +19,10 @@ abstract class Controller {
 	}
 
 
-	final public function load_endpoint(Endpoint $endpoint) : void {
+	final public function load_environment(Endpoint &$endpoint, Request &$request, Response &$response) : void {
 		$this->endpoint = $endpoint;
+		$this->request = $request;
+		$this->response = $response;
 	}
 
 

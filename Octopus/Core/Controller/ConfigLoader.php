@@ -1,6 +1,7 @@
 <?php
 namespace Octopus\Core\Controller;
 use \Octopus\Core\Controller\Exceptions\ControllerException;
+use \Octopus\Core\Controller\Config;
 
 class ConfigLoader {
 
@@ -16,9 +17,9 @@ class ConfigLoader {
 			throw new ControllerException(500, "File not readable or is not a file: «{$real_path}».");
 		}
 
-		if(!str_starts_with($real_path, static::get_document_root())){
-			throw new ControllerException(500, "File is located outside of the document root: «{$real_path}».");
-		}
+		// if(!str_starts_with($real_path, static::get_document_root())){
+			// throw new ControllerException(500, "File is located outside of the document root: «{$real_path}».");
+		// }
 
 		$include_sandbox = static function($file) {
 			return include $file;

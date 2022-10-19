@@ -8,6 +8,7 @@ class Response {
 	private ?string $template_dir;
 	private string $content_type;
 	private array $templates;
+	private array $cookies;
 
 
 	function __construct() {
@@ -15,6 +16,7 @@ class Response {
 		$this->template_dir = null;
 		$this->content_type = 'text/html';
 		$this->templates = [];
+		$this->cookies = [];
 	}
 
 
@@ -43,9 +45,9 @@ class Response {
 			throw new ControllerException(500, "Template directory is not a directory: «{$dir}».");
 		}
 
-		if(!str_starts_with($dir, ConfigLoader::get_document_root())){
-			throw new ControllerException(500, "Template directory is outside the document root: «{$dir}».");
-		}
+		// if(!str_starts_with($dir, ConfigLoader::get_document_root())){
+		// 	throw new ControllerException(500, "Template directory is outside the document root: «{$dir}».");
+		// }
 
 		if(!is_readable($dir)){
 			throw new ControllerException(500, "Template directory is not readable: «{$dir}».");
@@ -89,11 +91,25 @@ class Response {
 	}
 
 
+	public function set_cookie(string $name, string $value, int $duration = 0, string $path = '', string $domain = '') : void {
+		
+	}
+
+
+	public function delete_cookie(string $name) : void {
+		$this->set_cookie($name, '', -1);
+	}
+
+
 	public function send(?int $code = 200, array $environment = []) : void {
 		$this->set_status_code($code ?? 200);
 
 		http_response_code($this->get_status_code());
 		header("Content-Type: {$this->content_type}");
+
+		// foreach($this->cookies as $name => $cookie){
+		// 	setcookie($name, $cookie[0], $cookie[1], $cookie[2])
+		// }
 
 		$template = $this->templates[$this->get_status_code()]
 			?? $this->templates[floor($this->get_status_code() / 100)]

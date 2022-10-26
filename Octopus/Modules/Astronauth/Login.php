@@ -1,12 +1,13 @@
 <?php
 namespace Octopus\Modules\Astronauth;
+use Octopus\Core\Config;
 use Octopus\Core\Model\Entity;
-use Octopus\Core\Model\Attributes\EntityAttribute;
 use Octopus\Modules\Identifiers\ID;
 use Octopus\Modules\Primitives\Enumy;
 use Octopus\Modules\Astronauth\Account;
 use Octopus\Modules\Primitives\Stringy;
 use Octopus\Modules\Timestamp\TimestampAttribute;
+use Octopus\Core\Model\Attributes\EntityAttribute;
 
 class Login extends Entity {
 	protected ID $id;
@@ -60,9 +61,9 @@ class Login extends Entity {
 
 	public function is_expired() : bool {
 		if($this->is_session()){
-			return $this->last_refreshed->to_unix() > time() + static::get_session_duration();
+			return $this->last_refresh->get_value()->to_unix() > time() + static::get_session_duration();
 		} else if($this->is_persistent()){
-			return $this->last_refreshed->to_unix() > time() + static::get_persistent_duration();
+			return $this->last_refresh->get_value()->to_unix() > time() + static::get_persistent_duration();
 		} else {
 			return false;
 		}
@@ -70,17 +71,17 @@ class Login extends Entity {
 
 
 	public function is_session() : bool {
-		return $this->validity === 'session';
+		return $this->validity->get_value() === 'session';
 	}
 
 
 	public function is_persistent() : bool {
-		return $this->validity === 'persistent';
+		return $this->validity->get_value() === 'persistent';
 	}
 
 
 	public function is_revoked() : bool {
-		return $this->validity === 'revoked';
+		return $this->validity->get_value() === 'revoked';
 	}
 
 
@@ -90,7 +91,7 @@ class Login extends Entity {
 
 
 	public static function get_persistent_duration() : int {
-		return Config::get('persistent_login_duration') ?? 2592000; # 30 days
+		return Config::get('persistent_login_duration', quiet:true) ?? 2592000; # 30 days
 	}
 }
 ?>

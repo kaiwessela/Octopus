@@ -80,7 +80,7 @@ class Endpoint {
 
 		foreach($controller_calls as $call){
 			$controller = $call->create_controller();
-			$controller->load_environment($this, $this->request, $this->response);
+			$controller->load_environment($this, $this->request, $call);
 
 			if(isset($this->controllers[$call->get_name()])){
 				$this->abort(new ControllerException(500, "Controller name «{$call->get_name()}» already in use."));
@@ -88,7 +88,7 @@ class Endpoint {
 			}
 
 			try {
-				$controller->load($this->request, $call);
+				$controller->load();
 			} catch(ControllerException $e){
 				$this->abort($e);
 				return;
@@ -104,7 +104,7 @@ class Endpoint {
 
 		foreach($this->controllers as &$controller){
 			try {
-				$controller->execute($this->request);
+				$controller->execute();
 			} catch(ControllerException $e){
 				if($controller->get_importance() === 'accessory'){
 					$controller = null;
@@ -136,6 +136,8 @@ class Endpoint {
 
 			if($controller->get_importance() === 'primary'){
 				$status_code = $controller->get_status_code();
+
+				// TODO redirect
 			}
 
 			// TODO check this to prevent overwriting
@@ -145,6 +147,8 @@ class Endpoint {
 			} else {
 				$environment[$name] = &$controller;
 			}
+
+			$this->response->set_cookies($controller->get_cookies());
 		}
 
 		$this->send($status_code, $environment);

@@ -102,8 +102,18 @@ class Request {
 		return empty($result) ? null : $result;
 	}
 
-	public function get_base_path() : string {
-		return rtrim(substr($this->path, 0, -1 * strlen($this->virtual_path)), '/');
+	public function get_base_path() : string {		
+		//return rtrim(substr($this->path, 0, -1 * strlen($this->virtual_path)), '/');
+
+		$cutoff = strlen($this->virtual_path);
+
+		if($cutoff === 0){
+			$path = $this->path;
+		} else {
+			$path = substr($this->path, 0, -1 * strlen($this->virtual_path));
+		}
+
+		return rtrim($path, '/');
 	}
 
 	public function get_query_string() : ?string {

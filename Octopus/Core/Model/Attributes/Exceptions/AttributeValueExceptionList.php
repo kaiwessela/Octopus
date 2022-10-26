@@ -28,6 +28,20 @@ class AttributeValueExceptionList extends Exception {
 	}
 
 
+	public function has(string $attribute_name) : bool {
+		return isset($this->exceptions[$attribute_name]);
+	}
+
+
+	public function get(string $attribute_name) : ?AttributeValueException {
+		if(!$this->has($attribute_name)){
+			return null;
+		}
+
+		return $this->exceptions[$attribute_name];
+	}
+
+
 	public function is_empty() : bool {
 		return count($this->exceptions) === 0;
 	}

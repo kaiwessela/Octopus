@@ -91,13 +91,8 @@ class Response {
 	}
 
 
-	public function set_cookie(string $name, string $value, int $duration = 0, string $path = '', string $domain = '') : void {
-		
-	}
-
-
-	public function delete_cookie(string $name) : void {
-		$this->set_cookie($name, '', -1);
+	public function set_cookies(array $cookies) : void {
+		$this->cookies = array_merge($this->cookies, $cookies);
 	}
 
 
@@ -107,9 +102,9 @@ class Response {
 		http_response_code($this->get_status_code());
 		header("Content-Type: {$this->content_type}");
 
-		// foreach($this->cookies as $name => $cookie){
-		// 	setcookie($name, $cookie[0], $cookie[1], $cookie[2])
-		// }
+		foreach($this->cookies as $name => $cookie){
+			setcookie($cookie['name'], $cookie['value'], time() + $cookie['duration'], $cookie['path'], $cookie['domain']); // TEMP
+		}
 
 		$template = $this->templates[$this->get_status_code()]
 			?? $this->templates[floor($this->get_status_code() / 100)]

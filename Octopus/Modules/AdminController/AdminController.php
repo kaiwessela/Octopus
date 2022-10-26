@@ -12,9 +12,9 @@ class AdminController extends Controller {
 	private ?string $entity_name;
 
 
-	public function load(Request $request, ControllerCall $call) : void {
+	public function load(ControllerCall $call) : void {
 		$this->config = ConfigLoader::read($call->get_option('config'));
-		$entity_name = URLSubstitution::replace($call->get_option('entity_class'), $request, force_string:true);
+		$entity_name = URLSubstitution::replace($call->get_option('entity_class'), $this->request, force_string:true);
 
 		if($entity_name === ''){
 			$this->entity_name = null;
@@ -24,7 +24,7 @@ class AdminController extends Controller {
 	}
 
 
-	public function execute(Request $request) : void {
+	public function execute() : void {
 
 	}
 

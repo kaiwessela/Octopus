@@ -44,7 +44,7 @@ final class UpdateRequest extends Request {
 
 		$columns = [];
 		foreach($this->attributes as $attribute){
-			$columns[] = "	{$attribute->get_db_column()} = :{$attribute->get_name()}";
+			$columns[] = "	`{$attribute->get_db_column()}` = :{$attribute->get_name()}";
 			$this->values[$attribute->get_name()] = $attribute->get_push_value();
 		}
 

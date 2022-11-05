@@ -23,7 +23,7 @@ class AstronauthController extends AuthenticationController {
 	public function load() : void { // TODO add manual
 		$this->action = $this->call->get_option('action') ?? 'accompany';
 
-		if(in_array($this->action, ['login', 'logout', 'register', 'manual', 'accompany'])){
+		if(!in_array($this->action, ['login', 'logout', 'register', 'manual', 'accompany'])){
 			throw new ControllerException(500, 'Route: Invalid action.');
 		}
 

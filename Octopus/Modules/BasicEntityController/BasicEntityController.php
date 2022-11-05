@@ -31,34 +31,34 @@ class BasicEntityController extends EntityController {
 	public ?Pagination $pagination;
 
 
-	public function load(ControllerCall $call) : void {
-		$this->load_mode($call);
-		$this->load_action($call);
+	public function load() : void {
+		$this->load_mode();
+		$this->load_action();
 
-		$object_class = $call->get_entity_class();
+		$object_class = $this->call->get_entity_class();
 
 		if($this->action === 'new'){
 			$this->create_object($object_class, list:false);
 		} else if($this->action === 'list') {
 			$this->create_object($object_class, list:true);
-			$this->load_list_pull_parameters($call);
-			$this->load_pull_conditions($call);
-			$this->load_pull_order($call);
-			$this->load_pagination_scheme($call);
-			$this->load_pull_attributes($call);
+			$this->load_list_pull_parameters();
+			$this->load_pull_conditions();
+			$this->load_pull_order();
+			$this->load_pagination_scheme();
+			$this->load_pull_attributes();
 		} else if($this->action === 'show' || $this->action === 'edit' || $this->action === 'delete'){
 			$this->create_object($object_class, list:false);
-			$this->load_single_pull_parameters($call);
-			$this->load_pull_attributes($call);
+			$this->load_single_pull_parameters();
+			$this->load_pull_attributes();
 		}
 
 	}
 
 
-	protected function load_mode(ControllerCall $call) : void {
-		if(!$call->has_option('mode') || $call->get_option('mode') === 'FORM'){
+	protected function load_mode() : void {
+		if(!$this->call->has_option('mode') || $this->call->get_option('mode') === 'FORM'){
 			$this->mode = 'FORM';
-		} else if($call->get_option('mode') === 'REST'){
+		} else if($this->call->get_option('mode') === 'REST'){
 			$this->mode = 'REST';
 		} else {
 			throw new ControllerException(500, 'Route: Invalid option «mode».');
@@ -66,8 +66,8 @@ class BasicEntityController extends EntityController {
 	}
 
 
-	protected function load_action(ControllerCall $call) : void {
-		$this->action = $call->get_option('action');
+	protected function load_action() : void {
+		$this->action = $this->call->get_option('action');
 
 		if(!in_array($this->action, ['show', 'edit', 'delete', 'list', 'new'])){
 			throw new ControllerException(500, 'Route: Invalid action.');
@@ -97,14 +97,14 @@ class BasicEntityController extends EntityController {
 	}
 
 
-	protected function load_single_pull_parameters(ControllerCall $call) : void {
-		$this->identify_by = URLSubstitution::replace($call->get_option('identify_by'), $this->request);
+	protected function load_single_pull_parameters() : void {
+		$this->identify_by = URLSubstitution::replace($cthis->all->get_option('identify_by'), $this->request);
 
 		if(!is_string($this->identify_by) && !is_null($this->identify_by)){
 			throw new ControllerException(500, 'Route: Invalid option «identify_by».');
 		}
 
-		$this->identifier = URLSubstitution::replace($call->get_option('identifier'), $this->request);
+		$this->identifier = URLSubstitution::replace($this->call->get_option('identifier'), $this->request);
 
 		if(!is_string($this->identifier)){
 			throw new ControllerException(500, 'Route: Invalid option «identifier».');
@@ -112,8 +112,8 @@ class BasicEntityController extends EntityController {
 	}
 
 
-	protected function load_list_pull_parameters(ControllerCall $call) : void {
-		$amount = $call->get_option('amount');
+	protected function load_list_pull_parameters() : void {
+		$amount = $this->call->get_option('amount');
 
 		if(is_string($amount)){
 			$amount = URLSubstitution::replace($amount, $this->request);
@@ -126,7 +126,7 @@ class BasicEntityController extends EntityController {
 		$this->amount = $amount;
 
 		if(isset($amount)){
-			$page = $call->get_option('page');
+			$page = $this->call->get_option('page');
 
 			if(is_null($page)){
 				$page = 1;
@@ -145,8 +145,8 @@ class BasicEntityController extends EntityController {
 	}
 
 
-	protected function load_pull_attributes(ControllerCall $call) : void {
-		$attributes = $call->get_option('attributes');
+	protected function load_pull_attributes() : void {
+		$attributes = $this->call->get_option('attributes');
 
 		if(!is_array($attributes) && !is_null($attributes)){
 			throw new ControllerException(500, 'Route: Invalid option «attributes».');
@@ -156,8 +156,8 @@ class BasicEntityController extends EntityController {
 	}
 
 
-	protected function load_pull_conditions(ControllerCall $call) : void {
-		$conditions = $call->get_option('conditions');
+	protected function load_pull_conditions() : void {
+		$conditions = $this->call->get_option('conditions');
 
 		if(!is_array($conditions) && !is_null($conditions)){
 			throw new ControllerException(500, 'Route: Invalid option «conditions».');
@@ -177,14 +177,14 @@ class BasicEntityController extends EntityController {
 	}
 
 
-	protected function load_pull_order(ControllerCall $call) : void {
+	protected function load_pull_order() : void {
 		// TODO
-		$this->order = $call->get_option('order') ?? [];
+		$this->order = $this->call->get_option('order') ?? [];
 	}
 
 
-	protected function load_pagination_scheme(ControllerCall $call) : void {
-		$this->pagination_scheme = $call->get_option('pagination_url_scheme') ?? URLSubstitution::backwards([
+	protected function load_pagination_scheme() : void {
+		$this->pagination_scheme = $this->call->get_option('pagination_url_scheme') ?? URLSubstitution::backwards([
 			'page' => $this->page,
 			'amount' => $this->amount
 		], $this->request);
@@ -203,16 +203,16 @@ class BasicEntityController extends EntityController {
 				$this->object->pull($this->amount, $offset, $this->pull_attributes, $this->pull_conditions, $this->order);
 			} catch(EmptyResultException $e){}
 
-			$this->status_code = 200;
+			$this->set_status_code(200);
 
 		} else if($this->action === 'new'){
 			try {
 				$this->object->create();
 				$this->object->receive_input($this->request->get_post_data());
 				$this->object->push();
-				$this->status_code = 201;
+				$this->set_status_code(201);
 			} catch(AttributeValueExceptionList $e){
-				$this->status_code = 422;
+				$this->set_status_code(422);
 				throw new ControllerException(422, '', $e);
 				return; // TODO invalid input
 			} // TODO EmptyRequestException
@@ -221,21 +221,21 @@ class BasicEntityController extends EntityController {
 			try {
 				$this->object->pull($this->identifier, $this->identify_by, $this->pull_attributes);
 			} catch(EmptyResultException $e){
-				$this->status_code = 404;
+				$this->set_status_code(404);
 				throw new ControllerException(404, 'Object not found.');
 			}
 
 			if($this->action === 'show'){
-				$this->status_code = 200;
+				$this->set_status_code(200);
 				return;
 
 			} else if($this->action === 'edit'){
 				try {
 					$this->object->receive_input($this->request->get_post_data());
 					$this->object->push();
-					$this->status_code = 200;
+					$this->set_status_code(200);
 				} catch(AttributeValueExceptionList $e){
-					$this->status_code = 422;
+					$this->set_status_code(422);
 					throw new ControllerException(422, '', $e);
 					return; // TODO invalid input
 				}
@@ -245,7 +245,7 @@ class BasicEntityController extends EntityController {
 
 				$this->object->delete();
 
-				$this->status_code = 200;
+				$this->set_status_code(200);
 			}
 		}
 	}

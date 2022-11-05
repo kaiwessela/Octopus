@@ -64,16 +64,15 @@ class EntityList {
 	# @param $limit: how many entities to pull (SQL LIMIT)
 	# @param $offset: the number of entities to be skipped (SQL OFFSET)
 	# @param $options: additional, custom pull options
-	final public function pull(?int $limit = null, ?int $offset = null, array $attributes = [], array $conditions = [], array $order = []) : void {
+	final public function pull(?int $limit = null, ?int $offset = null, array $include_attributes = [], array $conditions = [], array $order_by = []) : void {
 		if($this->is_loaded()){
 			throw new CallOutOfOrderException();
 		}
 
 		$request = new SelectRequest($this->prototype);
-		$this->prototype->build_pull_request($request, $attributes);
+		$this->prototype->build_pull_request($request, $include_attributes, $order_by);
 
 		$request->set_condition($this->prototype->resolve_pull_conditions($conditions));
-		$request->set_order($this->prototype->resolve_pull_order($order));
 		$request->set_limit($limit, $offset);
 
 		try {

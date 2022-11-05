@@ -174,6 +174,11 @@ abstract class Attribute {
 	}
 
 
+	public function parent_is(Entity|Relationship $object) : bool {
+		return $this->parent === $object;
+	}
+
+
 	abstract public function resolve_pull_condition(mixed $option) : ?Condition;
 
 

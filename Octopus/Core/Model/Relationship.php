@@ -100,11 +100,11 @@ abstract class Relationship {
 	abstract protected static function define_attributes() : array;
 
 
-	final public function join(array $attributes = []) : JoinRequest {
+	final public function join(array $include_attributes, array $order_by) : JoinRequest {
 		// TEMP the last argument uses a hotfix
 		// $request = new JoinRequest($this, $this->get_context_attribute(), $this->context->get_attribute($this->get_context_attribute()->get_identify_by()));
 		$request = new JoinRequest($this, $this->get_context_attribute(), $this->context->get_main_identifier_attribute());
-		$this->build_pull_request($request, $attributes);
+		$this->build_pull_request($request, $include_attributes, $order_by);
 		return $request;
 	}
 

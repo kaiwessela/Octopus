@@ -153,8 +153,8 @@ final class EntityAttribute extends Attribute {
 	}
 
 
-	final public function get_join_request(array $attributes = []) : JoinRequest {
-		return $this->get_prototype()->join(on:$this, identify_by:$this->identify_by, attributes:$attributes);
+	final public function get_join_request(array $include_attributes, array $order_by) : JoinRequest {
+		return $this->get_prototype()->join($this, $this->identify_by, $include_attributes, $order_by);
 	}
 
 

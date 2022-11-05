@@ -28,6 +28,8 @@ trait EntityAndRelationship {
 
 		self::$attributes[static::class] = [];
 
+		// idea: store also the just defined attribute objects themselves in self::$attributes and just clone them for each new instance
+
 		foreach(static::define_attributes() as $name => $attribute){
 			$this->$name = $attribute;
 			$this->$name->bind($name, $this);
@@ -76,8 +78,12 @@ trait EntityAndRelationship {
 	}
 
 
-	final public function has_attribute(string $name) : bool {
-		return in_array($name, $this->get_attributes());
+	final public function has_attribute(string|Attribute $attribute) : bool {
+		if(is_string($attribute)){
+			return in_array($attribute, $this->get_attributes());
+		} else {
+			return $attribute->parent_is($this);
+		}
 	}
 
 
@@ -95,49 +101,162 @@ trait EntityAndRelationship {
 	}
 
 
-	final public function build_pull_request(Request &$request, array $attributes = []) : void {
-		foreach($attributes as $name => $option){
+	/*
+	how to deal with order:
+
+	1. get input order chain: [1 => [title, +], 2 => [author:name, +], 3 => [categories:category:name?, +]]
+	2. split it to get a chain for each select/join request, keep indices:
+		articles (main/select): 1 => [title, +],
+		authors (forward join): 2 => [name, +],
+		categories (reverse join): 
+			category (forward join): 3 => [name, +]
+	3. pass these chains into the request
+
+	In SelectRequest/JoinRequest, on resolve():
+	4. merge the own chain and the chains of each forward join below (recursively) together, ordering after the index:
+		articles: 1 => [title, +], 2 => [(author.)name, +]
+		categories: 3 => [(categories.category.)name, +]
+	5. reindex the chains:
+		articles: 1 => ..., 2 => ...
+		categories: 1 => ...
+	6. append the default/fallback order (which is the main identifier) to the main chain and each backwards join's chain:
+		articles: 1 => ..., 2 => ..., 3 => [id, +]
+		categories: 1 => ..., 2 => [id, +]
+	7. glue all chains together:
+		1, 2, 3, 4, 5
+
+	what if there are two reverse joins on the same level? idea: the one with the longer chain takes precedence
+	*/
+
+	final public function build_pull_request(Request &$request, array $include_attributes, array $order_by) : void {
+		foreach($include_attributes as $name => $option){
 			if(!$this->has_attribute($name)){
-				throw new Exception(); // Error
+				throw new Exception("Unknown attribute «{$name}».");
 			}
 
 			if(!is_null($option) && !is_bool($option) && !(is_array($option) && $this->$name->is_joinable())){
-				throw new Exception(); // Error
+				throw new Exception("Invalid format of inclusion directive for attribute «{$name}».");
 			}
 		}
 
-		foreach($this->get_attributes() as $name){
-			$option = $attributes[$name] ?? static::DEFAULT_PULL_ATTRIBUTES[$name] ?? null;
+		$order_chains = $this->split_pull_order_chain($order_by);
 
-			if(is_array($option) || is_null($option)){
+		foreach($this->get_attributes() as $name){
+			$option = $include_attributes[$name] ?? static::DEFAULT_PULL_ATTRIBUTES[$name] ?? null;
+
+			if(is_array($option)){
 				$pull = true;
 				$join = true;
-			} else if($option === true){
+			} else if($option === true || is_null($option)){
 				$pull = true;
 				$join = false;
 			} else if($option === false){
 				$pull = false;
 				$join = false;
 			} else {
-				throw new Exception(); // Error
+				throw new Exception("Invalid format of default inclusion directive for attribute «{$name}».");
 			}
 
-			if($this->$name->is_pullable() && $pull){
-				$request->add($this->$name);
+			if($this->$name->is_pullable()){
+				if($pull){
+					$request->add($this->$name);
+				}
+
+				if(array_key_exists($name, $order_chains[0])){ // there is an order statement for the attribute
+					if($pull){
+						list($significance, $direction) = $order_chains[0][$name];
+
+						$request->add_order($this->$name, $direction, $significance);
+					} else {
+						throw new Exception("Cannot order results by non-included attribute «{$name}».");
+					}
+				}
+			} else if($pull){
+				throw new Exception("Cannot add non-pullable attribute «{$name}» to the request.");
 			}
 
-			if($this->$name->is_joinable() && $join){
-				if(!$this->is_independent() && $this->$name->get_class() === $this->context::class){
-					continue;
+			if($this->$name->is_joinable()){
+				if(array_key_exists($name, $order_chains)){
+					if($join){
+						$order_chain = $order_chains[$name];
+					} else {
+						throw new Exception("Cannot order results by non-joined attribute «{$name}».");
+					}
+				} else {
+					$order_chain = [];
 				}
 
-				if(!$this->$name->is_pullable() && !($this->is_independent() || $this->context instanceof EntityList)){ // TEMP
-					continue;
-				}
+				if($join){
+					if(!$this->is_independent() && $this->$name->get_class() === $this->context::class){ // TEMP
+						continue;
+					}
+	
+					if(!$this->$name->is_pullable() && !($this->is_independent() || $this->context instanceof EntityList)){ // TEMP
+						continue;
+					}
 
-				$request->add_join($this->$name->get_join_request($option ?? [])); // TODO check []
+					$request->add_join($this->$name->get_join_request($option ?? [], $order_chain));
+				}
+			} else if($join){
+				throw new Exception("Cannot join non-joinable attribute «{$name}» to the request.");
 			}
 		}
+	}
+
+
+	final protected function split_pull_order_chain(array $raw_chain) : array {
+		if(!array_is_list($raw_chain)){
+			throw new Exception("Invalid format of order directives list.");
+		}
+		
+		$result = [
+			0 => [] // 0 is simply used because there wont be any collision with a join request’s chain
+		];
+
+		// $order = [1 => ['attribute(.remainder)', 'direction'], 2 => ..., ...]
+		// $significance is simply the index
+		foreach($raw_chain as $significance => $order){
+			// check format of each individual order
+			if(!is_array($order) || !count($order) === 2 || !is_string($order[0]) || !is_string($order[1])){
+				throw new Exception("Invalid format of order directive #{$significance}.");
+			}
+
+			list($full_attribute, $direction) = $order;
+
+			$exp = explode('.', $full_attribute, 2);
+			$attribute = $exp[0];
+			$remainder = $exp[1] ?? '';
+
+			if(!$this->has_attribute($attribute)){
+				throw new Exception("Unknown attribute «{$attribute}» in order directive #{$significance}.");
+			}
+
+			$direction = match($direction){
+				'+', 'ascending', 'ASC' => 'ASC',
+				'-', 'descending', 'DESC' => 'DESC',
+				default => throw new Exception("Invalid direction in order directive #{$significance}.")
+			};
+
+			if(empty($remainder)){
+				if(!$this->$attribute->is_pullable()){
+					throw new Exception("Cannot order results by non-pullable attribute {$attribute} (#{$significance}).");
+				}
+
+				$result[0][$attribute] = [$significance, $direction];
+			} else {
+				if(!$this->$attribute->is_joinable()){
+					throw new Exception("Unknown attribute «{$attribute}» in order directive #{$significance}.");
+				}
+
+				if(!isset($result[$attribute])){
+					$result[$attribute] = [];
+				}
+
+				$result[$attribute][$significance] = [$remainder, $direction];
+			}
+		}
+
+		return $result;
 	}
 
 
@@ -192,57 +311,6 @@ trait EntityAndRelationship {
 				]
 			]
 
-		]
-	]
-	*/
-
-
-	final public function resolve_pull_order(array $options) : array {
-		$level0 = [];
-		$level1 = [];
-		$level2 = [];
-
-		foreach($options as $attribute => $option){
-			if(!$this->has_attribute($attribute)){
-				throw new Exception(); // Error
-			}
-
-			if($this->$attribute instanceof PropertyAttribute){
-				if($option === 'ascending' || $option === 'ASC' || $option === '+'){
-					$level0[] = [$this->$attribute, 'ASC'];
-				} else if($option === 'descending' || $option === 'DESC' || $option === '-'){
-					$level0[] = [$this->$attribute, 'DESC'];
-				} else {
-					throw new Exception();
-				}
-
-			} else if($this->$attribute instanceof EntityAttribute){
-				if(!is_array($option)){
-					throw new Exception(); // Error
-				}
-
-				$level1 = [...$level1, ...$this->$attribute->get_prototype()->resolve_pull_order($option)];
-			} else if($this->$attribute instanceof RelationshipAttribute){
-				if(!is_array($option)){
-					throw new Exception(); // Error
-				}
-
-				$level2 = [...$level2, ...$this->$attribute->get_prototype()->resolve_pull_order($option)];
-			}
-		}
-
-		if(empty($level0) && !empty($level2)){
-			$level0[] = [$this->id, 'ASC'];
-		}
-
-		return [...$level0, ...$level1, ...$level2];
-	}
-	/*
-	posts
-	[
-		'timestamp' => 'ascending'|'ASC'|'+',
-		'columns' => [
-			'name' => 'descending'|'DESC'|'-'
 		]
 	]
 	*/

@@ -106,8 +106,8 @@ final class RelationshipAttribute extends Attribute {
 	}
 
 
-	final public function get_join_request(array $attributes = []) : JoinRequest {
-		return $this->get_prototype()->join($attributes);
+	final public function get_join_request(array $include_attributes, array $order_by) : JoinRequest {
+		return $this->get_prototype()->join($include_attributes, $order_by);
 	}
 
 

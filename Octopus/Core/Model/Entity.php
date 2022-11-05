@@ -110,7 +110,7 @@ abstract class Entity {
 	# @param $identifier: the identifier string that specifies which entity to download.
 	# @param $identify_by: the name of the attribute $identifier is matched with.
 	# @param $options: additional, custom pull options
-	final public function pull(string $identifier, ?string $identify_by = null, array $attributes = []) : void {
+	final public function pull(string $identifier, ?string $identify_by = null, array $include_attributes = [], array $order_by = []) : void {
 		if($this->is_loaded()){
 			throw new CallOutOfOrderException();
 		}
@@ -125,7 +125,7 @@ abstract class Entity {
 		}
 
 		$request = new SelectRequest($this);
-		$this->build_pull_request($request, $attributes);
+		$this->build_pull_request($request, $include_attributes, $order_by);
 		$request->set_condition(new IdentifierEquals($this->$identify_by, $identifier));
 
 		try {
@@ -143,7 +143,7 @@ abstract class Entity {
 	}
 
 
-	final public function join(Attribute $on, string $identify_by, array $attributes = []) : JoinRequest {
+	final public function join(Attribute $on, string $identify_by, array $include_attributes, array $order_by) : JoinRequest {
 		if(!$this->has_attribute($identify_by)){
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» not found.");
 		} else if(!$this->$identify_by instanceof IdentifierAttribute){
@@ -151,7 +151,7 @@ abstract class Entity {
 		}
 
 		$request = new JoinRequest($this, $this->$identify_by, $on);
-		$this->build_pull_request($request, $attributes);
+		$this->build_pull_request($request, $include_attributes, $order_by);
 		return $request;
 	}
 

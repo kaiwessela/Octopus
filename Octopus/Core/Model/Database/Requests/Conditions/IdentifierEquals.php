@@ -4,7 +4,12 @@ use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Attributes\IdentifierAttribute;
 use \Exception;
 
-// TODO explainations
+# An IdentifierEquals condition compares any identifier attribute (column) value to a single given comparison value
+# using the EQUAL (=) operator.
+# The comparison value can be any scalar value.
+# This is functionally equivalent to the Equals condition, but only works with IdentifierAttributes. Because some
+# request types only work on single rows, using this condition is an easy way to ensure that only a single, uniquely
+# identified row is being modified.
 
 class IdentifierEquals extends Condition {
 	protected IdentifierAttribute $attribute;
@@ -19,14 +24,12 @@ class IdentifierEquals extends Condition {
 	}
 
 
-	public function resolve(int $index = 0) : int {
-		$this->query = "{$this->attribute->get_prefixed_db_column()} = :cond_{$index}";
-		$this->values = ["cond_{$index}" => $this->value];
-
-		return $index + 1;
+	protected function simplified_resolve() : string {
+		return "{$this->attribute->get_prefixed_db_column()} = {$this->substitute($this->value)}";
 	}
 
 
+	# used by SelectRequest->selects_single_object()
 	public function get_attribute() : IdentifierAttribute {
 		return $this->attribute;
 	}

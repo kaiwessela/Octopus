@@ -3,33 +3,45 @@ namespace Octopus\Core\Model\Database\Requests\Conditions;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Attributes\Attribute;
 
-// TODO explainations
+# An InList condition checks if any attribute (column) value is contained in a given array of comparison values
+# using the SQL IN operator.
+# The comparison values array must be a non-empty list of scalar values.
 
 class InList extends Condition {
 	protected Attribute $attribute;
-	protected array $vals;
+	protected array $comparison_list;
 
 
 	function __construct(Attribute $column, array $values) {
 		parent::__construct();
 
+		if(empty($values)){
+			throw new Exception("The array of comparison values must not be empty.");
+		}
+
+		if(!array_is_list($values)){
+			throw new Exception("The array of comparison values is not a list.");
+		}
+
+		foreach($values as $value){
+			if(!is_scalar($value)){
+				throw new Exception("The array of comparison values contains non-scalar values.");
+			}
+		}
+
 		$this->attribute = $column;
-		$this->vals = $values;
+		$this->comparison_list = $values;
 	}
 
 
-	public function resolve(int $index = 0) : int {
-		$placeholders = [];
-		foreach($this->vals as $value){
-			$placeholders[] = ":cond_{$index}";
-			$this->values["cond_{$index}"] = $value;
-			$index++;
+	protected function simplified_resolve() : string {
+		foreach($this->comparison_list as $value){
+			$placeholders[] = $this->substitute($value);
 		}
 
-		$placeholder_str = implode(', ', $placeholders);
-		$this->query = "{$this->attribute->get_prefixed_db_column()} IN ({$placeholder_str})";
+		$in = implode(', ', $placeholders);
 
-		return $index;
+		return "{$this->attribute->get_prefixed_db_column()} IN ({$in})";
 	}
 }
 ?>

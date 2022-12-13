@@ -3,7 +3,9 @@ namespace Octopus\Core\Model\Database\Requests\Conditions;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Exception;
 
-// TODO explainations
+# An OrOp condition joins multiple conditions together using the mysql OR operator.
+# The statement the OrOp condition resolves to evaluates to true iff
+# AT LEAST ONE of its individual conditions’ statements evaluates to true.
 
 class OrOp extends Condition {
 	protected array $conditions;

@@ -3,25 +3,24 @@ namespace Octopus\Core\Model\Database\Requests\Conditions;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Attributes\Attribute;
 
-// TODO explainations
+# An Equals condition compares any attribute (column) value to a single given comparison value
+# using the EQUAL (=) operator.
+# The comparison value can be any scalar value.
 
 class Equals extends Condition {
 	protected Attribute $attribute;
 	protected string|int|float|null $value;
 
 
-	function __construct(Attribute $column, string|int|float|null $value) {
+	function __construct(Attribute $attribute, string|int|float|null $value) {
 		parent::__construct();
 
-		$this->attribute = $column;
+		$this->attribute = $attribute;
 		$this->value = $value;
 	}
 
 
-	public function resolve(int $index = 0) : int {
-		$this->query = "{$this->attribute->get_prefixed_db_column()} = :cond_{$index}";
-		$this->values = ["cond_{$index}" => $this->value];
-
-		return $index + 1;
+	protected function simplified_resolve() : string {
+		return "{$this->attribute->get_prefixed_db_column()} = {$this->substitute($this->value)}";
 	}
 }

@@ -1,67 +1,104 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
-use \Octopus\Core\Model\Entity;
-use \Octopus\Core\Model\Relationship;
-use \Octopus\Core\Model\Database\Requests\Request;
-use \Octopus\Core\Model\Database\Requests\SelectAndJoin;
-use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
-use \Octopus\Core\Model\Attributes\Attribute;
 use Exception;
+use Octopus\Core\Model\Entity;
+use Octopus\Core\Model\Relationship;
+use Octopus\Core\Model\Attributes\Attribute;
+use Octopus\Core\Model\Database\Requests\Request;
+use Octopus\Core\Model\Database\Requests\SelectAndJoin;
+use Octopus\Core\Model\Database\Requests\Conditions\Condition;
+use Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
 
-// TODO explainations
+# SelectRequest creates an SQL query for a SELECT operation, used to retrieve one or multiple rows (= objects) from the
+# database.
+# It creates both a query to retrieve the object data and a query to only count the amount of objects that could be
+# retrieved using the provided object, attributes and conditions (COUNT).
+# All columns reflecting attributes provided to the request will be retrieved.
+# Joinable attributes can be included using a JoinRequest. SelectRequest is able to handle convoluted JoinRequests,
+# which are JoinRequests whose result can contain more than one row, thus resulting in multiple, partially duplicate
+# rows in the final, combined result, as is the case with many-to-many relationships.
+# Any kind of condition can be provided to specify which rows to select.
+# The number of rows/objects to select can be limited by setting a limit. Rows can be skipped by setting an offset.
+# The resulting rows can be sorted by setting one or more order attributes, the first one being the most significant.
+#
+# This class is a child of Request. See there for further documentation.
+# This class uses the Joinable trait to share functions with JoinRequest.
+
+
+# An example for a convoluted select request:
+#
+# Suppose you have two tables called "books" and "authors":
+#
+# table Books: isbn, title
+# table Authors: id, name
+#
+# You want to assign books to authors and vice versa, but you know that each book can have multiple authors and each
+# author can write multiple books. How do you do that?
+#
+# This is a classic constellation called a many-to-many relationship: You have many books, each having many authors
+# and vice versa. But how do you store all the authors of a book in the database? You cannot simply use a column and
+# write multiple author ids to it, or at least it would be unefficient. Instead, you use a separate table storing these
+# relationships: a so-called junction table which you call BookAuthors.
+#
+# table BookAuthors: id, author_id, book_isbn;
+#
+# So for every row in Authors, there exists at least one column in BookAuthors and one column in Books. But there can
+# also be more. So if you want to select an author including all their books, you need to join BookAutors and Books.
+# Your result might be the following:
+#
+# authors.id  authors.name  bookauthors.id  bookauthors.author_id  bookauthors.book_isbn  books.isbn  books.title
+# 001         Homer         1               001                    9-000-001              9-000-001   Odyssey
+# 001         Homer         1               001                    9-000-002              9-000-002   Ilias
+#
+# So although you only selected one author, Homer, the result contains two rows, one for each of his books, where the
+# columns from the author table are simply copied across all columns.
+# This is the behavior we want, but it can pose problems to us: If we want to count multiple authors while still
+# include their books, for example because we want to count all authors who wrote a book having a certain title,
+# we cannot simply count the columns, because there could be more columns in the result than authors.
+# We have to find a way around this, which is using a more complicated and resource-intensive query than for
+# simple requests, so we only want to use that more complicated query when it is really necessary. This class and
+# also JoinRequest and Joinable to a significant part consist of code to detect and deal with cases like this,
+# which i decided to call "convoluted requests". (See JoinRequest and Joinable for more info on that.)
 
 final class SelectRequest extends Request {
-	# inherited from Request:
-	# protected Entity|Relationship $object;
-	# protected array $attributes;
-	# protected string $query;
-	# protected ?array $values;
-
-	protected string $count_query;
-
-	protected ?int $limit;
-	protected ?int $offset;
-	protected array $order;
-	protected ?Condition $condition;
-
 	use SelectAndJoin;
 
-	# required by SelectAndJoin
-	protected array $columns;
-	protected array $joins;
+	protected array $joins; # The JoinRequests that are executed together with this.
+	protected ?int $limit; # The amount of rows to select (for SQL LIMIT statement).
+	protected ?int $offset; # The amount of rows to be skipped (for SQL OFFSET statement).
+	protected array $order; # The attributes/columns to sort the rows by (for SQL ORDER BY statement).
+	protected Condition $condition; # the Condition determining which rows to select. Multiple conditions can be linked
+									# together using AndOp or OrOp.
+
+	protected string $count_query; # Caches the SQL count query computed by resolve().
 
 
-	# ---> Request:
-	# final public function add(Attribute $attribute) : void;
-	# final public function remove(Attribute $attribute) : void;
-	# final public function get_query() : string;
-	# final public function get_values() : array;
-	# final public function set_values(array $values) : void;
-	# final public function is_resolved() : bool;
-
-
+	# Initialize the SelectRequest and provide its object.
 	function __construct(Entity|Relationship $object) {
-		parent::__construct($object);
+		parent::__construct($object); # Use the construct function of Request.
 
+		$this->joins = [];
 		$this->limit = null;
 		$this->offset = null;
 		$this->order = [];
 		$this->condition = null;
-
-		$this->columns = [];
-		$this->joins = [];
 	}
 
 
-	public function set_limit(?int $limit, ?int $offset = null) : void {
-		if(is_int($limit) && $limit <= 0){
+	# --> Joinable:
+	# final public function add_join(JoinRequest $request) : void;
+	# final public function add_order(Attribute $by, string $direction, int $significance) : void;
+
+
+	# Set the limit and offset, determining how many rows to select and how many to skip.
+	final public function set_limit(?int $limit, ?int $offset = null) : void {
+		if(is_int($limit) && $limit <= 0){ # limit must be either null or a positive integer.
 			throw new Exception('limit cannot be negative or zero.');
 		}
 
 		$this->limit = $limit;
 
-		if(is_int($offset) && $offset < 0){
+		if(is_int($offset) && $offset < 0){ # offset must be either null or a non-negative integer.
 			throw new Exception('offset cannot be negative.');
 		}
 
@@ -69,54 +106,53 @@ final class SelectRequest extends Request {
 	}
 
 
-	public function set_order(array $order = []) : void {
-		foreach($order as $ord){
-			if(!is_array($ord)){
-				throw new Exception();
-			}
-
-			if(!$ord[0] instanceof Attribute){
-				throw new Exception();
-			}
-
-			if($ord[1] !== 'ASC' && $ord[1] !== 'DESC'){
-				throw new Exception();
-			}
-		}
-
-		$this->order = $order;
+	# Set the condition determining which rows/objects to select.
+	final public function set_condition(?Condition $condition) : void {
+		$this->condition = $condition;
 	}
 
 
-	protected function resolve() : void {
-		if(empty($this->attributes)){
+	# Compute the select and count queries.
+	final protected function resolve() : void {
+		if(empty($this->attributes)){ # if there are no columns to select, an EmptyResultException is thrown.
 			throw new EmptyRequestException($this);
 		}
 
-		$columns = $this->resolve_columns();
+		# assemble the columns by collecting the attributes of both this request and all its joins.
+		$columns = [];
+		foreach($this->collect_attributes() as $attribute){
+			$columns[] = "	{$attribute->get_prefixed_db_column()} AS `{$attribute->get_result_column()}`";
+		}
+
+		$columns_str = implode(','.PHP_EOL, $columns);
+
+		# resolve the condition (WHERE statement).
+		if(isset($this->condition)){
+			$where = "WHERE {$this->condition->get_query()}".PHP_EOL;
+			$this->values = $this->condition->get_values(); # the condition values are the only ones sent.
+		} else {
+			$where = '';
+		}
+		
+		# resolve all other query elements.
 		$joins = $this->resolve_joins();
-		$where = $this->resolve_condition();
 		$order = $this->resolve_order();
 		$limit = $this->resolve_limit();
 
-		if(!$this->is_convoluted()){ // unidimensional
-			$this->query = <<<"SQL"
+		# If the request is convoluted (see above for what that means), a more complicated query has to be used that
+		# allows to use limit and offset despite the fact that some objects span across multiple rows (which would
+		# double-count them because LIMIT and OFFSET are applied on the rows, not the objects.
+		#
+		# If this request only selects a single object or does not limit the results, convolution is a problem for the
+		# count query only, as limit does not apply for the select query and is simply being ignored by resolve_limit().
+
+		if($this->is_convoluted() && !(is_null($this->limit) || $this->selects_single_object())){ # complicated select.
+			$this->query =
+			#
+#<-----------
+<<<"SQL"
 SELECT
-{$columns}
-FROM `{$this->object->get_db_table()}` AS `{$this->object->get_prefixed_db_table()}`
-{$joins}
-{$where}
-{$order}
-{$limit}
-SQL;
-
-
-			$this->count_query = "SELECT COUNT(*) AS `total` FROM `{$this->object->get_db_table()}` {$joins} {$where}";
-
-		} else { // multidimensional
-			$this->query = <<<"SQL"
-SELECT
-{$columns}
+{$columns_str}
 FROM (
 	SELECT DISTINCT `{$this->object->get_db_table()}`.* FROM `{$this->object->get_db_table()}`
 	{$joins}
@@ -128,68 +164,95 @@ FROM (
 {$where}
 {$order}
 SQL;
-
-
-			$this->count_query = "SELECT COUNT(DISTINCT {$this->object->get_main_identifier_attribute()->get_prefixed_db_column()}) AS `total` FROM `{$this->object->get_db_table()}` {$joins} {$where}";
+#----------->
+			#
+			#
+		} else { # use the simple select query.
+			$this->query =
+			#
+#<-----------
+<<<"SQL"
+SELECT
+{$columns_str}
+FROM `{$this->object->get_db_table()}` AS `{$this->object->get_prefixed_db_table()}`
+{$joins}
+{$where}
+{$order}
+{$limit}
+SQL;
+#----------->
+			#
+			#
+		}
+		
+		if($this->is_convoluted()){ # use the complicated count query.
+			$this->count_query = 
+			#
+#<-----------
+<<<"SQL"
+SELECT
+COUNT(
+	DISTINCT `{$this->object->get_main_identifier_attribute()->get_prefixed_db_column()}`
+) AS `total`
+FROM `{$this->object->get_db_table()}`
+{$joins}
+{$where}
+SQL;
+#----------->
+			#
+			#
+		} else { # use the simple count query.
+			$this->count_query = "SELECT COUNT(*) AS `total` FROM `{$this->object->get_db_table()}` {$joins} {$where}";
 		}
 	}
 
 
-	protected function resolve_columns() : string {
-		$columns = [];
-
-		foreach($this->attributes as $attribute){
-			$columns[] = static::create_column_string($attribute);
-		}
-
-		foreach($this->joins as $join){
-			$columns = [...$columns, ...$join->get_columns()];
-		}
-
-		return implode(','.PHP_EOL, $columns);
-	}
-
-
-	protected function resolve_joins() : string {
-		$join_string = '';
-
-		foreach($this->joins as $join){
-			$join_string .= $join->get_query().PHP_EOL;
-		}
-
-		return $join_string;
-	}
-
-
-	protected function resolve_condition() : string {
-		if(isset($this->condition)){
-			$condition = "WHERE {$this->condition->get_query()}".PHP_EOL;
-			$this->values = $this->condition->get_values();
-			return $condition;
-		} else {
-			return '';
-		}
-	}
-
-
+	# Resolve the order directives by collecting them and turning them into an SQL ORDER BY clause.
 	protected function resolve_order() : string {
-		if(empty($this->order)){
+		$orders = $this->collect_order_directives();
+
+		if(empty($orders)){
 			return '';
 		}
 
-		$orders = [];
-		foreach($this->order as $ord){
-			$orders[] = "{$ord[0]->get_prefixed_db_column()} {$ord[1]}";
+		$order_strings = [];
+		foreach($orders as $order){
+			$order_strings[] = "{$order[0]->get_prefixed_db_column()} {$order[1]}";
 		}
 
-		return 'ORDER BY '.implode(', ', $orders).PHP_EOL;
+		return 'ORDER BY '.implode(', ', $order_strings).PHP_EOL;
 	}
 
 
+	# Collect the arrays of arrays of order chains (= arrays of order directives) from this request and all its
+	# JoinRequests (level 3 array), and linearize them to create a level 1 array (= order directive chain).
+	# The resulting order directives are ordered by their level in the join tree, beginning with the highest level
+	# (which is this SelectRequest).
+	# The input array (from collect_order_directives_reverse()) is built up like this:
+	# chainchains = [level in the join tree => [all order chains on the same level (chains) [order directives (chain)]]]
+	# This implements step 4 of the order directive collection algorithm described in the Joinable trait.
+	protected function collect_order_directives() : array {
+		$orders = [];
+
+		$chainchains = $this->collect_order_directives_reverse();
+
+		foreach($chainchains as $chains){
+			foreach($chains as $chain){
+				$orders = [...$orders, ...$chain];
+			}
+		}
+
+		return $orders;
+	}
+
+
+	# Resolve the limit statement. if there is no limit set or the condition ensures that only one object is selected,
+	# simply ignore limit.
 	protected function resolve_limit() : string {
-		if(isset($this->limit)){
+		if(isset($this->limit) && !$this->selects_single_object()){
 			$limit = "LIMIT {$this->limit}";
 
+			# offset cannot be applied without a limit.
 			if(isset($this->offset)){
 				$limit .= " OFFSET {$this->offset}";
 			}
@@ -201,6 +264,8 @@ SQL;
 	}
 
 
+	# Return the computed SQL count query.
+	# If it has not been computed yet, do that first by calling resolve().
 	final public function get_count_query() : string {
 		if(!$this->is_resolved()){
 			$this->resolve();
@@ -210,23 +275,9 @@ SQL;
 	}
 
 
-	final public function set_condition(?Condition $condition) : void {
-		$this->condition = $condition;
-	}
-
-
-	final public function is_convoluted() : bool {
-		if($this->has_unique_identifier($this->condition)){
-			return false;
-		}
-
-		foreach($this->joins as $join){
-			if($join->is_convoluted()){
-				return true;
-			}
-		}
-
-		return false;
+	# Return whether the condition limits the result to a single object (because it is selected by its identifier).
+	final public function selects_single_object() : bool {
+		return $this->condition instanceof IdentifierEquals && $this->object->has_attribute($this->condition->get_attribute());
 	}
 }
 ?>

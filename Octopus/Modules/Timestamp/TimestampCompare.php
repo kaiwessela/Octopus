@@ -40,22 +40,31 @@ class TimestampCompare extends Condition {
 	}
 
 
-	public function resolve(int $index = 0) : int {
+	// public function resolve(int $index = 0) : int {
+	// 	if(isset($this->value2)){
+	// 		$index1 = $index+1;
+	// 		$this->query = "{$this->attribute->get_prefixed_db_column()} BETWEEN :cond_{$index} AND :cond_{$index1}";
+
+	// 		$this->values = [
+	// 			"cond_{$index}" => $this->value->to_db(),
+	// 			"cond_{$index1}" => $this->value2->to_db()
+	// 		];
+
+	// 		return $index+2;
+	// 	} else {
+	// 		$this->query = "{$this->attribute->get_prefixed_db_column()} {$this->operator} :cond_{$index}";
+	// 		$this->values = ["cond_{$index}" => $this->value->to_db()];
+
+	// 		return $index+1;
+	// 	}
+	// }
+
+
+	protected function simplified_resolve() : string {
 		if(isset($this->value2)){
-			$index1 = $index+1;
-			$this->query = "{$this->attribute->get_prefixed_db_column()} BETWEEN :cond_{$index} AND :cond_{$index1}";
-
-			$this->values = [
-				"cond_{$index}" => $this->value->to_db(),
-				"cond_{$index1}" => $this->value2->to_db()
-			];
-
-			return $index+2;
+			return "{$this->attribute->get_prefixed_db_column()} BETWEEN {$this->substitute($this->value->to_db())} AND {$this->substitute($this->value2->to_db())}";
 		} else {
-			$this->query = "{$this->attribute->get_prefixed_db_column()} {$this->operator} :cond_{$index}";
-			$this->values = ["cond_{$index}" => $this->value->to_db()];
-
-			return $index+1;
+			return "{$this->attribute->get_prefixed_db_column()} {$this->operator} {$this->substitute($this->value->to_db())}";
 		}
 	}
 }

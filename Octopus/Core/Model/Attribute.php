@@ -1,28 +1,29 @@
 <?php
-namespace Octopus\Core\Model\Attributes;
+namespace Octopus\Core\Model;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\Relationship;
+use \Octopus\Core\Model\Events\Prevention;
+use \Octopus\Core\Model\Attributes\Events\AttributeEditEvent;
 use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
 use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotLoadedException;
-use \Octopus\Core\Model\Attributes\Events\AttributeEditEvent;
-use \Octopus\Core\Model\Events\Prevention;
 
 abstract class Attribute {
-	protected Entity|Relationship $parent;
-	protected string $name;
-	protected bool $is_loaded;
-	protected bool $is_required;
-	protected bool $is_editable;
-	protected bool $is_dirty;
-	protected mixed $value;
-	protected mixed $old_value;
+	protected Entity|Relationship $parent; # reference to the Entity containing this attribute.
+	protected string $name; # name of both the attribute's property in the Entity and its column in the database.
+	protected bool $is_loaded; # true if the attribute has been loaded using load().
+	protected bool $is_required; # true if the attribute must have a value different from null.
+	protected bool $is_editable; # true if the attribute can be edited // TODO
+	protected bool $is_dirty; # true if the attribute has been edited ($value !== $old_value).
+	protected mixed $value; # the current value, not yet updated in the database.
+	protected mixed $db_value; # the value stored in the database. null if not yet stored.
+
+	// IDEA
 	protected AttributeEditEvent $on_edit;
 
-	/* TEMP */
 	public function &get_on_edit() : AttributeEditEvent {
 		return $this->on_edit;
 	}
-	//
+	// idea end
 
 
 

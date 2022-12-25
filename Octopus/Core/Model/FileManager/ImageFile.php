@@ -1,5 +1,18 @@
 <?php
 namespace Octopus\Core\Model\FileManager;
+
+
+
+
+
+// CURRENTLY NOT WORKING
+
+
+
+
+
+
+
 use \Octopus\Core\Model\FileManager\File;
 use \Imagick;
 use \GdImage;

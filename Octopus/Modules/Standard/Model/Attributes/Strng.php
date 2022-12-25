@@ -1,15 +1,15 @@
 <?php
-namespace Octopus\Modules\Primitives;
-use \Octopus\Core\Model\Attributes\PropertyAttribute;
-use \Octopus\Core\Model\Attributes\Exceptions\MissingValueException;
-use \Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
-use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Database\Requests\Conditions\Equals;
-use \Octopus\Core\Model\Database\Requests\Conditions\InList;
-use \Exception;
+namespace Octopus\Modules\Standard\Model\Attributes;
+use Exception;
+use Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
+use Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
+use Octopus\Core\Model\Attributes\Exceptions\MissingValueException;
+use Octopus\Core\Model\Attributes\PropertyAttribute;
+use Octopus\Core\Model\Database\Condition;
+use Octopus\Core\Model\Database\Conditions\Equals;
+use Octopus\Core\Model\Database\Conditions\InList;
 
-class Stringy extends PropertyAttribute {
+class Strng extends PropertyAttribute {
 	# inherited from PropertyAttribute
 	# protected Entity|Relationship $parent;
 	# protected string $name;
@@ -56,7 +56,7 @@ class Stringy extends PropertyAttribute {
 		?int $min = null,
 		?int $max = null,
 		?string $pattern = null
-	) : Stringy {
+	) : Strng {
 
 		if(is_int($min)){
 			if($min < 0){

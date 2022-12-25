@@ -1,8 +1,8 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
-use \Octopus\Core\Model\Attributes\PropertyAttribute;
-use \Octopus\Core\Model\StaticObject;
-use \Exception;
+use Exception;
+use Octopus\Core\Model\Attributes\PropertyAttribute;
+use Octopus\Core\Model\StaticObject;
 
 abstract class StaticObjectAttribute extends PropertyAttribute {
 	// protected string $class;

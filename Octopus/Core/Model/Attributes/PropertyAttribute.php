@@ -1,9 +1,9 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
-use \Octopus\Core\Model\Attributes\Attribute;
-use \Octopus\Core\Model\Attributes\PullableAttributes;
+use Octopus\Core\Model\Attribute;
+use Octopus\Core\Model\Attributes\Pullable;
 
-use \Octopus\Core\Model\Database\Requests\Conditions\Condition; // TEMP
+use Octopus\Core\Model\Database\Condition; // TEMP
 
 abstract class PropertyAttribute extends Attribute {
 	# inherited from Attribute
@@ -33,7 +33,7 @@ abstract class PropertyAttribute extends Attribute {
 	# public function is_empty() : bool;
 	# abstract public function resolve_pull_condition(mixed $option) : ?Condition;
 
-	use PullableAttributes;
+	use Pullable;
 	# final public function is_pullable();
 	# final public function get_db_column();
 	# final public function get_prefixed_db_column() : string;

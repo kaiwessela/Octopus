@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Events;
-use \Octopus\Core\Model\Events\Prevention;
-use \Exception;
+use Exception;
+use Octopus\Core\Model\Events\Prevention;
 
 abstract class Event {
 	protected array $listeners;

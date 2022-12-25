@@ -1,7 +1,5 @@
 <?php
 namespace Octopus\Core\Model;
-use \Octopus\Core\Model\Entity;
-use \Octopus\Core\Model\Attributes\Attribute;
 
 abstract class StaticObject {
 

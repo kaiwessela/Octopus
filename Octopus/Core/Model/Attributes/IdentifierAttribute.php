@@ -1,13 +1,13 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
-use \Octopus\Core\Model\Attributes\PropertyAttribute;
-use \Octopus\Core\Model\Attributes\Exceptions\MissingValueException;
-use \Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
-use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEquals;
-use \Octopus\Core\Model\Database\Requests\Conditions\InList;
-use \Exception;
+use Exception;
+use Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
+use Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
+use Octopus\Core\Model\Attributes\Exceptions\MissingValueException;
+use Octopus\Core\Model\Attributes\PropertyAttribute;
+use Octopus\Core\Model\Database\Condition;
+use Octopus\Core\Model\Database\Conditions\IdentifierEquals;
+use Octopus\Core\Model\Database\Conditions\InList;
 
 abstract class IdentifierAttribute extends PropertyAttribute {
 	# inherited from PropertyAttribute

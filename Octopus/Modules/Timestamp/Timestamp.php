@@ -1,12 +1,12 @@
 <?php
 namespace Octopus\Modules\Timestamp;
-use \Octopus\Core\Model\StaticObject;
-use \Octopus\Modules\Timestamp\TimestampAttribute;
-use \DateTimeImmutable;
-use \DateTimeZone;
-use \DateInterval;
-use \IntlDateFormatter;
-use \Exception;
+use DateInterval;
+use DateTimeImmutable;
+use DateTimeZone;
+use Exception;
+use IntlDateFormatter;
+use Octopus\Core\Model\StaticObject;
+use Octopus\Modules\Timestamp\TimestampAttribute;
 
 class Timestamp extends StaticObject {
 	protected ?TimestampAttribute $attribute;

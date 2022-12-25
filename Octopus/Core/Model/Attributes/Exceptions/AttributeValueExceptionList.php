@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Attributes\Exceptions;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
-use \Exception;
+use Exception;
+use Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 
 class AttributeValueExceptionList extends Exception {
 	public array $exceptions;

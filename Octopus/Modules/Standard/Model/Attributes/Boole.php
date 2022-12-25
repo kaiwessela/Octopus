@@ -1,7 +1,7 @@
 <?php
-namespace Octopus\Modules\Primitives;
-use \Octopus\Core\Model\Attributes\PropertyAttribute;
-use \Exception;
+namespace Octopus\Modules\Standard\Model\Attributes;
+use Exception;
+use Octopus\Core\Model\Attributes\PropertyAttribute;
 
 class Booly extends PropertyAttribute {
 

@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
-use Octopus\Core\Model\Database\Requests\Request;
 use Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
+use Octopus\Core\Model\Database\Request;
 
 # InsertRequest creates an SQL query for an INSERT operation to insert a new row (= a new object) into the database.
 # There can only be inserted exactly one row/object per request.

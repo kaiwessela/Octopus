@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Database\Exceptions;
-use \Octopus\Core\Model\Database\Requests\Request;
-use \Exception;
+use Exception;
+use Octopus\Core\Model\Database\Request;
 
 class EmptyRequestException extends Exception {
 	protected Request $request;

@@ -1,13 +1,13 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
 use Exception;
+use Octopus\Core\Model\Attribute;
+use Octopus\Core\Model\Attributes\EntityReference;
+use Octopus\Core\Model\Attributes\IdentifierAttribute;
+use Octopus\Core\Model\Database\Request;
+use Octopus\Core\Model\Database\Requests\Joinable;
 use Octopus\Core\Model\Entity;
 use Octopus\Core\Model\Relationship;
-use Octopus\Core\Model\Attributes\Attribute;
-use Octopus\Core\Model\Database\Requests\Request;
-use Octopus\Core\Model\Attributes\EntityAttribute;
-use Octopus\Core\Model\Attributes\IdentifierAttribute;
-use Octopus\Core\Model\Database\Requests\SelectAndJoin;
 
 # JoinRequest creates an SQL statement to join a table to the main table of a select request. The SQL JOIN operation is
 # actually not a request and cannot be performed alone, but rather a part of a SELECT request. Nevertheless, this class
@@ -36,7 +36,7 @@ use Octopus\Core\Model\Database\Requests\SelectAndJoin;
 # This class uses the Joinable trait to share functions with JoinRequest.
 
 final class JoinRequest extends Request {
-	use SelectAndJoin;
+	use Joinable;
 	
 	protected Attribute $native_attribute; # The attribute belonging to this object.
 	protected Attribute $foreign_attribute; # The attribute belonging to the object joining this.
@@ -54,9 +54,9 @@ final class JoinRequest extends Request {
 		$this->order = [];
 
 		# determine the join direction. see explaination above on how exactly this works.
-		if($native_attribute instanceof IdentifierAttribute && $foreign_attribute instanceof EntityAttribute){
+		if($native_attribute instanceof IdentifierAttribute && $foreign_attribute instanceof EntityReference){
 			$this->direction = 'forward';
-		} else if($native_attribute instanceof EntityAttribute && $foreign_attribute instanceof IdentifierAttribute){
+		} else if($native_attribute instanceof EntityReference && $foreign_attribute instanceof IdentifierAttribute){
 			$this->direction = 'reverse';
 		} else {
 			throw new Exception('The attributes must consist of an EntityAttribute and an IdentifierAttribute');

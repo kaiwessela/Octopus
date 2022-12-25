@@ -1,14 +1,13 @@
 <?php
 namespace Octopus\Modules\Identifiers;
-use \Octopus\Core\Model\Attributes\Attribute;
-use \Octopus\Core\Model\Attributes\GeneratedIdentifierAttribute;
-use \Exception;
+use Exception;
+use Octopus\Core\Model\Attributes\GeneratedIdentifierAttribute;
 
 final class ID extends GeneratedIdentifierAttribute {
 	protected int $length;
 
 
-	final public static function define(int $length = 8) : Attribute {
+	final public static function define(int $length = 8) : GeneratedIdentifierAttribute {
 		if($length < 2 || $length % 2 !== 0){
 			throw new Exception('Invalid length. length must be a positive and even integer.');
 		}

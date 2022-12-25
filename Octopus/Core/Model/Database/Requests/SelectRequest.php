@@ -1,13 +1,14 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
 use Exception;
+use Octopus\Core\Model\Attribute;
+use Octopus\Core\Model\Database\Condition;
+use Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
+use Octopus\Core\Model\Database\Request;
+use Octopus\Core\Model\Database\Requests\Conditions\IdentifierEquals;
+use Octopus\Core\Model\Database\Requests\Joinable;
 use Octopus\Core\Model\Entity;
 use Octopus\Core\Model\Relationship;
-use Octopus\Core\Model\Attributes\Attribute;
-use Octopus\Core\Model\Database\Requests\Request;
-use Octopus\Core\Model\Database\Requests\SelectAndJoin;
-use Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
 
 # SelectRequest creates an SQL query for a SELECT operation, used to retrieve one or multiple rows (= objects) from the
 # database.
@@ -61,13 +62,13 @@ use Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
 # which i decided to call "convoluted requests". (See JoinRequest and Joinable for more info on that.)
 
 final class SelectRequest extends Request {
-	use SelectAndJoin;
+	use Joinable;
 
 	protected array $joins; # The JoinRequests that are executed together with this.
 	protected ?int $limit; # The amount of rows to select (for SQL LIMIT statement).
 	protected ?int $offset; # The amount of rows to be skipped (for SQL OFFSET statement).
 	protected array $order; # The attributes/columns to sort the rows by (for SQL ORDER BY statement).
-	protected Condition $condition; # the Condition determining which rows to select. Multiple conditions can be linked
+	protected ?Condition $condition; # the Condition determining which rows to select. Multiple conditions can be linked
 									# together using AndOp or OrOp.
 
 	protected string $count_query; # Caches the SQL count query computed by resolve().

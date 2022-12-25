@@ -1,7 +1,7 @@
 <?php
-namespace Octopus\Core\Model\Database\Requests\Conditions;
-use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Attributes\Attribute;
+namespace Octopus\Core\Model\Database\Conditions;
+use Octopus\Core\Model\Attribute;
+use Octopus\Core\Model\Database\Condition;
 
 # An InList condition checks if any attribute (column) value is contained in a given array of comparison values
 # using the SQL IN operator.

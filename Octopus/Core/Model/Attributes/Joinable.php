@@ -4,7 +4,7 @@ use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\Relationship;
 use \Octopus\Core\Model\Database\Requests\JoinRequest;
 
-trait JoinableAttributes {
+trait Joinable {
 	# requires:
 	# protected string $class;
 

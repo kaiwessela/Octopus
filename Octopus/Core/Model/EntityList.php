@@ -1,12 +1,12 @@
 <?php
 namespace Octopus\Core\Model;
-use \Octopus\Core\Model\Entity;
-use \Octopus\Core\Model\Database\DatabaseAccess;
-use \Octopus\Core\Model\Database\Requests\SelectRequest;
-use \Octopus\Core\Model\Database\Exceptions\DatabaseException;
-use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
-use \PDOException;
-use \Exception;
+use Exception;
+use Octopus\Core\Model\Database\DatabaseAccess;
+use Octopus\Core\Model\Database\Exceptions\DatabaseException;
+use Octopus\Core\Model\Database\Requests\SelectRequest;
+use Octopus\Core\Model\Entity;
+use Octopus\Core\Model\Exceptions\CallOutOfOrderException;
+use PDOException;
 
 /*
 Idee:

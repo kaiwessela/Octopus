@@ -1,10 +1,10 @@
 <?php
 namespace Octopus\Modules\Timestamp;
-use \Octopus\Core\Model\Attributes\StaticObjectAttribute;
-use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Modules\Timestamp\Timestamp;
-use \Octopus\Modules\Timestamp\TimestampCompare;
-use \Octopus\Modules\Timestamp\TimestampRange;
+use Octopus\Core\Model\Attributes\StaticObjectAttribute;
+use Octopus\Core\Model\Database\Condition;
+use Octopus\Modules\Timestamp\Timestamp;
+use Octopus\Modules\Timestamp\TimestampCompare;
+use Octopus\Modules\Timestamp\TimestampRange;
 
 class TimestampAttribute extends StaticObjectAttribute {
 	protected bool $is_locked;

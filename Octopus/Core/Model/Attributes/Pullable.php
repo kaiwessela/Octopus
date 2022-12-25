@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
 
-trait PullableAttributes {
+trait Pullable {
 
 	final public function is_pullable() : bool {
 		return true;

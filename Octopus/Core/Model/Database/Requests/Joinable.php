@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
 use Exception;
-use Octopus\Core\Model\Attributes\Attribute;
+use Octopus\Core\Model\Attribute;
 use Octopus\Core\Model\Database\Requests\JoinRequest;
 use Octopus\Core\Model\Database\Requests\SelectRequest;
 
@@ -42,7 +42,7 @@ use Octopus\Core\Model\Database\Requests\SelectRequest;
 # higher-order object, which would render the result unparseable.
 
 
-trait SelectAndJoin {
+trait Joinable {
 
 	# Add a JoinRequest to join another object to this request's object.
 	final public function add_join(JoinRequest $request) : void {

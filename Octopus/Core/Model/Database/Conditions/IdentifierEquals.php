@@ -1,8 +1,8 @@
 <?php
-namespace Octopus\Core\Model\Database\Requests\Conditions;
-use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Attributes\IdentifierAttribute;
-use \Exception;
+namespace Octopus\Core\Model\Database\Conditions;
+use Exception;
+use Octopus\Core\Model\Attributes\IdentifierAttribute;
+use Octopus\Core\Model\Database\Condition;
 
 # An IdentifierEquals condition compares any identifier attribute (column) value to a single given comparison value
 # using the EQUAL (=) operator.

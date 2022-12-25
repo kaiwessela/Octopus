@@ -1,9 +1,9 @@
 <?php
-namespace Octopus\Core\Model\Database\Requests;
+namespace Octopus\Core\Model\Database;
 use Exception;
+use Octopus\Core\Model\Attribute;
 use Octopus\Core\Model\Entity;
 use Octopus\Core\Model\Relationship;
-use Octopus\Core\Model\Attributes\Attribute;
 
 # Request creates an SQL query from objects, attributes and conditions provided to it.
 #

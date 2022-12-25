@@ -1,13 +1,13 @@
 <?php
-namespace Octopus\Core\Model\Database\Requests\Conditions;
-use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Exception;
+namespace Octopus\Core\Model\Database\Conditions;
+use Exception;
+use Octopus\Core\Model\Database\Condition;
 
-# An AndOp condition joins multiple conditions together using the mysql AND operator.
-# The statement the AndOp condition resolves to evaluates to true iff
-# ALL of its individual conditions’ statements evaluate to true.
+# An Orre condition joins multiple conditions together using the mysql OR operator.
+# The statement the Orre condition resolves to evaluates to true iff
+# AT LEAST ONE of its individual conditions’ statements evaluates to true.
 
-class AndOp extends Condition {
+class Orre extends Condition {
 	protected array $conditions;
 
 	function __construct(Condition ...$conditions) {
@@ -33,7 +33,7 @@ class AndOp extends Condition {
 			$index = $new_index;
 		}
 
-		$this->query = '('.implode(') AND (', $queries).')';
+		$this->query = '('.implode(') OR (', $queries).')';
 
 		return $index;
 	}

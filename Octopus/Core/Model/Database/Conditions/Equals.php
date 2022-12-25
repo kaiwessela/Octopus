@@ -1,7 +1,7 @@
 <?php
-namespace Octopus\Core\Model\Database\Requests\Conditions;
-use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Attributes\Attribute;
+namespace Octopus\Core\Model\Database\Conditions;
+use Octopus\Core\Model\Attribute;
+use Octopus\Core\Model\Database\Condition;
 
 # An Equals condition compares any attribute (column) value to a single given comparison value
 # using the EQUAL (=) operator.

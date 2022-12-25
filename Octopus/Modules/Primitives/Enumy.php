@@ -2,9 +2,9 @@
 namespace Octopus\Modules\Primitives;
 use Octopus\Core\Model\Attributes\PropertyAttribute;
 use Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
-use Octopus\Core\Model\Database\Requests\Conditions\Equals;
-use Octopus\Core\Model\Database\Requests\Conditions\InList;
-use Octopus\Core\Model\Database\Requests\Conditions\Condition;
+use Octopus\Core\Model\Database\Conditions\Equals;
+use Octopus\Core\Model\Database\Conditions\InList;
+use Octopus\Core\Model\Database\Conditions\Condition;
 
 class Enumy extends PropertyAttribute {
 	# inherited from PropertyAttribute

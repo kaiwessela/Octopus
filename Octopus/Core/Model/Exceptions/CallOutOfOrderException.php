@@ -1,6 +1,6 @@
 <?php
 namespace Octopus\Core\Model\Exceptions;
-use \Exception;
+use Exception;
 
 class CallOutOfOrderException extends Exception {
 

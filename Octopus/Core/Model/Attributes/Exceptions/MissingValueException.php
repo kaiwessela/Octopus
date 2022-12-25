@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Attributes\Exceptions;
-use \Octopus\Core\Model\Attributes\Attribute;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
+use Octopus\Core\Model\Attribute;
+use Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
 
 class MissingValueException extends AttributeValueException {
 	# inherited from AttributeValueException

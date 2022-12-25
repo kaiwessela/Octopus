@@ -1,5 +1,5 @@
 <?php
-namespace Octopus\Core\Model\Database\Requests\Conditions;
+namespace Octopus\Core\Model\Database;
 use Exception;
 
 # A Condition collects and resolves data to create an SQL WHERE clause from, which is used to determine which rows of

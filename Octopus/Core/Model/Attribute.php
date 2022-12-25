@@ -1,11 +1,11 @@
 <?php
 namespace Octopus\Core\Model;
-use \Octopus\Core\Model\Entity;
-use \Octopus\Core\Model\Relationship;
-use \Octopus\Core\Model\Events\Prevention;
-use \Octopus\Core\Model\Attributes\Events\AttributeEditEvent;
-use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotLoadedException;
+use Octopus\Core\Model\Attributes\Events\AttributeEditEvent;
+use Octopus\Core\Model\Attributes\Exceptions\AttributeNotLoadedException;
+use Octopus\Core\Model\Database\Condition;
+use Octopus\Core\Model\Entity;
+use Octopus\Core\Model\Events\Prevention;
+use Octopus\Core\Model\Relationship;
 
 abstract class Attribute {
 	protected Entity|Relationship $parent; # reference to the Entity containing this attribute.

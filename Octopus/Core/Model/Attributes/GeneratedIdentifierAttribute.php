@@ -1,9 +1,8 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
-use \Octopus\Core\Model\Attributes\Attribute;
-use \Octopus\Core\Model\Attributes\IdentifierAttribute;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
-use \Exception;
+use Exception;
+use Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
+use Octopus\Core\Model\Attributes\IdentifierAttribute;
 
 abstract class GeneratedIdentifierAttribute extends IdentifierAttribute {
 	# inherited from PropertyAttribute
@@ -46,7 +45,7 @@ abstract class GeneratedIdentifierAttribute extends IdentifierAttribute {
 
 
 
-	public static function define() : Attribute {
+	public static function define() : GeneratedIdentifierAttribute {
 		return new static(true, false);
 	}
 

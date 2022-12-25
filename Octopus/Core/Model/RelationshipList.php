@@ -1,10 +1,10 @@
 <?php
 namespace Octopus\Core\Model;
-use \Octopus\Core\Model\Entity;
-use \Octopus\Core\Model\Relationship;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
-use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
-use \Exception;
+use Exception;
+use Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
+use Octopus\Core\Model\Entity;
+use Octopus\Core\Model\Exceptions\CallOutOfOrderException;
+use Octopus\Core\Model\Relationship;
 
 abstract class RelationshipList {
 	protected Relationship $prototype;

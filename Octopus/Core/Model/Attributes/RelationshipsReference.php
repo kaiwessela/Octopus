@@ -1,14 +1,14 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
-use \Octopus\Core\Model\Relationship;
-use \Octopus\Core\Model\RelationshipList;
-use \Octopus\Core\Model\Attributes\Attribute;
-use \Octopus\Core\Model\Attributes\JoinableAttributes;
-use \Octopus\Core\Model\Database\Requests\JoinRequest;
-use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Exception;
+use Exception;
+use Octopus\Core\Model\Attribute;
+use Octopus\Core\Model\Attributes\Joinable;
+use Octopus\Core\Model\Database\Condition;
+use Octopus\Core\Model\Database\Requests\JoinRequest;
+use Octopus\Core\Model\Relationship;
+use Octopus\Core\Model\RelationshipList;
 
-final class RelationshipAttribute extends Attribute {
+final class RelationshipsReference extends Attribute {
 	# inherited from Attribute
 	# protected Entity|Relationship $parent;
 	# protected string $name;
@@ -38,14 +38,14 @@ final class RelationshipAttribute extends Attribute {
 	# final public function &get_value() : mixed;
 	# public function is_empty() : bool;
 
-	use JoinableAttributes;
+	use Joinable;
 	# final public function is_joinable() : bool;
 	# final public function get_class() : string;
 	# final public function get_detection_column() : string;
 
 
 
-	final public static function define(string $class) : RelationshipAttribute {
+	final public static function define(string $class) : RelationshipsReference {
 		if(!class_exists($class) || !is_subclass_of($class, RelationshipList::class)){
 			throw new Exception("Invalid class «{$class}».");
 		}

@@ -1,8 +1,8 @@
 <?php
 namespace Octopus\Core\Model\Database\Requests;
 use Exception;
-use Octopus\Core\Model\Database\Requests\Request;
-use Octopus\Core\Model\Database\Requests\Conditions\IdentifierEquals;
+use Octopus\Core\Model\Database\Conditions\IdentifierEquals;
+use Octopus\Core\Model\Database\Request;
 
 # DeleteRequest creates an SQL query for a DELETE operation, used to delete a row (= an object) from the database.
 # There can only be deleted exactly one row/object per request. An IdentifierEquals condition has to be provided that

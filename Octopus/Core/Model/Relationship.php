@@ -1,32 +1,32 @@
 <?php
 namespace Octopus\Core\Model;
-use \Octopus\Core\Model\Entity;
-use \Octopus\Core\Model\EntityAndRelationship;
-use \Octopus\Core\Model\Attributes\Attribute;
-use \Octopus\Core\Model\Attributes\PropertyAttribute;
-use \Octopus\Core\Model\Attributes\IdentifierAttribute;
-use \Octopus\Core\Model\Attributes\EntityAttribute;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
-use \Octopus\Core\Model\Attributes\Exceptions\MissingValueException;
-use \Octopus\Core\Model\Database\DatabaseAccess;
-use \Octopus\Core\Model\Database\Requests\JoinRequest;
-use \Octopus\Core\Model\Database\Requests\InsertRequest;
-use \Octopus\Core\Model\Database\Requests\UpdateRequest;
-use \Octopus\Core\Model\Database\Requests\DeleteRequest;
-use \Octopus\Core\Model\Database\Requests\Conditions\IdentifierEquals;
-use \Octopus\Core\Model\Database\Exceptions\DatabaseException;
-use \Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
-use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
-use \PDOException;
-use \Exception;
+use Exception;
+use Octopus\Core\Model\Attribute;
+use Octopus\Core\Model\AttributesContaining;
+use Octopus\Core\Model\Attributes\EntityReference;
+use Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
+use Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
+use Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
+use Octopus\Core\Model\Attributes\Exceptions\MissingValueException;
+use Octopus\Core\Model\Attributes\IdentifierAttribute;
+use Octopus\Core\Model\Attributes\PropertyAttribute;
+use Octopus\Core\Model\Database\Conditions\IdentifierEquals;
+use Octopus\Core\Model\Database\DatabaseAccess;
+use Octopus\Core\Model\Database\Exceptions\DatabaseException;
+use Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
+use Octopus\Core\Model\Database\Requests\DeleteRequest;
+use Octopus\Core\Model\Database\Requests\InsertRequest;
+use Octopus\Core\Model\Database\Requests\JoinRequest;
+use Octopus\Core\Model\Database\Requests\UpdateRequest;
+use Octopus\Core\Model\Entity;
+use Octopus\Core\Model\Exceptions\CallOutOfOrderException;
+use PDOException;
 
 
 abstract class Relationship {
 	# protected ID $id;
-	# protected EntityAttribute $[name of 1st entity];
-	# protected EntityAttribute $[name of 2nd entity];
+	# protected EntityReference $[name of 1st entity];
+	# protected EntityReference $[name of 2nd entity];
 	# ...other attributes
 
 	protected string $context_attribute;
@@ -38,7 +38,7 @@ abstract class Relationship {
 
 	protected bool $is_new;
 
-	use EntityAndRelationship;
+	use AttributesContaining;
 	protected static array $attributes;
 
 	protected const DB_TABLE = '';
@@ -61,7 +61,7 @@ abstract class Relationship {
 				}
 			} else if($this->$name instanceof PropertyAttribute){
 				continue;
-			} else if($this->$name instanceof EntityAttribute){
+			} else if($this->$name instanceof EntityReference){
 				if($this->$name->get_class() === $context::class){
 					if(isset($this->context_attribute)){
 						throw new Exception("Context collision: There can only be one context attribute.");
@@ -129,7 +129,7 @@ abstract class Relationship {
 				}
 
 				$this->$name->load($row[$this->$name->get_result_column()]);
-			} else if($this->$name instanceof EntityAttribute){
+			} else if($this->$name instanceof EntityReference){
 				if(!array_key_exists($this->$name->get_detection_column(), $row)){
 					continue;
 				}
@@ -214,7 +214,7 @@ abstract class Relationship {
 		$push_values = [];
 
 		foreach($this->get_attributes() as $name => $attribute){
-			if($attribute instanceof EntityAttribute && !$this->is_new()){
+			if($attribute instanceof EntityReference && !$this->is_new()){
 				continue;
 			}
 
@@ -286,12 +286,12 @@ abstract class Relationship {
 	### GENERAL METHODS
 
 
-	protected function get_context_attribute() : EntityAttribute {
+	protected function get_context_attribute() : EntityReference {
 		return $this->{$this->context_attribute};
 	}
 
 
-	protected function get_relatum_attribute() : EntityAttribute {
+	protected function get_relatum_attribute() : EntityReference {
 		return $this->{$this->relatum_attribute};
 	}
 

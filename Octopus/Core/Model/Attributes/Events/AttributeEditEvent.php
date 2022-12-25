@@ -1,7 +1,7 @@
 <?php
 namespace Octopus\Core\Model\Attributes\Events;
-use \Octopus\Core\Model\Events\Event;
-use \Octopus\Core\Model\Attributes\Attribute;
+use Octopus\Core\Model\Attribute;
+use Octopus\Core\Model\Events\Event;
 
 class AttributeEditEvent extends Event {
 	protected Attribute $attribute;

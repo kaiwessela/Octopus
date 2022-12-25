@@ -1,22 +1,22 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
-use \Octopus\Core\Model\Entity;
-use \Octopus\Core\Model\Attributes\Attribute;
-use \Octopus\Core\Model\Attributes\PullableAttributes;
-use \Octopus\Core\Model\Attributes\JoinableAttributes;
-use \Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
-use \Octopus\Core\Model\Attributes\Exceptions\EntityNotFoundException;
-use \Octopus\Core\Model\Attributes\Exceptions\MissingValueException;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
-use \Octopus\Core\Model\Database\Exceptions\EmptyResultException;
-use \Octopus\Core\Model\Database\Requests\JoinRequest;
-use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Database\Requests\Conditions\Equals;
-use \Octopus\Core\Model\Database\Requests\Conditions\InList;
-use \Exception;
+use Exception;
+use Octopus\Core\Model\Attribute;
+use Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
+use Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
+use Octopus\Core\Model\Attributes\Exceptions\EntityNotFoundException;
+use Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
+use Octopus\Core\Model\Attributes\Exceptions\MissingValueException;
+use Octopus\Core\Model\Attributes\Joinable;
+use Octopus\Core\Model\Attributes\Pullable;
+use Octopus\Core\Model\Database\Condition;
+use Octopus\Core\Model\Database\Conditions\Equals;
+use Octopus\Core\Model\Database\Conditions\InList;
+use Octopus\Core\Model\Database\Exceptions\EmptyResultException;
+use Octopus\Core\Model\Database\Requests\JoinRequest;
+use Octopus\Core\Model\Entity;
 
-final class EntityAttribute extends Attribute {
+final class EntityReference extends Attribute {
 	# inherited from Attribute
 	# protected Entity|Relationship $parent;
 	# protected string $name;
@@ -45,20 +45,20 @@ final class EntityAttribute extends Attribute {
 	# final public function &get_value() : mixed;
 	# public function is_empty() : bool;
 
-	use PullableAttributes;
+	use Pullable;
 	# final public function is_pullable();
 	# final public function get_db_column();
 	# final public function get_prefixed_db_column() : string;
 	# final public function get_result_column() : string;
 
-	use JoinableAttributes;
+	use Joinable;
 	# final public function is_joinable() : bool;
 	# final public function get_class() : string;
 	# final public function get_detection_column() : string;
 
 
 
-	final public static function define(string $class, string $identify_by, bool $is_required = false, bool $is_editable = true, bool $entity_must_exist = true) : EntityAttribute {
+	final public static function define(string $class, string $identify_by, bool $is_required = false, bool $is_editable = true, bool $entity_must_exist = true) : EntityReference {
 		if(!class_exists($class) || !is_subclass_of($class, Entity::class)){
 			throw new Exception("Invalid class «{$class}».");
 		}

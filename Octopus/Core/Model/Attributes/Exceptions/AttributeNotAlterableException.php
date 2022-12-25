@@ -1,9 +1,9 @@
 <?php
 namespace Octopus\Core\Model\Attributes\Exceptions;
-use \Octopus\Core\Model\Attributes\Attribute;
-use \Octopus\Core\Model\Entity;
-use \Octopus\Core\Model\Relationship;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
+use Octopus\Core\Model\Attribute;
+use Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
+use Octopus\Core\Model\Entity;
+use Octopus\Core\Model\Relationship;
 
 class AttributeNotAlterableException extends AttributeValueException {
 	# inherited from AttributeValueException

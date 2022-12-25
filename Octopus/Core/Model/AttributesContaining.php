@@ -1,39 +1,41 @@
 <?php
 namespace Octopus\Core\Model;
-use \Octopus\Core\Model\EntityList;
-use \Octopus\Core\Model\Exceptions\CallOutOfOrderException;
-use \Octopus\Core\Model\Attributes\Attribute;
-use \Octopus\Core\Model\Attributes\IdentifierAttribute;
-use \Octopus\Core\Model\Attributes\GeneratedIdentifierAttribute;
-use \Octopus\Core\Model\Attributes\PropertyAttribute;
-use \Octopus\Core\Model\Attributes\EntityAttribute;
-use \Octopus\Core\Model\Attributes\RelationshipAttribute;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
-use \Octopus\Core\Model\Attributes\Exceptions\AttributeNotLoadedException;
-use \Octopus\Core\Model\Database\Requests\Request;
-use \Octopus\Core\Model\Database\Requests\Conditions\Condition;
-use \Octopus\Core\Model\Database\Requests\Conditions\AndOp;
-use \Octopus\Core\Model\Database\Requests\Conditions\OrOp;
-use \Exception;
+use Exception;
+use Octopus\Core\Model\Attribute;
+use Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
+use Octopus\Core\Model\Attributes\Exceptions\AttributeNotLoadedException;
+use Octopus\Core\Model\Attributes\GeneratedIdentifierAttribute;
+use Octopus\Core\Model\Attributes\IdentifierAttribute;
+use Octopus\Core\Model\Attributes\PropertyAttribute;
+use Octopus\Core\Model\Attributes\RelationshipsReference;
+use Octopus\Core\Model\Database\Condition;
+use Octopus\Core\Model\Database\Conditions\Annd;
+use Octopus\Core\Model\Database\Conditions\Orre;
+use Octopus\Core\Model\Database\Request;
+use Octopus\Core\Model\EntityList;
+use Octopus\Core\Model\Exceptions\CallOutOfOrderException;
 
 # This trait shares common methods for Entity and Relationship that relate to the loading, altering, validating and
 # outputting of attributes.
 
-trait EntityAndRelationship {
+trait AttributesContaining {
 
+
+	# Initialize all attributes by calling define_attributes() and store the attribute names in $attributes.
 	final protected function load_attributes() : void {
-		if(!isset(self::$attributes)){
+		if(!isset(self::$attributes)){ # initialize $attributes if it has not yet been
 			self::$attributes = [];
 		}
 
-		self::$attributes[static::class] = [];
+		self::$attributes[static::class] = []; # initialize the attributes list for this class
 
-		// idea: store also the just defined attribute objects themselves in self::$attributes and just clone them for each new instance
+		// NOTE: redefining and recalculating the attributes each time is highly inefficient! use prototypes instead.
+		// IDEA: store also the just defined attribute objects themselves in self::$attributes and just clone them for each new instance
 
 		foreach(static::define_attributes() as $name => $attribute){
-			$this->$name = $attribute;
-			$this->$name->bind($name, $this);
-			self::$attributes[static::class][] = $name;
+			$this->$name = $attribute; # set the result from the definition method as the attribute
+			$this->$name->bind($name, $this); # bind the attribute to this entity
+			self::$attributes[static::class][] = $name; # add the attribute name to $attributes
 		}
 	}
 
@@ -57,27 +59,31 @@ trait EntityAndRelationship {
 	}
 
 
-
-	public function is_new() : bool {
+	# Return whether the entity is not stored in the database.
+	final public function is_new() : bool {
 		return $this->is_new;
 	}
 
 
-	public function is_loaded() : bool {
+	# Return whether the entity has been initialized, either by load() or create().
+	final public function is_loaded() : bool {
 		return isset($this->is_new);
 	}
 
 
-	public function is_independent() : bool {
+	# Return whether the entity is independent of any other entity, which is the case if it has no context.
+	final public function is_independent() : bool {
 		return !isset($this->context);
 	}
 
 
+	# Return an array of all attribute names of the entity.
 	final public function get_attributes() : array {
 		return self::$attributes[static::class];
 	}
 
 
+	# Return whether the entity contains the specified attribute or an attribute with the specified name.
 	final public function has_attribute(string|Attribute $attribute) : bool {
 		if(is_string($attribute)){
 			return in_array($attribute, $this->get_attributes());
@@ -87,6 +93,7 @@ trait EntityAndRelationship {
 	}
 
 
+	# Return the specified attribute of the entity.
 	final public function get_attribute(string $name) : Attribute {
 		if(in_array($name, $this->get_attributes())){
 			return $this->$name;
@@ -96,42 +103,55 @@ trait EntityAndRelationship {
 	}
 
 
+	# Return the main identifier attribute of the entity.
 	final public function get_main_identifier_attribute() : IdentifierAttribute {
 		return $this->get_attribute($this->main_identifier);
 	}
 
 
-	/*
-	how to deal with order:
 
-	1. get input order chain: [1 => [title, +], 2 => [author:name, +], 3 => [categories:category:name?, +]]
-	2. split it to get a chain for each select/join request, keep indices:
-		articles (main/select): 1 => [title, +],
-		authors (forward join): 2 => [name, +],
-		categories (reverse join): 
-			category (forward join): 3 => [name, +]
-	3. pass these chains into the request
+	# EXPLAINATION: How To Deal With Order
+	#
+	# 1. get input order chain: [1 => [title, +], 2 => [author:name, +], 3 => [categories:category:name?, +]]
+	# 2. split it to get a chain for each select/join request, keep indices:
+	# 	articles (main/select): 1 => [title, +],
+	# 	authors (forward join): 2 => [name, +],
+	# 	categories (reverse join): 
+	# 		category (forward join): 3 => [name, +]
+	# 3. pass these chains into the request
+	#
+	# In SelectRequest/JoinRequest, on resolve():
+	# 4. merge the own chain and the chains of each forward join below (recursively) together, ordering after the index:
+	# 	articles: 1 => [title, +], 2 => [(author.)name, +]
+	# 	categories: 3 => [(categories.category.)name, +]
+	# 5. reindex the chains:
+	# 	articles: 1 => ..., 2 => ...
+	# 	categories: 1 => ...
+	# 6. append the default/fallback order (which is the main identifier) to the main chain and each backwards join's chain:
+	# 	articles: 1 => ..., 2 => ..., 3 => [id, +]
+	# 	categories: 1 => ..., 2 => [id, +]
+	# 7. glue all chains together:
+	# 	1, 2, 3, 4, 5
+	
+	// NOTE what if there are two reverse joins on the same level? idea: the one with the longer chain takes precedence
 
-	In SelectRequest/JoinRequest, on resolve():
-	4. merge the own chain and the chains of each forward join below (recursively) together, ordering after the index:
-		articles: 1 => [title, +], 2 => [(author.)name, +]
-		categories: 3 => [(categories.category.)name, +]
-	5. reindex the chains:
-		articles: 1 => ..., 2 => ...
-		categories: 1 => ...
-	6. append the default/fallback order (which is the main identifier) to the main chain and each backwards join's chain:
-		articles: 1 => ..., 2 => ..., 3 => [id, +]
-		categories: 1 => ..., 2 => [id, +]
-	7. glue all chains together:
-		1, 2, 3, 4, 5
 
-	what if there are two reverse joins on the same level? idea: the one with the longer chain takes precedence
-	*/
-
+	# Fill a given SelectRequest/JoinRequest to pull entities of this class with the following information:
+	# - which attributes to include in the response
+	# - which attributes to order the response columns by
+	# @param include_attributes: array of attribute_name => option, where option can be:
+	#	- true, to include the attribute,
+	#	- false, to omit the attribute,
+	#	- for Joinables only: an array, to join the object referenced in the attribute. the array itself can contain
+	# 		directives of the same kind for the object's attributes.
+	# @param order_by: array of [attribute_name, direction], where direction can be:
+	#	- +, ASC, ascending for ascending order
+	#	- -, DESC, descending for descending order
 	final public function build_pull_request(Request &$request, array $include_attributes, array $order_by) : void {
+		# verify the attributes that should be included and their options
 		foreach($include_attributes as $name => $option){
 			if(!$this->has_attribute($name)){
-				throw new Exception("Unknown attribute «{$name}».");
+				throw new Exception("Unknown attribute «{$name}»."); // IMPROVE custom exception
 			}
 
 			if(!is_null($option) && !is_bool($option) && !(is_array($option) && $this->$name->is_joinable())){
@@ -139,9 +159,10 @@ trait EntityAndRelationship {
 			}
 		}
 
-		$order_chains = $this->split_pull_order_chain($order_by);
+		$order_chains = $this->split_pull_order_chain($order_by); # see below for what that does
 
 		foreach($this->get_attributes() as $name){
+			# load the include option for the attribute or, if that does not exist, the default option
 			$option = $include_attributes[$name] ?? static::DEFAULT_PULL_ATTRIBUTES[$name] ?? null;
 
 			if(is_array($option)){
@@ -159,14 +180,14 @@ trait EntityAndRelationship {
 
 			if($this->$name->is_pullable()){
 				if($pull){
-					$request->add($this->$name);
+					$request->add($this->$name); # add the attribute to the request
 				}
 
-				if(array_key_exists($name, $order_chains[0])){ // there is an order statement for the attribute
+				if(array_key_exists($name, $order_chains[0])){ # check if there is an order statement for the attribute
 					if($pull){
 						list($significance, $direction) = $order_chains[0][$name];
 
-						$request->add_order($this->$name, $direction, $significance);
+						$request->add_order($this->$name, $direction, $significance); # add the order statement
 					} else {
 						throw new Exception("Cannot order results by non-included attribute «{$name}».");
 					}
@@ -204,50 +225,62 @@ trait EntityAndRelationship {
 	}
 
 
+	// IMPROVE this whole mess would be easier and easier to understand if there was a special class for an order
+	// directive and they are just attached to their attribute and later (when the request is resolved) pulled back
+	// from them.
+
+	# Split the raw array of order directives (= raw chain) up into individual chains for the main request and
+	# all associated join requests.
 	final protected function split_pull_order_chain(array $raw_chain) : array {
 		if(!array_is_list($raw_chain)){
 			throw new Exception("Invalid format of order directives list.");
 		}
 		
 		$result = [
-			0 => [] // 0 is simply used because there wont be any collision with a join request’s chain
+			0 => [] # 0 is simply used because there won't be any collision with a join request’s chain
 		];
 
-		// $order = [1 => ['attribute(.remainder)', 'direction'], 2 => ..., ...]
-		// $significance is simply the index
+		# $significance is simply the index, but it also determines by which attribute to order the result first
+		# $order = ['attribute(.remainder)', 'direction']
 		foreach($raw_chain as $significance => $order){
-			// check format of each individual order
+			# verify the format of each individual order directive
 			if(!is_array($order) || !count($order) === 2 || !is_string($order[0]) || !is_string($order[1])){
 				throw new Exception("Invalid format of order directive #{$significance}.");
 			}
 
 			list($full_attribute, $direction) = $order;
 
+			# the full attribute name can be a path of multiple attribute names connected by a dot (.), which is used
+			# to address attributes of joined entities. the first part always specifies the attribute in the current
+			# entity. if there is a remainder, it is just passed along to the respective join request.
+
 			$exp = explode('.', $full_attribute, 2);
 			$attribute = $exp[0];
 			$remainder = $exp[1] ?? '';
 
-			if(!$this->has_attribute($attribute)){
+			if(!$this->has_attribute($attribute)){ # check that the attribute exists in this entity
 				throw new Exception("Unknown attribute «{$attribute}» in order directive #{$significance}.");
 			}
 
-			$direction = match($direction){
+			$direction = match($direction){ # unify the direction value
 				'+', 'ascending', 'ASC' => 'ASC',
 				'-', 'descending', 'DESC' => 'DESC',
 				default => throw new Exception("Invalid direction in order directive #{$significance}.")
 			};
 
-			if(empty($remainder)){
+			if(empty($remainder)){ # if there is no remainder, the attribute must be pullable
 				if(!$this->$attribute->is_pullable()){
 					throw new Exception("Cannot order results by non-pullable attribute {$attribute} (#{$significance}).");
 				}
 
+				# add the order directive to the current request's chain
 				$result[0][$attribute] = [$significance, $direction];
-			} else {
+			} else { # if there is a remainder, the attribute must be joinable
 				if(!$this->$attribute->is_joinable()){
 					throw new Exception("Unknown attribute «{$attribute}» in order directive #{$significance}.");
 				}
 
+				# add the order directive to the reference attribute's list (which is a new raw chain)
 				if(!isset($result[$attribute])){
 					$result[$attribute] = [];
 				}
@@ -260,7 +293,8 @@ trait EntityAndRelationship {
 	}
 
 
-	final public function resolve_pull_conditions(array $options, string $mode = 'AND') : ?Condition { // TODO does not work on joins
+	// TODO
+	final public function resolve_pull_conditions(array $options, string $mode = 'AND') : ?Condition {
 		$conditions = [];
 
 		foreach($options as $attribute => $option){
@@ -291,9 +325,9 @@ trait EntityAndRelationship {
 		} else if(count($conditions) === 1){
 			return $conditions[0];
 		} else if($mode === 'OR'){
-			return new OrOp(...$conditions);
+			return new Orre(...$conditions);
 		} else if($mode === 'AND'){
-			return new AndOp(...$conditions);
+			return new Annd(...$conditions);
 		} else {
 			throw new Exception(); // TODO
 		}
@@ -316,7 +350,7 @@ trait EntityAndRelationship {
 	*/
 
 
-	# Change an attributes value (and check before whether that change is allowed)
+	# Edit an attributes value (and check before whether that edit is allowed)
 	# @param $name: the name of the attribute
 	# @param $input: the proposed new value
 	# @throws: AttributeValueException[List] if changing the attribute to the proposed value is not allowed
@@ -333,13 +367,13 @@ trait EntityAndRelationship {
 			throw new AttributeNotLoadedException($this->$name);
 		}
 
-		if($this->$name instanceof RelationshipAttribute){
+		if($this->$name instanceof RelationshipsReference){ # RelationshipsReference can only be edited when independent
 			if(!$this->is_independent()){
 				return;
 			}
 		}
 
-		$this->$name->edit($input);
+		$this->$name->edit($input); // TODO why that order?
 
 		if($this->$name->is_dirty() && !$this->$name->is_editable() && !$this->is_new()){
 			throw new AttributeNotAlterableException($this->$name);
@@ -347,11 +381,13 @@ trait EntityAndRelationship {
 	}
 
 
+	# Return the database table in which the entities of this class are stored.
 	final public function get_db_table() : string {
 		return static::DB_TABLE;
 	}
 
 
+	# Return this entity's database table, prefixed with its database prefix if that is set.
 	final public function get_prefixed_db_table() : string {
 		if(isset($this->db_prefix)){
 			return "{$this->db_prefix}~{$this->get_db_table()}";
@@ -361,6 +397,7 @@ trait EntityAndRelationship {
 	}
 
 
+	// TODO from here
 	final function __clone() {
 		foreach($this->get_attributes() as $name){
 			$this->$name = clone $this->$name;
@@ -376,7 +413,7 @@ trait EntityAndRelationship {
 	}
 
 
-	function __isset(string $name) : bool {
+	function __isset($name) : bool {
 		return $this->has_attribute($name) && $this->$name->is_loaded();
 	}
 }

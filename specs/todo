@@ -9,6 +9,8 @@ Model:
 - Neuorganisation von Relationship-Joins (alle/keine/limit usw.)
 - RelationshipList direkt pullen
 
+- Neuorganisation von DatabaseAccess-Provision
+
 - mehrere RelationshipLists für eine Entity
 
 - next und prev für Pagination

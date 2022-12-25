@@ -1,11 +1,11 @@
 <?php
 namespace Octopus\Modules\Identifiers;
-use \Octopus\Core\Model\Attributes\Attribute;
-use \Octopus\Core\Model\Attributes\IdentifierAttribute;
+use Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
+use Octopus\Core\Model\Attributes\IdentifierAttribute;
 
 class StringIdentifier extends IdentifierAttribute {
 
-	public static function define(bool $is_editable = true) : Attribute {
+	public static function define(bool $is_editable = true) : StringIdentifier {
 		return new static(true, $is_editable);
 	}
 

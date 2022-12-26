@@ -9,7 +9,7 @@ trait Pullable {
 
 
 	final public function get_db_column() : string {
-		return $this->name;
+		return $this->get_name();
 	}
 
 

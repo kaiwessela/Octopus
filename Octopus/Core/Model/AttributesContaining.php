@@ -12,32 +12,96 @@ use Octopus\Core\Model\Database\Condition;
 use Octopus\Core\Model\Database\Conditions\Annd;
 use Octopus\Core\Model\Database\Conditions\Orre;
 use Octopus\Core\Model\Database\Request;
+use Octopus\Core\Model\Entity;
 use Octopus\Core\Model\EntityList;
 use Octopus\Core\Model\Exceptions\CallOutOfOrderException;
+use Octopus\Core\Model\Relationship;
+use ReflectionProperty;
 
 # This trait shares common methods for Entity and Relationship that relate to the loading, altering, validating and
 # outputting of attributes.
 
 trait AttributesContaining {
 
+	# $attributes is a static property of all classes using this trait (currently Entity and Relationship), so it has
+	# the same value across all instances of the respective class.
+	# It stores all the attribute names for every entity class in the following format: [class => [name, ...], ...].
+	private static array $attributes;
+
 
 	# Initialize all attributes by calling define_attributes() and store the attribute names in $attributes.
-	final protected function load_attributes() : void {
+	final protected function init_attributes() : void {
 		if(!isset(self::$attributes)){ # initialize $attributes if it has not yet been
 			self::$attributes = [];
 		}
 
-		self::$attributes[static::class] = []; # initialize the attributes list for this class
+		# load the attribute prototypes and store them in $attributes if they have not been loaded yet
+		if(!isset(self::$attributes[static::class])){
+			self::$attributes[static::class] = [];
+
+			# array of attributes that have been created by the classes define_attributes() method. they are defined,
+			# but not bound or loaded and will be stored as a prototype so that they dont need to be defined again
+			# when creating another instance of this class.
+			$attribute_prototypes = static::define_attributes();
+
+			foreach($attribute_prototypes as $name => $prototype){ # loop through the prototypes and do some validation
+				if(!$prototype instanceof Attribute){
+					throw new Exception("Invalid attribute definition: «{$name}» is not an Attribute.");
+				}
+
+				if($prototype->is_bound()){
+					throw new Exception("Invalid attribute definition: «{$name}» is already bound to an object.");
+				}
+
+				if(!preg_match('/^[a-z0-9_]+$/', $name)){
+					throw new Exception("Invalid attribute definition: «{$name}»'s name contains illegal characters.");
+				}
+
+				if(!property_exists(static::class, $name)){
+					throw new Exception("Invalid attribute definition: no property found for «{$name}».");
+				}
+
+				if(property_exists(self::class, $name)){
+					throw new Exception("Invalid attribute definition: property «{$name}» is already reserved.");
+				}
+
+				$reflection = new ReflectionProperty(static::class, $name);
+				if(!$reflection->isProtected()){
+					throw new Exception("Invalid attribute definition: property «{$name}» is not protected.");
+				}
+
+				self::$attributes[static::class][$name] = $prototype; # store the prototype in $attributes
+			}
+		}
+
+		# initialize the classes attribute properties by cloning the prototype and binding it to the object
+		foreach(self::$attributes[static::class] as $name => $prototype){
+			$this->$name = clone $prototype;
+			$this->$name->bind($name, $this);
+		}
+
 
 		// NOTE: redefining and recalculating the attributes each time is highly inefficient! use prototypes instead.
 		// IDEA: store also the just defined attribute objects themselves in self::$attributes and just clone them for each new instance
 
-		foreach(static::define_attributes() as $name => $attribute){
-			$this->$name = $attribute; # set the result from the definition method as the attribute
-			$this->$name->bind($name, $this); # bind the attribute to this entity
-			self::$attributes[static::class][] = $name; # add the attribute name to $attributes
-		}
+		// foreach(static::define_attributes() as $name => $attribute){
+		// 	$this->$name = $attribute; # set the result from the definition method as the attribute
+		// 	$this->$name->bind($name, $this); # bind the attribute to this entity
+		// 	self::$attributes[static::class][] = $name; # add the attribute name to $attributes
+		// }
 	}
+
+
+	// IDEA
+	// final public function create_dependent_object(string $class) : Entity|Relationship {
+	// 	if(is_subclass_of($class, Entity::class)){
+	// 		return new $class($this, null, );
+	// 	} else if(is_subclass_of($class, Relationship::class)){
+	// 		return new $class();
+	// 	} else {
+	// 		throw new Exception();
+	// 	}
+	// }
 
 
 	# Initialize a new entity that is not yet stored in the database
@@ -77,9 +141,10 @@ trait AttributesContaining {
 	}
 
 
-	# Return an array of all attribute names of the entity.
+	# Return an array of all attribute names of the object.
+	// IMPROVE rename to get_attribute_names
 	final public function get_attributes() : array {
-		return self::$attributes[static::class];
+		return array_keys(self::$attributes[static::class]);
 	}
 
 

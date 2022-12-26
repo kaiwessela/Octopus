@@ -40,7 +40,7 @@ abstract class Entity {
 	# - another Entity, if this entity is referenced by an EntityReference attribute of the context entity,
 	# - an EntityList, if this entity was pulled together with multiple other entities of the same class, or
 	# - a Relationship, if this entity is part of a mutual many-to-many relationship with another entity.
-	protected null|Entity|EntityList|Relationship $context;
+	private null|Entity|EntityList|Relationship $context;
 
 	# --> trait AttributeContaining:
 	# final public function is_independent() : bool;
@@ -77,11 +77,11 @@ abstract class Entity {
 
 	# ATTRIBUTES:
 
-	# $attributes is a static property of Entity, so it has the same value across all instances of Entity.
-	# It stores all the attribute names for every entity class in the following format: [class => [name, ...], ...].
-	protected static array $attributes; // IMPROVE private?
+	// # $attributes is a static property of Entity, so it has the same value across all instances of Entity.
+	// # It stores all the attribute names for every entity class in the following format: [class => [name, ...], ...].
+	// protected static array $attributes; // IMPROVE private?
 	
-	protected string $main_identifier; # The property name of the main identifier attribute
+	protected readonly string $main_identifier; # The property name of the main identifier attribute
 
 	# --> trait AttributeContaining:
 	# final public function is_loaded() : bool;
@@ -144,8 +144,7 @@ abstract class Entity {
 			throw new Exception('invalid list class.');
 		}
 
-		// TODO rename to init_attributes
-		$this->load_attributes(); # initialize the attributes
+		$this->init_attributes(); # initialize the attributes
 
 		// IMPROVE the following is unneccessary complicated, just require MAIN_IDENTIFIER to be set
 		# fry to find the main identifier attribute by looping through all attributes

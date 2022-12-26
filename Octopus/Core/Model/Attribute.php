@@ -8,11 +8,12 @@ use Octopus\Core\Model\Events\Prevention;
 use Octopus\Core\Model\Relationship;
 
 abstract class Attribute {
+	// IMPROVE private
 	protected Entity|Relationship $parent; # reference to the Entity containing this attribute.
-	protected string $name; # name of both the attribute's property in the Entity and its column in the database.
+	private readonly string $name; # name of both the attribute's property in the Entity and its column in the database.
+	private readonly bool $is_required; # true if the attribute must have a value different from null.
+	private readonly bool $is_editable; # true if the attribute can be edited // TODO
 	protected bool $is_loaded; # true if the attribute has been loaded using load().
-	protected bool $is_required; # true if the attribute must have a value different from null.
-	protected bool $is_editable; # true if the attribute can be edited // TODO
 	protected bool $is_dirty; # true if the attribute has been edited ($value !== $old_value).
 	protected mixed $value; # the current value, not yet updated in the database.
 	protected mixed $db_value; # the value stored in the database. null if not yet stored.
@@ -79,6 +80,11 @@ abstract class Attribute {
 
 
 	abstract protected function _edit(mixed $input) : void;
+
+
+	final public function is_bound() : bool {
+		return isset($this->parent);
+	}
 
 
 	final public function is_loaded() : bool {
@@ -172,6 +178,11 @@ abstract class Attribute {
 
 	public function is_empty() : bool {
 		return $this->value === null;
+	}
+
+
+	protected function get_parent() : Entity|Relationship {
+		return $this->parent;
 	}
 
 

@@ -39,7 +39,7 @@ abstract class Relationship {
 	protected bool $is_new;
 
 	use AttributesContaining;
-	protected static array $attributes;
+	// protected static array $attributes;
 
 	protected const DB_TABLE = '';
 
@@ -52,7 +52,7 @@ abstract class Relationship {
 	final function __construct(Entity $context, string $db_prefix) {
 		$this->db_prefix = $db_prefix;
 
-		$this->load_attributes();
+		$this->init_attributes();
 
 		foreach($this->get_attributes() as $name){
 			if($this->$name instanceof IdentifierAttribute){

@@ -77,24 +77,18 @@ abstract class Entity {
 
 	# ATTRIBUTES:
 
-	// # $attributes is a static property of Entity, so it has the same value across all instances of Entity.
-	// # It stores all the attribute names for every entity class in the following format: [class => [name, ...], ...].
-	// protected static array $attributes; // IMPROVE private?
-	
-	protected readonly string $main_identifier; # The property name of the main identifier attribute
-
 	# --> trait AttributeContaining:
 	# final public function is_loaded() : bool;
 	# final protected function load_attributes() : void;
 	# final public function get_attributes() : array;
 	# final public function has_attribute(string|Attribute $attribute) : bool;
 	# final public function get_attribute(string $name) : Attribute;
-	# final public function get_main_identifier_attribute() : IdentifierAttribute;
+	# final public function get_primary_identifier() : IdentifierAttribute;
 	# function __get($name) : mixed;
 	# function __isset($name) : bool;
 
 	# Constants to be defined by each entity class:
-	protected const MAIN_IDENTIFIER = null; # string, property name of the main identifier attribute.
+	protected const PRIMARY_IDENTIFIER = null; # string, property name of the primary identifier attribute. //pre8.2
 	protected const DEFAULT_PULL_ATTRIBUTES = []; # array, same format as for pull($include_attributes).
 
 	# Methods to be implemented by each entity class:
@@ -146,27 +140,6 @@ abstract class Entity {
 
 		$this->init_attributes(); # initialize the attributes
 
-		// IMPROVE the following is unneccessary complicated, just require MAIN_IDENTIFIER to be set
-		# fry to find the main identifier attribute by looping through all attributes
-		# we want to use the attribute specified in MAIN_IDENTIFIER as our main identifier, but if that constant is not
-		# set, we use the first IdentifierAttribute that is also required
-		foreach($this->get_attributes() as $name){
-			# if MAIN_IDENTIFIER is set and that is different from the current attribute name, just continue
-			if($name !== (static::MAIN_IDENTIFIER ?? $name)){
-				continue;
-			}
-
-			# if the current attribute is required and an IdentifierAttribute, use it as main identifier and break
-			if($this->$name instanceof IdentifierAttribute && $this->$name->is_required()){
-				$this->main_identifier = $name;
-				break;
-			}
-		}
-
-		if(!isset($this->main_identifier)){ # check that a main identifier attribute was found
-			throw new Exception('Invalid attribute definitions: main unique identifier missing/not found.');
-		}
-
 		$this->init(); # call the custom initialization method
 	}
 
@@ -188,7 +161,7 @@ abstract class Entity {
 
 		# verify the identify_by value
 		if(is_null($identify_by)){ # if $identify_by is not set, assume the main identifier attribute
-			$identify_by = $this->main_identifier;
+			$identify_by = $this->get_primary_identifier_name();
 		} else if(!$this->has_attribute($identify_by)){
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» not found.");
 		} else if(!$this->$identify_by instanceof IdentifierAttribute){
@@ -323,7 +296,7 @@ abstract class Entity {
 			$request = new InsertRequest($this);
 		} else {
 			$request = new UpdateRequest($this);
-			$request->set_condition(new IdentifierEquals($this->get_main_identifier_attribute(), $this->get_main_identifier_attribute()->get_value()));
+			$request->set_condition(new IdentifierEquals($this->get_primary_identifier(), $this->get_primary_identifier()->get_value()));
 		}
 
 		$errors = new AttributeValueExceptionList();
@@ -384,7 +357,7 @@ abstract class Entity {
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
 		$request = new DeleteRequest($this);
-		$request->set_condition(new IdentifierEquals($this->get_main_identifier_attribute(), $this->get_main_identifier_attribute()->get_value()));
+		$request->set_condition(new IdentifierEquals($this->get_primary_identifier(), $this->get_primary_identifier()->get_value()));
 
 		try {
 			$s = $this->db->prepare($request->get_query());

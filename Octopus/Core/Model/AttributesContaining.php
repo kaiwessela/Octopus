@@ -23,16 +23,24 @@ use ReflectionProperty;
 
 trait AttributesContaining {
 
-	# $attributes is a static property of all classes using this trait (currently Entity and Relationship), so it has
-	# the same value across all instances of the respective class.
-	# It stores all the attribute names for every entity class in the following format: [class => [name, ...], ...].
-	private static array $attributes;
+	# $attributes and $primary_identifiers are static properties of all classes using this trait (currently Entity and
+	# Relationship), so they have the same value across all instances of the respective class.
+	private static array $attributes; # stores all the attribute prototypes for each object class
+	private static array $primary_identifiers; # stores the primary identifier's name for each object class
 
 
-	# Initialize all attributes by calling define_attributes() and store the attribute names in $attributes.
+	# Constants that might be defined by individual object classes:
+	//8.2 protected const PRIMARY_IDENTIFIER = null; # string, property name of the primary identifier attribute.
+
+
+	# Initialize all attributes from their prototypes. Create and store the prototypes if that have not yet been done.
 	final protected function init_attributes() : void {
 		if(!isset(self::$attributes)){ # initialize $attributes if it has not yet been
 			self::$attributes = [];
+		}
+
+		if(!isset(self::$primary_identifiers)){ # initialize $primary_identifiers if it has not yet been
+			self::$primary_identifiers = [];
 		}
 
 		# load the attribute prototypes and store them in $attributes if they have not been loaded yet
@@ -43,6 +51,8 @@ trait AttributesContaining {
 			# but not bound or loaded and will be stored as a prototype so that they dont need to be defined again
 			# when creating another instance of this class.
 			$attribute_prototypes = static::define_attributes();
+
+			$identifiers = []; # array of the property names of all required identifier attributes
 
 			foreach($attribute_prototypes as $name => $prototype){ # loop through the prototypes and do some validation
 				if(!$prototype instanceof Attribute){
@@ -71,7 +81,29 @@ trait AttributesContaining {
 				}
 
 				self::$attributes[static::class][$name] = $prototype; # store the prototype in $attributes
+
+				# find all required identifier attributes
+				if($prototype instanceof IdentifierAttribute && $prototype->is_required()){
+					$identifiers[] = $name;
+				}
 			}
+
+			# try to find the primary identifier attribute for this class
+			if(empty($identifiers)){
+				throw new Exception('Invalid attribute definitions: no unique identifier has been defined.');
+			} else if(!is_null(static::PRIMARY_IDENTIFIER)){ # if PRIMARY_IDENTIFIER is set, check its value
+				if(in_array(static::PRIMARY_IDENTIFIER, $identifiers)){
+					$primary_identifier = static::PRIMARY_IDENTIFIER;
+				} else {
+					throw new Exception('Invalid class definition: PRIMARY_IDENTIFIER is not an identifier.');
+				}
+			} else if(count($identifiers) === 1){ # PRIMARY_IDENTIFIER can be left unset if there is only one identifier
+				$primary_identifier = $identifiers[0];
+			} else {
+				throw new Exception('Invalid class definition: no primary identifier attribute is provided.');
+			}
+
+			self::$primary_identifiers[static::class] = $primary_identifier; # store the primary identifier
 		}
 
 		# initialize the classes attribute properties by cloning the prototype and binding it to the object
@@ -79,16 +111,6 @@ trait AttributesContaining {
 			$this->$name = clone $prototype;
 			$this->$name->bind($name, $this);
 		}
-
-
-		// NOTE: redefining and recalculating the attributes each time is highly inefficient! use prototypes instead.
-		// IDEA: store also the just defined attribute objects themselves in self::$attributes and just clone them for each new instance
-
-		// foreach(static::define_attributes() as $name => $attribute){
-		// 	$this->$name = $attribute; # set the result from the definition method as the attribute
-		// 	$this->$name->bind($name, $this); # bind the attribute to this entity
-		// 	self::$attributes[static::class][] = $name; # add the attribute name to $attributes
-		// }
 	}
 
 
@@ -168,9 +190,15 @@ trait AttributesContaining {
 	}
 
 
-	# Return the main identifier attribute of the entity.
-	final public function get_main_identifier_attribute() : IdentifierAttribute {
-		return $this->get_attribute($this->main_identifier);
+	# Return the name of the primary identifier attribute of the entity.
+	final public function get_primary_identifier_name() : string {
+		return self::$primary_identifiers[static::class];
+	}
+
+
+	# Return the primary identifier attribute of the entity.
+	final public function get_primary_identifier() : IdentifierAttribute {
+		return $this->get_attribute($this->get_primary_identifier_name());
 	}
 
 

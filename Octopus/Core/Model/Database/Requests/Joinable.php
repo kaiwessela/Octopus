@@ -115,7 +115,7 @@ trait Joinable {
 			$chain = $this->collect_order_directives_forward(); # step 1
 			ksort($chain); # step 2 (sort by keys (= significance))
 			$chain = array_values($chain); # step 2, ctd. (rekey to create an uninterrupted list)
-			$chain[] = [$this->object->get_main_identifier_attribute(), 'ASC']; # step 3 (default order directive)
+			$chain[] = [$this->object->get_primary_identifier(), 'ASC']; # step 3 (default order directive)
 			$chainchains[0][0] = $chain; # write the chain to the list (as first chain on the first level)
 		}
 

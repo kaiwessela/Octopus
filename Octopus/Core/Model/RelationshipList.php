@@ -44,11 +44,11 @@ abstract class RelationshipList {
 			$relationship = clone $this->prototype;
 			$relationship->load($row); # load the relationship
 
-			if(isset($this->relationships[$relationship->get_main_identifier_attribute()->get_value()])){
+			if(isset($this->relationships[$relationship->get_primary_identifier()->get_value()])){
 				break;
 			}
 
-			$this->relationships[$relationship->get_main_identifier_attribute()->get_value()] = $relationship;
+			$this->relationships[$relationship->get_primary_identifier()->get_value()] = $relationship;
 		}
 
 		$this->is_complete = $is_complete;

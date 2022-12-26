@@ -39,7 +39,6 @@ abstract class Relationship {
 	protected bool $is_new;
 
 	use AttributesContaining;
-	// protected static array $attributes;
 
 	protected const DB_TABLE = '';
 
@@ -56,9 +55,7 @@ abstract class Relationship {
 
 		foreach($this->get_attributes() as $name){
 			if($this->$name instanceof IdentifierAttribute){
-				if($this->$name->is_required()){
-					$this->main_identifier = $name;
-				}
+				continue;
 			} else if($this->$name instanceof PropertyAttribute){
 				continue;
 			} else if($this->$name instanceof EntityReference){
@@ -82,10 +79,6 @@ abstract class Relationship {
 			}
 		}
 
-		if(!isset($this->main_identifier)){
-			throw new Exception('Invalid attribute definitions: main unique identifier missing/not found.');
-		}
-
 		if(!isset($this->context_attribute) || !isset($this->relatum_attribute)){
 			throw new Exception('Attribute error.'); // TODO
 		}
@@ -103,7 +96,7 @@ abstract class Relationship {
 	final public function join(array $include_attributes, array $order_by) : JoinRequest {
 		// TEMP the last argument uses a hotfix
 		// $request = new JoinRequest($this, $this->get_context_attribute(), $this->context->get_attribute($this->get_context_attribute()->get_identify_by()));
-		$request = new JoinRequest($this, $this->get_context_attribute(), $this->context->get_main_identifier_attribute());
+		$request = new JoinRequest($this, $this->get_context_attribute(), $this->context->get_primary_identifier());
 		$this->build_pull_request($request, $include_attributes, $order_by);
 		return $request;
 	}
@@ -207,7 +200,7 @@ abstract class Relationship {
 			$request = new InsertRequest($this);
 		} else {
 			$request = new UpdateRequest($this);
-			$request->set_condition(new IdentifierEquals($this->get_main_identifier_attribute(), $this->get_main_identifier_attribute()->get_value()));
+			$request->set_condition(new IdentifierEquals($this->get_primary_identifier(), $this->get_primary_identifier()->get_value()));
 		}
 
 		$errors = new AttributeValueExceptionList();
@@ -260,7 +253,7 @@ abstract class Relationship {
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
 		$request = new DeleteRequest($this);
-		$request->set_condition(new IdentifierEquals($this->get_main_identifier_attribute(), $this->get_main_identifier_attribute()->get_value()));
+		$request->set_condition(new IdentifierEquals($this->get_primary_identifier(), $this->get_primary_identifier()->get_value()));
 
 		try {
 			$s = $this->get_db()->prepare($request->get_query());

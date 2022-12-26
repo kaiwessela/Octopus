@@ -107,19 +107,19 @@ class EntityList {
 		$last_id = null;
 		$i = -1;
 		foreach($data as $row){
-			if($last_id !== $row[$this->prototype->get_main_identifier_attribute()->get_result_column()]){
+			if($last_id !== $row[$this->prototype->get_primary_identifier()->get_result_column()]){
 				$i++;
 				$datasets[$i] = [];
 			}
 
 			$datasets[$i][] = $row;
-			$last_id = $row[$this->prototype->get_main_identifier_attribute()->get_result_column()];
+			$last_id = $row[$this->prototype->get_primary_identifier()->get_result_column()];
 		}
 
 		foreach($datasets as $dataset){
 			$entity = clone $this->prototype;
 			$entity->load($dataset);
-			$this->entities[$entity->get_main_identifier_attribute()->get_value()] = $entity;
+			$this->entities[$entity->get_primary_identifier()->get_value()] = $entity;
 		}
 	}
 

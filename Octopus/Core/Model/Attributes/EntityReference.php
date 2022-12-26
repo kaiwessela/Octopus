@@ -138,11 +138,10 @@ final class EntityReference extends Attribute {
 	}
 
 
-	// IMPROVE this is shit because it requires $this->parent to be protected instead of private
 	final public function get_prototype() : Entity { // IMPROVE rename to get_entity_prototype
 		if(!isset($this->prototype)){
 			$class = $this->get_class();
-			$this->prototype = new $class($this->parent, $this->parent->get_db(), $this->get_result_column());
+			$this->prototype = new $class($this->parent, null, $this->get_result_column());
 		}
 
 		return $this->prototype;

@@ -32,17 +32,16 @@ abstract class Relationship {
 	protected string $context_attribute;
 	protected string $relatum_attribute;
 
-	protected Entity $context;
-
 	const DISTINCT = false;
 
-	protected bool $is_new;
 
 	use AttributesContaining;
 
-	protected const DB_TABLE = '';
 
-	protected string $db_prefix;
+	// REMOVE WHEN 8.2 IS AVAILABLE
+	protected const DB_TABLE = null;
+	protected const PRIMARY_IDENTIFIER = null;
+	protected const DEFAULT_PULL_ATTRIBUTES = [];
 
 
 	### CONSTRUCTION METHODS
@@ -54,11 +53,7 @@ abstract class Relationship {
 		$this->init_attributes();
 
 		foreach($this->get_attributes() as $name){
-			if($this->$name instanceof IdentifierAttribute){
-				continue;
-			} else if($this->$name instanceof PropertyAttribute){
-				continue;
-			} else if($this->$name instanceof EntityReference){
+			if($this->$name instanceof EntityReference){
 				if($this->$name->get_class() === $context::class){
 					if(isset($this->context_attribute)){
 						throw new Exception("Context collision: There can only be one context attribute.");
@@ -74,7 +69,7 @@ abstract class Relationship {
 
 					$this->relatum_attribute = $name;
 				}
-			} else {
+			} else if(!($this->$name instanceof IdentifierAttribute || $this->$name instanceof PropertyAttribute)){
 				throw new Exception("Invalid attribute defined: «{$name}».");
 			}
 		}
@@ -83,14 +78,6 @@ abstract class Relationship {
 			throw new Exception('Attribute error.'); // TODO
 		}
 	}
-
-
-	public function &get_db() : DatabaseAccess { // TODO check
-		return $this->context->get_value()->get_db();
-	}
-
-
-	abstract protected static function define_attributes() : array;
 
 
 	final public function join(array $include_attributes, array $order_by) : JoinRequest {
@@ -146,6 +133,8 @@ abstract class Relationship {
 		if(!$this->is_loaded()){
 			throw new CallOutOfOrderException();
 		}
+
+		$this->db = null;
 
 		# create a new container exception that buffers and stores all AttributeValueExceptions
 		# that occur during the editing of the attribute (i.e. invalid or missing inputs)
@@ -292,8 +281,5 @@ abstract class Relationship {
 	public function get_relatum() : Entity {
 		return $this->get_relatum_attribute()->get_value();
 	}
-
-
-	protected const DEFAULT_PULL_ATTRIBUTES = [];
 }
 ?>

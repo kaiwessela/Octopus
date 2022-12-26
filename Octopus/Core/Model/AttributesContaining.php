@@ -11,6 +11,7 @@ use Octopus\Core\Model\Attributes\RelationshipsReference;
 use Octopus\Core\Model\Database\Condition;
 use Octopus\Core\Model\Database\Conditions\Annd;
 use Octopus\Core\Model\Database\Conditions\Orre;
+use Octopus\Core\Model\Database\DatabaseAccess;
 use Octopus\Core\Model\Database\Request;
 use Octopus\Core\Model\Entity;
 use Octopus\Core\Model\EntityList;
@@ -23,14 +24,44 @@ use ReflectionProperty;
 
 trait AttributesContaining {
 
+	// UNCOMMENT WHEN 8.2 IS AVAILABLE
+	// # Constants to be defined by each object class:
+	// protected const DB_TABLE = null; # string, name of the database table that stores the data of the classes entities.
+	// protected const PRIMARY_IDENTIFIER = null; # string, property name of the primary identifier attribute.
+	// protected const DEFAULT_PULL_ATTRIBUTES = []; # array, same format as for pull($include_attributes).
+
+
+	# Methods to be implemented by each object class:
+	abstract protected static function define_attributes() : array;
+
+
 	# $attributes and $primary_identifiers are static properties of all classes using this trait (currently Entity and
 	# Relationship), so they have the same value across all instances of the respective class.
 	private static array $attributes; # stores all the attribute prototypes for each object class
 	private static array $primary_identifiers; # stores the primary identifier's name for each object class
 
 
-	# Constants that might be defined by individual object classes:
-	//8.2 protected const PRIMARY_IDENTIFIER = null; # string, property name of the primary identifier attribute.
+	# The context is the object that this entity depends on. This can either be:
+	# - null (no object at all), if this entity is independent, meaning it was pulled or created on its own,
+	# - another Entity, if this entity is referenced by an EntityReference attribute of the context entity,
+	# - an EntityList, if this entity was pulled together with multiple other entities of the same class, or
+	# - a Relationship, if this entity is part of a mutual many-to-many relationship with another entity.
+	private null|Entity|EntityList|Relationship $context;
+
+
+	# How does an Entity/EntityList/Relationship connect to the database?
+	# The database connection is being established by the controller, wrapped in the DatabaseAccess class and
+	# passed on to every object as a reference, so there is only one instance of DatabaseAccess at a time.
+	# For independent objects, the DatabaseAccess has to be provided upon construction.
+	# Dependent objects use the DatabaseAccess of their context object.
+	protected ?DatabaseAccess $db; # see --> DatabaseAccess for how the access mechanism itself works.
+
+	# In order to prevent column name collisions when pulling from multiple tables using joins, every dependent
+	# object must have a database prefix set upon construction.
+	private ?string $db_prefix;
+
+	private bool $is_new; # Stores whether the entity already exists in the database (true if not).
+
 
 
 	# Initialize all attributes from their prototypes. Create and store the prototypes if that have not yet been done.
@@ -114,18 +145,6 @@ trait AttributesContaining {
 	}
 
 
-	// IDEA
-	// final public function create_dependent_object(string $class) : Entity|Relationship {
-	// 	if(is_subclass_of($class, Entity::class)){
-	// 		return new $class($this, null, );
-	// 	} else if(is_subclass_of($class, Relationship::class)){
-	// 		return new $class();
-	// 	} else {
-	// 		throw new Exception();
-	// 	}
-	// }
-
-
 	# Initialize a new entity that is not yet stored in the database
 	# Generate a random id for the new entity and set all attributes to null
 	final public function create() : void {
@@ -142,6 +161,12 @@ trait AttributesContaining {
 				$this->$name->generate();
 			}
 		}
+	}
+
+
+	# Returns the DatabaseAccess of this entity or its context, if it is dependent.
+	public function &get_db() : DatabaseAccess {
+		return $this->db ?? $this->context?->get_db();
 	}
 
 

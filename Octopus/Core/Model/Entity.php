@@ -33,66 +33,9 @@ abstract class Entity {
 	use AttributesContaining;
 
 
-	# CONTEXT (dependence on other objects):
-
-	# The context is the object that this entity depends on. This can either be:
-	# - null (no object at all), if this entity is independent, meaning it was pulled or created on its own,
-	# - another Entity, if this entity is referenced by an EntityReference attribute of the context entity,
-	# - an EntityList, if this entity was pulled together with multiple other entities of the same class, or
-	# - a Relationship, if this entity is part of a mutual many-to-many relationship with another entity.
-	private null|Entity|EntityList|Relationship $context;
-
-	# --> trait AttributeContaining:
-	# final public function is_independent() : bool;
-
 	# Constants to be defined by each child class:
 	protected const LIST_CLASS = EntityList::class;
 
-
-	# DATABASE COMMUNICATIONS:
-
-	# How does an Entity/EntityList/Relationship connect to the database?
-	# The database connection is being established by the controller, wrapped in the DatabaseAccess class and
-	# passed on to every object as a reference, so there is only one instance of DatabaseAccess at a time.
-	# For independent objects, the DatabaseAccess has to be provided upon construction.
-	# Dependent objects use the DatabaseAccess of their context object.
-	protected ?DatabaseAccess $db; # see --> DatabaseAccess for how the access mechanism itself works.
-
-	# Returns the DatabaseAccess of this entity or its context, if it is dependent.
-	public function &get_db() : DatabaseAccess {
-		return $this->db ?? $this->context?->get_db();
-	}
-
-	# In order to prevent column name collisions when pulling from multiple tables using joins, every dependent
-	# entity must have a database prefix set upon construction.
-	protected ?string $db_prefix;
-
-	# Constants to be defined by each entity class:
-	protected const DB_TABLE = null; # string, name of the database table that stores the data of the classes entities.
-
-	# --> trait AttributeContaining:
-	# final public function get_db_table() : string;
-	# final public function get_prefixed_db_table() : string;
-
-
-	# ATTRIBUTES:
-
-	# --> trait AttributeContaining:
-	# final public function is_loaded() : bool;
-	# final protected function load_attributes() : void;
-	# final public function get_attributes() : array;
-	# final public function has_attribute(string|Attribute $attribute) : bool;
-	# final public function get_attribute(string $name) : Attribute;
-	# final public function get_primary_identifier() : IdentifierAttribute;
-	# function __get($name) : mixed;
-	# function __isset($name) : bool;
-
-	# Constants to be defined by each entity class:
-	protected const PRIMARY_IDENTIFIER = null; # string, property name of the primary identifier attribute. //pre8.2
-	protected const DEFAULT_PULL_ATTRIBUTES = []; # array, same format as for pull($include_attributes).
-
-	# Methods to be implemented by each entity class:
-	abstract protected static function define_attributes() : array;
 	
 	# Properties to be set by each entity class:
 	# For each attribute, a property has to be defined in the following form:
@@ -100,18 +43,10 @@ abstract class Entity {
 	# ...
 
 
-	# INTERNALS:
-
-	protected bool $is_new; # Stores whether the entity already exists in the database (true if not).
-
-	# --> trait AttributeContaining: 
-	# final public function is_new() : bool;
-	# final public function create() : void;
-	# final public function edit_attribute(string $name, mixed $input) : void;
-	# final public function build_pull_request(Request &$request, array $include_attributes, array $order_by) : void;
-	# final public function split_pull_order_chain(array $raw_chain) : array;
-	# final public function resolve_pull_conditions(array $options, string $mode = 'AND') : ?Condition;
-	# final function __clone();
+	// REMOVE WHEN 8.2 IS AVAILABLE
+	protected const DB_TABLE = null;
+	protected const PRIMARY_IDENTIFIER = null;
+	protected const DEFAULT_PULL_ATTRIBUTES = [];
 
 
 
@@ -119,10 +54,22 @@ abstract class Entity {
 	final function __construct(null|Entity|EntityList|Relationship $context = null, DatabaseAccess $db = null, ?string $db_prefix = null) {
 		$this->context = &$context;
 
-		// TODO reorganize the checks and exceptions
+		if($this->is_independent()){
+			if(!isset($db)){
+				throw new Exception('Invalid entity construction: db is required on independent entities.');
+			}
 
-		if($this->is_independent() && !is_null($db_prefix)){
-			throw new Exception('independent entities cannot have a database prefix.');
+			if(isset($db_prefix)){
+				throw new Exception('Invalid entity construction: db_prefix cannot be set on independent entities.');
+			}
+		} else {
+			if(isset($db)){
+				throw new Exception('Invalid entity construction: db cannot be set on dependent entities.');
+			}
+
+			if(!isset($db_prefix) && !($this->context instanceof EntityList)){
+				throw new Exception('Invalid entity construction: db_prefix is required on independent non-list entities.');
+			}
 		}
 
 		$this->db_prefix = $db_prefix;

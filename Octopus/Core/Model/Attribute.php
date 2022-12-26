@@ -8,7 +8,6 @@ use Octopus\Core\Model\Events\Prevention;
 use Octopus\Core\Model\Relationship;
 
 abstract class Attribute {
-	// IMPROVE private
 	protected Entity|Relationship $parent; # reference to the Entity containing this attribute.
 	private readonly string $name; # name of both the attribute's property in the Entity and its column in the database.
 	private readonly bool $is_required; # true if the attribute must have a value different from null.
@@ -181,12 +180,12 @@ abstract class Attribute {
 	}
 
 
-	protected function get_parent() : Entity|Relationship {
+	final protected function get_parent() : Entity|Relationship {
 		return $this->parent;
 	}
 
 
-	public function parent_is(Entity|Relationship $object) : bool {
+	final public function parent_is(Entity|Relationship $object) : bool {
 		return $this->parent === $object;
 	}
 

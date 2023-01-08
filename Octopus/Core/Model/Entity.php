@@ -139,7 +139,7 @@ abstract class Entity {
 	# @param $identify_by: The attribute of this entity by which this entity is identified.
 	# @param $include_attributes and $order_by: see pull().
 	// IMPROVE Attribute -> EntityReference?
-	final public function join(Attribute $on, string $identify_by, array $include_attributes, array $order_by) : JoinRequest {
+	final public function join(Attribute $on, string $identify_by, array $include_attributes, array $order_by = []) : JoinRequest {
 		# verify the identify_by attribute
 		if(!$this->has_attribute($identify_by)){
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» not found.");

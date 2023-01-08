@@ -80,7 +80,7 @@ abstract class Relationship {
 	}
 
 
-	final public function join(array $include_attributes, array $order_by) : JoinRequest {
+	final public function join(array $include_attributes, array $order_by = []) : JoinRequest {
 		// TEMP the last argument uses a hotfix
 		// $request = new JoinRequest($this, $this->get_context_attribute(), $this->context->get_attribute($this->get_context_attribute()->get_identify_by()));
 		$request = new JoinRequest($this, $this->get_context_attribute(), $this->context->get_primary_identifier());

@@ -2,8 +2,11 @@
 namespace Octopus\Core\Model;
 use Exception;
 use Octopus\Core\Model\Attribute;
+use Octopus\Core\Model\Attributes\EntityReference;
 use Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
 use Octopus\Core\Model\Attributes\Exceptions\AttributeNotLoadedException;
+use Octopus\Core\Model\Attributes\Exceptions\AttributeValueException;
+use Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
 use Octopus\Core\Model\Attributes\GeneratedIdentifierAttribute;
 use Octopus\Core\Model\Attributes\IdentifierAttribute;
 use Octopus\Core\Model\Attributes\PropertyAttribute;
@@ -266,6 +269,8 @@ trait AttributesContaining {
 	#	- +, ASC, ascending for ascending order
 	#	- -, DESC, descending for descending order
 	final public function build_pull_request(Request &$request, array $include_attributes, array $order_by) : void {
+		$this->process_order_instructions($order_by);
+
 		# verify the attributes that should be included and their options
 		foreach($include_attributes as $name => $option){
 			if(!$this->has_attribute($name)){
@@ -277,14 +282,14 @@ trait AttributesContaining {
 			}
 		}
 
-		$order_chains = $this->split_pull_order_chain($order_by); # see below for what that does
-
 		foreach($this->get_attributes() as $name){
 			# load the include option for the attribute or, if that does not exist, the default option
 			$option = $include_attributes[$name] ?? static::DEFAULT_PULL_ATTRIBUTES[$name] ?? null;
 
+			// TODO require primary identifier for this and for order
+
 			if(is_array($option)){
-				$pull = true;
+				$pull = $this->$name->is_pullable();
 				$join = true;
 			} else if($option === true || is_null($option)){
 				$pull = true;
@@ -296,36 +301,24 @@ trait AttributesContaining {
 				throw new Exception("Invalid format of default inclusion directive for attribute «{$name}».");
 			}
 
-			if($this->$name->is_pullable()){
-				if($pull){
-					$request->add($this->$name); # add the attribute to the request
-				}
-
-				if(array_key_exists($name, $order_chains[0])){ # check if there is an order statement for the attribute
-					if($pull){
-						list($significance, $direction) = $order_chains[0][$name];
-
-						$request->add_order($this->$name, $direction, $significance); # add the order statement
-					} else {
-						throw new Exception("Cannot order results by non-included attribute «{$name}».");
-					}
-				}
-			} else if($pull){
-				throw new Exception("Cannot add non-pullable attribute «{$name}» to the request.");
+			if($name === $this->get_primary_identifier_name()){
+				$pull = true;
 			}
 
-			if($this->$name->is_joinable()){
-				if(array_key_exists($name, $order_chains)){
-					if($join){
-						$order_chain = $order_chains[$name];
-					} else {
-						throw new Exception("Cannot order results by non-joined attribute «{$name}».");
-					}
+			if($pull){
+				if($this->$name->is_pullable()){
+					$request->add($this->$name); # add the attribute to the request
 				} else {
-					$order_chain = [];
+					throw new Exception("Cannot add non-pullable attribute «{$name}» to the request.");
 				}
+			} else if($this->$name->has_order_clause()){
+				// Warning, order clause but attribute is not included
+				throw new Exception("Cannot order results by non-included attribute «{$name}».");
+			}
 
-				if($join){
+			if($join){
+				if($this->$name->is_joinable()){
+					// TODO prevent joining context attributes and relationships if the context is an entitylist (?)
 					if(!$this->is_independent() && $this->$name->get_class() === $this->context::class){ // TEMP
 						continue;
 					}
@@ -333,81 +326,42 @@ trait AttributesContaining {
 					if(!$this->$name->is_pullable() && !($this->is_independent() || $this->context instanceof EntityList)){ // TEMP
 						continue;
 					}
+					// check until here
 
-					$request->add_join($this->$name->get_join_request($option ?? [], $order_chain));
+					$request->add_join($this->$name->get_join_request($option ?? []));
+				} else {
+					throw new Exception("Cannot join non-joinable attribute «{$name}» to the request.");
 				}
-			} else if($join){
-				throw new Exception("Cannot join non-joinable attribute «{$name}» to the request.");
 			}
 		}
 	}
 
 
-	// IMPROVE this whole mess would be easier and easier to understand if there was a special class for an order
-	// directive and they are just attached to their attribute and later (when the request is resolved) pulled back
-	// from them.
+	// NUR SELECTREQUESTS UND REVERSE JOINS BRAUCHEN NE FALLBACK ORDER CLAUSE
 
-	# Split the raw array of order directives (= raw chain) up into individual chains for the main request and
-	# all associated join requests.
-	final protected function split_pull_order_chain(array $raw_chain) : array {
-		if(!array_is_list($raw_chain)){
-			throw new Exception("Invalid format of order directives list.");
+
+	final protected function process_order_instructions(array $order_by) : void {
+		foreach($order_by as $index => $order_instruction){
+			if(!is_array($order_instruction) || !count($order_instruction) === 2){
+				throw new Exception("Invalid order instruction #{$index}.");
+			}
+
+			list($compound_attribute_name, $sequence) = $order_instruction;
+
+			if(!is_string($compound_attribute_name)){
+				throw new Exception("Invalid attribute format in order instruction #{$index}.");
+			}
+
+			$segments = explode('.', $compound_attribute_name, 2);
+			$attribute = $segments[0];
+			$remainder = $segments[1] ?? null;
+
+			if(!$this->has_attribute($attribute)){
+				throw new Exception("Unknown attribute «{$attribute}» in order instruction #{$index}/«{$compound_attribute_name}».");
+			}
+
+			$this->$attribute->set_order_clause($sequence, $index, $remainder);
 		}
-		
-		$result = [
-			0 => [] # 0 is simply used because there won't be any collision with a join request’s chain
-		];
-
-		# $significance is simply the index, but it also determines by which attribute to order the result first
-		# $order = ['attribute(.remainder)', 'direction']
-		foreach($raw_chain as $significance => $order){
-			# verify the format of each individual order directive
-			if(!is_array($order) || !count($order) === 2 || !is_string($order[0]) || !is_string($order[1])){
-				throw new Exception("Invalid format of order directive #{$significance}.");
-			}
-
-			list($full_attribute, $direction) = $order;
-
-			# the full attribute name can be a path of multiple attribute names connected by a dot (.), which is used
-			# to address attributes of joined entities. the first part always specifies the attribute in the current
-			# entity. if there is a remainder, it is just passed along to the respective join request.
-
-			$exp = explode('.', $full_attribute, 2);
-			$attribute = $exp[0];
-			$remainder = $exp[1] ?? '';
-
-			if(!$this->has_attribute($attribute)){ # check that the attribute exists in this entity
-				throw new Exception("Unknown attribute «{$attribute}» in order directive #{$significance}.");
-			}
-
-			$direction = match($direction){ # unify the direction value
-				'+', 'ascending', 'ASC' => 'ASC',
-				'-', 'descending', 'DESC' => 'DESC',
-				default => throw new Exception("Invalid direction in order directive #{$significance}.")
-			};
-
-			if(empty($remainder)){ # if there is no remainder, the attribute must be pullable
-				if(!$this->$attribute->is_pullable()){
-					throw new Exception("Cannot order results by non-pullable attribute {$attribute} (#{$significance}).");
-				}
-
-				# add the order directive to the current request's chain
-				$result[0][$attribute] = [$significance, $direction];
-			} else { # if there is a remainder, the attribute must be joinable
-				if(!$this->$attribute->is_joinable()){
-					throw new Exception("Unknown attribute «{$attribute}» in order directive #{$significance}.");
-				}
-
-				# add the order directive to the reference attribute's list (which is a new raw chain)
-				if(!isset($result[$attribute])){
-					$result[$attribute] = [];
-				}
-
-				$result[$attribute][$significance] = [$remainder, $direction];
-			}
-		}
-
-		return $result;
 	}
 
 

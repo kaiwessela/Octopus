@@ -153,8 +153,8 @@ final class EntityReference extends Attribute {
 	}
 
 
-	final public function get_join_request(array $include_attributes, array $order_by) : JoinRequest {
-		return $this->get_prototype()->join($this, $this->identify_by, $include_attributes, $order_by);
+	final public function get_join_request(array $include_attributes) : JoinRequest {
+		return $this->get_prototype()->join($this, $this->identify_by, $include_attributes);
 	}
 
 

@@ -2,6 +2,7 @@
 namespace Octopus\Core\Model\Database\Requests;
 use Exception;
 use Octopus\Core\Model\Attribute;
+use Octopus\Core\Model\Database\OrderClause;
 use Octopus\Core\Model\Database\Requests\JoinRequest;
 use Octopus\Core\Model\Database\Requests\SelectRequest;
 
@@ -73,7 +74,7 @@ trait Joinable {
 
 
 	# Return an array of the attributes of this request and of all its joins.
-	final protected function collect_attributes() : array {
+	final public function collect_attributes() : array {
 		$attributes = $this->attributes;
 
 		foreach($this->joins as $join){
@@ -85,78 +86,45 @@ trait Joinable {
 
 
 	# Return an array (chain) of the order directives of this request and all of its forward joins (Step 1).
-	final protected function collect_order_directives_forward() : array {
-		$chain = $this->order;
+	final public function collect_order_directives_forward() : array {
+		$order_clauses = [];
+
+		foreach($this->attributes as $attribute){
+			if($attribute->has_order_clause()){
+				$order_clause = $attribute->get_order_clause();
+				$order_clauses[$order_clause->get_original_index()] = $order_clause;
+			}
+		}
 
 		foreach($this->joins as $join){
 			if($join->is_forward_join()){
-				$chain += $join->collect_order_directives_forward();			
+				$order_clauses += $join->collect_order_directives_forward();
 			}
 		}
 
-		return $chain;
+		ksort($order_clauses); // really necessary?
+
+		return array_values($order_clauses);
 	}
 
 
-	# Return an array of arrays (chainchains) of the order directives of this request and all its reverse joins, ordered
-	# by the depth of the join request.
-	# depth 0 (= the chain in $chainchains[0]) is the SelectRequest, depth 1 (= the chains in $chainchains[1]) are all
-	# reverse joins in SelectRequests->joins, depth 2 are all reverse joins in the requests of level 1 and so on.
-	final protected function collect_order_directives_reverse() : array {
-		$chainchains = [];
-
-		# If this is a SelectRequest or reverse join, then:
-		# 1. merge the own order chain and the chains of all forward joins below it.
-		# 2. sort these chains by the significance of their directives and reindex them to create an uninterrupted list.
-		# 3. append the default order directive of this request.
-		if($this instanceof SelectRequest || $this->is_reverse_join()){
-			$chainchains[0] = [];
-			
-			$chain = $this->collect_order_directives_forward(); # step 1
-			ksort($chain); # step 2 (sort by keys (= significance))
-			$chain = array_values($chain); # step 2, ctd. (rekey to create an uninterrupted list)
-			$chain[] = [$this->object->get_primary_identifier(), 'ASC']; # step 3 (default order directive)
-			$chainchains[0][0] = $chain; # write the chain to the list (as first chain on the first level)
+	final public function collect_order_directives_reverse() : array {
+		if(!$this instanceof SelectRequest && !$this->is_reverse_join()){
+			throw new Exception();
 		}
 
-		# This is where this function becomes recursive. Repeat the process above for all joins and write the result
-		# into $chains (forward joins actually just pass on the results of their own joins) and count all their levels
-		# up by 1.
-		# Picture it as that the tree is build from the roots up, moving the former chains down one level with each
-		# step. In the end, the SelectRequest's order chain gets level 0.
+		$order_clauses = $this->collect_order_directives_forward();
+
+		// add fallback
+		$order_clauses[] = new OrderClause($this->object->get_primary_identifier(), 'ASC', PHP_INT_MAX);
+
 		foreach($this->joins as $join){
-			foreach($join->collect_order_directives_reverse() as $level => $chains){
-				# IDEA:
-				## if the lowest level (= the level that was just added by the last iteration of this function, in the
-				## join level just below this request) contains multiple chains (that happens if this request contains 
-				## multiple direct reverse joins), these order directive chains should be ordered by their length, so
-				## that the longest chain precedes the others (and so on).
-				## we do that because we assume that requests with more order directives are more important for the user
-				## to be ordered as wished than those with less directives. The original problem is that if there are
-				## multiple reverse joins on the same level, only one of them can be guaranteed to have its results
-				## ordered correctly. the only real solution to this problem would be to split the request into multiple
-				## independent requests.
-				#if($level === 0 && count($chains) > 1){
-				#	$chains_by_length = [];
-				#	
-				#	foreach($chains as $chain){
-				#		$length = count($chain);
-				#
-				#		if(!isset($chains_by_length[$length])){
-				#			$chains_by_length[$length] = [];
-				#		}
-				#
-				#		$chains_by_length[$length][] = $chain;
-				#	}
-				#
-				#	$chainchains[$level+1] = array_reverse($chains_by_length);
- 				#} else {
-					$chainchains[$level+1][] = $chains;
-				#}
+			if($join->is_reverse_join()){
+				$order_clauses = array_merge($order_clauses, $join->collect_order_directives_reverse());
 			}
 		}
 
-		return $chainchains;
+		return $order_clauses;
 	}
 
 
@@ -177,7 +145,7 @@ trait Joinable {
 		$result = false;
 
 		foreach($this->joins as $join){
-			$result |= $join->is_convoluted() || $join->is_reverse_join();
+			$result |= ($join->is_convoluted() || $join->is_reverse_join());
 		}
 
 		return $result;

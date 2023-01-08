@@ -1,8 +1,10 @@
 <?php
 namespace Octopus\Core\Model;
+use Exception;
 use Octopus\Core\Model\Attributes\Events\AttributeEditEvent;
 use Octopus\Core\Model\Attributes\Exceptions\AttributeNotLoadedException;
 use Octopus\Core\Model\Database\Condition;
+use Octopus\Core\Model\Database\OrderClause;
 use Octopus\Core\Model\Entity;
 use Octopus\Core\Model\Events\Prevention;
 use Octopus\Core\Model\Relationship;
@@ -194,6 +196,46 @@ abstract class Attribute {
 
 
 	abstract public function arrayify() : null|string|int|float|bool|array;
+
+
+	final public function has_order_clause() : bool {
+		return isset($this->order_clause);
+	}
+
+
+	final public function set_order_clause(mixed $sequence, int $original_index, ?string $sub_attribute = null) : void {
+		if(isset($sub_attribute)){
+			if(!$this->is_joinable()){
+				throw new Exception("Attribute «{$sub_attribute}» below this does not exist for order instruction #{$original_index}.");
+			}
+
+			$segments = explode('.', $sub_attribute, 2);
+			$attribute = $segments[0];
+			$remainder = $segments[1] ?? null;
+
+			if(!$this->parent->has_attribute($attribute)){
+				throw new Exception("Unknown attribute «{$attribute}» in order instruction #{$index}.");
+			}
+
+			$this->parent->get_attribute($attribute)->set_order_clause($sequence, $original_index, $remainder);
+		} else {
+			if(!$this->is_pullable()){
+				throw new Exception("Cannot set an order instruction for non-pullable attributes: #{$original_index}.");
+			}
+
+			$this->order_clause = new OrderClause($this, $sequence, $original_index);
+		}
+
+	}
+
+
+	final public function get_order_clause() : OrderClause {
+		if(!$this->has_order_clause()){
+			throw new Exception();
+		}
+		
+		return $this->order_clause;
+	}
 
 }
 ?>

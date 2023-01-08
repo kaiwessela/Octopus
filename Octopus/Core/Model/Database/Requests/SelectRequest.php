@@ -210,7 +210,7 @@ SQL;
 
 	# Resolve the order directives by collecting them and turning them into an SQL ORDER BY clause.
 	protected function resolve_order() : string {
-		$orders = $this->collect_order_directives();
+		$orders = $this->collect_order_directives_reverse();
 
 		if(empty($orders)){
 			return '';
@@ -218,32 +218,10 @@ SQL;
 
 		$order_strings = [];
 		foreach($orders as $order){
-			$order_strings[] = "{$order[0]->get_prefixed_db_column()} {$order[1]}";
+			$order_strings[] = $order->get_query();
 		}
 
 		return 'ORDER BY '.implode(', ', $order_strings).PHP_EOL;
-	}
-
-
-	# Collect the arrays of arrays of order chains (= arrays of order directives) from this request and all its
-	# JoinRequests (level 3 array), and linearize them to create a level 1 array (= order directive chain).
-	# The resulting order directives are ordered by their level in the join tree, beginning with the highest level
-	# (which is this SelectRequest).
-	# The input array (from collect_order_directives_reverse()) is built up like this:
-	# chainchains = [level in the join tree => [all order chains on the same level (chains) [order directives (chain)]]]
-	# This implements step 4 of the order directive collection algorithm described in the Joinable trait.
-	protected function collect_order_directives() : array {
-		$orders = [];
-
-		$chainchains = $this->collect_order_directives_reverse();
-
-		foreach($chainchains as $chains){
-			foreach($chains as $chain){
-				$orders = [...$orders, ...$chain];
-			}
-		}
-
-		return $orders;
 	}
 
 

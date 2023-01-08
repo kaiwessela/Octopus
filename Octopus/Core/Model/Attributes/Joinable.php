@@ -19,7 +19,7 @@ trait Joinable {
 	}
 
 
-	abstract public function get_join_request(array $include_attributes, array $order_by) : JoinRequest;
+	abstract public function get_join_request(array $include_attributes) : JoinRequest;
 
 
 	abstract public function get_detection_column() : string;

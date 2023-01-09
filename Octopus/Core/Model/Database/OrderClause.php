@@ -10,24 +10,18 @@ class OrderClause {
 
 
 	function __construct(Attribute $by, mixed $sequence, int $original_index) {
-		$this->by = $by;
-		$this->original_index = $original_index;
+		if(!in_array($sequence, ['ASC', 'DESC'])){
+			throw new Exception("Invalid sequence «{$sequence}» in order clause #{$original_index}.");
+		}
 
-		$this->sequence = match($sequence){
-			'+', 'ascending', 'asc', 'ASC' => 'ASC',
-			'-', 'descending', 'desc', 'DESC' => 'DESC',
-			default => throw new Exception("Invalid sequence in attribute instruction #{$original_index}.")
-		};
+		$this->by = $by;
+		$this->sequence = $sequence;
+		$this->original_index = $original_index;
 	}
 
 
 	final public function get_query() : string {
 		return "{$this->by->get_prefixed_db_column()} {$this->sequence}";
-	}
-
-
-	final public function get_original_index() : int {
-		return $this->original_index;
 	}
 }
 ?>

@@ -62,8 +62,14 @@ abstract class Request {
 
 
 	# Add an attribute to the list of attributes the operation is being applied to.
-	final public function add(Attribute $attribute) : void {
+	final public function add(Attribute $attribute) : void { // IDEA rename include
 		$this->require_unresolved();
+
+		# Check that the attribute belongs to the object.
+		if(!$this->object->has_attribute($attribute)){
+			throw new Exception("The attribute «{$attribute->get_prefixed_db_column()}» does not belong to the "
+				. "specified object (table «{$request->get_db_table()}»).");
+		}
 
 		# Check that the attribute is pullable.
 		# Only pullable attributes can be added this way. Check the Attribute class for more details. An example of a
@@ -72,21 +78,15 @@ abstract class Request {
 			throw new Exception("The attribute «{$attribute->get_prefixed_db_column()}» is not pullable.");
 		}
 
-		# Check that the attribute belongs to the object.
-		if($this->object->get_db_table() !== $attribute->get_db_table()){
-			throw new Exception("The attribute «{$attribute->get_prefixed_db_column()}» does not belong to the "
-				. "specified object (table «{$request->get_db_table()}»).");
-		}
-
-		$this->attributes[$attribute->get_prefixed_db_column()] = $attribute; # add the attribute to the list
+		$this->attributes[$attribute->get_name()] = $attribute; # add the attribute to the list
 	}
 
 
 	# Remove an attribute from the list of attributes the operation is being applied to.
-	final public function remove(Attribute $attribute) : void {
+	final public function remove(Attribute $attribute) : void { // IDEA rename exclude
 		$this->require_unresolved();
 
-		unset($this->attributes[$attribute->get_prefixed_db_column()]);
+		unset($this->attributes[$attribute->get_name()]);
 	}
 
 

@@ -208,9 +208,9 @@ SQL;
 	}
 
 
-	# Resolve the order directives by collecting them and turning them into an SQL ORDER BY clause.
+	# Resolve the order clauses by collecting them and turning them into an SQL ORDER BY clause.
 	protected function resolve_order() : string {
-		$orders = $this->collect_order_directives_reverse();
+		$orders = $this->collect_order_clauses();
 
 		if(empty($orders)){
 			return '';

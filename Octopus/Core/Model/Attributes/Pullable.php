@@ -4,9 +4,6 @@ use Octopus\Core\Model\Database\OrderClause;
 
 trait Pullable {
 
-	private OrderClause $order_clause;
-
-
 	final public function is_pullable() : bool {
 		return true;
 	}

@@ -257,6 +257,76 @@ trait AttributesContaining {
 	// NOTE what if there are two reverse joins on the same level? idea: the one with the longer chain takes precedence
 
 
+	final public function resolve_pull_attributes(Request &$request, array $instructions) : void {
+		# $instructions has the following format: [
+		#	attribute name => true|false - for pullable attributes only
+		#	attribute name => [ - for joinable attributes only
+		#		... (same format as $instructions, recursive)
+		#	]
+		# ]
+
+		# verify the attribute inclusion instructions
+		foreach($instructions as $name => $instruction){
+			if(!$this->has_attribute($name)){
+				throw new Exception("Unknown attribute «{$name}»."); // IMPROVE custom exception
+			}
+
+			if(!is_null($instruction) && !is_bool($instruction) && !(is_array($instruction) && $this->$name->is_joinable())){
+				throw new Exception("Invalid format of inclusion instruction for attribute «{$name}».");
+			}
+		}
+
+		foreach($this->get_attributes() as $name){
+			# load the inclusion instruction for the attribute or, if that is not set, the default instruction, or null
+			$instruction = $instructions[$name] ?? static::DEFAULT_PULL_ATTRIBUTES[$name] ?? null;
+
+			if(is_array($instruction)){ # if the instruction is an array (used for joinable attributes), then:
+				$pull = $this->$name->is_pullable(); # pull the attribute if it is also pullable and
+				$join = true; # join the attribute.
+			} else if($instruction === true || is_null($instruction)){ # if the instruction is true or none on default:
+				$pull = true; # pull the attribute and
+				$join = false; # do not join the attribute.
+			} else if($instruction === false){ # if the instruction is false, neither pull nor join the attribute.
+				$pull = false;
+				$join = false;
+			} else {
+				throw new Exception("Invalid format of default inclusion instruction for attribute «{$name}».");
+			}
+
+			if($name === $this->get_primary_identifier_name()){ # the primary identifier must always be included
+				$pull = true;
+			}
+
+			if($pull){ # if the attribute shall be pulled
+				if(!$this->$name->is_pullable()){
+					throw new Exception("Cannot add non-pullable attribute «{$name}» to the request.");
+				}
+
+				$request->add($this->$name); # add the attribute to the request
+			}
+
+			if($join){ # if the attribute shall be joined
+				if(!$this->$name->is_joinable()){
+					throw new Exception("Cannot join non-joinable attribute «{$name}» to the request.");
+				}
+
+				// TODO prevent joining context attributes and relationships if the context is an entitylist (?)
+				if(!$this->is_independent() && $this->$name->get_class() === $this->context::class){ // TEMP
+					continue;
+				}
+
+				if(!$this->$name->is_pullable() && !($this->is_independent() || $this->context instanceof EntityList)){ // TEMP
+					continue;
+				}
+				// check until here
+
+				$request->add_join($this->$name->get_join_request($instruction ?? []));
+			}
+		}
+	}
+
+
+	/*
 	# Fill a given SelectRequest/JoinRequest to pull entities of this class with the following information:
 	# - which attributes to include in the response
 	# - which attributes to order the response columns by
@@ -285,8 +355,6 @@ trait AttributesContaining {
 		foreach($this->get_attributes() as $name){
 			# load the include option for the attribute or, if that does not exist, the default option
 			$option = $include_attributes[$name] ?? static::DEFAULT_PULL_ATTRIBUTES[$name] ?? null;
-
-			// TODO require primary identifier for this and for order
 
 			if(is_array($option)){
 				$pull = $this->$name->is_pullable();
@@ -335,13 +403,14 @@ trait AttributesContaining {
 			}
 		}
 	}
+	*/
 
 
 	// NUR SELECTREQUESTS UND REVERSE JOINS BRAUCHEN NE FALLBACK ORDER CLAUSE
 
 
-	final protected function process_order_instructions(array $order_by) : void {
-		foreach($order_by as $index => $order_instruction){
+	final public function resolve_pull_order(Request &$request, array $instructions) : void {
+		foreach($instructions as $index => $order_instruction){
 			if(!is_array($order_instruction) || !count($order_instruction) === 2){
 				throw new Exception("Invalid order instruction #{$index}.");
 			}
@@ -352,15 +421,24 @@ trait AttributesContaining {
 				throw new Exception("Invalid attribute format in order instruction #{$index}.");
 			}
 
-			$segments = explode('.', $compound_attribute_name, 2);
+			$segments = explode('.', $compound_attribute_name);
 			$attribute = $segments[0];
-			$remainder = $segments[1] ?? null;
 
 			if(!$this->has_attribute($attribute)){
 				throw new Exception("Unknown attribute «{$attribute}» in order instruction #{$index}/«{$compound_attribute_name}».");
 			}
 
-			$this->$attribute->set_order_clause($sequence, $index, $remainder);
+			$sequence = match($sequence){
+				'+', 'ascending', 'asc', 'ASC' => 'ASC',
+				'-', 'descending', 'desc', 'DESC' => 'DESC',
+				default => throw new Exception("Invalid sequence in attribute instruction #{$original_index}.")
+			};
+
+			if(count($segments) === 1){
+				$request->order_by($attribute, $sequence, $index);
+			} else {
+				$request->order_by($segments, $sequence, $index);
+			}
 		}
 	}
 

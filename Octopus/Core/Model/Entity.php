@@ -116,7 +116,8 @@ abstract class Entity {
 		}
 
 		$request = new SelectRequest($this);
-		$this->build_pull_request($request, $include_attributes, $order_by); # add attributes and order to the request
+		$this->resolve_pull_attributes($request, $include_attributes);
+		$this->resolve_pull_order($request, $order_by);
 		$request->set_condition(new IdentifierEquals($this->$identify_by, $identifier));
 
 		try {
@@ -139,7 +140,7 @@ abstract class Entity {
 	# @param $identify_by: The attribute of this entity by which this entity is identified.
 	# @param $include_attributes and $order_by: see pull().
 	// IMPROVE Attribute -> EntityReference?
-	final public function join(Attribute $on, string $identify_by, array $include_attributes, array $order_by = []) : JoinRequest {
+	final public function join(Attribute $on, string $identify_by, array $include_attributes) : JoinRequest {
 		# verify the identify_by attribute
 		if(!$this->has_attribute($identify_by)){
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» not found.");
@@ -148,7 +149,7 @@ abstract class Entity {
 		}
 
 		$request = new JoinRequest($this, $this->$identify_by, $on);
-		$this->build_pull_request($request, $include_attributes, $order_by);
+		$this->resolve_pull_attributes($request, $include_attributes);
 		return $request;
 	}
 

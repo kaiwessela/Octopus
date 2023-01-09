@@ -100,5 +100,11 @@ final class JoinRequest extends Request {
 	final public function is_reverse_join() : bool {
 		return $this->direction === 'reverse';
 	}
+
+
+	# Return the foreign attribute's name, which is used as key in the $joins array of the parent request.
+	final public function get_identifier() : string {
+		return $this->foreign_attribute->get_name();
+	}
 }
 ?>

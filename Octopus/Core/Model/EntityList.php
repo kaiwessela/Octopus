@@ -70,8 +70,8 @@ class EntityList {
 		}
 
 		$request = new SelectRequest($this->prototype);
-		$this->prototype->build_pull_request($request, $include_attributes, $order_by);
-
+		$this->prototype->resolve_pull_attributes($request, $include_attributes);
+		$this->prototype->resolve_pull_order($request, $order_by);
 		$request->set_condition($this->prototype->resolve_pull_conditions($conditions));
 		$request->set_limit($limit, $offset);
 

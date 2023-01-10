@@ -18,7 +18,7 @@ use Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
 use Octopus\Core\Model\Database\Exceptions\EmptyResultException;
 use Octopus\Core\Model\Database\Requests\DeleteRequest;
 use Octopus\Core\Model\Database\Requests\InsertRequest;
-use Octopus\Core\Model\Database\Requests\JoinRequest;
+use Octopus\Core\Model\Database\Requests\Join;
 use Octopus\Core\Model\Database\Requests\SelectRequest;
 use Octopus\Core\Model\Database\Requests\UpdateRequest;
 use Octopus\Core\Model\EntityList;
@@ -118,7 +118,7 @@ abstract class Entity {
 		$request = new SelectRequest($this);
 		$this->resolve_pull_attributes($request, $include_attributes);
 		$this->resolve_pull_order($request, $order_by);
-		$request->set_condition(new IdentifierEquals($this->$identify_by, $identifier));
+		$request->where(new IdentifierEquals($this->$identify_by, $identifier));
 
 		try {
 			$s = $this->db->prepare($request->get_query());
@@ -135,12 +135,12 @@ abstract class Entity {
 	}
 
 
-	# Create a JoinRequest to pull these entities together with their context entity of another class.
+	# Create a Join to pull these entities together with their context entity of another class.
 	# @param $on: The attribute of the context entity that stores the reference to this entity.
 	# @param $identify_by: The attribute of this entity by which this entity is identified.
 	# @param $include_attributes and $order_by: see pull().
 	// IMPROVE Attribute -> EntityReference?
-	final public function join(Attribute $on, string $identify_by, array $include_attributes) : JoinRequest {
+	final public function join(Attribute $on, string $identify_by, array $include_attributes) : Join {
 		# verify the identify_by attribute
 		if(!$this->has_attribute($identify_by)){
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» not found.");
@@ -148,7 +148,7 @@ abstract class Entity {
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» is not an identifier.");
 		}
 
-		$request = new JoinRequest($this, $this->$identify_by, $on);
+		$request = new Join($this, $this->$identify_by, $on);
 		$this->resolve_pull_attributes($request, $include_attributes);
 		return $request;
 	}
@@ -244,7 +244,7 @@ abstract class Entity {
 			$request = new InsertRequest($this);
 		} else {
 			$request = new UpdateRequest($this);
-			$request->set_condition(new IdentifierEquals($this->get_primary_identifier(), $this->get_primary_identifier()->get_value()));
+			$request->where(new IdentifierEquals($this->get_primary_identifier(), $this->get_primary_identifier()->get_value()));
 		}
 
 		$errors = new AttributeValueExceptionList();
@@ -305,7 +305,7 @@ abstract class Entity {
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
 		$request = new DeleteRequest($this);
-		$request->set_condition(new IdentifierEquals($this->get_primary_identifier(), $this->get_primary_identifier()->get_value()));
+		$request->where(new IdentifierEquals($this->get_primary_identifier(), $this->get_primary_identifier()->get_value()));
 
 		try {
 			$s = $this->db->prepare($request->get_query());

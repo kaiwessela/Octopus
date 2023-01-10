@@ -72,8 +72,8 @@ class EntityList {
 		$request = new SelectRequest($this->prototype);
 		$this->prototype->resolve_pull_attributes($request, $include_attributes);
 		$this->prototype->resolve_pull_order($request, $order_by);
-		$request->set_condition($this->prototype->resolve_pull_conditions($conditions));
-		$request->set_limit($limit, $offset);
+		$request->where($this->prototype->resolve_pull_conditions($conditions));
+		$request->limit($limit, $offset);
 
 		try {
 			$s = $this->db->prepare($request->get_query());

@@ -62,7 +62,7 @@ abstract class Request {
 
 
 	# Add an attribute to the list of attributes the operation is being applied to.
-	final public function add(Attribute $attribute) : void { // IDEA rename include
+	final public function include(Attribute $attribute) : void {
 		$this->require_unresolved();
 
 		# Check that the attribute belongs to the object.
@@ -83,7 +83,7 @@ abstract class Request {
 
 
 	# Remove an attribute from the list of attributes the operation is being applied to.
-	final public function remove(Attribute $attribute) : void { // IDEA rename exclude
+	final public function exclude(Attribute $attribute) : void {
 		$this->require_unresolved();
 
 		unset($this->attributes[$attribute->get_name()]);

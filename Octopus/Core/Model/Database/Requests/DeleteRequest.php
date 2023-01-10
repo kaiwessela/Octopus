@@ -17,7 +17,7 @@ final class DeleteRequest extends Request {
 
 
 	# Set the condition determining which row/object to delete.
-	final public function set_condition(IdentifierEquals $condition) : void {
+	final public function where(IdentifierEquals $condition) : void {
 		$this->require_unresolved();
 		
 		$this->condition = $condition;

@@ -17,6 +17,8 @@ class Request {
 
 
 	function __construct() {
+		// TODO use parse_url()
+
 		$this->host = $_SERVER['SERVER_NAME'];
 		$this->port = $_SERVER['SERVER_PORT'];
 		$this->path = rtrim(explode('?', $_SERVER['REQUEST_URI'], 2)[0], '/').'/';

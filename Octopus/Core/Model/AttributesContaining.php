@@ -302,7 +302,7 @@ trait AttributesContaining {
 					throw new Exception("Cannot add non-pullable attribute «{$name}» to the request.");
 				}
 
-				$request->add($this->$name); # add the attribute to the request
+				$request->include($this->$name); # add the attribute to the request
 			}
 
 			if($join){ # if the attribute shall be joined
@@ -320,7 +320,7 @@ trait AttributesContaining {
 				}
 				// check until here
 
-				$request->add_join($this->$name->get_join_request($instruction ?? []));
+				$request->join($this->$name->get_join_request($instruction ?? []));
 			}
 		}
 	}

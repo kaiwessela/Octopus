@@ -19,7 +19,7 @@ final class UpdateRequest extends Request {
 
 
 	# Set the condition determining which row/object to update.
-	final public function set_condition(IdentifierEquals $condition) : void {
+	final public function where(IdentifierEquals $condition) : void {
 		$this->require_unresolved();
 		
 		$this->condition = $condition;

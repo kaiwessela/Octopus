@@ -16,7 +16,7 @@ use Octopus\Core\Model\Database\Exceptions\DatabaseException;
 use Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
 use Octopus\Core\Model\Database\Requests\DeleteRequest;
 use Octopus\Core\Model\Database\Requests\InsertRequest;
-use Octopus\Core\Model\Database\Requests\JoinRequest;
+use Octopus\Core\Model\Database\Requests\Join;
 use Octopus\Core\Model\Database\Requests\UpdateRequest;
 use Octopus\Core\Model\Entity;
 use Octopus\Core\Model\Exceptions\CallOutOfOrderException;
@@ -80,8 +80,8 @@ abstract class Relationship {
 	}
 
 
-	final public function join(array $include_attributes) : JoinRequest {
-		$request = new JoinRequest($this, $this->get_context_attribute(), $this->context->get_primary_identifier());
+	final public function join(array $include_attributes) : Join {
+		$request = new Join($this, $this->get_context_attribute(), $this->context->get_primary_identifier());
 		$this->resolve_pull_attributes($request, $include_attributes);
 		return $request;
 	}
@@ -187,7 +187,7 @@ abstract class Relationship {
 			$request = new InsertRequest($this);
 		} else {
 			$request = new UpdateRequest($this);
-			$request->set_condition(new IdentifierEquals($this->get_primary_identifier(), $this->get_primary_identifier()->get_value()));
+			$request->where(new IdentifierEquals($this->get_primary_identifier(), $this->get_primary_identifier()->get_value()));
 		}
 
 		$errors = new AttributeValueExceptionList();
@@ -201,7 +201,7 @@ abstract class Relationship {
 			if($attribute->is_required() && $this->$name->is_empty()){
 				$errors->push(new MissingValueException($attribute));
 			} else if($this->is_new() || $this->$name->has_been_edited()){
-				$request->add_attribute($attribute);
+				$request->include($attribute);
 				$push_values[$attribute->get_db_column()] = $this->$name->get_push_value();
 			}
 		}
@@ -240,7 +240,7 @@ abstract class Relationship {
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
 		$request = new DeleteRequest($this);
-		$request->set_condition(new IdentifierEquals($this->get_primary_identifier(), $this->get_primary_identifier()->get_value()));
+		$request->where(new IdentifierEquals($this->get_primary_identifier(), $this->get_primary_identifier()->get_value()));
 
 		try {
 			$s = $this->get_db()->prepare($request->get_query());

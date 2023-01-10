@@ -4,7 +4,6 @@ use Exception;
 use Octopus\Core\Model\Attribute;
 use Octopus\Core\Model\Database\Condition;
 use Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
-use Octopus\Core\Model\Database\Request;
 use Octopus\Core\Model\Database\Requests\Conditions\IdentifierEquals;
 use Octopus\Core\Model\Database\Requests\Joinable;
 use Octopus\Core\Model\Entity;
@@ -15,15 +14,15 @@ use Octopus\Core\Model\Relationship;
 # It creates both a query to retrieve the object data and a query to only count the amount of objects that could be
 # retrieved using the provided object, attributes and conditions (COUNT).
 # All columns reflecting attributes provided to the request will be retrieved.
-# Joinable attributes can be included using a JoinRequest. SelectRequest is able to handle convoluted JoinRequests,
-# which are JoinRequests whose result can contain more than one row, thus resulting in multiple, partially duplicate
+# Joinable attributes can be included using a Joins. SelectRequest is able to handle convoluted Joins,
+# which are Joins whose result can contain more than one row, thus resulting in multiple, partially duplicate
 # rows in the final, combined result, as is the case with many-to-many relationships.
 # Any kind of condition can be provided to specify which rows to select.
 # The number of rows/objects to select can be limited by setting a limit. Rows can be skipped by setting an offset.
 # The resulting rows can be sorted by setting one or more order attributes, the first one being the most significant.
 #
+# This class is a child of Joinable. See there for further documentation.
 # This class is a child of Request. See there for further documentation.
-# This class uses the Joinable trait to share functions with JoinRequest.
 
 
 # An example for a convoluted select request:
@@ -58,18 +57,14 @@ use Octopus\Core\Model\Relationship;
 # we cannot simply count the columns, because there could be more columns in the result than authors.
 # We have to find a way around this, which is using a more complicated and resource-intensive query than for
 # simple requests, so we only want to use that more complicated query when it is really necessary. This class and
-# also JoinRequest and Joinable to a significant part consist of code to detect and deal with cases like this,
-# which i decided to call "convoluted requests". (See JoinRequest and Joinable for more info on that.)
+# also Join and Joinable to a significant part consist of code to detect and deal with cases like this,
+# which i decided to call "convoluted requests". (See Join and Joinable for more info on that.)
 
-final class SelectRequest extends Request {
-	use Joinable;
-
-	protected array $joins; # The JoinRequests that are executed together with this.
+final class SelectRequest extends Joinable {
 	protected ?int $limit; # The amount of rows to select (for SQL LIMIT statement).
 	protected ?int $offset; # The amount of rows to be skipped (for SQL OFFSET statement).
-	protected array $order; # The attributes/columns to sort the rows by (for SQL ORDER BY statement).
 	protected ?Condition $condition; # the Condition determining which rows to select. Multiple conditions can be linked
-									# together using AndOp or OrOp.
+									 # together using Annd or Orre.
 
 	protected string $count_query; # Caches the SQL count query computed by resolve().
 
@@ -78,21 +73,16 @@ final class SelectRequest extends Request {
 	function __construct(Entity|Relationship $object) {
 		parent::__construct($object); # Use the construct function of Request.
 
-		$this->joins = [];
+		$this->is_expanding = true;
+
 		$this->limit = null;
 		$this->offset = null;
-		$this->order = [];
 		$this->condition = null;
 	}
 
 
-	# --> Joinable:
-	# final public function add_join(JoinRequest $request) : void;
-	# final public function add_order(Attribute $by, string $direction, int $significance) : void;
-
-
 	# Set the limit and offset, determining how many rows to select and how many to skip.
-	final public function set_limit(?int $limit, ?int $offset = null) : void {
+	final public function limit(?int $limit, ?int $offset = null) : void {
 		if(is_int($limit) && $limit <= 0){ # limit must be either null or a positive integer.
 			throw new Exception('limit cannot be negative or zero.');
 		}
@@ -108,7 +98,7 @@ final class SelectRequest extends Request {
 
 
 	# Set the condition determining which rows/objects to select.
-	final public function set_condition(?Condition $condition) : void {
+	final public function where(?Condition $condition) : void {
 		$this->condition = $condition;
 	}
 
@@ -185,7 +175,7 @@ SQL;
 			#
 			#
 		}
-		
+		#
 		if($this->is_convoluted()){ # use the complicated count query.
 			$this->count_query = 
 			#

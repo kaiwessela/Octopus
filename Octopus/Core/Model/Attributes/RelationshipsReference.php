@@ -4,7 +4,7 @@ use Exception;
 use Octopus\Core\Model\Attribute;
 use Octopus\Core\Model\Attributes\Joinable;
 use Octopus\Core\Model\Database\Condition;
-use Octopus\Core\Model\Database\Requests\JoinRequest;
+use Octopus\Core\Model\Database\Requests\Join;
 use Octopus\Core\Model\Relationship;
 use Octopus\Core\Model\RelationshipList;
 
@@ -84,7 +84,7 @@ final class RelationshipsReference extends Attribute {
 	final public function get_prototype() : Relationship {
 		if(!isset($this->prototype)){
 			$class = $this->get_class();
-			$this->prototype = new $class($this->parent, "{$this->get_prefixed_db_table()}.{$this->get_name()}"); // TODO improve
+			$this->prototype = new $class($this->parent, null, "{$this->get_prefixed_db_table()}.{$this->get_name()}"); // TODO improve
 		}
 
 		return $this->prototype;
@@ -106,8 +106,8 @@ final class RelationshipsReference extends Attribute {
 	}
 
 
-	final public function get_join_request(array $include_attributes) : JoinRequest {
-		return $this->get_prototype()->join($include_attributes);
+	final public function get_join_request(array $include_attributes) : Join {
+		return $this->get_list_prototype()->join($include_attributes);
 	}
 
 

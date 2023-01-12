@@ -13,7 +13,7 @@ use Octopus\Core\Model\Database\Condition;
 use Octopus\Core\Model\Database\Conditions\Equals;
 use Octopus\Core\Model\Database\Conditions\InList;
 use Octopus\Core\Model\Database\Exceptions\EmptyResultException;
-use Octopus\Core\Model\Database\Requests\JoinRequest;
+use Octopus\Core\Model\Database\Requests\Join;
 use Octopus\Core\Model\Entity;
 
 final class EntityReference extends Attribute {
@@ -153,7 +153,7 @@ final class EntityReference extends Attribute {
 	}
 
 
-	final public function get_join_request(array $include_attributes) : JoinRequest {
+	final public function get_join_request(array $include_attributes) : Join {
 		return $this->get_prototype()->join($this, $this->identify_by, $include_attributes);
 	}
 

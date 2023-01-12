@@ -566,5 +566,194 @@ trait AttributesContaining {
 	function __isset($name) : bool {
 		return $this->has_attribute($name) && $this->$name->is_loaded();
 	}
+
+
+
+	// SHARE TEST AREA
+
+	# Load rows of entity data from the database into this entity's attributes.
+	# @param $data: single fetched row or multiple rows from the database request’s response
+	final public function load(array $data) : void {
+		if($this->is_loaded()){
+			throw new CallOutOfOrderException();
+		}
+
+		# To parse the columns containing our entity data, we must distinguish:
+		if(isset($data[0]) && is_array($data[0])){ # check whether the data array is nested
+			$row = $data[0]; # with relationships
+		} else {
+			$row = $data; # without relationships
+		}
+
+		foreach($this->get_attributes() as $name){
+			# attributes should only be loaded if they are included in the result, so check that first
+			# if the attribute is pullable, check whether it has a column in the result
+			# if the attribute is not pullable, check whether it has a detection column in the result
+			if($this->$name->is_pullable()){
+				if(!array_key_exists($this->$name->get_result_column(), $row)){
+					continue;
+				}
+			} else if(!array_key_exists($this->$name->get_detection_column(), $row)){
+				continue;
+			}
+
+			if($this->$name instanceof PropertyAttribute){
+				$this->$name->load($row[$this->$name->get_result_column()]);
+			} else if($this->$name instanceof EntityReference){
+				$this->$name->load($row);
+			} else if($this->$name instanceof RelationshipsReference){
+				// TODO
+				$this->$name->load($data, is_complete:$this->is_independent()); // the relationshiplist is complete if this is independent because then there definitely was no limit in the request. is_complete determines whether the relationships can be edited.
+			}
+		}
+
+		$this->is_new = false;
+	}
+
+
+	# Edit multiple attributes at once, for example to process POST data from an html form
+	# @param $data: an array of all new values, with the attribute name being the key:
+	# 	[attribute_name => new_attribute_value, ...]
+	#	attributes that are not contained are ignored
+	# @throws: AttributeValueExceptionList
+	final public function receive_input(array $data) : void {
+		if(!$this->is_loaded() || !$this->is_independent()){
+			throw new CallOutOfOrderException();
+		}
+
+		# create a new container exception that buffers and stores all AttributeValueExceptions
+		# that occur during the editing of the attributes (i.e. invalid or missing values)
+		$errors = new AttributeValueExceptionList();
+
+		// FIXME file inputs via $_FILES are not taken into account. the following is a hotfix.
+		$data = array_merge($data, array_flip(array_keys($_FILES)));
+
+		foreach($data as $name => $input){
+			try {
+				$this->edit_attribute($name, $input);
+			} catch(AttributeValueException $e){
+				$errors->push($e);
+			} catch(AttributeValueExceptionList $e){
+				$errors->merge($e, $name);
+			}
+		}
+
+		# if any errors occured, throw the buffer exception containing them all
+		if(!$errors->is_empty()){
+			throw $errors;
+		}
+	}
+
+
+	# Upload this entity’s data into the database.
+	# if this entity is not newly created and has not been altered, no database request is executed
+	# and this function returns false. otherwise, if a database request was executed successfully, it returns true.
+	# all attributes this entity contains that are Entities or Relationships themselves are pushed too (recursively).
+	# @return: true if a database request was performed as a result of this process, false if not.
+	final public function push() : bool {
+		if(!$this->is_loaded() || !$this->is_independent()){
+			throw new CallOutOfOrderException();
+		}
+
+		if($this->is_new()){
+			$request = new InsertRequest($this);
+		} else {
+			$request = new UpdateRequest($this);
+			$request->where(new IdentifierEquals($this->get_primary_identifier(), $this->get_primary_identifier()->get_value()));
+		}
+
+		$errors = new AttributeValueExceptionList();
+
+		foreach($this->get_attributes() as $name){
+			if($this->$name->is_pullable()){ # only pullable attributes can be updated this way 
+				if($this->$name->is_required() && $this->$name->is_empty()){ # if a required attribute has not been set
+					$errors->push(new MissingValueException($this->$name));
+				} else if($this->$name->is_dirty()){ # if the attribute value was edited, add it to the request
+					$request->add($this->$name);
+				}
+			}
+		}
+
+		if(!$errors->is_empty()){
+			throw $errors;
+		}
+
+		try {
+			$s = $this->db->prepare($request->get_query());
+			$s->execute($request->get_values());
+			$request_performed = true;
+		} catch(PDOException $e){
+			throw new DatabaseException($e, $s);
+		} catch(EmptyRequestException $e){ # if no attribute values have been edited, the request will not be performed
+			if($this->is_new()){
+				throw $e;
+			} else {
+				$request_performed = false;
+			}
+		}
+
+		foreach($this->get_attributes() as $name){
+			if($this->$name instanceof RelationshipsReference){ # push all RelationshipsReferences
+				$request_performed |= $this->$name->push();
+			} else if($this->$name->is_pullable()){ # set all pullable entities to be in sync with the database
+				$this->$name->set_clean();
+			}
+		}
+
+		return $request_performed;
+	}
+
+
+	# Delete this entity out of the database.
+	# This does not delete entities it contains as attributes, but all relationships of this entity will be deleted due
+	# to the mysql ON DELETE CASCADE constraint.
+	# @return: true if a database request was performed, false if not (i.e. because the entity still/already is local)
+	final public function delete() : bool {
+		if(!$this->is_loaded() || !$this->is_independent()){
+			throw new CallOutOfOrderException();
+		}
+
+		if($this->is_new()){
+			# this entity is not yet or not anymore stored in the database, so just return false
+			return false;
+		}
+
+		# create a DeleteRequest and set the WHERE condition to id = $this->id
+		$request = new DeleteRequest($this);
+		$request->where(new IdentifierEquals($this->get_primary_identifier(), $this->get_primary_identifier()->get_value()));
+
+		try {
+			$s = $this->db->prepare($request->get_query());
+			$s->execute($request->get_values());
+		} catch(PDOException $e){
+			throw new DatabaseException($e, $s);
+		}
+
+		$this->is_new = true; # set this entity to new as it is no longer stored in the database
+
+		return true;
+	}
+
+
+	# Transform this entity object into an array (containing all its attributes).
+	# attributes that are entities themselves are recursively transformed too (using theír own arrayify functions).
+	final public function arrayify() : array|null {
+		$result = [];
+
+		foreach($this->get_attributes() as $name){
+			if($this->$name->is_loaded()){
+				$result[$name] = $this->$name->arrayify();
+			}
+		}
+
+		$result = array_merge($result, $this->arrayify_custom()); // TEMP
+
+		return $result;
+	}
+
+
+	protected function arrayify_custom() : array {
+	 	return [];
+	}
 }
 ?>

@@ -8,28 +8,6 @@ use Octopus\Core\Model\Entity;
 use Octopus\Core\Model\Exceptions\CallOutOfOrderException;
 use PDOException;
 
-/*
-Idee:
-EntityList pullen, aber bestimmtes relatum als WHERE
-und die Relationship rechts/links ran joinen
-
-SELECT * FROM posts
-LEFT JOIN postcolumnrelations ON postcolumnrelations.post_id = posts.id
-LEFT JOIN columns ON columns.id = postcolumnrelations.column_id
-WHERE column.id = :id
-
-sodass die contextuals erhalten bleiben
-
-also eigentlich umgekehrt wie es jetzt läuft.
-jetzt muss man eine column pullen, wenn man ihre posts will.
-man soll aber die posts pullen und die column joinen, falls man die posts will.
-
-FRAGE: Kann man dann den ganzen Unsinn mit LIMIT bei single Entity pull weglassen?
-
-
-Dann müsste das RelationshipAttribute je nachdem eine RelationshipList oder nur eine Relationship enthalten
-
-*/
 
 
 class EntityList {

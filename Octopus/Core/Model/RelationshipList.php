@@ -2,6 +2,7 @@
 namespace Octopus\Core\Model;
 use Exception;
 use Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
+use Octopus\Core\Model\Database\Requests\Join;
 use Octopus\Core\Model\Entity;
 use Octopus\Core\Model\Exceptions\CallOutOfOrderException;
 use Octopus\Core\Model\Relationship;
@@ -28,6 +29,13 @@ abstract class RelationshipList {
 
 		$this->relationships = [];
 		$this->deletions = [];
+	}
+
+
+	final public function join(array $include_attributes) : Join {
+		$request = new Join($this->prototype, $this->prototype->get_context_attribute(), $this->context->get_primary_identifier());
+		$this->prototype->resolve_pull_attributes($request, $include_attributes);
+		return $request;
 	}
 
 

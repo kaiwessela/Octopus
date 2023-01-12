@@ -183,7 +183,7 @@ SQL;
 <<<"SQL"
 SELECT
 COUNT(
-	DISTINCT `{$this->object->get_main_identifier_attribute()->get_prefixed_db_column()}`
+	DISTINCT {$this->object->get_primary_identifier()->get_prefixed_db_column()}
 ) AS `total`
 FROM `{$this->object->get_db_table()}`
 {$joins}

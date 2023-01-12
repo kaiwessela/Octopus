@@ -2,7 +2,7 @@
 namespace Octopus\Core\Model\Attributes;
 use \Octopus\Core\Model\Entity;
 use \Octopus\Core\Model\Relationship;
-use \Octopus\Core\Model\Database\Requests\JoinRequest;
+use \Octopus\Core\Model\Database\Requests\Join;
 
 trait Joinable {
 	# requires:
@@ -19,7 +19,7 @@ trait Joinable {
 	}
 
 
-	abstract public function get_join_request(array $include_attributes) : JoinRequest;
+	abstract public function get_join_request(array $include_attributes) : Join;
 
 
 	abstract public function get_detection_column() : string;

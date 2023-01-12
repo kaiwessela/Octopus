@@ -55,11 +55,13 @@ final class Join extends Joinable {
 			throw new Exception('The attributes must consist of an EntityAttribute and an IdentifierAttribute');
 		}
 
-		if($native_attribute->get_prefixed_db_table() !== $this->object->get_prefixed_db_table()){
+		if(!$this->object->has_attribute($native_attribute)){
+		// if($native_attribute->get_prefixed_db_table() !== $this->object->get_prefixed_db_table()){
 			throw new Exception('Native Attribute must be part of the joined object.');
 		}
 
-		if($foreign_attribute->get_prefixed_db_table() === $this->object->get_prefixed_db_table()){
+		if($this->object->has_attribute($foreign_attribute)){
+		// if($foreign_attribute->get_prefixed_db_table() === $this->object->get_prefixed_db_table()){
 			throw new Exception('Foreign Attribute must not be part of the joined object.');
 		}
 

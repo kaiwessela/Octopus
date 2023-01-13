@@ -1,3 +1,0 @@
-<div class="login">
-	Angemeldet als ...
-</div>

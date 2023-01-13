@@ -1,5 +1,5 @@
 {
-	"name": "kaiwessela/blog",
+	"name": "kaiwessela/Octopus",
 	"description": "My personal blog system.",
 	"repositories": [
 		{
@@ -8,7 +8,6 @@
 		}
 	],
 	"require": {
-		"kaiwessela/parsedownforblog": "v1.0.0",
-		"kaiwessela/astronauth": "dev-master"
+		"kaiwessela/parsedownforblog": "v1.0.0"
 	}
 }

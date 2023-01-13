@@ -2,7 +2,7 @@
 
 <form action="#" method="post" enctype="multipart/form-data" class="images edit">
 
-<?php if($Controller->call->action == 'new'){ ?>
+<?php if($Controller->get_action() == 'empty'){ ?>
 
 	<!-- LONGID -->
 	<label for="longid">

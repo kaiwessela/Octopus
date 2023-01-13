@@ -1,65 +1,59 @@
 <?php
 return [
-	'admin' => [
-		'template' => 'wrapper',
+	// '@all' => [
+	// 	'controllers' => [
+	// 		'AC' => [
+	// 			'class' => 'BasicEntityController',
+	// 			'config' => '{ENDPOINT_DIR}/config/config.php',
+	// 			'entity_class' => '/1'
+	// 		]
+	// 	]
+	// ],
+	'GET /' => [
+		'template' => 'wrapper'
 	],
-	'admin/*/#?' => [
+	'GET /*' => [
 		'template' => 'wrapper',
-		'objects' => [
-			'/2' => [
-				'as' => 'Object',
+		'entities' => [
+			'Object' => [
+				'class' => '/1',
 				'action' => 'list',
-				'amount' => 20,
-				'page' => '/3',
-				'options' => [
-					'pagination' => 'admin/{/2}/{page}'
-				]
+				'amount' => '?amount|20',
+				'page' => '?page|1'
 			]
-		],
-		'require_auth' => true
+		]
 	],
-	'admin/*/new' => [
+	'GET|POST /*/new' => [
 		'template' => 'wrapper',
-		'objects' => [
-			'/2' => [
-				'as' => 'Object',
+		'entities' => [
+			'Object' => [
+				'class' => '/1',
 				'action' => 'new'
 			]
-		],
-		'require_auth' => true
+		]
 	],
-	'admin/*/*{8}' => [
+	'GET|POST /*/*/edit' => [
 		'template' => 'wrapper',
-		'objects' => [
-			'/2' => [
-				'as' => 'Object',
-				'action' => 'show',
-				'identifier' => '/3'
-			]
-		],
-		'require_auth' => true
-	],
-	'admin/*/*{8}/edit' => [
-		'template' => 'wrapper',
-		'objects' => [
-			'/2' => [
-				'as' => 'Object',
+		'entities' => [
+			'Object' => [
+				'class' => '/1',
 				'action' => 'edit',
-				'identifier' => '/3'
+				'identifier' => '/2',
+				'identify_by' => 'id'
+				// TODO amount,page
 			]
-		],
-		'require_auth' => true
+		]
 	],
-	'admin/*/*{8}/delete' => [
+	'GET|POST /*/*/delete' => [
 		'template' => 'wrapper',
-		'objects' => [
-			'/2' => [
-				'as' => 'Object',
+		'entities' => [
+			'Object' => [
+				'class' => '/1',
 				'action' => 'delete',
-				'identifier' => '/3'
+				'identifier' => '/2',
+				'identify_by' => 'id'
 			]
-		],
-		'require_auth' => true
+		]
 	]
-];
+]
 ?>

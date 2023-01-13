@@ -12,7 +12,7 @@ use \Octopus\Modules\BasicEntityController\Pagination\Pagination;
 
 class BasicEntityController extends EntityController {
 	protected string $mode; # 'REST'|'FORM' (default)
-	protected string $action; # 'show'|'edit'|'delete'|'list'|'new'
+	protected string $action; # 'show'|'edit'|'delete'|'list'|'new'|'empty'
 
 	public Entity|EntityList $object;
 
@@ -37,7 +37,7 @@ class BasicEntityController extends EntityController {
 
 		$object_class = $this->call->get_entity_class();
 
-		if($this->action === 'new'){
+		if($this->action === 'new' || $this->action === 'empty'){
 			$this->create_object($object_class, list:false);
 		} else if($this->action === 'list') {
 			$this->create_object($object_class, list:true);
@@ -83,7 +83,11 @@ class BasicEntityController extends EntityController {
 				'delete' => 'DELETE'
 			});
 		} else if($this->request->method_is('GET')){
-			$this->action = 'show';
+			if($this->action === 'new'){
+				$this->action = 'empty';
+			} else {
+				$this->action = 'show';
+			}
 		}
 	}
 
@@ -98,7 +102,7 @@ class BasicEntityController extends EntityController {
 
 
 	protected function load_single_pull_parameters() : void {
-		$this->identify_by = URLSubstitution::replace($cthis->all->get_option('identify_by'), $this->request);
+		$this->identify_by = URLSubstitution::replace($this->call->get_option('identify_by'), $this->request);
 
 		if(!is_string($this->identify_by) && !is_null($this->identify_by)){
 			throw new ControllerException(500, 'Route: Invalid option «identify_by».');
@@ -203,6 +207,9 @@ class BasicEntityController extends EntityController {
 				$this->object->pull($this->amount, $offset, $this->pull_attributes, $this->pull_conditions, $this->order);
 			} catch(EmptyResultException $e){}
 
+			$this->set_status_code(200);
+
+		} else if($this->action === 'empty'){
 			$this->set_status_code(200);
 
 		} else if($this->action === 'new'){

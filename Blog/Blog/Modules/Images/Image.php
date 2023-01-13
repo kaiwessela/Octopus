@@ -1,20 +1,20 @@
 <?php
 namespace Blog\Modules\Images;
-use \Blog\Modules\Images\ImageList;
-use \Blog\Modules\Images\ImageFileAttribute;
-use \Blog\Modules\Images\ImageMetaAttribute;
-use \Octopus\Modules\Identifiers\ID;
-use \Octopus\Modules\Identifiers\StringIdentifier;
-use \Octopus\Modules\Primitives\Stringy;
-use \Octopus\Core\Model\Entity;
+use Blog\Modules\Images\ImageFileAttribute;
+use Blog\Modules\Images\ImageList;
+use Blog\Modules\Images\ImageMetaAttribute;
+use Octopus\Core\Model\Entity;
+use Octopus\Modules\Identifiers\ID;
+use Octopus\Modules\Identifiers\StringIdentifier;
+use Octopus\Modules\Standard\Model\Attributes\Strng;
 
 class Image extends Entity {
 	protected ID $id;
 	protected StringIdentifier $longid;
-	protected Stringy $name;
-	protected Stringy $description;
-	protected Stringy $alternative;
-	protected Stringy $copyright;
+	protected Strng $name;
+	protected Strng $description;
+	protected Strng $alternative;
+	protected Strng $copyright;
 	protected ImageMetaAttribute $mime_type;
 	protected ImageMetaAttribute $extension;
 	protected ImageMetaAttribute $variants;
@@ -28,20 +28,23 @@ class Image extends Entity {
 		return [
 			'id' 			=> ID::define(),
 			'longid' 		=> StringIdentifier::define(is_editable:false),
-			'name' 			=> Stringy::define(min:1, max:100),
-			'description' 	=> Stringy::define(min:0, max:250),
-			'alternative' 	=> Stringy::define(min:0, max:250),
-			'copyright' 	=> Stringy::define(min:0, max:250),
-			'mime_type' 	=> ImageMetaAttribute::define(role:'mime_type'),
-			'extension' 	=> ImageMetaAttribute::define(role:'extension'),
-			'variants' 		=> ImageMetaAttribute::define(role:'variants'),
-			'file' 			=> ImageFileAttribute::define(meta:[
-				'mime_type' => 'mime_type',
-				'extension' => 'extension',
-				'variants' => 'variants',
-			]),
+			'name' 			=> Strng::define(min:1, max:100),
+			'description' 	=> Strng::define(min:0, max:250),
+			'alternative' 	=> Strng::define(min:0, max:250),
+			'copyright' 	=> Strng::define(min:0, max:250),
+			// 'mime_type' 	=> ImageMetaAttribute::define(role:'mime_type'),
+			// 'extension' 	=> ImageMetaAttribute::define(role:'extension'),
+			// 'variants' 		=> ImageMetaAttribute::define(role:'variants'),
+			// 'file' 			=> ImageFileAttribute::define(meta:[
+			// 	'mime_type' => 'mime_type',
+			// 	'extension' => 'extension',
+			// 	'variants' => 'variants',
+			// ]),
 		];
 	}
+
+
+	protected const PRIMARY_IDENTIFIER = 'id';
 
 
 	protected const DEFAULT_PULL_ATTRIBUTES = [

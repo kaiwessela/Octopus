@@ -12,15 +12,17 @@ class AdminController extends Controller {
 	private ?string $entity_name;
 
 
-	public function load(ControllerCall $call) : void {
-		$this->config = ConfigLoader::read($call->get_option('config'));
-		$entity_name = URLSubstitution::replace($call->get_option('entity_class'), $this->request, force_string:true);
+	public function load() : void {
+		$this->config = ConfigLoader::read($this->call->get_option('config'));
+		$entity_name = URLSubstitution::replace($this->call->get_option('entity_class'), $this->request, force_string:true);
 
 		if($entity_name === ''){
 			$this->entity_name = null;
 		} else {
 			$this->entity_name = $entity_name;
 		}
+
+		$this->set_status_code(200);
 	}
 
 

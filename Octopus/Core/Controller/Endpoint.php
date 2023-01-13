@@ -93,6 +93,7 @@ class Endpoint {
 				$this->abort($e);
 				return;
 			} catch(Exception $e){
+				throw $e;
 				$this->abort(new ControllerException(500, 'Unknown Error.', $e));
 				return;
 			}
@@ -114,6 +115,7 @@ class Endpoint {
 					return;
 				}
 			} catch(Exception $e){
+				throw $e;
 				// $this->abort(new ControllerException(500, 'Unknown Error.', $e));
 				$this->abort($e);
 				return;

@@ -3,7 +3,7 @@ namespace Octopus\Core\Model\Database\Requests;
 use Exception;
 use Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
 use Octopus\Core\Model\Database\Request;
-use Octopus\Core\Model\Database\Requests\Conditions\IdentifierEquals;
+use Octopus\Core\Model\Database\Conditions\IdentifierEquals;
 
 # UpdateRequest creates an SQL query for an UPDATE operation, used to update a row (= an object) in the database.
 # There can only be updated exactly one row/object per request. An IdentifierEquals condition has to be provided that

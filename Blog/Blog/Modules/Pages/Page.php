@@ -1,31 +1,32 @@
 <?php
-namespace Octopus\Modules\Pages;
-use \Octopus\Core\Model\Entity;
-use \Octopus\Core\Model\Attributes\IDAttribute;
-use \Octopus\Core\Model\Attributes\IdentifierAttribute;
-use \Octopus\Core\Model\Attributes\StringAttribute;
-use \Octopus\Core\Model\Attributes\StaticObjectAttribute;
-use \Octopus\Modules\Pages\PageList;
-use \Octopus\Modules\StaticObjects\MarkdownText;
+namespace Blog\Modules\Pages;
+use Octopus\Core\Model\Attributes\StaticObjectAttribute;
+use Octopus\Core\Model\Entity;
+use Octopus\Modules\Identifiers\ID;
+use Octopus\Modules\Identifiers\StringIdentifier;
+use Octopus\Modules\MarkdownText\MarkdownText;
+use Octopus\Modules\Standard\Model\Attributes\Strng;
 
 class Page extends Entity {
-	protected StringAttribute 		$title;
-	protected StaticObjectAttribute $content;
-
-	protected static array $attributes;
+	protected ID $id;
+	protected StringIdentifier $longid;
+	protected Strng $title;
+	protected MarkdownText $content;
 
 	const DB_TABLE = 'pages';
-	const DB_PREFIX = 'page';
 
-	const LIST_CLASS = PageList::class;
 
 	protected static function define_attributes() : array {
 		return [
-			'id' => IDAttribute::define(),
-			'longid' => IdentifierAttribute::define(editable:false),
-			'title' => StringAttribute::define(min:1, max:100),
-			'content' => StaticObjectAttribute::define(class:MarkdownText::class)
+			'id' => ID::define(),
+			'longid' => StringIdentifier::define(is_editable:false),
+			'title' => Strng::define(min:1, max:100),
+			// 'content' => Strng::define()
+			'content' => MarkdownText::define()
 		];
 	}
+
+
+	protected const PRIMARY_IDENTIFIER = 'id';
 }
 ?>

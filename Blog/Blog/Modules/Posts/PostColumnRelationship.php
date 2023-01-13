@@ -1,15 +1,15 @@
 <?php
 namespace Blog\Modules\Posts;
-use \Blog\Modules\Posts\Post;
+use Octopus\Core\Model\Attributes\EntityReference;
 use \Blog\Modules\Posts\Column;
-use \Octopus\Modules\Identifiers\ID;
+use \Blog\Modules\Posts\Post;
 use \Octopus\Core\Model\Relationship;
-use \Octopus\Core\Model\Attributes\EntityAttribute;
+use \Octopus\Modules\Identifiers\ID;
 
 class PostColumnRelationship extends Relationship {
 	protected ID $id;
-	protected EntityAttribute $post;
-	protected EntityAttribute $column;
+	protected EntityReference $post;
+	protected EntityReference $column;
 
 	const UNIQUE = true;
 	const DB_TABLE = 'postcolumnrelations';
@@ -18,8 +18,8 @@ class PostColumnRelationship extends Relationship {
 	protected static function define_attributes() : array {
 		return [
 			'id' 		=> ID::define(),
-			'post' 		=> EntityAttribute::define(class:Post::class, identify_by:'id'),
-			'column' 	=> EntityAttribute::define(class:Column::class, identify_by:'id'),
+			'post' 		=> EntityReference::define(class:Post::class, identify_by:'id'),
+			'column' 	=> EntityReference::define(class:Column::class, identify_by:'id'),
 		];
 	}
 

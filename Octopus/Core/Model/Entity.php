@@ -664,7 +664,7 @@ abstract class Entity {
 				if($this->$name->is_required() && $this->$name->is_empty()){ # if a required attribute has not been set
 					$errors->push(new MissingValueException($this->$name));
 				} else if($this->$name->is_dirty()){ # if the attribute value was edited, add it to the request
-					$request->add($this->$name);
+					$request->include($this->$name);
 				}
 			}
 		}

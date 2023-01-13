@@ -1,21 +1,21 @@
 <?php
 session_start();
 
+require_once __DIR__ . '/../../Octopus/autoloader.php';
 require_once __DIR__ . '/../Blog/autoloader.php';
-require_once __DIR__ . '/../vendor/kaiwessela/astronauth/autoloader.php';
-require_once __DIR__ . '/../vendor/kaiwessela/parsedownforblog/autoloader.php';
 
-$endpoint = new \Blog\Controller\Endpoint(__DIR__.'/templates');
-$endpoint->response->set_content_type('text/html');
-$endpoint->require_auth = true;
+$endpoint = new \Octopus\Core\Controller\Endpoint([
+	'config' => '{ENDPOINT_DIR}/config.php',
+	'modules' => '{ENDPOINT_DIR}/modules.php',
+	'routes' => '{ENDPOINT_DIR}/routes.php',
+	'templates' => '{ENDPOINT_DIR}/templates'
+]);
 
-$endpoint->route(require __DIR__.'/routes.php');
-$endpoint->prepare();
+$endpoint->get_response()->set_templates([
+	404 => 'error',
+	4 => 'error',
+	5 => 'error'
+]);
+
 $endpoint->execute();
-
-if($endpoint->response->code != 200){
-	$endpoint->template = 'error';
-}
-
-$endpoint->send();
 ?>

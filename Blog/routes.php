@@ -8,11 +8,11 @@ return [
 				'action' => 'list',
 				'amount' => 5
 			],
-			'Events' => [
-				'class' => 'Event',
-				'action' => 'list',
-				'amount' => 5
-			]
+			// 'Events' => [
+			// 	'class' => 'Event',
+			// 	'action' => 'list',
+			// 	'amount' => 5
+			// ]
 		]
 	],
 	'GET /posts' => [

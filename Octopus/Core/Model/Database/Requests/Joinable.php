@@ -102,7 +102,7 @@ abstract class Joinable extends Request {
 
 	# Return an array of the attributes of this request and of all its joins.
 	final protected function collect_attributes() : array {
-		$attributes = $this->attributes;
+		$attributes = array_values($this->attributes);
 
 		foreach($this->joins as $join){
 			$attributes = array_merge($attributes, $join->collect_attributes());

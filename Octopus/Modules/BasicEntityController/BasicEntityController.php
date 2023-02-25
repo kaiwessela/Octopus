@@ -94,9 +94,9 @@ class BasicEntityController extends EntityController {
 
 	protected function create_object(string $class, bool $list = false) : void {
 		if($list){
-			$this->object = $class::create_list($this->endpoint->get_db());
+			$this->object = $class::list($this->endpoint->get_db());
 		} else {
-			$this->object = new $class(null, $this->endpoint->get_db());
+			$this->object = new $class($this->endpoint->get_db());
 		}
 	}
 

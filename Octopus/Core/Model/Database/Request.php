@@ -68,7 +68,7 @@ abstract class Request {
 		# Check that the attribute belongs to the object.
 		if(!$this->object->has_attribute($attribute)){
 			throw new Exception("The attribute «{$attribute->get_prefixed_db_column()}» does not belong to the "
-				. "specified object (table «{$request->get_db_table()}»).");
+				. "specified object (table «{$this->object->get_db_table()}»).");
 		}
 
 		# Check that the attribute is pullable.

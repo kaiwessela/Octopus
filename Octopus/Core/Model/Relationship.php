@@ -2,7 +2,9 @@
 namespace Octopus\Core\Model;
 use Exception;
 use Octopus\Core\Model\Attributes\EntityReference;
+use Octopus\Core\Model\Database\Requests\Join;
 use Octopus\Core\Model\Entity;
+use Octopus\Core\Model\RelationshipList;
 
 
 abstract class Relationship extends Entity {
@@ -11,22 +13,28 @@ abstract class Relationship extends Entity {
 	# protected EntityReference $[name of 2nd entity];
 	# ...other attributes
 
-	protected string $context_attribute;
+	protected string $pivot_attribute;
 	protected string $relatum_attribute;
 
 	const DISTINCT = false;
 
 
+	# Constants to be defined by each child class:
+	protected const LIST_CLASS = RelationshipList::class;
+
+
 	final protected function init() : void {
 		foreach($this->get_attributes() as $name){
 			if($this->$name instanceof EntityReference){
-				if($this->$name->get_class() === $this->context::class){
-					if(isset($this->context_attribute)){
-						throw new Exception("Context collision: There can only be one context attribute.");
+				if(!isset($this->context_entity)){
+					continue; // TODO check, this is a hotfix
+				} else if($this->$name->get_class() === $this->context_entity::class){
+					if(isset($this->pivot_attribute)){
+						throw new Exception("Pivot collision: There can only be one pivot attribute.");
 					}
 
-					// $this->$name->load($this->context);
-					$this->context_attribute = $name;
+					// $this->$name->load($this->context_entity);
+					$this->pivot_attribute = $name;
 				} else {
 					if(isset($this->relatum_attribute)){
 						throw new Exception("Relatum collision: There can only be one relatum attribute.");
@@ -39,14 +47,31 @@ abstract class Relationship extends Entity {
 			}
 		}
 
-		if(!isset($this->context_attribute) || !isset($this->relatum_attribute)){
-			throw new Exception('Attribute error.'); // TODO
-		}
+		// if(!isset($this->pivot_attribute) || !isset($this->relatum_attribute)){
+		// 	throw new Exception('Attribute error.'); // TODO
+		// }
 	}
 
 
-	public function get_context_attribute() : EntityReference {
-		return $this->{$this->context_attribute};
+	public function get_db_prefix() : ?string {
+		if(!isset($this->context_attribute)){
+			return null;
+		}
+
+		return "{$this->context_attribute->get_prefixed_db_table()}.{$this->context_attribute->get_name()}";
+	}
+
+
+
+	public function join_reverse(array $include_attributes) : Join {
+		$request = new Join($this, $this->get_pivot_attribute(), $this->context_entity->get_primary_identifier());
+		$this->resolve_pull_attributes($request, $include_attributes);
+		return $request;
+	}
+
+
+	public function get_pivot_attribute() : EntityReference {
+		return $this->{$this->pivot_attribute};
 	}
 
 

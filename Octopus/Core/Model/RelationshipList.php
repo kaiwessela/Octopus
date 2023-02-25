@@ -4,39 +4,40 @@ use Exception;
 use Octopus\Core\Model\Attributes\Exceptions\AttributeValueExceptionList;
 use Octopus\Core\Model\Database\Requests\Join;
 use Octopus\Core\Model\Entity;
+use Octopus\Core\Model\EntityList;
 use Octopus\Core\Model\Exceptions\CallOutOfOrderException;
 use Octopus\Core\Model\Relationship;
 
-abstract class RelationshipList {
-	protected Relationship $prototype;
-	protected array $relationships;
+class RelationshipList extends EntityList {
+	// protected Relationship $prototype;
+	// protected array $relationships;
 
 	protected array $deletions;
 
-	protected Entity $context;
+	// protected Entity $context;
 
-	protected const RELATION_CLASS = ''; # the fully qualified name of the Relationship class whose instances this list contains
+	// protected const RELATION_CLASS = ''; # the fully qualified name of the Relationship class whose instances this list contains
 
 	protected bool $is_complete;
 
 
 	### CONSTRUCTION METHODS
 
-	function __construct(Entity $context, Relationship $prototype) {
-		$this->context = &$context;
+	// function __construct(Entity $context, Relationship $prototype) {
+	// 	$this->context = &$context;
 
-		$this->prototype = $prototype; // TODO improve
+	// 	$this->prototype = $prototype; // TODO improve
 
-		$this->relationships = [];
-		$this->deletions = [];
-	}
+	// 	$this->relationships = [];
+	// 	$this->deletions = [];
+	// }
 
 
-	final public function join(array $include_attributes) : Join {
-		$request = new Join($this->prototype, $this->prototype->get_context_attribute(), $this->context->get_primary_identifier());
-		$this->prototype->resolve_pull_attributes($request, $include_attributes);
-		return $request;
-	}
+	// final public function join(array $include_attributes) : Join {
+	// 	$request = new Join($this->prototype, $this->prototype->get_context_attribute(), $this->context->get_primary_identifier());
+	// 	$this->prototype->resolve_pull_attributes($request, $include_attributes);
+	// 	return $request;
+	// }
 
 
 	### INITIALIZATION AND LOADING METHODS
@@ -52,11 +53,11 @@ abstract class RelationshipList {
 			$relationship = clone $this->prototype;
 			$relationship->load($row); # load the relationship
 
-			if(isset($this->relationships[$relationship->get_primary_identifier()->get_value()])){
+			if(isset($this->entities[$relationship->get_primary_identifier()->get_value()])){
 				break;
 			}
 
-			$this->relationships[$relationship->get_primary_identifier()->get_value()] = $relationship;
+			$this->entities[$relationship->get_primary_identifier()->get_value()] = $relationship;
 		}
 
 		$this->is_complete = $is_complete;
@@ -160,10 +161,10 @@ abstract class RelationshipList {
 					$errors->merge($e, "relationships.{$index}"); // TODO
 				}
 
-				$this->relationships[$relation->id] = $relation;
+				$this->entities[$relation->id] = $relation;
 
 			} else if($action === 'edit' || $action === 'delete'){ # edit or delete an existing relationship
-				$relation = &$this->relationships[$input['id']];
+				$relation = &$this->entities[$input['id']];
 
 				if(empty($relation)){
 					continue;
@@ -199,7 +200,7 @@ abstract class RelationshipList {
 		$relationship->create();
 		$relationship->receive_input($input);
 
-		$this->relationships[$relationship->id] = $relationship;
+		$this->entities[$relationship->id] = $relationship;
 
 		return $relationship->id;
 	}
@@ -211,12 +212,12 @@ abstract class RelationshipList {
 			throw new CallOutOfOrderException();
 		}
 
-		if(!isset($this->relationships[$id])){
+		if(!isset($this->entities[$id])){
 			return false; # if the relationship is not found, return false // TODO maybe exception
 		}
 
-		$this->deletions[$id] = $this->relationships[$id];
-		unset($this->relationships[$id]);
+		$this->deletions[$id] = $this->entities[$id];
+		unset($this->entities[$id]);
 
 		return true;
 	}
@@ -234,8 +235,8 @@ abstract class RelationshipList {
 
 		$request_performed = false;
 
-		foreach($this->relationships as $id => $_){ # push all relationships in this list
-			$request_performed |= $this->relationships[$id]->push();
+		foreach($this->entities as $id => $_){ # push all relationships in this list
+			$request_performed |= $this->entities[$id]->push();
 		}
 
 		foreach($this->deletions as $id => $_){ # delete the relationships that have been removed
@@ -258,7 +259,7 @@ abstract class RelationshipList {
 		}
 
 		$result = [];
-		foreach($this->relationships as $id => $relation){
+		foreach($this->entities as $id => $relation){
 			$result[$id] = $relation->arrayify();
 		}
 
@@ -266,52 +267,8 @@ abstract class RelationshipList {
 	}
 
 
-	# Return the joined entity of a relationship in this list
-	# @param $index_or_id: list index or id of the relationship (not of the entity!)
-	final public function &get(int|string $index_or_id) : ?Entity {
-		return $this->relationships[$index_or_id]?->get_relatum();
-	}
-
-
-	final public function each(callable $callback) { # function($value){}
-		if(empty($this->relationships)){
-			return;
-		}
-
-		foreach($this->relationships as $index => $_){
-			$callback($this->relationships[$index]->get_relatum());
-		}
-	}
-
-
-	final public function foreach(callable $callback) { # function($key, $value){}
-		if(empty($this->relationships)){
-			return;
-		}
-
-		foreach($this->relationships as $index => $_){
-			$callback($index, $this->relationships[$index]->get_relatum());
-		}
-	}
-
-
-	final public function length() : int {
-		return count($this->relationships);
-	}
-
-
-	final public function is_empty() : bool {
-		return ($this->length() === 0);
-	}
-
-
 	final public function is_complete() : bool {
 		return $this->is_complete;
-	}
-
-
-	final public function is_loaded() : bool {
-		return isset($this->is_complete);
 	}
 }
 ?>

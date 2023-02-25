@@ -19,7 +19,6 @@ final class RelationshipsReference extends Attribute {
 	# protected mixed $value;
 
 	protected string $class;
-	protected string $list_class;
 	protected Relationship $prototype;
 	protected RelationshipList $list_prototype;
 
@@ -46,22 +45,21 @@ final class RelationshipsReference extends Attribute {
 
 
 	final public static function define(string $class) : RelationshipsReference {
-		if(!class_exists($class) || !is_subclass_of($class, RelationshipList::class)){
+		if(!class_exists($class) || !is_subclass_of($class, Relationship::class)){
 			throw new Exception("Invalid class «{$class}».");
 		}
 
 		$attribute = new static(false, true);
-		$attribute->class = $class::RELATION_CLASS; // TODO maybe improve this
-		$attribute->list_class = $class;
+		$attribute->class = $class;
 
 		return $attribute;
 	}
 
 
-	final public function load(array $data, bool $is_complete = false) : void {
+	final public function load(?array $data, bool $is_complete = false) : void {
 		$this->value = clone $this->get_list_prototype();
 
-		if(is_null($data[0][$this->get_detection_column()])){
+		if(is_null($data) || is_null($data[0][$this->get_detection_column()])){
 			$this->value->load([], $is_complete);
 		} else {
 			$this->value->load($data, $is_complete);
@@ -84,7 +82,8 @@ final class RelationshipsReference extends Attribute {
 	final public function get_prototype() : Relationship {
 		if(!isset($this->prototype)){
 			$class = $this->get_class();
-			$this->prototype = new $class($this->parent, null, "{$this->get_prefixed_db_table()}.{$this->get_name()}"); // TODO improve
+			$this->prototype = new $class();
+			$this->prototype->contextualize(entity:$this->parent, attribute:$this);
 		}
 
 		return $this->prototype;
@@ -93,8 +92,9 @@ final class RelationshipsReference extends Attribute {
 
 	final public function get_list_prototype() : RelationshipList {
 		if(!isset($this->list_prototype)){
-			$class = $this->get_list_class();
-			$this->list_prototype = new $class($this->parent, $this->get_prototype());
+			$class = $this->get_class();
+			$this->list_prototype = $class::list();
+			$this->list_prototype->contextualize(entity:$this->parent, attribute:$this);
 		}
 
 		return $this->list_prototype;
@@ -107,7 +107,7 @@ final class RelationshipsReference extends Attribute {
 
 
 	final public function get_join_request(array $include_attributes) : Join {
-		return $this->get_list_prototype()->join($include_attributes);
+		return $this->get_prototype()->join_reverse($include_attributes);
 	}
 
 

@@ -100,6 +100,8 @@ final class EntityReference extends Attribute {
 			}
 
 			$this->value = $input;
+		} else if(empty($input)){
+			$this->value = null;
 		} else if(is_string($input)){
 			$identifier = $input;
 			$entity = clone $this->get_prototype();
@@ -116,8 +118,6 @@ final class EntityReference extends Attribute {
 			}
 
 			$this->value = $entity;
-		} else if(empty($input)){
-			$this->value = null;
 		} else {
 			throw new AttributeValueException($this, $input, 'unsuppoted input format.');
 		}
@@ -141,7 +141,8 @@ final class EntityReference extends Attribute {
 	final public function get_prototype() : Entity { // IMPROVE rename to get_entity_prototype
 		if(!isset($this->prototype)){
 			$class = $this->get_class();
-			$this->prototype = new $class($this->parent, null, $this->get_result_column());
+			$this->prototype = new $class();
+			$this->prototype->contextualize(entity:$this->parent, attribute:$this);
 		}
 
 		return $this->prototype;

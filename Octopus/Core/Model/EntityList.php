@@ -1,6 +1,8 @@
 <?php
 namespace Octopus\Core\Model;
 use Exception;
+use Octopus\Core\Model\Attributes\EntityReference;
+use Octopus\Core\Model\Attributes\RelationshipsReference;
 use Octopus\Core\Model\Database\DatabaseAccess;
 use Octopus\Core\Model\Database\Exceptions\DatabaseException;
 use Octopus\Core\Model\Database\Requests\SelectRequest;
@@ -11,17 +13,43 @@ use PDOException;
 
 
 class EntityList {
+	protected ?Entity $context_entity;
+	protected null|EntityReference|RelationshipsReference $context_attribute;
+
 	protected Entity $prototype;
 	protected array $entities; # an array of the Entities this list contains [entity_id => entity, ...]
 
 	protected int $total_count;
 
-	protected DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
+	protected ?DatabaseAccess $db; # this class uses the DatabaseAccess class to access the database. see there for more.
 
 
 	### CONSTRUCTION METHODS
 
-	final function __construct(DatabaseAccess $db, string $entity_class) {
+	final function __construct(Entity $prototype, ?DatabaseAccess $db = null) {
+		$this->prototype = $prototype;
+
+		$this->prototype->contextualize(list:$this);
+
+		$this->db = &$db;
+
+		$this->context_entity = null;
+		$this->context_attribute = null;
+	}
+
+
+	final public function contextualize(?Entity $entity = null, null|EntityReference|RelationshipsReference $attribute = null) : void {
+		// TODO check
+
+		$this->context_entity = &$entity;
+		$this->context_attribute = &$attribute;
+
+		$this->prototype->contextualize(entity:$entity, list:$this, attribute:$attribute);
+	}
+
+
+
+	final function old__construct(DatabaseAccess $db, string $entity_class) {
 		if(!is_subclass_of($entity_class, Entity::class)){
 			throw new Exception('Invalid EntityList class: constant ENTITY_CLASS must describe a subclass of Entity.');
 		}
@@ -31,8 +59,15 @@ class EntityList {
 	}
 
 
-	public function &get_db() : DatabaseAccess {
-		return $this->db;
+	# Returns the DatabaseAccess of this entity or its context, if it is dependent.
+	final public function &get_db() : DatabaseAccess {
+		$db = $this->db ?? $this->context_entity?->get_db();
+
+		if(is_null($db)){
+			throw new Exception('no db'); // TODO 
+		}
+
+		return $db;
 	}
 
 
@@ -54,14 +89,14 @@ class EntityList {
 		$request->limit($limit, $offset);
 
 		try {
-			$s = $this->db->prepare($request->get_query());
+			$s = $this->get_db()->prepare($request->get_query());
 			$s->execute($request->get_values());
 		} catch(PDOException $e){
 			throw new DatabaseException($e, $s);
 		}
 
 		try {
-			$c = $this->db->prepare($request->get_count_query());
+			$c = $this->get_db()->prepare($request->get_count_query());
 			$c->execute($request->get_values());
 		} catch(PDOException $e){
 			throw new DatabaseException($e, $c);
@@ -74,7 +109,7 @@ class EntityList {
 
 	# Load data of multiple entities from the database into Entity objects and load them into this list.
 	# @param $data: rows of entity data from a database request's response
-	final public function load(array $data) : void {
+	public function load(array $data) : void {
 		if($this->is_loaded()){
 			throw new CallOutOfOrderException();
 		}
@@ -112,6 +147,10 @@ class EntityList {
 
 	# Transform this list into an array, containing its arrayified (transformed) entities. (compare --> Entity)
 	public function arrayify() : array|null {
+		if(!$this->is_loaded()){
+			throw new CallOutOfOrderException();
+		}
+
 		$result = [];
 		foreach($this->entities as $entity){
 			$result[] = $entity->arrayify();
@@ -167,6 +206,11 @@ class EntityList {
 
 	final public function is_loaded() : bool {
 		return isset($this->entities);
+	}
+
+
+	final public function is_independent() : bool {
+		return isset($this->db);
 	}
 }
 ?>

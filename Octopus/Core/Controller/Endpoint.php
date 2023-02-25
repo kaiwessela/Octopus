@@ -15,6 +15,7 @@ class Endpoint {
 	private ?string $primary_controller;
 	private Request $request;
 	private Response $response;
+	private Router $router;
 	private ?Exception $exception;
 	private DatabaseAccess $db;
 

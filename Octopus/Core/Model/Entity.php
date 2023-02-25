@@ -66,7 +66,11 @@ abstract class Entity {
 	# - another Entity, if this entity is referenced by an EntityReference attribute of the context entity,
 	# - an EntityList, if this entity was pulled together with multiple other entities of the same class, or
 	# - a Relationship, if this entity is part of a mutual many-to-many relationship with another entity.
-	protected null|Entity|EntityList|Relationship $context;
+	// protected null|Entity|EntityList|Relationship $context;
+
+	protected ?Entity $context_entity;
+	protected ?EntityList $context_list;
+	protected null|EntityReference|RelationshipsReference $context_attribute;
 
 
 	# How does an Entity/EntityList/Relationship connect to the database?
@@ -76,39 +80,16 @@ abstract class Entity {
 	# Dependent objects use the DatabaseAccess of their context object.
 	protected ?DatabaseAccess $db; # see --> DatabaseAccess for how the access mechanism itself works.
 
-	# In order to prevent column name collisions when pulling from multiple tables using joins, every dependent
-	# object must have a database prefix set upon construction.
-	private ?string $db_prefix;
-
 	private bool $is_new; # Stores whether the entity already exists in the database (true if not).
 
 
-
-	# Initialize a newly created instance of the entity.
-	final function __construct(null|Entity|EntityList|Relationship $context = null, DatabaseAccess $db = null, ?string $db_prefix = null) {
-		$this->context = &$context;
-
-		if($this->is_independent()){
-			if(!isset($db)){
-				throw new Exception('Invalid entity construction: db is required on independent entities.');
-			}
-
-			if(isset($db_prefix)){
-				throw new Exception('Invalid entity construction: db_prefix cannot be set on independent entities.');
-			}
-		} else {
-			if(isset($db)){
-				throw new Exception('Invalid entity construction: db cannot be set on dependent entities.');
-			}
-
-			if(!isset($db_prefix) && !($this->context instanceof EntityList)){
-				throw new Exception('Invalid entity construction: db_prefix is required on independent non-list entities.');
-			}
-		}
-
-		$this->db_prefix = $db_prefix;
+	final function __construct(?DatabaseAccess $db = null) {
 		$this->db = &$db;
 
+		$this->context_entity = null;
+		$this->context_list = null;
+		$this->context_attribute = null;
+		
 		# check that the DB_TABLE constant is formally valid
 		if(!is_string(static::DB_TABLE) || !preg_match('/^[a-z_]+$/', static::DB_TABLE)){
 			throw new Exception('invalid db table.');
@@ -121,7 +102,30 @@ abstract class Entity {
 
 		$this->init_attributes(); # initialize the attributes
 
+		// PROBLEM!
 		$this->init(); # call the custom initialization method
+	}
+
+
+	final public function contextualize(?Entity $entity = null, ?EntityList $list = null, null|EntityReference|RelationshipsReference $attribute = null) : void {
+		// TODO check
+
+		$this->context_entity = &$entity;
+		$this->context_list = &$list;
+		$this->context_attribute = &$attribute;
+
+		$this->init(); // TODO this is a problem!
+	}
+
+
+	final public static function list(?DatabaseAccess $db = null) : EntityList {
+		$class = static::LIST_CLASS;
+		return new $class(new static(), $db);
+	}
+
+
+	final function __clone() {
+		$this->init_attributes();
 	}
 
 
@@ -210,9 +214,21 @@ abstract class Entity {
 	}
 
 
+	public function get_db_prefix() : ?string {
+		return $this->context_attribute?->get_result_column();
+		// PROBLEM: For Rels, this should be "{$this->get_prefixed_db_table()}.{$this->get_name()}"
+	}
+
+
 	# Returns the DatabaseAccess of this entity or its context, if it is dependent.
-	public function &get_db() : DatabaseAccess {
-		return $this->db ?? $this->context?->get_db();
+	final public function &get_db() : DatabaseAccess {
+		$db = $this->db ?? $this->context_entity?->get_db();
+
+		if(is_null($db)){
+			throw new Exception('no db'); // TODO 
+		}
+
+		return $db;
 	}
 
 
@@ -230,7 +246,7 @@ abstract class Entity {
 
 	# Return whether the entity is independent of any other entity, which is the case if it has no context.
 	final public function is_independent() : bool {
-		return !isset($this->context);
+		return isset($this->db);
 	}
 
 
@@ -290,13 +306,6 @@ abstract class Entity {
 
 
 	// TODO from here
-	final function __clone() {
-		foreach($this->get_attributes() as $name){
-			$this->$name = clone $this->$name;
-		}
-	}
-
-
 	function __get($name) {
 		# if $this->$name is a defined attribute, return its value
 		if($this->has_attribute($name) && $this->$name->is_loaded()){
@@ -356,7 +365,7 @@ abstract class Entity {
 		$request->where(new IdentifierEquals($this->$identify_by, $identifier));
 
 		try {
-			$s = $this->db->prepare($request->get_query());
+			$s = $this->get_db()->prepare($request->get_query());
 			$s->execute($request->get_values());
 		} catch(PDOException $e){
 			throw new DatabaseException($e, $s);
@@ -443,11 +452,12 @@ abstract class Entity {
 				}
 
 				// TODO prevent joining context attributes and relationships if the context is an entitylist (?)
-				if(!$this->is_independent() && $this->$name->get_class() === $this->context::class){ // TEMP
+				if(isset($this->context_entity) && $this->$name->get_class() === $this->context_entity::class){
+				// if(!$this->is_independent() && $this->$name->get_class() === $this->context_entity::class){ // TEMP
 					continue;
 				}
 
-				if(!$this->$name->is_pullable() && !($this->is_independent() || $this->context instanceof EntityList)){ // TEMP
+				if(!$this->$name->is_pullable() && !($this->is_independent() || $this->context_entity instanceof EntityList)){ // TEMP
 					continue;
 				}
 				// check until here
@@ -688,9 +698,11 @@ abstract class Entity {
 		}
 
 		foreach($this->get_attributes() as $name){
-			if($this->$name instanceof RelationshipsReference){ # push all RelationshipsReferences
-				$request_performed |= $this->$name->push();
-			} else if($this->$name->is_pullable()){ # set all pullable entities to be in sync with the database
+			// if($this->$name instanceof RelationshipsReference){ # push all RelationshipsReferences
+				// $request_performed |= $this->$name->push();
+			// }
+			
+			if($this->$name->is_pullable()){ # set all pullable entities to be in sync with the database
 				$this->$name->set_clean();
 			}
 		}
@@ -753,11 +765,18 @@ abstract class Entity {
 	}
 
 
-	# Return an instance of this entity's list class.
-	final public static function create_list(DatabaseAccess $db) : EntityList {
-		// TODO check LIST_CLASS
-		$class = static::LIST_CLASS;
-		return new $class($db, static::class);
-	}
+	// TEMP
+	// final public function create_dependent_list(Entity $prototype) : EntityList {
+	// 	$class = static::LIST_CLASS;
+	// 	return new $class($this, $prototype);
+	// }
+
+
+	// # Return an instance of this entity's list class.
+	// final public static function create_list(DatabaseAccess $db) : EntityList {
+	// 	// TODO check LIST_CLASS
+	// 	$class = static::LIST_CLASS;
+	// 	return new $class($db, static::class);
+	// }
 }
 ?>

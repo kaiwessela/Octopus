@@ -27,36 +27,44 @@ class EntityList {
 	### CONSTRUCTION METHODS
 
 	final function __construct(Entity $prototype, ?DatabaseAccess $db = null) {
-		$this->prototype = $prototype;
-
-		$this->prototype->contextualize(list:$this);
-
 		$this->db = &$db;
 
-		$this->context_entity = null;
-		$this->context_attribute = null;
+		# if db is set, the EntityList is independent and initialized from here on.
+		# otherwise, the EntityList will not be initialized until contextualize() is called.
+
+		if($prototype->is_initialized()){
+			throw new Exception();
+		}
+
+		$this->prototype = $prototype;
+
+		if($this->is_independent()){
+			$this->prototype->contextualize(list:$this);
+			$this->context_entity = null;
+			$this->context_attribute = null;
+		}
 	}
 
 
-	final public function contextualize(?Entity $entity = null, null|EntityReference|RelationshipsReference $attribute = null) : void {
-		// TODO check
+	final public function contextualize(Entity $entity, EntityReference|RelationshipsReference $attribute) : void {
+		if($this->is_initialized()){
+			throw new Exception();
+		}
+
+		// TODO check?
 
 		$this->context_entity = &$entity;
 		$this->context_attribute = &$attribute;
+
+		# from here on, the EntityList is initialized.
 
 		$this->prototype->contextualize(entity:$entity, list:$this, attribute:$attribute);
 	}
 
 
-
-	// final function old__construct(DatabaseAccess $db, string $entity_class) {
-	// 	if(!is_subclass_of($entity_class, Entity::class)){
-	// 		throw new Exception('Invalid EntityList class: constant ENTITY_CLASS must describe a subclass of Entity.');
-	// 	}
-
-	// 	$this->db = &$db;
-	// 	$this->prototype = new $entity_class($this);
-	// }
+	final public function is_initialized() : bool {
+		return $this->is_independent() || isset($this->context_entity);
+	}
 
 
 	# Returns the DatabaseAccess of this entity or its context, if it is dependent.
@@ -79,6 +87,10 @@ class EntityList {
 	# @param $options: additional, custom pull options
 	final public function pull(?int $limit = null, ?int $offset = null, array $include_attributes = [], array $conditions = [], array $order_by = []) : void {
 		if($this->is_loaded()){
+			throw new CallOutOfOrderException();
+		}
+
+		if(!$this->is_independent()){
 			throw new CallOutOfOrderException();
 		}
 

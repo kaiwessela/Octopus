@@ -24,6 +24,8 @@ abstract class Relationship extends Entity {
 
 
 	final protected function init() : void {
+		// TODO fix this
+
 		foreach($this->get_attributes() as $name){
 			if($this->$name instanceof EntityReference){
 				if(!isset($this->context_entity)){

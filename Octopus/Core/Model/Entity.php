@@ -85,10 +85,6 @@ abstract class Entity {
 
 	final function __construct(?DatabaseAccess $db = null) {
 		$this->db = &$db;
-
-		$this->context_entity = null;
-		$this->context_list = null;
-		$this->context_attribute = null;
 		
 		# check that the DB_TABLE constant is formally valid
 		if(!is_string(static::DB_TABLE) || !preg_match('/^[a-z_]+$/', static::DB_TABLE)){
@@ -99,22 +95,41 @@ abstract class Entity {
 		if(!is_string(static::LIST_CLASS) || !(static::LIST_CLASS === EntityList::class || is_subclass_of(static::LIST_CLASS, EntityList::class))){
 			throw new Exception('invalid list class.');
 		}
-
+		
 		$this->init_attributes(); # initialize the attributes
+		
+		# if db is set, the Entity is independent and initialized from here on.
+		# otherwise, the Entity will not be initialized until contextualize() is called.
 
-		// PROBLEM!
-		$this->init(); # call the custom initialization method
+		if($this->is_independent()){
+			$this->context_entity = null;
+			$this->context_list = null;
+			$this->context_attribute = null;
+
+			$this->init(); # call the custom initialization method
+		}
 	}
 
 
 	final public function contextualize(?Entity $entity = null, ?EntityList $list = null, null|EntityReference|RelationshipsReference $attribute = null) : void {
+		if($this->is_initialized()){
+			throw new Exception();
+		}
+
 		// TODO check
 
 		$this->context_entity = &$entity;
 		$this->context_list = &$list;
 		$this->context_attribute = &$attribute;
 
-		$this->init(); // TODO this is a problem!
+		# from here on, the Entity is initialized.
+
+		$this->init();
+	}
+
+
+	final public function is_initialized() : bool {
+		return $this->is_independent() || isset($this->context_entity) || isset($this->context_list);
 	}
 
 
@@ -327,6 +342,10 @@ abstract class Entity {
 			throw new CallOutOfOrderException();
 		}
 
+		if(!$this->is_independent()){
+			throw new CallOutOfOrderException();
+		}
+
 		$this->is_new = true;
 
 		foreach($this->get_attributes() as $name){
@@ -347,6 +366,10 @@ abstract class Entity {
 	# @param $order_by: the attributes to sort the result by. Array of [attribute, direction ('ASC', 'DESC')].
 	final public function pull(string $identifier, ?string $identify_by = null, array $include_attributes = [], array $order_by = []) : void {
 		if($this->is_loaded()){
+			throw new CallOutOfOrderException();
+		}
+
+		if(!$this->is_independent()){
 			throw new CallOutOfOrderException();
 		}
 
@@ -383,8 +406,7 @@ abstract class Entity {
 	# @param $on: The attribute of the context entity that stores the reference to this entity.
 	# @param $identify_by: The attribute of this entity by which this entity is identified.
 	# @param $include_attributes and $order_by: see pull().
-	// IMPROVE Attribute -> EntityReference?
-	final public function join(Attribute $on, string $identify_by, array $include_attributes) : Join {
+	final public function join(EntityReference $on, string $identify_by, array $include_attributes) : Join {
 		# verify the identify_by attribute
 		if(!$this->has_attribute($identify_by)){
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» not found.");

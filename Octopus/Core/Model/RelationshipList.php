@@ -9,35 +9,9 @@ use Octopus\Core\Model\Exceptions\CallOutOfOrderException;
 use Octopus\Core\Model\Relationship;
 
 class RelationshipList extends EntityList {
-	// protected Relationship $prototype;
-	// protected array $relationships;
-
 	protected array $deletions;
 
-	// protected Entity $context;
-
-	// protected const RELATION_CLASS = ''; # the fully qualified name of the Relationship class whose instances this list contains
-
 	protected bool $is_complete;
-
-
-	### CONSTRUCTION METHODS
-
-	// function __construct(Entity $context, Relationship $prototype) {
-	// 	$this->context = &$context;
-
-	// 	$this->prototype = $prototype; // TODO improve
-
-	// 	$this->relationships = [];
-	// 	$this->deletions = [];
-	// }
-
-
-	// final public function join(array $include_attributes) : Join {
-	// 	$request = new Join($this->prototype, $this->prototype->get_context_attribute(), $this->context->get_primary_identifier());
-	// 	$this->prototype->resolve_pull_attributes($request, $include_attributes);
-	// 	return $request;
-	// }
 
 
 	### INITIALIZATION AND LOADING METHODS

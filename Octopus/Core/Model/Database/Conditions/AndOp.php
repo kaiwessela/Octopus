@@ -3,11 +3,11 @@ namespace Octopus\Core\Model\Database\Conditions;
 use Exception;
 use Octopus\Core\Model\Database\Condition;
 
-# An Annd condition joins multiple conditions together using the mysql AND operator.
-# The statement the Annd condition resolves to evaluates to true iff
+# An And Operator condition joins multiple conditions together using the mysql AND operator.
+# The statement the And Operator condition resolves to evaluates to true iff
 # ALL of its individual conditions’ statements evaluate to true.
 
-class Annd extends Condition {
+class AndOp extends Condition {
 	protected array $conditions;
 
 	function __construct(Condition ...$conditions) {

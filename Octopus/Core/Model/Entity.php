@@ -14,9 +14,9 @@ use Octopus\Core\Model\Attributes\IdentifierAttribute;
 use Octopus\Core\Model\Attributes\PropertyAttribute;
 use Octopus\Core\Model\Attributes\RelationshipsReference;
 use Octopus\Core\Model\Database\Condition;
-use Octopus\Core\Model\Database\Conditions\Annd;
+use Octopus\Core\Model\Database\Conditions\AndOp;
 use Octopus\Core\Model\Database\Conditions\IdentifierEquals;
-use Octopus\Core\Model\Database\Conditions\Orre;
+use Octopus\Core\Model\Database\Conditions\OrOp;
 use Octopus\Core\Model\Database\DatabaseAccess;
 use Octopus\Core\Model\Database\Exceptions\DatabaseException;
 use Octopus\Core\Model\Database\Exceptions\EmptyRequestException;
@@ -561,9 +561,9 @@ abstract class Entity {
 		} else if(count($conditions) === 1){
 			return $conditions[0];
 		} else if($mode === 'OR'){
-			return new Orre(...$conditions);
+			return new OrOp(...$conditions);
 		} else if($mode === 'AND'){
-			return new Annd(...$conditions);
+			return new AndOp(...$conditions);
 		} else {
 			throw new Exception(); // TODO
 		}

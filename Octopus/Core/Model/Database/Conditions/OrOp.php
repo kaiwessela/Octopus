@@ -3,11 +3,11 @@ namespace Octopus\Core\Model\Database\Conditions;
 use Exception;
 use Octopus\Core\Model\Database\Condition;
 
-# An Orre condition joins multiple conditions together using the mysql OR operator.
-# The statement the Orre condition resolves to evaluates to true iff
+# An Or Operator condition joins multiple conditions together using the mysql OR operator.
+# The statement the Or Operator condition resolves to evaluates to true iff
 # AT LEAST ONE of its individual conditions’ statements evaluates to true.
 
-class Orre extends Condition {
+class OrOp extends Condition {
 	protected array $conditions;
 
 	function __construct(Condition ...$conditions) {

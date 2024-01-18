@@ -31,12 +31,18 @@ use Octopus\Core\Config;
 
 class DatabaseAccess {
 	private ?PDO $pdo; # the database connection object (--> documentation: php.net / PDO)
-	private bool $disabled; # whether the connection is disabled. false by default
+	private ?bool $disabled; # whether the connection is disabled. false by default
 
 
-	function __construct() {
-		$this->pdo = null;
-		$this->disabled = false;
+	function __construct(string $host, string $dbname, string $user, string $password) {
+		$this->disabled = null;
+
+		$this->pdo = new PDO(
+			'mysql:host='.$host.';dbname='.$dbname,
+			$user,
+			$password,
+			[PDO::ATTR_PERSISTENT => true] # use a persistent PDO (performance reasons; --> see php.net / PDO)
+		);
 	}
 
 
@@ -53,21 +59,11 @@ class DatabaseAccess {
 	# If the connection has already been established, do nothing.
 	# If the connection has been disabled, throw an exception.
 	public function enable() : void {
-		if($this->disabled === true){ # if the access has already been disabled, throw an error
+		if($this->disabled === true || is_null($this->pdo)){ # if the access has already been disabled, throw an error
 			throw new Exception('Access to the database cannot be established because it has already been disabled.');
 		}
 
-		if(!is_null($this->pdo)){ # if the connection already exists, do nothing
-			return;
-		}
-
-		# create a new PDO object
-		$this->pdo = new PDO(
-			'mysql:host='.Config::get('Database.host').';dbname='.Config::get('Database.name'),
-			Config::get('Database.user'),
-			Config::get('Database.pass'),
-			[PDO::ATTR_PERSISTENT => true] # use a persistent PDO (performance reasons; --> see php.net / PDO)
-		);
+		$this->disabled = false;
 	}
 
 

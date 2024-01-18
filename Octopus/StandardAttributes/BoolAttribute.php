@@ -1,12 +1,12 @@
 <?php
-namespace Octopus\Modules\Standard\Model\Attributes;
+namespace Octopus\StandardAttributes;
 use Exception;
 use Octopus\Core\Model\Attributes\PropertyAttribute;
 
-class Booly extends PropertyAttribute {
+class BoolAttribute extends PropertyAttribute {
 
 
-	public static function define(bool $is_required = false, bool $is_editable = true) : Booly {
+	public static function define(bool $is_required = false, bool $is_editable = true) : BoolAttribute {
 		return new static($is_required, $is_editable);
 	}
 

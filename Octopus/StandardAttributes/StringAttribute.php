@@ -1,5 +1,5 @@
 <?php
-namespace Octopus\Modules\Standard\Model\Attributes;
+namespace Octopus\StandardAttributes;
 use Exception;
 use Octopus\Core\Model\Attributes\Exceptions\AttributeNotAlterableException;
 use Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
@@ -9,7 +9,7 @@ use Octopus\Core\Model\Database\Condition;
 use Octopus\Core\Model\Database\Conditions\Equals;
 use Octopus\Core\Model\Database\Conditions\InList;
 
-class Strng extends PropertyAttribute {
+class StringAttribute extends PropertyAttribute {
 	# inherited from PropertyAttribute
 	# protected Entity|Relationship $parent;
 	# protected string $name;
@@ -56,7 +56,7 @@ class Strng extends PropertyAttribute {
 		?int $min = null,
 		?int $max = null,
 		?string $pattern = null
-	) : Strng {
+	) : StringAttribute {
 
 		if(is_int($min)){
 			if($min < 0){

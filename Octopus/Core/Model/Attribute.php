@@ -1,7 +1,6 @@
 <?php
 namespace Octopus\Core\Model;
 use Exception;
-use Octopus\Core\Model\Attributes\Events\AttributeEditEvent;
 use Octopus\Core\Model\Attributes\Exceptions\AttributeNotLoadedException;
 use Octopus\Core\Model\Database\Condition;
 use Octopus\Core\Model\Entity;
@@ -18,20 +17,11 @@ abstract class Attribute {
 	protected mixed $value; # the current value, not yet updated in the database.
 	protected mixed $db_value; # the value stored in the database. null if not yet stored.
 
-	// IDEA
-	protected AttributeEditEvent $on_edit;
-
-	public function &get_on_edit() : AttributeEditEvent {
-		return $this->on_edit;
-	}
-	// idea end
-
 
 
 	final function __construct(bool $is_required, bool $is_editable) {
 		$this->is_required = $is_required;
 		$this->is_editable = $is_editable;
-		$this->on_edit = new AttributeEditEvent();
 	}
 
 
@@ -60,14 +50,6 @@ abstract class Attribute {
 		$this->_edit($input);
 
 		if(!$this->equals($former_value)){
-			try {
-				$this->on_edit->fire($this);
-			} catch(Prevention $p){ # revert edit
-				$this->value = $former_value;
-				$p->throw_exception();
-				return;
-			}
-
 			if(!$this->is_dirty()){ # first edit
 				$this->set_dirty();
 				$this->old_value = $former_value;

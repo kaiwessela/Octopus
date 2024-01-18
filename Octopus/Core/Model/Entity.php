@@ -329,6 +329,11 @@ abstract class Entity {
 	}
 
 
+	function __set($name, $value) {
+		$this->edit_attribute($name, $value);
+	}
+
+
 	function __isset($name) : bool {
 		return $this->has_attribute($name) && $this->$name->is_loaded();
 	}

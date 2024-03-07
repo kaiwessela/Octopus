@@ -49,7 +49,12 @@ class TimestampAttribute extends StaticObjectAttribute {
 
 	public function resolve_pull_condition(mixed $option) : ?Condition {
 		if(is_string($option)){
-			if(str_contains($option, '~')){
+			if($option === 'today_future'){
+				$today = new Timestamp();
+				$today->now();
+				$today->floor(Timestamp::DAY);
+				return new TimestampCompare($this, '>=', $today);
+			} else if(str_contains($option, '~')){
 				$range = explode('~', $option, 2);
 
 				$from = new Timestamp();

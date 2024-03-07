@@ -425,7 +425,7 @@ abstract class Entity {
 				$pull = $this->$name->is_pullable(); # pull the attribute if it is also pullable and
 				$join = true; # join the attribute.
 			} else if($instruction === true || is_null($instruction)){ # if the instruction is true or none on default:
-				$pull = true; # pull the attribute and
+				$pull = $this->$name->is_pullable(); # pull the attribute if it is pullable and
 				$join = false; # do not join the attribute.
 			} else if($instruction === false){ # if the instruction is false, neither pull nor join the attribute.
 				$pull = false;
@@ -451,17 +451,27 @@ abstract class Entity {
 					throw new Exception("Cannot join non-joinable attribute «{$name}» to the request.");
 				}
 
+				// prevent recursive joining
+
+				// if(isset($this->context_entity) && $this-)
+
+				// // var_dump($this->context_entity::class);
+				// var_dump($this->context_list::class);
+				// var_dump($this->context_attribute::class);
+				// exit;
+
+
 				// TODO prevent joining context attributes and relationships if the context is an entitylist (?)
 				if(isset($this->context_entity) && $this->$name->get_class() === $this->context_entity::class){
 				// if(!$this->is_independent() && $this->$name->get_class() === $this->context_entity::class){ // TEMP
 					continue;
 				}
 
-				if(!$this->$name->is_pullable() && !($this->is_independent() || $this->context_entity instanceof EntityList)){ // TEMP
-					continue;
-				}
+				// if(!$this->$name->is_pullable() && !($this->is_independent() || $this->context_entity instanceof EntityList)){ // TEMP
+				// 	continue;
+				// }
 				// check until here
-
+				
 				$request->join($this->$name->get_join_request($instruction ?? []));
 			}
 		}
@@ -561,7 +571,7 @@ abstract class Entity {
 			# attributes should only be loaded if they are included in the result, so check that first
 			# if the attribute is pullable, check whether it has a column in the result
 			# if the attribute is not pullable, check whether it has a detection column in the result
-			if($this->$name->is_pullable()){
+			if($this->$name->is_pullable()){		
 				if(!array_key_exists($this->$name->get_result_column(), $row)){
 					continue;
 				}
@@ -572,8 +582,26 @@ abstract class Entity {
 			if($this->$name instanceof PropertyAttribute){
 				$this->$name->load($row[$this->$name->get_result_column()]);
 			} else if($this->$name instanceof EntityReference){
+
+				// TESTING
+				if(isset($this->context_entity) && $this->$name->get_class() === $this->context_entity::class){
+					continue;
+				}
+
 				$this->$name->load($row);
 			} else if($this->$name instanceof RelationshipsReference){
+				
+				// TESTING, same as for resolve_pull_attributes.
+				// DOES NOT WORK!
+				if(isset($this->context_entity) && $this->$name->get_class() === $this->context_entity::class){
+					continue;
+				}
+
+				// // HOTFIX
+				// if(!$this->is_independent()){
+				// 	continue;
+				// }
+
 				// TODO
 				$this->$name->load($data, is_complete:$this->is_independent()); // the relationshiplist is complete if this is independent because then there definitely was no limit in the request. is_complete determines whether the relationships can be edited.
 			}

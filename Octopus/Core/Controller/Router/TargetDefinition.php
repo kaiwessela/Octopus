@@ -87,6 +87,8 @@ class TargetDefinition {
 		@list($p, $pr) = explode('/', $pattern, 2);
 		@list($s, $sr) = explode('/', $subject, 2);
 
+		// TODO test if segment is the last segment
+
 		if($p === '#'){
 			if(!is_numeric($s) || ceil($s) !== floor($s)){
 				return false;
@@ -103,6 +105,8 @@ class TargetDefinition {
 			if(empty($s) || (is_numeric($s) && ceil($s) === floor($s))){
 				return true;
 			}
+
+			return false;
 		} else if($p === '**'){
 			if(!empty($pr)){
 				throw new ControllerException(500, '(catch-all segment before end)');

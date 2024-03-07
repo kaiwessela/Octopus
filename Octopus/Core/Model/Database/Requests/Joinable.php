@@ -80,7 +80,22 @@ abstract class Joinable extends Request {
 	final public function order_by(string|array $identifier, string $sequence, int $significance) : void {
 		if(is_array($identifier)){ # the identifier points to a join, so recursively pass on the call to it
 			$attribute = array_shift($identifier); # both removes the first element of the array and returns it
+			
+			// ORDER IS BROKEN FOR ATTACHING JOINS
 
+			// $the_join = null;
+			// foreach($this->joins as $join){
+			// 	var_dump($join->foreign_attribute->get_name());
+			// 	var_dump($join->native_attribute->get_name());
+
+			// 	if($join->is_expanding() && $join->foreign_attribute->get_name() === $attribute){
+			// 		$the_join = $join;
+			// 	} else if($join->is_attaching() && $join->native_attribute->get_name() === $attribute){
+			// 		$the_join = $join;
+			// 	}
+			// }
+
+			// if($the_join === null){
 			if(!isset($this->joins[$attribute])){ # check that the specified join exists
 				throw new Exception("Unknown join «{$attribute}» in order clause #{$significance}.");
 			}

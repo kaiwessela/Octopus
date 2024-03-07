@@ -1,3 +1,12 @@
+TODO!!!
+
+- bei conditions überprüfen, ob das betreffende feld included ist oder nicht
+- order neu organisieren. relationshiplists können nicht geordnet werden.
+- url matching: testen, ob die url auch wirklich mit dem letzten segment aufhört.
+
+
+
+
 TODO:
 Model:
 - Kommentare und Erklärungen für alle Requests und Conditions

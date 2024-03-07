@@ -26,7 +26,7 @@ class MarkdownObject {
 
 	public function parse() : ?string { // TODO improve
 		if(empty($this->parsed)){
-			$this->parsed = Parsedown::instance()->text($this->raw);
+			$this->parsed = Parsedown::instance()->text($this->raw ?? '');
 		}
 
 		return $this->parsed;

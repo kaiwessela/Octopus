@@ -178,7 +178,8 @@ class Endpoint {
 			'debug_mode' => Config::get('Server.debug_mode'),
 			'request' => $this->request,
 			'response' => $this->response,
-			'base' => $this->request->get_base_path()
+			'base' => $this->request->get_base_path(),
+			'path' => $this->request->get_path(),
 		];
 
 		$this->response->send($status_code, $environment);

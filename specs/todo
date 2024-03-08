@@ -1,47 +1,14 @@
 TODO:
-Model:
-- Kommentare und Erklärungen für alle Requests und Conditions
-- Collections
-- Erklärungen und evtl. Absicherungen für StaticObject
+- bei conditions überprüfen, ob das betreffende feld included ist oder nicht
+- order neu organisieren. relationshiplists können nicht geordnet werden.
+- url matching: testen, ob die url auch wirklich mit dem letzten segment aufhört.
+
 - Kollisionstests (Einzigartigkeit) für Relationships
-- Flow und Edit Control für StaticObjects
-
-- Neuorganisation von Relationship-Joins (alle/keine/limit usw.)
-- RelationshipList direkt pullen
-
 - Neuorganisation von DatabaseAccess-Provision
-
-- mehrere RelationshipLists für eine Entity
-
 - next und prev für Pagination
-
-- custom arrayify or add function calls to json api
-
-
-
-- EntityList-Kinder optional machen
-- FlowControl abschaffen
-
-
-
-BUGS:
--
-
-
-PLANNED CHANGES:
-- remove subline from Post
-
 - new/better auth/permission system
-
 - remove and reorganize Config::SERVER_URL
-
-- update Post content lengths
-
-- the DataObject Array update: allow special PropertyDefinitions for arrays with a fixed structure so that they dont
-	have to be validated manually (kind of nested property definitions)
-
 - use transactions on Entity::push()
-
 
 
 

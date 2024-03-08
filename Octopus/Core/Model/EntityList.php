@@ -179,8 +179,12 @@ class EntityList {
 
 	# Return an entity in this list
 	# @param $index_or_id: list index or id of the entity
-	final public function &get(string $id) : ?Entity {
-		return $this->entities[$id] ?? null;
+	final public function &get(string|int $id) : ?Entity {
+		if(is_int($id)){
+			return array_values($this->entities)[$id] ?? null;
+		} else {
+			return $this->entities[$id] ?? null;
+		}
 	}
 
 

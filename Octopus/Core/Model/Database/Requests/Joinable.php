@@ -72,32 +72,46 @@ abstract class Joinable extends Request {
 	}
 
 
-	# Add an attribute/a column to sort the result rows by.
-	# $identifier can be either the name of an attribute included in this request, or an array, with the first item
-	# being the identifier of a join included in this request (which is it's foreign attribute name).
-	# $sequence can be either ASC or DESC, for ascending or descending order. See OrderClause also.
-	# $significance determines the order of the order clauses, with 0 being the first (and thus most significant).
-	final public function order_by(string|array $identifier, string $sequence, int $significance) : void {
-		if(is_array($identifier)){ # the identifier points to a join, so recursively pass on the call to it
-			$attribute = array_shift($identifier); # both removes the first element of the array and returns it
-
-			if(!isset($this->joins[$attribute])){ # check that the specified join exists
-				throw new Exception("Unknown join «{$attribute}» in order clause #{$significance}.");
-			}
-
-			# recursively pass on the data to the the JoinRequest's order_by method
-			# mind that $identifier had the first element removed by using array_shift
-			$this->joins[$attribute]->order_by($identifier, $sequence, $significance);
-		} else { # the identifier points to an attribute included in this request
-			if(!isset($this->attributes[$identifier])){ # check that the specified attribute exists
-				throw new Exception("Unknown attribute «{$attribute}» in order clause #{$significance}.");
-			}
-
-			# create a new OrderClause from the data and store it in $this->order, with the significance being the key
-			# note that this may override an existing order clause with the same significance
-			$this->order[$significance] = new OrderClause($this->attributes[$identifier], $sequence, $significance);
-		}
+	final public function has_joined(Attribute $reference_attribute) : bool {
+		return isset($this->joins[$reference_attribute->get_name()]);
 	}
+
+
+	final public function order_by(Attribute $attribute, string $direction, int $significance) : void {
+		if(!$this->has_included($attribute)){
+			throw new Exception("Unknown attribute «{$attribute->get_name()}» in order clause #{$significance}.");
+		}
+
+		$this->order[$significance] = new OrderClause($attribute, $sequence, $significance);
+	}
+
+
+	// # Add an attribute/a column to sort the result rows by.
+	// # $identifier can be either the name of an attribute included in this request, or an array, with the first item
+	// # being the identifier of a join included in this request (which is it's foreign attribute name).
+	// # $sequence can be either ASC or DESC, for ascending or descending order. See OrderClause also.
+	// # $significance determines the order of the order clauses, with 0 being the first (and thus most significant).
+	// final public function order_by(string|array $identifier, string $sequence, int $significance) : void {
+	// 	if(is_array($identifier)){ # the identifier points to a join, so recursively pass on the call to it
+	// 		$attribute = array_shift($identifier); # both removes the first element of the array and returns it
+
+	// 		if(!isset($this->joins[$attribute])){ # check that the specified join exists
+	// 			throw new Exception("Unknown join «{$attribute}» in order clause #{$significance}.");
+	// 		}
+
+	// 		# recursively pass on the data to the the JoinRequest's order_by method
+	// 		# mind that $identifier had the first element removed by using array_shift
+	// 		$this->joins[$attribute]->order_by($identifier, $sequence, $significance);
+	// 	} else { # the identifier points to an attribute included in this request
+	// 		if(!isset($this->attributes[$identifier])){ # check that the specified attribute exists
+	// 			throw new Exception("Unknown attribute «{$attribute}» in order clause #{$significance}.");
+	// 		}
+
+	// 		# create a new OrderClause from the data and store it in $this->order, with the significance being the key
+	// 		# note that this may override an existing order clause with the same significance
+	// 		$this->order[$significance] = new OrderClause($this->attributes[$identifier], $sequence, $significance);
+	// 	}
+	// }
 
 
 	# Return an array of the attributes of this request and of all its joins.

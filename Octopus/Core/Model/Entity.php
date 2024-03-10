@@ -412,6 +412,10 @@ abstract class Entity {
 	# @param $identify_by: The attribute of this entity by which this entity is identified.
 	# @param $include_attributes and $order_by: see pull().
 	final public function join(EntityReference $on, string $identify_by, array $include_attributes) : Join {
+		if(!isset($this->context_attribute)){
+			throw new Exception("Cannot join independent entities. Use pull() instead.");
+		}
+
 		# verify the identify_by attribute
 		if(!$this->has_attribute($identify_by)){
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» not found.");
@@ -419,7 +423,7 @@ abstract class Entity {
 			throw new Exception("Argument identify_by: attribute «{$identify_by}» is not an identifier.");
 		}
 
-		$request = new Join($this, $this->$identify_by, $on);
+		$request = new Join($this, $this->context_attribute, $this->$identify_by, $on);
 		$this->resolve_pull_attributes($request, $include_attributes);
 		return $request;
 	}
@@ -478,6 +482,8 @@ abstract class Entity {
 					throw new Exception("Cannot join non-joinable attribute «{$name}» to the request.");
 				}
 
+
+				// TODO move this in $this->$name->get_join_request or $this->join()!!!!
 				// TODO prevent joining context attributes and relationships if the context is an entitylist (?)
 				if(isset($this->context_entity) && $this->$name->get_class() === $this->context_entity::class){
 				// if(!$this->is_independent() && $this->$name->get_class() === $this->context_entity::class){ // TEMP
@@ -495,38 +501,106 @@ abstract class Entity {
 	}
 
 
-	final public function resolve_pull_order(Request &$request, array $instructions) : void {
-		foreach($instructions as $index => $order_instruction){
-			if(!is_array($order_instruction) || !count($order_instruction) === 2){
-				throw new Exception("Invalid order instruction #{$index}.");
-			}
+	final protected function resolve_pull_order(Request &$request, array $instructions) : void {
+		/*
+		$instructions = [
+			'attr_name1' => '+',
+			'attr_name2.child_attr_name' => '-',
+		];
+		OR MAYBE
+		$instructions = [
+			0 => ['attr_name1' => '+'],
+			2 => ['attr_name2.child_attr_name' => '-'],
+		];
+		*/
 
-			list($compound_attribute_name, $sequence) = $order_instruction;
 
-			if(!is_string($compound_attribute_name)){
-				throw new Exception("Invalid attribute format in order instruction #{$index}.");
-			}
 
-			$segments = explode('.', $compound_attribute_name);
-			$attribute = $segments[0];
-
-			if(!$this->has_attribute($attribute)){
-				throw new Exception("Unknown attribute «{$attribute}» in order instruction #{$index}/«{$compound_attribute_name}».");
-			}
-
-			$sequence = match($sequence){
+		$i = 0;
+		foreach($instructions as $compound_attr_name => $direction){
+			$direction = match($direction){
 				'+', 'ascending', 'asc', 'ASC' => 'ASC',
 				'-', 'descending', 'desc', 'DESC' => 'DESC',
-				default => throw new Exception("Invalid sequence in attribute instruction #{$original_index}.")
+				default => throw new Exception("Invalid order instruction #{$i}: invalid direction.")
 			};
-
-			if(count($segments) === 1){
-				$request->order_by($attribute, $sequence, $index);
-			} else {
-				$request->order_by($segments, $sequence, $index);
+			
+			if(!is_string($compound_attr_name)){
+				throw new Exception("Invalid order instruction #{$i}: attribute name is not a string.");
 			}
+
+			$this->deploy_pull_order($request, $compound_attr_name, $i, $direction);
+			$i++;
 		}
 	}
+
+
+	final protected function deploy_pull_order(Request &$request, string $compound_attr_name, int $significance, string $direction) : void {
+		$attr_name_segments = explode('.', $compound_attr_name);
+		$attr_name = array_shift($attr_name_segments);
+
+		if(!$this->has_attribute($attr_name)){
+			throw new Exception("Invalid order instruction #{$i}: attribute «{$attr_name}» not found.");
+		}
+
+		if(count($attr_name_segments) > 1){
+			if(!$this->$attr_name->is_pullable()){
+				throw new Exception("Invalid order instruction #{$i}: cannot order by non-pullable attribute «{$attr_name}».");
+			}
+				
+			if(!$request->has_included($this->$attr_name)){
+				$request->include($this->$attr_name);
+			}
+
+			$request->order_by($this->$attr_name, $direction, $significance);
+
+		} else {
+			if(!$this->$attr_name->is_joinable()){
+				throw new Exception("Invalid order instruction #{$i}: attribute «{$attr_name}» contains no children to order by.");
+			}
+
+			if(!$request->has_joined($this->$attr_name)){
+				$join = $this->$attr_name->get_join_request();
+				$request->join($join);
+			}
+
+			// maybe a reference is necessary here, then use (and define before) ref_value() in Attribute.php
+			$this->$attr_name->get_value()->deploy_pull_order($join, $attr_name_segments, $significance, $direction);
+		}
+	}
+
+
+	// final public function resolve_pull_order(Request &$request, array $instructions) : void {
+	// 	foreach($instructions as $index => $order_instruction){
+	// 		if(!is_array($order_instruction) || !count($order_instruction) === 2){
+	// 			throw new Exception("Invalid order instruction #{$index}.");
+	// 		}
+
+	// 		list($compound_attribute_name, $sequence) = $order_instruction;
+
+	// 		if(!is_string($compound_attribute_name)){
+	// 			throw new Exception("Invalid attribute format in order instruction #{$index}.");
+	// 		}
+
+	// 		$segments = explode('.', $compound_attribute_name);
+	// 		$attribute = $segments[0];
+
+	// 		if(!$this->has_attribute($attribute)){
+	// 			throw new Exception("Unknown attribute «{$attribute}» in order instruction #{$index}/«{$compound_attribute_name}».");
+	// 		}
+
+	// 		$sequence = match($sequence){
+	// 			'+', 'ascending', 'asc', 'ASC' => 'ASC',
+	// 			'-', 'descending', 'desc', 'DESC' => 'DESC',
+	// 			default => throw new Exception("Invalid sequence in attribute instruction #{$original_index}.")
+	// 		};
+
+	// 		if(count($segments) === 1){
+	// 			$request->order_by($attribute, $sequence, $index);
+	// 		} else {
+	// 			$request->order_by($segments, $sequence, $index);
+	// 		}
+	// 	}
+	// }
 
 
 	// TODO

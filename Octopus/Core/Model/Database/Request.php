@@ -90,6 +90,11 @@ abstract class Request {
 	}
 
 
+	final public function has_included(Attribute $attribute) : bool {
+		return isset($this->attribute[$attribute->get_name()]);
+	}
+
+
 	# Compute an SQL query from the object, attributes and conditions.
 	abstract protected function resolve() : void;
 

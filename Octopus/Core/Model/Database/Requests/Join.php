@@ -35,12 +35,13 @@ use Octopus\Core\Model\Relationship;
 # This class is a child of Request. See there for further documentation.
 
 final class Join extends Joinable {
+	protected Attribute $reference_attribute;
 	protected Attribute $native_attribute; # The attribute belonging to this object.
 	protected Attribute $foreign_attribute; # The attribute belonging to the object joining this.
 
 
 	# Initialize the SelectRequest and provide its object and the attributes making up its search condition.
-	function __construct(Entity|Relationship $object, Attribute $native_attribute, Attribute $foreign_attribute) {
+	function __construct(Entity|Relationship $object, Attribute $reference_attribute, Attribute $native_attribute, Attribute $foreign_attribute) {
 		parent::__construct($object); # Use the construct function of Request.
 
 		$this->joins = [];
@@ -55,6 +56,10 @@ final class Join extends Joinable {
 			throw new Exception('The attributes must consist of an EntityAttribute and an IdentifierAttribute');
 		}
 
+		// if(!$this->object->has_attribute($reference_attribute)){
+		// 	throw new Exception('Reference Attribute must be part of the joined object.');
+		// }
+
 		if(!$this->object->has_attribute($native_attribute)){
 			throw new Exception('Native Attribute must be part of the joined object.');
 		}
@@ -63,6 +68,7 @@ final class Join extends Joinable {
 			throw new Exception('Foreign Attribute must not be part of the joined object.');
 		}
 
+		$this->reference_attribute = $reference_attribute;
 		$this->native_attribute = $native_attribute;
 		$this->foreign_attribute = $foreign_attribute;
 	}
@@ -84,8 +90,9 @@ final class Join extends Joinable {
 
 
 	# Return the foreign attribute's name, which is used as key in the $joins array of the parent request.
-	final public function get_identifier() : string {
-		return $this->foreign_attribute->get_name();
+	final public function get_identifier() : string {		
+		return $this->reference_attribute->get_name();
+		// return $this->foreign_attribute->get_name();
 	}
 }
 ?>

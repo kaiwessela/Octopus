@@ -1,6 +1,6 @@
 <?php
 namespace Octopus\Modules\Timestamp;
-use Octopus\Core\Model\Attributes\Attribute;
+use Octopus\Core\Model\Attribute;
 use Octopus\Core\Model\Database\Condition;
 use Octopus\Modules\Timestamp\Timestamp;
 

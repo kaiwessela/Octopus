@@ -44,7 +44,12 @@ class Endpoint {
 			error_reporting(0);
 		}
 
-		$this->db = new DatabaseAccess(); // TODO
+		$this->db = new DatabaseAccess(
+			Config::get('Database.host'),
+			Config::get('Database.name'),
+			Config::get('Database.user'),
+			Config::get('Database.pass')
+		);
 
 		if(isset($options['modules'])){
 			$this->router->load_module_config($options['modules']);
@@ -161,6 +166,8 @@ class Endpoint {
 	private function abort(ControllerException $exception) : void {
 		$environment = [];
 
+		throw $exception;
+
 		if(Config::get('Server.debug_mode') === true){
 			$environment['exception'] = $exception;
 		}
@@ -178,7 +185,8 @@ class Endpoint {
 			'debug_mode' => Config::get('Server.debug_mode'),
 			'request' => $this->request,
 			'response' => $this->response,
-			'base' => $this->request->get_base_path()
+			'base' => $this->request->get_base_path(),
+			'path' => $this->request->get_path(),
 		];
 
 		$this->response->send($status_code, $environment);

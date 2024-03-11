@@ -82,7 +82,7 @@ abstract class Joinable extends Request {
 			throw new Exception("Unknown attribute «{$attribute->get_name()}» in order clause #{$significance}.");
 		}
 
-		$this->order[$significance] = new OrderClause($attribute, $sequence, $significance);
+		$this->order[$significance] = new OrderClause($attribute, $direction, $significance);
 	}
 
 
@@ -134,7 +134,18 @@ abstract class Joinable extends Request {
 	final protected function collect_order_clauses() : array {
 		if($this->is_expanding()){
 			# (1) set a fallback order clause for this request. PHP_INT_MAX is the least possible significance
-			$this->order_by($this->object->get_primary_identifier_name(), 'ASC', PHP_INT_MAX);
+
+			/*
+			PROBLEM: Dieses Fallback darf nur in bestimmten Fällen gesetzt werden, und zwar dann nicht, wenn
+			die Ordnung eines untergeordneten Joins auf die Ordnung des übergeordneten übergreifen soll, was bei
+			Relationships der Fall sein kann.
+			Denk dir was aus wie es geht.
+
+			*/
+
+
+			// $this->order_by($this->object->get_primary_identifier(), 'ASC', PHP_INT_MAX);
+			
 			# (2, 3) collect the order clauses of this request and all attaching joins below it, sorted by significance
 			$order_clauses = $this->collect_own_and_attaching_order_clauses();
 		} else {

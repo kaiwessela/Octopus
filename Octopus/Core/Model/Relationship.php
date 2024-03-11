@@ -66,7 +66,7 @@ abstract class Relationship extends Entity {
 
 
 	public function join_reverse(array $include_attributes) : Join {
-		$request = new Join($this, $this->get_pivot_attribute(), $this->context_entity->get_primary_identifier());
+		$request = new Join($this, $this->context_attribute, $this->get_pivot_attribute(), $this->context_entity->get_primary_identifier());
 		$this->resolve_pull_attributes($request, $include_attributes);
 		return $request;
 	}

@@ -483,16 +483,29 @@ abstract class Entity {
 				}
 
 
-				// TODO move this in $this->$name->get_join_request or $this->join()!!!!
+				//// SOME MESS HAPPENED HERE !!!!! ////
+
+
+
+				// prevent recursive joining
+
+				// if(isset($this->context_entity) && $this-)
+
+				// // var_dump($this->context_entity::class);
+				// var_dump($this->context_list::class);
+				// var_dump($this->context_attribute::class);
+				// exit;
+
+
 				// TODO prevent joining context attributes and relationships if the context is an entitylist (?)
 				if(isset($this->context_entity) && $this->$name->get_class() === $this->context_entity::class){
 				// if(!$this->is_independent() && $this->$name->get_class() === $this->context_entity::class){ // TEMP
 					continue;
 				}
 
-				if(!$this->$name->is_pullable() && !($this->is_independent() || $this->context_entity instanceof EntityList)){ // TEMP
-					continue;
-				}
+				// if(!$this->$name->is_pullable() && !($this->is_independent() || $this->context_entity instanceof EntityList)){ // TEMP
+				// 	continue;
+				// }
 				// check until here
 
 				$request->join($this->$name->get_join_request($instruction ?? []));
@@ -501,7 +514,7 @@ abstract class Entity {
 	}
 
 
-	final protected function resolve_pull_order(Request &$request, array $instructions) : void {
+	final public function resolve_pull_order(Request &$request, array $instructions) : void {
 		/*
 		$instructions = [
 			'attr_name1' => '+',
@@ -528,23 +541,22 @@ abstract class Entity {
 				throw new Exception("Invalid order instruction #{$i}: attribute name is not a string.");
 			}
 
-			$this->deploy_pull_order($request, $compound_attr_name, $i, $direction);
+			$this->deploy_pull_order($request, explode('.', $compound_attr_name), $i, $direction);
 			$i++;
 		}
 	}
 
 
-	final protected function deploy_pull_order(Request &$request, string $compound_attr_name, int $significance, string $direction) : void {
-		$attr_name_segments = explode('.', $compound_attr_name);
-		$attr_name = array_shift($attr_name_segments);
+	final protected function deploy_pull_order(Request &$request, array $compound_attr_name, int $significance, string $direction) : void {
+		$attr_name = array_shift($compound_attr_name);
 
 		if(!$this->has_attribute($attr_name)){
-			throw new Exception("Invalid order instruction #{$i}: attribute «{$attr_name}» not found.");
+			throw new Exception("Invalid order instruction #{$significance}: attribute «{$attr_name}» not found.");
 		}
 
-		if(count($attr_name_segments) > 1){
+		if(empty($compound_attr_name)){
 			if(!$this->$attr_name->is_pullable()){
-				throw new Exception("Invalid order instruction #{$i}: cannot order by non-pullable attribute «{$attr_name}».");
+				throw new Exception("Invalid order instruction #{$significance}: cannot order by non-pullable attribute «{$attr_name}».");
 			}
 				
 			if(!$request->has_included($this->$attr_name)){
@@ -555,16 +567,16 @@ abstract class Entity {
 
 		} else {
 			if(!$this->$attr_name->is_joinable()){
-				throw new Exception("Invalid order instruction #{$i}: attribute «{$attr_name}» contains no children to order by.");
+				throw new Exception("Invalid order instruction #{$significance}: attribute «{$attr_name}» contains no children to order by.");
 			}
 
 			if(!$request->has_joined($this->$attr_name)){
-				$join = $this->$attr_name->get_join_request();
+				$join = $this->$attr_name->get_join_request([]);
 				$request->join($join);
 			}
 
 			// maybe a reference is necessary here, then use (and define before) ref_value() in Attribute.php
-			$this->$attr_name->get_value()->deploy_pull_order($join, $attr_name_segments, $significance, $direction);
+			$this->$attr_name->get_prototype()->deploy_pull_order($join, $compound_attr_name, $significance, $direction);
 		}
 	}
 
@@ -662,7 +674,7 @@ abstract class Entity {
 			# attributes should only be loaded if they are included in the result, so check that first
 			# if the attribute is pullable, check whether it has a column in the result
 			# if the attribute is not pullable, check whether it has a detection column in the result
-			if($this->$name->is_pullable()){
+			if($this->$name->is_pullable()){		
 				if(!array_key_exists($this->$name->get_result_column(), $row)){
 					continue;
 				}
@@ -673,8 +685,26 @@ abstract class Entity {
 			if($this->$name instanceof PropertyAttribute){
 				$this->$name->load($row[$this->$name->get_result_column()]);
 			} else if($this->$name instanceof EntityReference){
+
+				// TESTING
+				if(isset($this->context_entity) && $this->$name->get_class() === $this->context_entity::class){
+					continue;
+				}
+
 				$this->$name->load($row);
 			} else if($this->$name instanceof RelationshipsReference){
+				
+				// TESTING, same as for resolve_pull_attributes.
+				// DOES NOT WORK!
+				if(isset($this->context_entity) && $this->$name->get_class() === $this->context_entity::class){
+					continue;
+				}
+
+				// // HOTFIX
+				// if(!$this->is_independent()){
+				// 	continue;
+				// }
+
 				// TODO
 				$this->$name->load($data, is_complete:$this->is_independent()); // the relationshiplist is complete if this is independent because then there definitely was no limit in the request. is_complete determines whether the relationships can be edited.
 			}

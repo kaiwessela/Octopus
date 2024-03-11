@@ -91,8 +91,8 @@ final class Join extends Joinable {
 
 	# Return the foreign attribute's name, which is used as key in the $joins array of the parent request.
 	final public function get_identifier() : string {		
-		return $this->reference_attribute->get_name();
-		// return $this->foreign_attribute->get_name();
+		// return $this->reference_attribute->get_name();
+		return $this->foreign_attribute->get_name();
 	}
 }
 ?>

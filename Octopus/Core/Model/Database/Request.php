@@ -90,8 +90,9 @@ abstract class Request {
 	}
 
 
+	# Return whether the specified Attribute is already included in the list of attributes.
 	final public function has_included(Attribute $attribute) : bool {
-		return isset($this->attribute[$attribute->get_name()]);
+		return isset($this->attributes[$attribute->get_name()]);
 	}
 
 

@@ -50,6 +50,7 @@ class BasicEntityController extends EntityController {
 			$this->create_object($object_class, list:false);
 			$this->load_single_pull_parameters();
 			$this->load_pull_attributes();
+			$this->load_pull_order();
 		}
 
 	}
@@ -135,7 +136,7 @@ class BasicEntityController extends EntityController {
 			if(is_null($page)){
 				$page = 1;
 			} else if(is_string($page)){
-				$page = URLSubstitution::replace($page, $this->request);
+				$page = URLSubstitution::replace($page, $this->request) ?? 1;
 			}
 
 			if(!is_int($page)){
@@ -226,7 +227,7 @@ class BasicEntityController extends EntityController {
 
 		} else { # action==='show'|'edit'|'delete'
 			try {
-				$this->object->pull($this->identifier, $this->identify_by, $this->pull_attributes);
+				$this->object->pull($this->identifier, $this->identify_by, $this->pull_attributes, $this->order);
 			} catch(EmptyResultException $e){
 				$this->set_status_code(404);
 				throw new ControllerException(404, 'Object not found.');

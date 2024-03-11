@@ -530,18 +530,18 @@ abstract class Entity {
 
 
 		$i = 0;
-		foreach($instructions as $compound_attr_name => $direction){
+		foreach($instructions as $key => $direction){
 			$direction = match($direction){
 				'+', 'ascending', 'asc', 'ASC' => 'ASC',
 				'-', 'descending', 'desc', 'DESC' => 'DESC',
 				default => throw new Exception("Invalid order instruction #{$i}: invalid direction.")
 			};
 			
-			if(!is_string($compound_attr_name)){
+			if(!is_string($key)){
 				throw new Exception("Invalid order instruction #{$i}: attribute name is not a string.");
 			}
 
-			$this->deploy_pull_order($request, explode('.', $compound_attr_name), $i, $direction);
+			$this->deploy_pull_order($request, explode('.', $key), $i, $direction);
 			$i++;
 		}
 	}
@@ -581,38 +581,72 @@ abstract class Entity {
 	}
 
 
-	// final public function resolve_pull_order(Request &$request, array $instructions) : void {
-	// 	foreach($instructions as $index => $order_instruction){
-	// 		if(!is_array($order_instruction) || !count($order_instruction) === 2){
-	// 			throw new Exception("Invalid order instruction #{$index}.");
-	// 		}
+	final public function resolve_pull_conditions_new(array $instructions, string $index = '') : ?Condition {
+		/* $instructions = [
+			'attr_name1' => ins1
+			'attr_name2' => [
+				'ONE OF',
+				'child_attr_name1' => ins2
+			],
+			'attr_name2.child_attr_name2' => ins3,
+			[
+				'ONE OF',
+				...
+				...
+			]
+		]
+		*/
 
-	// 		list($compound_attribute_name, $sequence) = $order_instruction;
+		$mode = 'AND';
+		
+		$i = 0;
+		foreach($instructions as $key => $instruction){
+			if(!is_string($key)){ # mode setting
+				if($i !== 0){
+					throw new Exception('key missing');
+				}
 
-	// 		if(!is_string($compound_attribute_name)){
-	// 			throw new Exception("Invalid attribute format in order instruction #{$index}.");
-	// 		}
+				$mode = match($instruction){
+					'AND', 'ALL OF' => 'AND',
+					'OR', 'ONE OF' => 'OR',
+					default => throw new Exception('invalid mode')
+				};
 
-	// 		$segments = explode('.', $compound_attribute_name);
-	// 		$attribute = $segments[0];
+				continue;
+			}
 
-	// 		if(!$this->has_attribute($attribute)){
-	// 			throw new Exception("Unknown attribute «{$attribute}» in order instruction #{$index}/«{$compound_attribute_name}».");
-	// 		}
+			$compound_attr_name = explode('.', $key);
+			$attr_name = array_shift($compound_attr_name);
 
-	// 		$sequence = match($sequence){
-	// 			'+', 'ascending', 'asc', 'ASC' => 'ASC',
-	// 			'-', 'descending', 'desc', 'DESC' => 'DESC',
-	// 			default => throw new Exception("Invalid sequence in attribute instruction #{$original_index}.")
-	// 		};
+			if(!$this->has_attribute($attr_name)){
+				throw new Exception('attribute not found');
+			}
 
-	// 		if(count($segments) === 1){
-	// 			$request->order_by($attribute, $sequence, $index);
-	// 		} else {
-	// 			$request->order_by($segments, $sequence, $index);
-	// 		}
-	// 	}
-	// }
+			$conditions[] = $this->$attr_name->resolve_pull_condition(
+				match(empty($compound_attr_name)){
+					true => $instruction,
+					false => [
+						implode('.', $compound_attr_name) => $instruction
+					]
+				},
+				// "{$index}.{$i}"
+			);
+
+			$i++;
+		}
+
+		if(empty($conditions)){
+			return null;
+		} else if(count($conditions) === 1){
+			return $conditions[0];
+		} else if($mode === 'OR'){
+			return new OrOp(...$conditions);
+		} else if($mode === 'AND'){
+			return new AndOp(...$conditions);
+		} else {
+			throw new Exception('unexpected');
+		}
+	}
 
 
 	// TODO

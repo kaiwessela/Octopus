@@ -347,9 +347,10 @@ abstract class Entity {
 			throw new CallOutOfOrderException();
 		}
 
-		if(!$this->is_independent()){
-			throw new CallOutOfOrderException();
-		}
+		// HOTFIX
+		// if(!$this->is_independent()){
+		// 	throw new CallOutOfOrderException();
+		// }
 
 		$this->is_new = true;
 
@@ -374,9 +375,10 @@ abstract class Entity {
 			throw new CallOutOfOrderException();
 		}
 
-		if(!$this->is_independent()){
-			throw new CallOutOfOrderException();
-		}
+		// HOTFIX: commented out because it makes problems and is probably not necessary.
+		// if(!$this->is_independent()){
+		// 	throw new CallOutOfOrderException();
+		// }
 
 		# verify the identify_by value
 		if(is_null($identify_by)){ # if $identify_by is not set, assume the main identifier attribute
@@ -721,7 +723,7 @@ abstract class Entity {
 	#	attributes that are not contained are ignored
 	# @throws: AttributeValueExceptionList
 	final public function receive_input(array $data) : void {
-		if(!$this->is_loaded() || !$this->is_independent()){
+		if(!$this->is_loaded() /*|| !$this->is_independent()*/){
 			throw new CallOutOfOrderException();
 		}
 
@@ -754,7 +756,7 @@ abstract class Entity {
 	# @param $input: the proposed new value
 	# @throws: AttributeValueException[List] if changing the attribute to the proposed value is not allowed
 	final public function edit_attribute(string $name, mixed $input) : void {
-		if(!$this->is_loaded() || !$this->is_independent()){
+		if(!$this->is_loaded() /*|| !$this->is_independent()*/){
 			throw new CallOutOfOrderException();
 		}
 
@@ -787,7 +789,7 @@ abstract class Entity {
 	# all attributes this entity contains that are Entities or Relationships themselves are pushed too (recursively).
 	# @return: true if a database request was performed as a result of this process, false if not.
 	final public function push() : bool {
-		if(!$this->is_loaded() || !$this->is_independent()){
+		if(!$this->is_loaded() /*|| !$this->is_independent()*/){
 			throw new CallOutOfOrderException();
 		}
 
@@ -815,7 +817,7 @@ abstract class Entity {
 		}
 
 		try {
-			$s = $this->db->prepare($request->get_query());
+			$s = $this->get_db()->prepare($request->get_query());
 			$s->execute($request->get_values());
 			$request_performed = true;
 		} catch(PDOException $e){
@@ -825,6 +827,23 @@ abstract class Entity {
 				throw $e;
 			} else {
 				$request_performed = false;
+			}
+		}
+
+		// PUSH RELATIONSHIPS (TEMP)
+		if($this->is_independent()){
+			foreach($this->get_attributes() as $name){
+				if($this->$name->is_joinable()){
+					try {
+						$this->$name->get_value()?->push();
+					} catch(AttributeValueExceptionList $e){
+						$errors->merge($e);
+					}
+				}
+			}
+
+			if(!$errors->is_empty()){
+				throw $errors;
 			}
 		}
 
@@ -847,7 +866,7 @@ abstract class Entity {
 	# to the mysql ON DELETE CASCADE constraint.
 	# @return: true if a database request was performed, false if not (i.e. because the entity still/already is local)
 	final public function delete() : bool {
-		if(!$this->is_loaded() || !$this->is_independent()){
+		if(!$this->is_loaded() /*|| !$this->is_independent()*/){
 			throw new CallOutOfOrderException();
 		}
 
@@ -861,7 +880,7 @@ abstract class Entity {
 		$request->where(new IdentifierEquals($this->get_primary_identifier(), $this->get_primary_identifier()->get_value()));
 
 		try {
-			$s = $this->db->prepare($request->get_query());
+			$s = $this->get_db()->prepare($request->get_query());
 			$s->execute($request->get_values());
 		} catch(PDOException $e){
 			throw new DatabaseException($e, $s);

@@ -45,54 +45,54 @@ class RelationshipList extends EntityList {
 			throw new CallOutOfOrderException();
 		}
 
-		throw new Exception('not ready yet');
+		// throw new Exception('not ready yet');
 
-		$errors = new AttributeValueExceptionList();
+		// $errors = new AttributeValueExceptionList();
 
-		if(!$this->is_complete()){
-			// error
-		}
+		// if(!$this->is_complete()){
+		// 	throw new Exception('relationship list is not complete.'); // TEMP
+		// }
 
-		if(!$this->is_distinct()){
-			// error
-		}
+		// if(!$this->is_distinct()){
+		// 	throw new Exception('relationship list is not distinct.');
+		// }
 
 		if(is_null($data)){
 			return;
 		} else if(!is_array($data)){
-			// error
+			throw new Exception('no data to edit relationship list.');
 		}
 
-		foreach($data as $value){
-			if(is_string($value)){
-				$relatum_id = $value;
-			} else if(is_array($value)){
-				if(!isset($value['relatum'])){
-					// error
-				}
+		// foreach($data as $value){
+		// 	if(is_string($value)){
+		// 		$relatum_id = $value;
+		// 	} else if(is_array($value)){
+		// 		if(!isset($value['relatum'])){
+		// 			throw new Exception('no relatum');
+		// 		}
 
-				$relatum_id = $value['relatum'];
-			} else {
-				// invalid
-			}
+		// 		$relatum_id = $value['relatum'];
+		// 	} else {
+		// 		throw new Exception('value invalid');
+		// 	}
 
-			$relationship = $this->find_by_relatum($relatum_id);
+		// 	$relationship = $this->find_by_relatum($relatum_id);
 
-			if(is_null($relationship)){
-				$class = static::RELATION_CLASS;
-				$relationship = new $class($this->context);
-			}
+		// 	if(is_null($relationship)){
+		// 		$class = static::RELATION_CLASS;
+		// 		$relationship = new $class($this->context);
+		// 	}
 
-			$relationship->edit($value);
+		// 	$relationship->edit($value);
 
-			// find the relationship with this foreign entity
-			// if not found, create a new one
+		// 	// find the relationship with this foreign entity
+		// 	// if not found, create a new one
 
-			// edit the relationship
-			// push it
+		// 	// edit the relationship
+		// 	// push it
 
-			// delete the relationships that are not in $data
-		}
+		// 	// delete the relationships that are not in $data
+		// }
 
 		/*
 		columns => [
@@ -119,13 +119,17 @@ class RelationshipList extends EntityList {
 		# that occur during the editing of the relationships (i.e. invalid or missing inputs)
 		$errors = new AttributeValueExceptionList();
 
-		foreach($data as $index => $field){
-			$action = $field['action'];
-			$input = $field['data'];
+		foreach($data as $index => $input){
+			$action = $input['action'];
+			unset($input['action']);
+			// $input = $field['data'];
+
+			// var_dump($field);
 
 			if($action === 'new'){ # create and add a new relationship
-				$cls = static::RELATION_CLASS;
-				$relation = new $cls($this->context);
+				// $cls = static::RELATION_CLASS;
+				// $relation = new $cls($this->context);
+				$relation = clone $this->prototype;
 
 				$relation->create(); # create a new relationship and let it handle the input
 
@@ -182,6 +186,10 @@ class RelationshipList extends EntityList {
 
 	# Remove a relationship from this list
 	final public function remove(string $id) : bool {
+		if(!isset($this->deletions)){
+			$this->deletions = [];
+		}
+
 		if(!$this->is_loaded()){
 			throw new CallOutOfOrderException();
 		}
@@ -211,6 +219,10 @@ class RelationshipList extends EntityList {
 
 		foreach($this->entities as $id => $_){ # push all relationships in this list
 			$request_performed |= $this->entities[$id]->push();
+		}
+
+		if(!isset($this->deletions)){
+			$this->deletions = [];
 		}
 
 		foreach($this->deletions as $id => $_){ # delete the relationships that have been removed

@@ -13,6 +13,7 @@ use \Octopus\Modules\BasicEntityController\Pagination\Pagination;
 class BasicEntityController extends EntityController {
 	protected string $mode; # 'REST'|'FORM' (default)
 	protected string $action; # 'show'|'edit'|'delete'|'list'|'new'|'empty'
+	protected string $requested_action;
 
 	public Entity|EntityList $object;
 
@@ -68,15 +69,17 @@ class BasicEntityController extends EntityController {
 
 
 	protected function load_action() : void {
-		$this->action = $this->call->get_option('action');
+		$this->requested_action = $this->call->get_option('action');
 
-		if(!in_array($this->action, ['show', 'edit', 'delete', 'list', 'new'])){
+		if(!in_array($this->requested_action, ['show', 'edit', 'delete', 'list', 'new'])){
 			throw new ControllerException(500, 'Route: Invalid action.');
 		}
 
-		if($this->action === 'list'){
+		if($this->requested_action === 'list'){
+			$this->action = 'list';
 			$this->request->require_method('GET');
 		} else if($this->mode === 'REST'){
+			$this->action = $this->requested_action;
 			$this->request->require_method(match($this->action){
 				'show' => 'GET',
 				'edit' => 'POST',
@@ -84,11 +87,13 @@ class BasicEntityController extends EntityController {
 				'delete' => 'DELETE'
 			});
 		} else if($this->request->method_is('GET')){
-			if($this->action === 'new'){
+			if($this->requested_action === 'new'){
 				$this->action = 'empty';
 			} else {
 				$this->action = 'show';
 			}
+		} else {
+			$this->action = $this->requested_action;
 		}
 	}
 
@@ -109,7 +114,7 @@ class BasicEntityController extends EntityController {
 			throw new ControllerException(500, 'Route: Invalid option «identify_by».');
 		}
 
-		$this->identifier = URLSubstitution::replace($this->call->get_option('identifier'), $this->request);
+		$this->identifier = URLSubstitution::replace($this->call->get_option('identifier'), $this->request, true);
 
 		if(!is_string($this->identifier)){
 			throw new ControllerException(500, 'Route: Invalid option «identifier».');
@@ -244,6 +249,7 @@ class BasicEntityController extends EntityController {
 					$this->set_status_code(200);
 				} catch(AttributeValueExceptionList $e){
 					$this->set_status_code(422);
+					echo $e->get_messages();
 					throw new ControllerException(422, '', $e);
 					return; // TODO invalid input
 				}
@@ -268,6 +274,11 @@ class BasicEntityController extends EntityController {
 
 	public function get_action() : string {
 		return $this->action;
+	}
+
+
+	public function get_requested_action() : string {
+		return $this->requested_action;
 	}
 }
 ?>

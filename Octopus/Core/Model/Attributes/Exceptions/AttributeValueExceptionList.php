@@ -42,6 +42,17 @@ class AttributeValueExceptionList extends Exception {
 	}
 
 
+	public function get_messages() : string {
+		$msg = '';
+
+		foreach($this->exceptions as $ex){
+			$msg .= $ex->getMessage() . PHP_EOL;
+		}
+
+		return $msg;
+	}
+
+
 	public function is_empty() : bool {
 		return count($this->exceptions) === 0;
 	}

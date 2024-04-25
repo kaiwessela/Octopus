@@ -307,6 +307,11 @@ class Timestamp extends StaticObject {
 	}
 
 
+	public function to_html_datetime() : string {
+		return $this->datetime->format('Y-m-d\TH:i');
+	}
+
+
 	public function format(string $format) : string { // TEMP
 		$formatter = new IntlDateFormatter(
 			'de',

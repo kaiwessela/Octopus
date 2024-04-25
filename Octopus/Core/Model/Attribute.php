@@ -17,6 +17,8 @@ abstract class Attribute {
 	protected mixed $value; # the current value, not yet updated in the database.
 	protected mixed $db_value; # the value stored in the database. null if not yet stored.
 
+	private mixed $old_value; // DEPRECATED
+
 
 
 	final function __construct(bool $is_required, bool $is_editable) {

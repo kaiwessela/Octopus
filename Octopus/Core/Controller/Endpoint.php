@@ -166,9 +166,8 @@ class Endpoint {
 	private function abort(ControllerException $exception) : void {
 		$environment = [];
 
-		throw $exception;
-
 		if(Config::get('Server.debug_mode') === true){
+			throw $exception;
 			$environment['exception'] = $exception;
 		}
 

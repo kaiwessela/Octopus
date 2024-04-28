@@ -6,7 +6,7 @@ class ControllerException extends Exception {
 	private int $status_code;
 	private ?Exception $exception;
 
-	function __construct(int $code, ?string $message = null, ?Exception $exception = null) {
+	function __construct(int $code, ?string $message = '', ?Exception $exception = null) {
 		parent::__construct($message);
 
 		$this->status_code = $code;

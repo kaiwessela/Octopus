@@ -47,6 +47,7 @@ abstract class Attribute {
 			throw new AttributeNotLoadedException($this);
 		}
 
+		$this->old_value = null;
 		$former_value = $this->value;
 
 		$this->_edit($input);

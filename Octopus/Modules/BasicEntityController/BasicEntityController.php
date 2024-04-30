@@ -249,7 +249,7 @@ class BasicEntityController extends EntityController {
 					$this->set_status_code(200);
 				} catch(AttributeValueExceptionList $e){
 					$this->set_status_code(422);
-					echo $e->get_messages();
+					// echo $e->get_messages();
 					throw new ControllerException(422, '', $e);
 					return; // TODO invalid input
 				}

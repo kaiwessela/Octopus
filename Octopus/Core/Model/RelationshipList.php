@@ -23,6 +23,8 @@ class RelationshipList extends EntityList {
 			throw new CallOutOfOrderException();
 		}
 
+		$this->entities = [];
+
 		foreach($data as $row){
 			$relationship = clone $this->prototype;
 			$relationship->load($row); # load the relationship

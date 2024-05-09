@@ -833,7 +833,7 @@ abstract class Entity {
 		// PUSH RELATIONSHIPS (TEMP)
 		if($this->is_independent()){
 			foreach($this->get_attributes() as $name){
-				if($this->$name->is_joinable()){
+				if($this->$name->is_joinable() && $this->$name->is_loaded()){
 					try {
 						$this->$name->get_value()?->push();
 					} catch(AttributeValueExceptionList $e){

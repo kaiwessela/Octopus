@@ -22,12 +22,11 @@ class IntAttribute extends PropertyAttribute {
 
 
 	public function _edit(mixed $input) : void {
-
 		if(empty($input)){
 			$this->value = null;
 			return;
 		}
-
+		
 		if(!is_numeric($input)){
 			throw new IllegalValueException($this, $input, 'not a number');
 		}

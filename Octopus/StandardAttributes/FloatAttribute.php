@@ -27,7 +27,9 @@ class FloatAttribute extends PropertyAttribute {
 			return;
 		}
 
-		if(!is_numeric($value)){
+		// TODO handle commas and dots
+
+		if(!is_numeric($input)){
 			throw new IllegalValueException($this, $input, 'not a number');
 		}
 

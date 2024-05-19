@@ -304,6 +304,22 @@ abstract class Entity {
 	}
 
 
+	# Return the name of the identifier attribute the entity is identified by by its context entity.
+	final public function get_context_identifier_name() : string {
+		if($this->is_independent()){
+			return $this->get_primary_identifier_name();
+		} else {
+			return $this->context_attribute->get_identify_by();
+		}
+	}
+
+
+	# Return the identifier attribute the entity is identified by by its context entity.
+	final public function get_context_identifier() : IdentifierAttribute {
+		return $this->get_attribute($this->get_context_identifier_name());
+	}
+
+
 	# Return the database table in which the entities of this class are stored.
 	final public function get_db_table() : string {
 		return static::DB_TABLE;
@@ -797,13 +813,13 @@ abstract class Entity {
 			$request = new InsertRequest($this);
 		} else {
 			$request = new UpdateRequest($this);
-			$request->where(new IdentifierEquals($this->get_primary_identifier(), $this->get_primary_identifier()->get_value()));
+			$request->where(new IdentifierEquals($this->get_context_identifier(), $this->get_context_identifier()->get_value()));
 		}
 
 		$errors = new AttributeValueExceptionList();
 
 		foreach($this->get_attributes() as $name){
-			if($this->$name->is_pullable()){ # only pullable attributes can be updated this way 
+			if($this->$name->is_loaded() && $this->$name->is_pullable()){ # only pullable attributes can be updated this way 
 				if($this->$name->is_required() && $this->$name->is_empty()){ # if a required attribute has not been set
 					$errors->push(new MissingValueException($this->$name));
 				} else if($this->$name->is_dirty()){ # if the attribute value was edited, add it to the request
@@ -877,7 +893,7 @@ abstract class Entity {
 
 		# create a DeleteRequest and set the WHERE condition to id = $this->id
 		$request = new DeleteRequest($this);
-		$request->where(new IdentifierEquals($this->get_primary_identifier(), $this->get_primary_identifier()->get_value()));
+		$request->where(new IdentifierEquals($this->get_context_identifier(), $this->get_context_identifier()->get_value()));
 
 		try {
 			$s = $this->get_db()->prepare($request->get_query());

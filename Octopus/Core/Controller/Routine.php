@@ -4,5 +4,7 @@ use Octopus\Core\Controller\Environment;
 
 interface Routine {
 
-	public function run(Environment &$env) : void;
+	public function bind(Environment &$environment, ?string $name) : void;
+
+	public function run() : void;
 }

@@ -2,17 +2,19 @@
 namespace Octopus\Modules\Web\Routing;
 use Exception;
 use Octopus\Core\Controller\Environment;
+use Octopus\Core\Controller\Routine;
+use Octopus\Core\Controller\StandardRoutine;
 use Octopus\Modules\Web\Routing\Route;
 use Octopus\Modules\Web\Routing\RoutingException;
 use Octopus\Modules\Web\WebRoutine;
 
-class RoutingRoutine extends WebRoutine {
+class RoutingRoutine extends StandardRoutine implements Routine {
 	protected array $routes;
 	protected Route $default_route;
 	protected Route $active_route;
 
 
-	function __construct(array $routes) {
+	public function load(array $routes) {
 		foreach($routes as $target => $options){
 			$route = new Route($target, $options, $this);
 
@@ -25,14 +27,14 @@ class RoutingRoutine extends WebRoutine {
 	}
 
 
-	public function run(Environment &$env) : void {
+	public function run() : void {
 		$route_found = false;
 		$method_matches = false;
 		foreach($this->routes as &$route){
-			if($route->match_path($env->get_request()->get_virtual_path())){
+			if($route->match_path($this->environment->get_request()->get_virtual_path())){
 				$route_found = true;
 
-				if($route->match_method($env->get_request()->get_method())){
+				if($route->match_method($this->environment->get_request()->get_method())){
 					$method_matches = true;
 					$this->active_route = $route;
 					break;
@@ -63,10 +65,11 @@ class RoutingRoutine extends WebRoutine {
 				throw new RoutingException(500, "Routine class «{$routine_class}» is not a WebRoutine.");
 			}
 
-			$routine = $routine_class::create_from_route($settings, $env);
+			$routine = new $routine_class();
+			$routine->load($settings);
 
 			try {
-				$env->run($routine, $name, pass_errors:true);
+				$this->environment->run($routine, $name, pass_errors:true);
 			} catch(Exception $e){
 				throw $e;
 			}

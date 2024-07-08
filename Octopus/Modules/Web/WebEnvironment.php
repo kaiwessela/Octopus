@@ -21,13 +21,14 @@ final class WebEnvironment implements Environment {
 	private DatabaseAccess $db;
 	private Authenticator $authenticator;
 	private array $routines;
+	private array $running_routines;
 
 
 	function __construct() {
 		$this->config = new Config(require __DIR__ . '/../../../../config/config.php');
 
 		if($this->config->get('debug_mode', true) === true){
-			error_reporting(1);
+			error_reporting(E_ALL);
 			ini_set('display_errors', 1);
 		} else {
 			error_reporting(0);
@@ -50,31 +51,51 @@ final class WebEnvironment implements Environment {
 		$this->authenticator = new Authenticator($this->db);
 
 		$this->routines = [];
+		$this->running_routines = [];
 	}
 
 
-	final public function run(Routine &$routine, string $name, bool $pass_errors = false) : void {
-		if(isset($this->routines[$name])){
-			throw new RoutineCollisionException();
+	final public function run(Routine &$routine, ?string $name = null, bool $pass_errors = false) : void {
+		if(isset($name)){
+			if(isset($this->routines[$name])){
+				throw new RoutineCollisionException();
+			}
+
+			$this->routines[$name] = $routine;
+
+			array_push($this->running_routines, $name);
 		}
 
-		$this->routines[$name] = $routine;
-
 		try {
-			$routine->run($this);
+			$routine->bind($this, $name);
+			$routine->run();
 		} catch(Exception $e){
 			// if($pass_errors){
 				throw $e;
 			// }
 
 			
+		} finally {
+			if(isset($name)){
+				array_pop($this->running_routines);
+			}
 		}
+	}
+
+
+	final public function substitute(Routine &$routine, string $name, bool $pass_errors = false) : void {
+		if(end($this->running_routines) !== $name){
+			throw new Exception('cannot substitute');
+		}
+
+		unset($this->routines[$name]);
+
+		$this->run($routine, $name, $pass_errors);
 	}
 
 
 	final public function get_routine(string $name) : Routine {
 		if(!isset($this->routines[$name])){
-			var_dump(array_keys($this->routines));
 			throw new Exception('routine not found');
 		}
 

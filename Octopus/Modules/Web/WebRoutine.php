@@ -1,37 +1,19 @@
 <?php
 namespace Octopus\Modules\Web;
-use Exception;
-use Octopus\Core\Controller\Environment;
-use Octopus\Core\Controller\Routine;
 use Octopus\Modules\Web\WebEnvironment;
 
-abstract class WebRoutine implements Routine {
-	protected string $status;
-	
+interface WebRoutine {
 
-	public function run(Environment &$env) : void {
-		$this->check_environment($env);
-	}
+	public function load(array $options) : void;
 
 
-	protected function check_environment(Environment $env) : void {
-		if(!$env instanceof WebEnvironment){
-			throw new Exception('environment is not a WebEnvironment.');
-		}
-	}
+	// public function check_environment(Environment $env) : void;
 
 
-	protected function set_status(string $status) : void {
-		$this->status = $status;
-	}
+	// public function set_status(string $status) : void;
 
 
-	public function get_status() : string {
-		return $this->status;
-	}
+	public function get_status() : string;
 
-
-	public function status_is(string $status) : bool {
-		return $this->status === $status;
-	}
+	public function status_is(string $status) : bool;
 }

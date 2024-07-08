@@ -9,54 +9,8 @@ use Octopus\Modules\Web\WebEnvironment;
 use Octopus\Modules\Web\WebRoutine;
 
 class RestEntityRoutine extends WebRoutine {
-	public Entity|EntityList $object;
 
-	protected string $action;
-	protected string $class;
-	protected null|string|int $identifier;
-	protected ?string $identify_by;
-	protected array $include_attributes;
-	protected array $order_by;
-	protected ?int $limit;
-	protected ?int $offset;
-	protected array $conditions;
-
-
-	function __construct(
-		string $action, # create | pull | pull-list | edit | delete
-		string $class,
-		null|string|int $identifier = null,
-		?string $identify_by = null,
-		array $include_attributes = [],
-		array $order_by = [],
-		?int $limit = null,
-		?int $offset = null,
-		array $conditions = [],
-	) {
-		if(!in_array($action, ['create', 'pull', 'list', 'edit', 'delete'])){
-			throw new Exception("Invalid action «{$action}».");
-		}
-
-		$this->action = $action;
-
-		if(!is_subclass_of($class, Entity::class)){
-			throw new Exception("Class «{$class}» is not a subclass of Entity.");
-		}
-
-		if(!defined("{$class}::X_STANDARD_ENTITY_ROUTINE")){
-			throw new Exception("Class «{$class}» is not compatible with RestEntityRoutine.");
-		}
-
-		$this->class = $class;
-
-		$this->identifier = $identifier;
-		$this->identify_by = $identify_by;
-		$this->include_attributes = $include_attributes;
-		$this->order_by = $order_by;
-		$this->limit = $limit;
-		$this->offset = $offset;
-		$this->conditions = $conditions;
-	}
+	// NOT WORKING
 
 
 	public static function create_from_route(array $options, WebEnvironment $env) : self {

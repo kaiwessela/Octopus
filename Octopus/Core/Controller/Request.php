@@ -134,8 +134,12 @@ class Request {
 		return $this->method;
 	}
 
-	public function method_is(string $method) : bool {
-		return $this->method === $method;
+	public function method_is(string|array $method) : bool {
+		if(is_string($method)){
+			return $this->method === $method;
+		} else {
+			return in_array($this->method, $method);
+		}
 	}
 
 	public function require_method(string|array $method) : void {

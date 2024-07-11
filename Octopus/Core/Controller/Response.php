@@ -96,6 +96,12 @@ class Response {
 	}
 
 
+	public function send_headers() : void {
+		http_response_code($this->get_status_code());
+		header("Content-Type: {$this->content_type}");
+	}
+
+
 	public function send(?int $code = 200, array $environment = []) : void {
 		$this->set_status_code($code ?? 200);
 

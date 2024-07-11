@@ -15,6 +15,8 @@ class RoutingRoutine extends StandardRoutine implements Routine {
 
 
 	public function load(array $routes) {
+		$this->routes = [];
+
 		foreach($routes as $target => $options){
 			$route = new Route($target, $options, $this);
 
@@ -23,6 +25,10 @@ class RoutingRoutine extends StandardRoutine implements Routine {
 			} else {
 				$this->routes[] = $route;
 			}
+		}
+
+		if(!isset($this->default_route)){
+			$this->default_route = new Route('@default', [], $this);
 		}
 	}
 

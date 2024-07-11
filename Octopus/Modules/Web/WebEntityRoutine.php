@@ -5,9 +5,8 @@ use Octopus\Core\Controller\Router\URLSubstitution;
 use Octopus\Core\Controller\StandardEntityRoutine;
 use Octopus\Core\Controller\StandardRoutine;
 use Octopus\Modules\Web\WebEnvironment;
-use Octopus\Modules\Web\WebRoutine;
 
-class WebEntityRoutine extends StandardWebRoutine implements WebRoutine {
+class WebEntityRoutine extends StandardWebRoutine {
 	protected array $options;
 
 

@@ -70,11 +70,11 @@ final class WebEnvironment implements Environment {
 			$routine->bind($this, $name);
 			$routine->run();
 		} catch(Exception $e){
-			// if($pass_errors){
+			if($pass_errors){
 				throw $e;
-			// }
-
-			
+			} else {
+				$this->handle_exception($e);
+			}
 		} finally {
 			if(isset($name)){
 				array_pop($this->running_routines);
@@ -91,6 +91,11 @@ final class WebEnvironment implements Environment {
 		unset($this->routines[$name]);
 
 		$this->run($routine, $name, $pass_errors);
+	}
+
+
+	final public function handle_exception(Exception $exception) : void {
+		throw $exception;
 	}
 
 

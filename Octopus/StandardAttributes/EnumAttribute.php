@@ -3,6 +3,9 @@ namespace Octopus\StandardAttributes;
 use Exception;
 use Octopus\Core\Model\Attributes\Exceptions\IllegalValueException;
 use Octopus\Core\Model\Attributes\PropertyAttribute;
+use Octopus\Core\Model\Database\Condition;
+use Octopus\Core\Model\Database\Conditions\Equals;
+use Octopus\Core\Model\Database\Conditions\InList;
 
 class EnumAttribute extends PropertyAttribute {
 	protected string $class;
@@ -64,6 +67,23 @@ class EnumAttribute extends PropertyAttribute {
 
 	public function arrayify() : null|string|int|float|bool|array {
 		return $this->value->value;
+	}
+
+
+	public function resolve_pull_condition(mixed $option) : ?Condition {
+		if(is_array($option)){
+			foreach($option as $opt){
+				if(!is_string($opt)){
+					throw new Exception('invalid condition.'); // TODO
+				}
+			}
+
+			return new InList($this, $option);
+		} else if(is_string($option)){
+			return new Equals($this, $option);
+		} else {
+			throw new Exception('invalid condition.'); // TODO
+		}
 	}
 }
 ?>

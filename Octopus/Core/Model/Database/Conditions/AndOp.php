@@ -17,7 +17,7 @@ class AndOp extends Condition {
 	}
 
 
-	protected function resolve(int $index = 0) : int {
+	public function resolve(int $index = 0) : int {
 		$queries = [];
 
 		foreach($this->conditions as $condition){

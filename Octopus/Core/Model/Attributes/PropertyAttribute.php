@@ -1,8 +1,9 @@
 <?php
 namespace Octopus\Core\Model\Attributes;
+use Exception;
 use Octopus\Core\Model\Attribute;
-use Octopus\Core\Model\Attributes\Pullable;
 
+use Octopus\Core\Model\Attributes\Pullable;
 use Octopus\Core\Model\Database\Condition; // TEMP
 
 abstract class PropertyAttribute extends Attribute {

@@ -328,8 +328,8 @@ abstract class Entity {
 
 	# Return this entity's database table, prefixed with its database prefix if that is set.
 	final public function get_prefixed_db_table() : string {
-		if(isset($this->db_prefix)){
-			return "{$this->db_prefix}~{$this->get_db_table()}";
+		if(!is_null($this->get_db_prefix())){
+			return "{$this->get_db_prefix()}~{$this->get_db_table()}";
 		} else {
 			return $this->get_db_table();
 		}
@@ -809,6 +809,10 @@ abstract class Entity {
 			throw new CallOutOfOrderException();
 		}
 
+		// if(!$this->is_independent()){ // TODO
+		// 	throw new Exception('not independent.');
+		// }
+
 		if($this->is_new()){
 			$request = new InsertRequest($this);
 		} else {
@@ -836,6 +840,7 @@ abstract class Entity {
 			$s = $this->get_db()->prepare($request->get_query());
 			$s->execute($request->get_values());
 			$request_performed = true;
+			$this->is_new = false;
 		} catch(PDOException $e){
 			throw new DatabaseException($e, $s);
 		} catch(EmptyRequestException $e){ # if no attribute values have been edited, the request will not be performed

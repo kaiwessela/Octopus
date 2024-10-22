@@ -69,13 +69,13 @@ class StandardEntityRoutine extends StandardRoutine implements Routine {
 			
 			if($this->action === 'create'){
 				$this->object->create();
-				$this->object->receive_input($this->environment->request->get_data());
+				$this->object->receive_input($this->environment->get_request()->get_content());
 				$this->object->push();
 			} else {
 				$this->object->pull($this->identifier, $this->identify_by, $this->include_attributes);
 
 				if($this->action === 'edit'){
-					$this->object->receive_input($this->environment->request->get_data());
+					$this->object->receive_input($this->environment->get_request()->get_content());
 					$this->object->push();
 				} else if($this->action === 'delete'){
 					$this->object->delete();

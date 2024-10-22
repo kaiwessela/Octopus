@@ -12,6 +12,11 @@ abstract class StandardWebRoutine extends StandardRoutine implements WebRoutine 
 	}
 
 
+	protected function set_status(string $status) : void {
+		$this->status = $status;
+	}
+
+
 	public function status_is(string $status) : bool {
 		return $this->status === $status;
 	}

@@ -32,7 +32,7 @@ class WebEntityRoutine extends StandardWebRoutine {
 
 		$standard_routine = new StandardEntityRoutine();
 		$standard_routine->load(
-			action: $this->options['action'],
+			action: $action,
 			class: $this->options['entity'],
 			identifier: URLSubstitution::replace($this->options['identifier'] ?? null, $this->environment->get_request()),
 			identify_by: URLSubstitution::replace($this->options['identify_by'] ?? null, $this->environment->get_request()),
@@ -40,7 +40,7 @@ class WebEntityRoutine extends StandardWebRoutine {
 			order_by: $this->options['order_by'] ?? [],
 			limit: $this->options['limit'] ?? null,
 			offset: $this->options['offset'] ?? null,
-			conditions: $this->options['conditions'] ?? []
+			conditions: URLSubstitution::replace($this->options['conditions'] ?? [], $this->environment->get_request())
 		);
 
 		$this->environment->substitute($standard_routine, $this->name);

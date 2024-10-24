@@ -24,6 +24,10 @@ class TimestampAttribute extends StaticObjectAttribute {
 
 
 	final protected function _edit(mixed $input) : void {
+		if($input instanceof Timestamp){ // THIS IS A HOTFIX
+			$input = $input->to_unix();
+		}
+
 		if(is_null($input)){
 			$this->value = null;
 		} else {

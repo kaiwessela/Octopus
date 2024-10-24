@@ -21,6 +21,11 @@ class Timestamp extends StaticObject {
 	}
 
 
+	function __toString() {
+		return $this->to_w3c();
+	}
+
+
 	// public static function new(string $datetime = 'now', ?DateTimeZone $timezone = null) : Timestamp {
 	// 	return new static(new DateTimeImmutable($datetime, $timezone));
 	// }

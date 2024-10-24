@@ -949,5 +949,35 @@ abstract class Entity {
 	// 	$class = static::LIST_CLASS;
 	// 	return new $class($db, static::class);
 	// }
+
+
+	public function get_entity_tree() : array {
+		$array = [];
+
+		foreach($this->get_attributes() as $name){
+			$namestring = '';
+
+			if(!$this->$name->is_loaded()){
+				$namestring = "($name)";
+			} else {
+				if($this->$name->is_dirty()){
+					$namestring .= '*';
+				}
+
+				$namestring = $name;
+			}
+
+			if($this->$name->is_joinable() && $this->$name->is_pullable() && $this->$name->is_loaded()){
+				$child_tree = $this->$name->get_value()?->get_entity_tree();
+
+				$array[$namestring] = $child_tree;
+				// $array[] = $namestring;
+			} else {
+				$array[] = $namestring;
+			}
+		}
+
+		return $array;
+	}
 }
 ?>

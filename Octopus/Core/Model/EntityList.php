@@ -181,7 +181,8 @@ class EntityList {
 	# @param $index_or_id: list index or id of the entity
 	final public function &get(string|int $id) : ?Entity {
 		if(is_int($id)){
-			return array_values($this->entities)[$id] ?? null;
+			$return = array_values($this->entities)[$id] ?? null;
+			return $return;
 		} else {
 			return $this->entities[$id] ?? null;
 		}

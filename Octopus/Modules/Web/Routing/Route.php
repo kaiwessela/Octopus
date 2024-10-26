@@ -111,4 +111,24 @@ class Route {
 	public function get_options() : array {
 		return $this->options;
 	}
+
+
+	public function get_option(string $key) : mixed {
+		return static::findopt($key, $this->get_options());
+	}
+
+
+	private static function findopt(?string $key_path, array $options) {
+		if($key_path === null){
+			return $options;
+		}
+
+		$key_path_exploded = explode('.', $key_path, 2);
+		
+		if(!isset($options[$key_path_exploded[0]])){
+			return null;
+		} else {
+			return static::findopt($key_path_exploded[1] ?? null, $options[$key_path_exploded[0]]);
+		}
+	}
 }

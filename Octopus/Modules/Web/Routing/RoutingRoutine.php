@@ -66,7 +66,7 @@ class RoutingRoutine extends StandardRoutine implements Routine {
 		$this->template = $this->active_route->get_options()['template'];
 
 		foreach($this->active_route->get_options()['routines'] ?? [] as $name => $settings){
-			$settings = $settings + ($this->default_route->get_options()["{$name}.routine"] ?? []) + ($this->default_route->get_options()['*.routine'] ?? []);
+			$settings = $settings + ($this->default_route->get_option("routines.{$name}") ?? []) + ($this->default_route->get_option('routines.*') ?? []);
 
 			$routine_class = $settings['routine'] 
 				?? $this->default_route->get_options()['routines']['*']['routine']

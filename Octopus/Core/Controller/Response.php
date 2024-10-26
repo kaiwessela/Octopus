@@ -97,7 +97,7 @@ class Response {
 
 
 	public function send_headers() : void {
-		http_response_code($this->get_status_code());
+		http_response_code($this->get_status_code() ?? 200);
 		header("Content-Type: {$this->content_type}");
 	}
 

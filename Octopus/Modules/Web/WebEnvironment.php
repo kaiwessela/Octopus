@@ -99,8 +99,13 @@ final class WebEnvironment implements Environment {
 	}
 
 
+	final public function has_routine(string $name) : bool {
+		return isset($this->routines[$name]);
+	}
+
+
 	final public function get_routine(string $name) : Routine {
-		if(!isset($this->routines[$name])){
+		if(!$this->has_routine($name)){
 			throw new Exception('routine not found');
 		}
 

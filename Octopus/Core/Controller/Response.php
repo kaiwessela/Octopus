@@ -9,6 +9,7 @@ class Response {
 	private string $content_type;
 	private array $templates;
 	private array $cookies;
+	private ?array $redirect;
 
 
 	function __construct() {
@@ -17,6 +18,7 @@ class Response {
 		$this->content_type = 'text/html';
 		$this->templates = [];
 		$this->cookies = [];
+		$this->redirect = null;
 	}
 
 
@@ -96,17 +98,32 @@ class Response {
 	}
 
 
+	public function set_redirect(?string $location, ?int $type = null) : void {
+		if(is_null($location)){
+			$this->redirect = null;
+		} else {
+			$this->redirect = [$location, $type] ?? 303;
+		}
+	}
+
+
 	public function send_headers() : void {
+		if(isset($this->redirect)){
+			$this->set_status_code($this->redirect[1]);
+		}
+
 		http_response_code($this->get_status_code() ?? 200);
+
+		if(isset($this->redirect)){
+			header("Location: {$this->redirect[0]}");
+		}
+
 		header("Content-Type: {$this->content_type}");
 	}
 
 
 	public function send(?int $code = 200, array $environment = []) : void {
-		$this->set_status_code($code ?? 200);
-
-		http_response_code($this->get_status_code());
-		header("Content-Type: {$this->content_type}");
+		$this->send_headers();
 
 		foreach($this->cookies as $name => $cookie){
 			setcookie($cookie['name'], $cookie['value'], time() + $cookie['duration'], $cookie['path'], $cookie['domain']); // TEMP

@@ -5,6 +5,7 @@ use Octopus\Core\Controller\Router\URLSubstitution;
 use Octopus\Core\Controller\StandardEntityRoutine;
 use Octopus\Core\Controller\StandardRoutine;
 use Octopus\Core\Model\Attributes\IdentifierAttribute;
+use Octopus\Modules\Web\PostRedirectGetMessage;
 use Octopus\Modules\Web\WebEnvironment;
 
 class WebEntityRoutine extends StandardWebRoutine {
@@ -119,6 +120,10 @@ class WebEntityRoutine extends StandardWebRoutine {
 				),
 				303
 			);
+		}
+
+		if($this->executed_action_is('edit')){
+			$this->environment->set_prg_message("{$this->name}_status", new PostRedirectGetMessage('edited'));
 		}
 	}
 

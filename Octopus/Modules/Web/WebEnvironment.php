@@ -6,6 +6,7 @@ use Octopus\Core\Controller\Request;
 use Octopus\Core\Controller\Response;
 use Octopus\Core\Controller\Routine;
 use Octopus\Core\Model\Database\DatabaseAccess;
+use Octopus\Modules\Web\PostRedirectGetMessage;
 use Startschreiber\Server\Authentication\Authenticator;
 use Startschreiber\Server\BoxInteraction\BoxMessage;
 use Startschreiber\Server\Config;
@@ -52,6 +53,8 @@ final class WebEnvironment implements Environment {
 
 		$this->routines = [];
 		$this->running_routines = [];
+
+		$this->clear_prg_messages();
 	}
 
 
@@ -153,5 +156,36 @@ final class WebEnvironment implements Environment {
 
 	final public function &get_authenticator() : Authenticator {
 		return $this->authenticator;
+	}
+
+
+	final public function set_prg_message(string $name, PostRedirectGetMessage $message) : void {
+		$_SESSION['prg'][$name] = $message;
+	}
+
+
+	final public function get_prg_messages() : array {
+		return $_SESSION['prg'];
+	}
+
+
+	final public function has_prg_message(string $name) : bool {
+		return isset($_SESSION['prg'][$name]);
+	}
+
+
+	final public function get_prg_message(string $name) : PostRedirectGetMessage {
+		return $_SESSION['prg'][$name];
+	}
+
+
+	final protected function clear_prg_messages() : void {
+		foreach($_SESSION['prg'] ?? [] as $name => $message){
+			$message->countdown();
+
+			if($message->is_dead()){
+				unset($_SESSION['prg'][$name]);
+			}
+		}
 	}
 }

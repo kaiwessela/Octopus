@@ -5,6 +5,7 @@ use Octopus\Core\Controller\Router\URLSubstitution;
 use Octopus\Core\Controller\StandardEntityRoutine;
 use Octopus\Core\Controller\StandardRoutine;
 use Octopus\Core\Model\Attributes\IdentifierAttribute;
+use Octopus\Modules\Web\Misentries\MisentryList;
 use Octopus\Modules\Web\PostRedirectGetMessage;
 use Octopus\Modules\Web\WebEnvironment;
 
@@ -13,6 +14,7 @@ class WebEntityRoutine extends StandardWebRoutine {
 	protected string $requested_action;
 	protected string $executed_action;
 	protected ?StandardEntityRoutine $standard_routine;
+	protected MisentryList $misentries;
 
 	protected ?string $redirect_on_success;
 
@@ -76,6 +78,8 @@ class WebEntityRoutine extends StandardWebRoutine {
 			return;
 		}
 
+		$this->misentries = new MisentryList();
+
 		$this->standard_routine->load(
 			action: $this->executed_action,
 			class: $this->options['entity'],
@@ -124,6 +128,7 @@ class WebEntityRoutine extends StandardWebRoutine {
 
 		if($this->executed_action_is('edit')){
 			$this->environment->set_prg_message("{$this->name}_status", new PostRedirectGetMessage('edited'));
+			$this->environment->set_prg_message("{$this->name}_misentries", new PostRedirectGetMessage($this->misentries));
 		}
 	}
 
@@ -145,6 +150,11 @@ class WebEntityRoutine extends StandardWebRoutine {
 
 	public function executed_action_is(string|array $action) : bool {
 		return is_string($action) ? $this->get_executed_action() === $action : in_array($this->get_executed_action(), $action);
+	}
+
+
+	public function get_misentries() : MisentryList {
+		return $this->misentries;
 	}
 
 

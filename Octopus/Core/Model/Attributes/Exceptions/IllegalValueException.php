@@ -19,7 +19,7 @@ class IllegalValueException extends AttributeValueException {
 		$this->message = "An attempt to set the attribute «{$attribute->get_name()}» to the value «"
 			. var_export($this->value, true)
 			. '» failed because that value does not fit the defined requirements for the attribute'
-			. ($message === '') ? '.' : ": {$message}.";
+			. (($message === '') ? '.' : ": {$message}.");
 	}
 }
 ?>

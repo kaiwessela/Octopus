@@ -237,10 +237,10 @@ abstract class Entity {
 
 	# Returns the DatabaseAccess of this entity or its context, if it is dependent.
 	final public function &get_db() : DatabaseAccess {
-		$db = $this->db ?? $this->context_entity?->get_db();
+		$db = $this->db ?? $this->context_entity?->get_db() ?? $this->context_list?->get_db();
 
 		if(is_null($db)){
-			throw new Exception('no db'); // TODO 
+			throw new Exception('no db'); // TODO
 		}
 
 		return $db;
@@ -306,7 +306,7 @@ abstract class Entity {
 
 	# Return the name of the identifier attribute the entity is identified by by its context entity.
 	final public function get_context_identifier_name() : string {
-		if($this->is_independent()){
+		if($this->is_independent() || $this->context_attribute === null){
 			return $this->get_primary_identifier_name();
 		} else {
 			return $this->context_attribute->get_identify_by();

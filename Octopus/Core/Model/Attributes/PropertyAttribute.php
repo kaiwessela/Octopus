@@ -4,7 +4,8 @@ use Exception;
 use Octopus\Core\Model\Attribute;
 
 use Octopus\Core\Model\Attributes\Pullable;
-use Octopus\Core\Model\Database\Condition; // TEMP
+use Octopus\Core\Model\Database\Condition;
+use Octopus\Core\Model\Database\Conditions\Equals;
 
 abstract class PropertyAttribute extends Attribute {
 	# inherited from Attribute
@@ -46,9 +47,8 @@ abstract class PropertyAttribute extends Attribute {
 	abstract public function load(null|string|int|float $data) : void;
 
 
-	// TEMP
 	public function resolve_pull_condition(mixed $option) : ?Condition {
-		throw new Exception('do not call yet');
+		return new Equals($this, $option);
 	}
 
 

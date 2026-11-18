@@ -803,8 +803,14 @@ abstract class Entity {
 	# if this entity is not newly created and has not been altered, no database request is executed
 	# and this function returns false. otherwise, if a database request was executed successfully, it returns true.
 	# all attributes this entity contains that are Entities or Relationships themselves are pushed too (recursively).
+	# Called right before push() writes to the database. Override to set auto-updated fields (e.g. local_modified_at).
+	protected function before_push() : void {}
+
+
 	# @return: true if a database request was performed as a result of this process, false if not.
 	final public function push() : bool {
+		$this->before_push();
+
 		if(!$this->is_loaded() /*|| !$this->is_independent()*/){
 			throw new CallOutOfOrderException();
 		}

@@ -98,11 +98,16 @@ class Response {
 	}
 
 
+	public function has_redirect() : bool {
+		return isset($this->redirect);
+	}
+
+
 	public function set_redirect(?string $location, ?int $type = null) : void {
 		if(is_null($location)){
 			$this->redirect = null;
 		} else {
-			$this->redirect = [$location, $type] ?? 303;
+			$this->redirect = [$location, $type ?? 303];
 		}
 	}
 
